@@ -22,7 +22,9 @@ import {
   Sun,
   Moon,
   LogOut,
+  Settings,
 } from "lucide-react";
+import SidebarDropdown from "./SidebarDropdown";
 import WeConnectLogo from "../assets/WeConnect_Logo_C2C.svg";
 
 interface LayoutProps {
@@ -110,6 +112,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       permission: "income.read",
     },
   ].filter((item) => hasPermission(item.permission));
+
+  const settingsChildren = [
+    {
+      name: "Lead Settings",
+      href: "/settings/leads",
+      permission: "lead.read",
+    },
+  ];
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -235,6 +245,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <nav className="mt-8 px-4">
           <div className={`${sidebarCollapsed ? "space-y-1" : "space-y-2"}`}>
             {navigation.map(renderNavItem)}
+            {/* Settings Dropdown */}
+            <SidebarDropdown
+              name={"Settings"}
+              icon={Settings}
+              isCollapsed={sidebarCollapsed}
+              childrenItems={settingsChildren}
+              canShowChild={(perm?: string) => (perm ? hasPermission(perm) : true)}
+            />
           </div>
         </nav>
 

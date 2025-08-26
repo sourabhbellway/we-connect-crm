@@ -10,9 +10,12 @@ import Dashboard from "./components/Dashboard";
 import Leads from "./components/Leads";
 import Users from "./components/Users";
 import Roles from "./components/Roles";
+import LeadSettings from "./components/LeadSettings";
 import Profile from "./components/Profile";
 import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://31.97.233.21:8081/api";
 
@@ -79,6 +82,16 @@ function AppContent() {
           }
         />
         <Route
+          path="/settings/leads"
+          element={
+            <ProtectedRoute requiredPermission="lead.read">
+              <Layout>
+                <LeadSettings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>
@@ -92,6 +105,7 @@ function AppContent() {
       </Routes>
 
       <TokenExpiryModal isOpen={showExpiryModal} onLogin={handleLoginAgain} />
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover theme="colored" />
     </>
   );
 }
