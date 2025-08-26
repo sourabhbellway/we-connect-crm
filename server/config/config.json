@@ -1,0 +1,24 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "Sourabh@123",
+    "database": "crm_db",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "Sourabh@123",
+    "database": "crm_db_test",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "postgres",
+    "password": "Sourabh@123",
+    "database": "crm_db",
+    "host": "localhost",
+    "dialect": "postgres"
+  }
+}
+

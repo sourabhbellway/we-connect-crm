@@ -1,0 +1,247 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getProfile = exports.register = exports.login = void 0;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const express_validator_1 = require("express-validator");
+const prisma_1 = require("../lib/prisma");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const login = async (req, res) => {
+    try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation errors",
+                errors: errors.array(),
+            });
+        }
+        const { email, password } = req.body;
+        const user = await prisma_1.prisma.user.findFirst({
+            where: { email, isActive: true },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                firstName: true,
+                lastName: true,
+                lastLogin: true,
+                roles: {
+                    select: {
+                        role: {
+                            select: {
+                                id: true,
+                                name: true,
+                                permissions: {
+                                    select: {
+                                        permission: {
+                                            select: {
+                                                id: true,
+                                                name: true,
+                                                key: true,
+                                                module: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!user || !(await bcryptjs_1.default.compare(password, user.password))) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials",
+            });
+        }
+        // Update last login
+        await prisma_1.prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() },
+        });
+        // Transform roles data
+        const transformedRoles = user.roles.map((ur) => ({
+            id: ur.role.id,
+            name: ur.role.name,
+            permissions: ur.role.permissions.map((rp) => rp.permission),
+        }));
+        // Generate JWT token with expiry timestamp
+        const secret = process.env.JWT_SECRET || "default-secret-change-in-production";
+        const expiresIn = process.env.JWT_EXPIRE || "24h";
+        const token = jsonwebtoken_1.default.sign({
+            userId: user.id,
+            email: user.email,
+            roles: transformedRoles.map((role) => ({
+                id: role.id,
+                name: role.name,
+                permissions: role.permissions.map((perm) => perm.key),
+            })),
+        }, secret, { expiresIn });
+        // Calculate expiry timestamp
+        const expiryTime = new Date();
+        expiryTime.setHours(expiryTime.getHours() + 24); // 24 hours from now
+        res.json({
+            success: true,
+            message: "Login successful",
+            data: {
+                token,
+                tokenExpiry: expiryTime.toISOString(),
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    fullName: `${user.firstName} ${user.lastName}`,
+                    lastLogin: user.lastLogin,
+                    roles: transformedRoles,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.login = login;
+const register = async (req, res) => {
+    try {
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation errors",
+                errors: errors.array(),
+            });
+        }
+        const { email, password, firstName, lastName } = req.body;
+        // Check if user already exists
+        const existingUser = await prisma_1.prisma.user.findUnique({
+            where: { email },
+        });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "User already exists",
+            });
+        }
+        // Hash password
+        const hashedPassword = await bcryptjs_1.default.hash(password, 12);
+        // Create user
+        const user = await prisma_1.prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                firstName,
+                lastName,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                createdAt: true,
+            },
+        });
+        res.status(201).json({
+            success: true,
+            message: "User registered successfully",
+            data: { user },
+        });
+    }
+    catch (error) {
+        console.error("Register error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.register = register;
+const getProfile = async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User not authenticated",
+            });
+        }
+        const user = await prisma_1.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                lastLogin: true,
+                createdAt: true,
+                updatedAt: true,
+                roles: {
+                    select: {
+                        role: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                permissions: {
+                                    select: {
+                                        permission: {
+                                            select: {
+                                                id: true,
+                                                name: true,
+                                                key: true,
+                                                module: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        // Transform roles data
+        const transformedRoles = user.roles.map((ur) => ({
+            id: ur.role.id,
+            name: ur.role.name,
+            description: ur.role.description,
+            permissions: ur.role.permissions.map((rp) => rp.permission),
+        }));
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    ...user,
+                    fullName: `${user.firstName} ${user.lastName}`,
+                    roles: transformedRoles,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error("Get profile error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.getProfile = getProfile;
+//# sourceMappingURL=authController.js.map

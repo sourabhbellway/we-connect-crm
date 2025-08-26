@@ -1,0 +1,348 @@
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  ReactNode,
+} from "react";
+import { User, AuthState, LoginRequest } from "../types/auth";
+import { authService } from "../services/authService";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://31.97.233.21:8081/api";
+
+// console.log(API_BASE_URL);
+interface AuthContextType extends AuthState {
+  login: (credentials: LoginRequest) => Promise<void>;
+  logout: () => void;
+  checkAuth: () => Promise<void>;
+  updateUser: (user: User) => void;
+  hasPermission: (permission: string) => boolean;
+  hasRole: (role: string) => boolean;
+  triggerTokenExpiry: () => void; // For testing
+  manualCheckExpiry: () => boolean; // For DevTools testing
+}
+
+type AuthAction =
+  | { type: "LOGIN_START" }
+  | {
+      type: "LOGIN_SUCCESS";
+      payload: { user: User; token: string; tokenExpiry: string };
+    }
+  | { type: "LOGIN_FAILURE"; payload: string }
+  | { type: "LOGOUT" }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "CHECK_AUTH_SUCCESS"; payload: User }
+  | { type: "CHECK_AUTH_FAILURE" }
+  | { type: "TOKEN_EXPIRED" }
+  | { type: "UPDATE_USER"; payload: User };
+
+const initialState: AuthState = {
+  user: null,
+  token: localStorage.getItem("token"),
+  isAuthenticated: false,
+  isLoading: true,
+  error: null,
+};
+
+const authReducer = (state: AuthState, action: AuthAction): AuthState => {
+  switch (action.type) {
+    case "LOGIN_START":
+      return {
+        ...state,
+        isLoading: true,
+        error: null,
+      };
+    case "LOGIN_SUCCESS":
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+    case "TOKEN_EXPIRED":
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: "Session expired. Please login again.",
+      };
+    case "LOGIN_FAILURE":
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: action.payload,
+      };
+    case "LOGOUT":
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      };
+    case "SET_LOADING":
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
+    case "CHECK_AUTH_SUCCESS":
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+    case "CHECK_AUTH_FAILURE":
+      return {
+        ...state,
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      };
+    case "UPDATE_USER":
+      return {
+        ...state,
+        user: action.payload,
+      };
+    default:
+      return state;
+  }
+};
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+
+  // Make manualCheckExpiry available globally for DevTools testing
+  React.useEffect(() => {
+    (window as any).checkTokenExpiry = () => {
+      const tokenExpiry = localStorage.getItem("tokenExpiry");
+      if (tokenExpiry) {
+        const expiryTime = new Date(tokenExpiry);
+        const now = new Date();
+
+        console.log("Manual token expiry check:", {
+          tokenExpiry,
+          expiryTime: expiryTime.toISOString(),
+          now: now.toISOString(),
+          isExpired: now >= expiryTime,
+        });
+
+        if (now >= expiryTime) {
+          dispatch({ type: "TOKEN_EXPIRED" });
+          localStorage.removeItem("token");
+          localStorage.removeItem("tokenExpiry");
+          return true;
+        }
+      }
+      return false;
+    };
+  }, []);
+
+  const login = async (credentials: LoginRequest) => {
+    try {
+      dispatch({ type: "LOGIN_START" });
+      const response = await authService.login(credentials);
+
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
+
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user: response.data.user,
+          token: response.data.token,
+          tokenExpiry: response.data.tokenExpiry,
+        },
+      });
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || "An error occurred during login";
+      dispatch({ type: "LOGIN_FAILURE", payload: message });
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("tokenExpiry");
+    dispatch({ type: "LOGOUT" });
+  };
+
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        dispatch({ type: "CHECK_AUTH_FAILURE" });
+        return;
+      }
+
+      const response = await authService.getProfile();
+      dispatch({ type: "CHECK_AUTH_SUCCESS", payload: response.data.user });
+    } catch (error: any) {
+      // Handle 401 errors by dispatching TOKEN_EXPIRED
+      if (error.response?.status === 401) {
+        dispatch({ type: "TOKEN_EXPIRED" });
+      } else {
+        dispatch({ type: "CHECK_AUTH_FAILURE" });
+      }
+    }
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    if (!state.user || !state.user.roles) return false;
+
+    return state.user.roles.some((role) =>
+      role.permissions.some((perm) => perm.key === permission)
+    );
+  };
+
+  const hasRole = (roleName: string): boolean => {
+    if (!state.user || !state.user.roles) return false;
+
+    return state.user.roles.some((role) => role.name === roleName);
+  };
+
+  // For testing - manually trigger token expiry
+  const triggerTokenExpiry = () => {
+    dispatch({ type: "TOKEN_EXPIRED" });
+    localStorage.removeItem("token");
+    localStorage.removeItem("tokenExpiry");
+  };
+
+  // Check token expiry
+  const checkTokenExpiry = () => {
+    const tokenExpiry = localStorage.getItem("tokenExpiry");
+    if (tokenExpiry) {
+      const expiryTime = new Date(tokenExpiry);
+      const now = new Date();
+
+      if (now >= expiryTime) {
+        dispatch({ type: "TOKEN_EXPIRED" });
+        localStorage.removeItem("token");
+        localStorage.removeItem("tokenExpiry");
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Manual check for DevTools testing
+  const manualCheckExpiry = () => {
+    const tokenExpiry = localStorage.getItem("tokenExpiry");
+    if (tokenExpiry) {
+      const expiryTime = new Date(tokenExpiry);
+      const now = new Date();
+
+      console.log("Token expiry check:", {
+        tokenExpiry,
+        expiryTime: expiryTime.toISOString(),
+        now: now.toISOString(),
+        isExpired: now >= expiryTime,
+      });
+
+      if (now >= expiryTime) {
+        dispatch({ type: "TOKEN_EXPIRED" });
+        localStorage.removeItem("token");
+        localStorage.removeItem("tokenExpiry");
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Set up token expiry timer
+  useEffect(() => {
+    const tokenExpiry = localStorage.getItem("tokenExpiry");
+    if (tokenExpiry) {
+      const expiryTime = new Date(tokenExpiry);
+      const now = new Date();
+      const timeUntilExpiry = expiryTime.getTime() - now.getTime();
+
+      if (timeUntilExpiry > 0) {
+        const timer = setTimeout(() => {
+          dispatch({ type: "TOKEN_EXPIRED" });
+          localStorage.removeItem("token");
+          localStorage.removeItem("tokenExpiry");
+        }, timeUntilExpiry);
+
+        return () => clearTimeout(timer);
+      } else {
+        // Token already expired
+        dispatch({ type: "TOKEN_EXPIRED" });
+        localStorage.removeItem("token");
+        localStorage.removeItem("tokenExpiry");
+      }
+    }
+  }, [state.token]);
+
+  // Check token expiry when page becomes visible (for DevTools testing)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const tokenExpiry = localStorage.getItem("tokenExpiry");
+        if (tokenExpiry) {
+          const expiryTime = new Date(tokenExpiry);
+          const now = new Date();
+
+          if (now >= expiryTime) {
+            dispatch({ type: "TOKEN_EXPIRED" });
+            localStorage.removeItem("token");
+            localStorage.removeItem("tokenExpiry");
+          }
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const updateUser = (user: User) => {
+    dispatch({ type: "UPDATE_USER", payload: user });
+  };
+
+  const value: AuthContextType = {
+    ...state,
+    login,
+    logout,
+    checkAuth,
+    updateUser,
+    hasPermission,
+    hasRole,
+    triggerTokenExpiry,
+    manualCheckExpiry,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

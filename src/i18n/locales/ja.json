@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "ダッシュボード",
+    "users": "ユーザー",
+    "leads": "リード",
+    "roles": "ロール",
+    "income": "収入"
+  },
+  "common": {
+    "search": "検索",
+    "notifications": "通知",
+    "theme": "テーマ",
+    "language": "言語",
+    "logout": "ログアウト",
+    "active": "アクティブ",
+    "noRole": "ロールなし",
+    "welcome": "WeConnectへようこそ",
+    "description": "包括的なリード管理システム"
+  },
+  "user": {
+    "greeting": "こんにちは、{{name}}",
+    "profile": "ユーザープロフィール",
+    "settings": "設定",
+    "help": "ヘルプとサポート"
+  },
+  "sidebar": {
+    "collapse": "サイドバーを折りたたむ",
+    "expand": "サイドバーを展開する",
+    "menu": "メニュー"
+  },
+  "languages": {
+    "en": "英語",
+    "hi": "ヒンディー語",
+    "es": "スペイン語",
+    "fr": "フランス語",
+    "de": "ドイツ語",
+    "ar": "アラビア語",
+    "zh": "中国語",
+    "ja": "日本語",
+    "ko": "韓国語",
+    "pt": "ポルトガル語"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "edit": "編集",
+    "delete": "削除",
+    "create": "作成",
+    "update": "更新"
+  },
+  "dashboard": {
+    "welcome": "お帰りなさい！",
+    "totalUsers": "ユーザー総数",
+    "activeUsers": "アクティブユーザー",
+    "totalRoles": "ロール総数",
+    "recentActivity": "最近のアクティビティ"
+  },
+  "users": {
+    "title": "ユーザー",
+    "userManagement": "ユーザー管理",
+    "addUser": "ユーザーを追加",
+    "totalUsers": "ユーザー総数",
+    "activeUsers": "アクティブユーザー",
+    "newUsers": "新規ユーザー",
+    "inactiveUsers": "非アクティブユーザー",
+    "allUsers": "すべてのユーザー",
+    "manageAndTrack": "ユーザーアカウントを管理・追跡します",
+    "user": "ユーザー",
+    "role": "ロール",
+    "lastLogin": "最終ログイン",
+    "created": "作成日時",
+    "noRoleAssigned": "ロール未割り当て",
+    "searchUsers": "ユーザーを検索..."
+  },
+  "leads": {
+    "title": "リード",
+    "leadManagement": "リード管理",
+    "addLead": "リードを追加",
+    "totalLeads": "リード総数",
+    "newLeads": "新規リード",
+    "qualified": "有望",
+    "closed": "クローズ",
+    "searchLeads": "リードを検索...",
+    "status": {
+      "new": "新規",
+      "contacted": "連絡済み",
+      "qualified": "有望",
+      "proposal": "提案",
+      "negotiation": "交渉",
+      "closed": "クローズ",
+      "lost": "失注"
+    }
+  },
+  "roles": {
+    "title": "ロール",
+    "permissions": "権限",
+    "roleManagement": "ロール管理",
+    "createRole": "ロールを作成",
+    "totalRoles": "ロール総数",
+    "activeRoles": "アクティブロール",
+    "inactiveRoles": "非アクティブロール",
+    "totalPermissions": "権限総数",
+    "searchRoles": "ロールを検索..."
+  },
+  "common": {
+    "filter": "フィルター",
+    "showFilters": "フィルターを表示",
+    "hide": "非表示",
+    "show": "表示",
+    "search": "検索",
+    "status": "ステータス",
+    "actions": "操作",
+    "language": "言語",
+    "logout": "ログアウト"
+  }
+}
