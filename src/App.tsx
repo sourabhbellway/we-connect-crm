@@ -8,6 +8,8 @@ import Layout from "./components/Layout";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Leads from "./components/Leads";
+import LeadCreate from "./components/LeadCreate";
+import LeadEdit from "./components/LeadEdit";
 import Users from "./components/Users";
 import Roles from "./components/Roles";
 import LeadSettings from "./components/LeadSettings";
@@ -57,6 +59,26 @@ function AppContent() {
             <ProtectedRoute requiredPermission="lead.read">
               <Layout>
                 <Leads />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leads/new"
+          element={
+            <ProtectedRoute requiredPermission="lead.create">
+              <Layout>
+                <LeadCreate />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leads/:id/edit"
+          element={
+            <ProtectedRoute requiredPermission="lead.update">
+              <Layout>
+                <LeadEdit />
               </Layout>
             </ProtectedRoute>
           }
