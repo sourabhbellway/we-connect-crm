@@ -119,6 +119,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       href: "/settings/leads",
       permission: "lead.read",
     },
+    {
+      name: "Industry Settings",
+      href: "/settings/industries",
+      // Only show to Admin via canShowChild using role check is not available here.
+      // We rely on route protection for Admin, so no permission needed here.
+    },
   ];
 
   const isActive = (path: string) => {
@@ -251,7 +257,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               icon={Settings}
               isCollapsed={sidebarCollapsed}
               childrenItems={settingsChildren}
-              canShowChild={(perm?: string) => (perm ? hasPermission(perm) : true)}
+              canShowChild={(perm?: string) =>
+                perm ? hasPermission(perm) : true
+              }
             />
           </div>
         </nav>

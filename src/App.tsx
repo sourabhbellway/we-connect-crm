@@ -13,6 +13,7 @@ import LeadEdit from "./components/LeadEdit";
 import Users from "./components/Users";
 import Roles from "./components/Roles";
 import LeadSettings from "./components/LeadSettings";
+import IndustrySettings from "./components/IndustrySettings";
 import Profile from "./components/Profile";
 import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -114,6 +115,16 @@ function AppContent() {
           }
         />
         <Route
+          path="/settings/industries"
+          element={
+            <ProtectedRoute requiredRole="Admin">
+              <Layout>
+                <IndustrySettings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>
@@ -127,7 +138,15 @@ function AppContent() {
       </Routes>
 
       <TokenExpiryModal isOpen={showExpiryModal} onLogin={handleLoginAgain} />
-      <ToastContainer position="top-right" autoClose={2500} hideProgressBar={false} newestOnTop closeOnClick pauseOnHover theme="colored" />
+      <ToastContainer
+        position="top-right"
+        autoClose={2500}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="colored"
+      />
     </>
   );
 }

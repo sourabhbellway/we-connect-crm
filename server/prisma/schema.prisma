@@ -174,3 +174,40 @@ enum LeadStatus {
   CLOSED
   LOST
 }
+
+/// Industry master data for leads/companies
+model Industry {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  slug        String           @unique
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  fields      IndustryField[]
+
+  @@map("industries")
+}
+
+/// Custom fields associated with an Industry
+model IndustryField {
+  id          Int       @id @default(autoincrement())
+  industryId  Int
+  name        String
+  key         String
+  type        FieldType  @default(TEXT)
+  isRequired  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  industry    Industry  @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  @@unique([industryId, key])
+  @@map("industry_fields")
+}
+
+enum FieldType {
+  TEXT
+  NUMBER
+  DATE
+  BOOLEAN
+}

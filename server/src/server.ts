@@ -15,6 +15,7 @@ import userRoutes from "./routes/userRoutes";
 import leadRoutes from "./routes/leadRoutes";
 import tagRoutes from "./routes/tagRoutes";
 import leadSourceRoutes from "./routes/leadSourceRoutes";
+import industryRoutes from "./routes/industryRoutes";
 import permissionRoutes from "./routes/permissionRoutes";
 import activityRoutes from "./routes/activityRoutes";
 
@@ -80,6 +81,7 @@ app.use("/api", userRoutes);
 app.use("/api", leadRoutes);
 app.use("/api", tagRoutes);
 app.use("/api", leadSourceRoutes);
+app.use("/api", industryRoutes);
 app.use("/api", permissionRoutes);
 app.use("/api", activityRoutes);
 
