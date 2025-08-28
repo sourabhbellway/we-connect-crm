@@ -23,6 +23,7 @@ export const getIndustries = async (
             id: true,
             industryId: true,
             name: true,
+            type: true,
             isRequired: true,
             isActive: true,
             createdAt: true,
@@ -66,7 +67,7 @@ export const createIndustry = async (
                   .replace(/[^a-z0-9\s-]/g, "")
                   .replace(/\s+/g, "_")
                   .replace(/_+/g, "_"),
-                type: f.type || undefined,
+                type: normalizeFieldType(f.type) || undefined,
                 isRequired: Boolean(f.isRequired),
                 isActive: f.isActive ?? true,
               })),
@@ -84,6 +85,7 @@ export const createIndustry = async (
             id: true,
             industryId: true,
             name: true,
+            type: true,
             isRequired: true,
             isActive: true,
             createdAt: true,
@@ -183,7 +185,7 @@ export const addIndustryField = async (
 ) => {
   try {
     const { id } = req.params; // industry id
-    const { name, isRequired, isActive } = req.body as any;
+    const { name, isRequired, isActive, type } = req.body as any;
 
     const field = await prisma.industryField.create({
       data: {
@@ -195,6 +197,7 @@ export const addIndustryField = async (
           .replace(/[^a-z0-9\s-]/g, "")
           .replace(/\s+/g, "_")
           .replace(/_+/g, "_"),
+        type: normalizeFieldType(type) || undefined,
         isRequired: Boolean(isRequired),
         isActive: isActive ?? true,
       },
@@ -219,11 +222,16 @@ export const updateIndustryField = async (
 ) => {
   try {
     const { fieldId } = req.params;
-    const { name, isRequired, isActive } = req.body as any;
+    const { name, isRequired, isActive, type } = req.body as any;
 
     const field = await prisma.industryField.update({
       where: { id: parseInt(fieldId) },
-      data: { name, isRequired, isActive },
+      data: {
+        name,
+        isRequired,
+        isActive,
+        type: normalizeFieldType(type) || undefined,
+      },
     });
 
     res.json({ success: true, data: { field } });
@@ -232,6 +240,27 @@ export const updateIndustryField = async (
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+// Helper to normalize incoming field type strings to Prisma enum values
+function normalizeFieldType(input?: string) {
+  if (!input) return undefined as any;
+  const value = String(input).trim().toUpperCase();
+  const map: Record<string, string> = {
+    TEXT: "TEXT",
+    NUMBER: "NUMBER",
+    DATE: "DATE",
+    TIME: "TIME",
+    DROPDOWN: "DROPDOWN",
+    "MULTI-SELECT": "MULTI_SELECT",
+    MULTI_SELECT: "MULTI_SELECT",
+    MULTISELECT: "MULTI_SELECT",
+    CHECKBOX: "CHECKBOX",
+    TOGGLE: "TOGGLE",
+    FILE: "FILE",
+    FILE_UPLOAD: "FILE",
+  };
+  return (map[value] as any) || undefined;
+}
 
 export const deleteIndustryField = async (
   req: AuthenticatedRequest,

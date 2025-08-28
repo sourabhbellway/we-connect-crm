@@ -284,7 +284,11 @@ const IndustrySettings: React.FC = () => {
                       <span className="text-sm text-gray-800 dark:text-gray-100">
                         {f.name}
                       </span>
-
+                      {(f as any).type && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                          {(f as any).type}
+                        </span>
+                      )}
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                         {f.isRequired ? "Required" : "Optional"}
                       </span>
@@ -384,6 +388,7 @@ const IndustrySettings: React.FC = () => {
           const fd = new FormData(form);
           const payload = {
             name: String(fd.get("name") || "").trim(),
+            type: String(fd.get("type") || "TEXT").toUpperCase(),
             isRequired: !!fd.get("isRequired"),
             isActive: !!fd.get("isActive"),
           } as any;
@@ -398,6 +403,27 @@ const IndustrySettings: React.FC = () => {
             required
             defaultValue={fieldModal.editing?.name || ""}
           />
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Type
+            </label>
+            <select
+              name="type"
+              defaultValue={(fieldModal.editing as any)?.type || "TEXT"}
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              required
+            >
+              <option value="TEXT">Text</option>
+              <option value="NUMBER">Number</option>
+              <option value="DATE">Date</option>
+              <option value="TIME">Time</option>
+              <option value="DROPDOWN">Dropdown</option>
+              <option value="MULTI_SELECT">Multi-select Dropdown</option>
+              <option value="CHECKBOX">Checkbox</option>
+              <option value="TOGGLE">Toggle</option>
+              <option value="FILE">File Upload</option>
+            </select>
+          </div>
         </div>
         <div className="mt-2 flex items-center space-x-4">
           <label className="flex items-center text-xs text-gray-700 dark:text-gray-300">

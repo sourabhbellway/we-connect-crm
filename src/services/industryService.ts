@@ -4,6 +4,16 @@ export interface IndustryField {
   id: number;
   industryId: number;
   name: string;
+  type?:
+    | "TEXT"
+    | "NUMBER"
+    | "DATE"
+    | "TIME"
+    | "DROPDOWN"
+    | "MULTI_SELECT"
+    | "CHECKBOX"
+    | "TOGGLE"
+    | "FILE";
   isRequired: boolean;
   isActive: boolean;
   createdAt: string;
