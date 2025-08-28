@@ -313,7 +313,7 @@ const Leads: React.FC = () => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {t("leads.leadsList")}
+              {t("All Leads")}
             </h3>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {t("common.showing")} {leads.length} {t("common.of")}{" "}
@@ -444,13 +444,7 @@ const Leads: React.FC = () => {
                   </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
-                      <button
-                        onClick={() => handleViewLead(lead)}
-                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                              title={t("common.view")}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
+                    
                       <button
                         onClick={() => handleEditLead(lead)}
                               className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 p-1 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
