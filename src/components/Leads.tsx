@@ -99,7 +99,7 @@ const Leads: React.FC = () => {
     try {
       setLoading(true);
       const response = await leadService.getLeads(filters);
-      console.log(response);
+     
       setLeads(response.data.leads);
       setPagination(response.data.pagination);
       setError(null);
