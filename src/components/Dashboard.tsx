@@ -13,6 +13,8 @@ import {
 import { FiClock } from "react-icons/fi";
 import { useState, useEffect } from "react";
 import { userService } from "../services/userService";
+import { leadService } from "../services/leadService";
+import { roleService } from "../services/roleService";
 import { activityService } from "../services/activityService";
 import { useAuth } from "../contexts/AuthContext";
 import { transformActivityData } from "../utils/activityUtils";
@@ -28,6 +30,8 @@ function Dashboard() {
   });
   const [activities, setActivities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLeadLoading, setIsLeadLoading] = useState(true);
+  const [isRoleLoading, setIsRoleLoading] = useState(true);
   const [isActivityLoading, setIsActivityLoading] = useState(true);
   const [isStatusLoading, setIsStatusLoading] = useState(true);
   const [visitorsThisMonth, setVisitorsThisMonth] = useState<number>(0);
@@ -49,6 +53,33 @@ function Dashboard() {
     month: number;
     total: number;
   }>({ today: 0, week: 0, month: 0, total: 0 });
+
+  // Slider state and datasets
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const [leadStats, setLeadStats] = useState<{
+    totalLeads: number;
+    newLeads: number;
+    contactedLeads: number;
+    qualifiedLeads: number;
+    proposalLeads: number;
+    negotiationLeads: number;
+    closedLeads: number;
+    lostLeads: number;
+  }>({
+    totalLeads: 0,
+    newLeads: 0,
+    contactedLeads: 0,
+    qualifiedLeads: 0,
+    proposalLeads: 0,
+    negotiationLeads: 0,
+    closedLeads: 0,
+    lostLeads: 0,
+  });
+  const [roleStats, setRoleStats] = useState<{
+    totalRoles: number;
+    activeRoles: number;
+    inactiveRoles: number;
+  }>({ totalRoles: 0, activeRoles: 0, inactiveRoles: 0 });
 
   // Activity Calendar / To-Do state
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -170,6 +201,52 @@ function Dashboard() {
     fetchActivities();
   }, [hasPermission]);
 
+  // Fetch Leads and Roles stats for slides
+  useEffect(() => {
+    const fetchLeadStats = async () => {
+      try {
+        if (hasPermission("lead.read")) {
+          const response = await leadService.getLeadStats();
+          const ls = response?.data || response;
+          setLeadStats({
+            totalLeads: ls.totalLeads ?? 0,
+            newLeads: ls.newLeads ?? 0,
+            contactedLeads: ls.contactedLeads ?? 0,
+            qualifiedLeads: ls.qualifiedLeads ?? 0,
+            proposalLeads: ls.proposalLeads ?? 0,
+            negotiationLeads: ls.negotiationLeads ?? 0,
+            closedLeads: ls.closedLeads ?? 0,
+            lostLeads: ls.lostLeads ?? 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching lead stats:", error);
+      } finally {
+        setIsLeadLoading(false);
+      }
+    };
+
+    const fetchRoleStats = async () => {
+      try {
+        if (hasPermission("role.read")) {
+          const response = await roleService.getRoles();
+          const roles = response?.data?.roles || [];
+          const totalRoles = roles.length;
+          const activeRoles = roles.filter((r: any) => r.isActive).length;
+          const inactiveRoles = totalRoles - activeRoles;
+          setRoleStats({ totalRoles, activeRoles, inactiveRoles });
+        }
+      } catch (error) {
+        console.error("Error fetching role stats:", error);
+      } finally {
+        setIsRoleLoading(false);
+      }
+    };
+
+    fetchLeadStats();
+    fetchRoleStats();
+  }, [hasPermission]);
+
   useEffect(() => {
     const fetchSystemStatusAndVisitors = async () => {
       try {
@@ -255,35 +332,158 @@ function Dashboard() {
             Welcome to your dashboard, We're excited to have you here.
           </p>
         </div>
-        <div className="right flex gap-2 lg:w-[70%]">
-          <Stats
-            icon={<HiOutlineUser />}
-            count={isLoading ? "..." : userStats.totalUsers}
-            title="Total Users"
-            activity="All registered users"
-            colorType="normal"
-          />
-          <Stats
-            icon={<HiOutlineUserGroup />}
-            count={isLoading ? "..." : userStats.activeUsers}
-            title="Active Users"
-            activity="Currently active"
-            colorType="green"
-          />
-          <Stats
-            icon={<HiOutlineUserMinus />}
-            count={isLoading ? "..." : userStats.inactiveUsers}
-            title="Inactive Users"
-            activity="Deactivated accounts"
-            colorType="red"
-          />
-          <Stats
-            icon={<HiOutlineUserPlus />}
-            count={isLoading ? "..." : userStats.newUsers}
-            title="New Users"
-            activity="Last 30 days"
-            colorType="sky"
-          />
+        <div className="right flex gap-2 lg:w-[70%] items-center relative z-10">
+          <button
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white mr-2"
+            onClick={() => {
+              const slides = [
+                "users",
+                ...(hasPermission("lead.read") ? ["leads"] : []),
+                ...(hasPermission("role.read") ? ["roles"] : []),
+              ];
+              setCurrentSlide(
+                (prev) => (prev - 1 + slides.length) % slides.length
+              );
+            }}
+            aria-label="Previous slide"
+          >
+            <HiOutlineChevronLeft className="w-4 h-4" />
+          </button>
+
+          {(() => {
+            const slides = [
+              "users",
+              ...(hasPermission("lead.read") ? ["leads"] : []),
+              ...(hasPermission("role.read") ? ["roles"] : []),
+            ];
+            const activeKey =
+              slides[
+                ((currentSlide % slides.length) + slides.length) % slides.length
+              ] || "users";
+
+            if (activeKey === "leads") {
+              return (
+                <div className="flex gap-2 w-full">
+                  <Stats
+                    icon={<HiOutlineUserGroup />}
+                    count={isLeadLoading ? "..." : leadStats.totalLeads}
+                    title="Total Leads"
+                    activity="All active leads"
+                    colorType="normal"
+                  />
+                  <Stats
+                    icon={<HiOutlineUserPlus />}
+                    count={isLeadLoading ? "..." : leadStats.newLeads}
+                    title="New Leads"
+                    activity="Recently created"
+                    colorType="sky"
+                  />
+                  <Stats
+                    icon={<HiOutlineUser />}
+                    count={isLeadLoading ? "..." : leadStats.qualifiedLeads}
+                    title="Qualified"
+                    activity="Marked qualified"
+                    colorType="green"
+                  />
+                  <Stats
+                    icon={<HiOutlineCheck />}
+                    count={isLeadLoading ? "..." : leadStats.closedLeads}
+                    title="Closed"
+                    activity="Won deals"
+                    colorType="green"
+                  />
+                </div>
+              );
+            }
+
+            if (activeKey === "roles") {
+              const activePercent = roleStats.totalRoles
+                ? Math.round(
+                    (roleStats.activeRoles / roleStats.totalRoles) * 100
+                  )
+                : 0;
+              return (
+                <div className="flex gap-2 w-full">
+                  <Stats
+                    icon={<HiOutlineUserGroup />}
+                    count={isRoleLoading ? "..." : roleStats.totalRoles}
+                    title="Total Roles"
+                    activity="All roles"
+                    colorType="normal"
+                  />
+                  <Stats
+                    icon={<HiOutlineUserPlus />}
+                    count={isRoleLoading ? "..." : roleStats.activeRoles}
+                    title="Active Roles"
+                    activity="Enabled roles"
+                    colorType="green"
+                  />
+                  <Stats
+                    icon={<HiOutlineUserMinus />}
+                    count={isRoleLoading ? "..." : roleStats.inactiveRoles}
+                    title="Inactive Roles"
+                    activity="Disabled roles"
+                    colorType="red"
+                  />
+                  <Stats
+                    icon={<HiOutlineCheck />}
+                    count={isRoleLoading ? "..." : `${activePercent}%`}
+                    title="Active %"
+                    activity="Role health"
+                    colorType="sky"
+                  />
+                </div>
+              );
+            }
+
+            return (
+              <div className="flex gap-2 w-full">
+                <Stats
+                  icon={<HiOutlineUser />}
+                  count={isLoading ? "..." : userStats.totalUsers}
+                  title="Total Users"
+                  activity="All registered users"
+                  colorType="normal"
+                />
+                <Stats
+                  icon={<HiOutlineUserGroup />}
+                  count={isLoading ? "..." : userStats.activeUsers}
+                  title="Active Users"
+                  activity="Currently active"
+                  colorType="green"
+                />
+                <Stats
+                  icon={<HiOutlineUserMinus />}
+                  count={isLoading ? "..." : userStats.inactiveUsers}
+                  title="Inactive Users"
+                  activity="Deactivated accounts"
+                  colorType="red"
+                />
+                <Stats
+                  icon={<HiOutlineUserPlus />}
+                  count={isLoading ? "..." : userStats.newUsers}
+                  title="New Users"
+                  activity="Last 30 days"
+                  colorType="sky"
+                />
+              </div>
+            );
+          })()}
+
+          <button
+            className="hidden lg:flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white ml-2"
+            onClick={() => {
+              const slides = [
+                "users",
+                ...(hasPermission("lead.read") ? ["leads"] : []),
+                ...(hasPermission("role.read") ? ["roles"] : []),
+              ];
+              setCurrentSlide((prev) => (prev + 1) % slides.length);
+            }}
+            aria-label="Next slide"
+          >
+            <HiOutlineChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

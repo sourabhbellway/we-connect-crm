@@ -105,7 +105,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       badge: "3",
       badgeColor: "bg-orange-500",
     },
-  
   ].filter((item) => hasPermission(item.permission));
 
   const settingsChildren = [
@@ -259,98 +258,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-100 dark:border-gray-700">
-          {sidebarCollapsed ? (
-            /* Collapsed sidebar - only user icon */
-            <div className="flex justify-center">
-              <Link
-                to="/profile"
-                className="h-10 w-10 bg-white dark:bg-gray-700 rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
-                title={t("user.profile")}
-              >
-                {user?.profilePicture ? (
-                  <img
-                    src={`${
-                      import.meta.env.VITE_API_BASE_URL ||
-                      "http://31.97.233.21:8081"
-                    }/uploads/${user.profilePicture}`}
-                    alt="Profile"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <UserIcon className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                )}
-              </Link>
-            </div>
-          ) : (
-            /* Expanded sidebar - full user info */
-            <Link
-              to="/profile"
-              className="flex items-center space-x-1 bg-zinc-100 dark:bg-gray-700 py-2 px-2 rounded-full hover:bg-zinc-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
-            >
-              {/* User Avatar */}
-              <div className="flex-shrink-0">
-                {user?.profilePicture ? (
-                  <img
-                    src={`${
-                      import.meta.env.VITE_API_BASE_URL ||
-                      "http://31.97.233.21:8081"
-                    }/uploads/${user.profilePicture}`}
-                    alt="Profile"
-                    className="h-12 w-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className="h-12 w-12 bg-white dark:bg-gray-600 rounded-full flex items-center justify-center"
-                    title={t("user.profile")}
-                  >
-                    <UserIcon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                  </div>
-                )}
-              </div>
-
-              {/* User Info Bubble */}
-              <div className="flex-1 min-w-0">
-                <div className="bg-[#e1ff01] dark:bg-yellow-400 rounded-full px-3 py-2 relative">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-gray-900 dark:text-gray-900 truncate">
-                        {t("user.greeting", { name: user?.fullName || "User" })}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-700 truncate">
-                        {user?.roles?.[0]?.name || t("common.noRole")} •{" "}
-                        {t("common.active")}
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleLogoutClick();
-                      }}
-                      className="ml-2 p-1 rounded-md text-gray-600 dark:text-gray-700 hover:text-gray-800 dark:hover:text-gray-900 hover:bg-[#e1ff01] dark:hover:bg-yellow-300 transition-colors"
-                      title={t("common.logout")}
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        strokeWidth="2"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          )}
-        </div>
+        {/* Profile shortcut removed to avoid duplication; use top-right user menu */}
       </div>
 
       {/* Main content */}
