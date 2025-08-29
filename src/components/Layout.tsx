@@ -105,12 +105,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       badge: "3",
       badgeColor: "bg-orange-500",
     },
-    {
-      name: t("navigation.income"),
-      href: "/income",
-      icon: PieChart,
-      permission: "income.read",
-    },
+  
   ].filter((item) => hasPermission(item.permission));
 
   const settingsChildren = [
