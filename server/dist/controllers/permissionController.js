@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deletePermission = exports.updatePermission = exports.createPermission = exports.getPermissions = void 0;
 const prisma_1 = require("../lib/prisma");
+const activityLogger_1 = require("../utils/activityLogger");
 const getPermissions = async (req, res) => {
     try {
         const permissions = await prisma_1.prisma.permission.findMany({
-            orderBy: { module: "asc", name: "asc" },
+            orderBy: [{ module: "asc" }, { name: "asc" }],
         });
         res.json({
             success: true,
@@ -32,6 +33,8 @@ const createPermission = async (req, res) => {
                 module,
             },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.permissionChanged("UPDATED", { permissionId: permission.id, key: permission.key, action: "CREATED" }, actorId);
         res.status(201).json({
             success: true,
             message: "Permission created successfully",
@@ -67,6 +70,8 @@ const updatePermission = async (req, res) => {
                 module,
             },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.permissionChanged("UPDATED", { permissionId: permission.id, key: permission.key, action: "UPDATED" }, actorId);
         res.json({
             success: true,
             message: "Permission updated successfully",
@@ -95,6 +100,8 @@ const deletePermission = async (req, res) => {
         await prisma_1.prisma.permission.delete({
             where: { id: parseInt(id) },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.permissionChanged("REVOKED", { permissionId: parseInt(id), action: "DELETED" }, actorId);
         res.json({
             success: true,
             message: "Permission deleted successfully",

@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTag = exports.updateTag = exports.createTag = exports.getTags = void 0;
 const prisma_1 = require("../lib/prisma");
+const activityLogger_1 = require("../utils/activityLogger");
 const getTags = async (req, res) => {
     try {
         const tags = await prisma_1.prisma.tag.findMany({
             where: { isActive: true },
-            orderBy: { name: "asc" },
+            orderBy: [{ name: "asc" }],
         });
         res.json({
             success: true,
@@ -32,6 +33,8 @@ const createTag = async (req, res) => {
                 description,
             },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.tagChanged("CREATED", { id: tag.id, name: tag.name }, actorId);
         res.status(201).json({
             success: true,
             message: "Tag created successfully",
@@ -67,6 +70,8 @@ const updateTag = async (req, res) => {
                 isActive,
             },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.tagChanged("UPDATED", { id: tag.id, name: tag.name }, actorId);
         res.json({
             success: true,
             message: "Tag updated successfully",
@@ -88,6 +93,8 @@ const deleteTag = async (req, res) => {
         await prisma_1.prisma.tag.delete({
             where: { id: parseInt(id) },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.tagChanged("DELETED", { id: parseInt(id), name: "" }, actorId);
         res.json({
             success: true,
             message: "Tag deleted successfully",

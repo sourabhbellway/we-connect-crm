@@ -3,20 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getLeadStats = exports.deleteLead = exports.updateLead = exports.createLead = exports.getLeadById = exports.getLeads = void 0;
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
+const activityLogger_1 = require("../utils/activityLogger");
 const getLeads = async (req, res) => {
     try {
         const { page = 1, limit = 10, status, search } = req.query;
-        const offset = (Number(page) - 1) * Number(limit);
+        // Validate pagination parameters
+        const pageNum = Math.max(1, Number(page));
+        const limitNum = Math.min(100, Math.max(1, Number(limit))); // Limit to 100 max
+        const offset = (pageNum - 1) * limitNum;
         const whereClause = { isActive: true };
         if (status) {
-            whereClause.status = status;
+            whereClause.status = status.toUpperCase();
         }
         if (search) {
+            const searchTerm = search;
             whereClause.OR = [
-                { firstName: { contains: search, mode: "insensitive" } },
-                { lastName: { contains: search, mode: "insensitive" } },
-                { email: { contains: search, mode: "insensitive" } },
-                { company: { contains: search, mode: "insensitive" } },
+                { firstName: { contains: searchTerm } },
+                { lastName: { contains: searchTerm } },
+                { email: { contains: searchTerm } },
+                { company: { contains: searchTerm } },
             ];
         }
         const [leads, totalCount] = await Promise.all([
@@ -43,8 +48,8 @@ const getLeads = async (req, res) => {
                         },
                     },
                 },
-                orderBy: { createdAt: "desc" },
-                take: Number(limit),
+                orderBy: [{ createdAt: "desc" }],
+                take: limitNum,
                 skip: offset,
             }),
             prisma_1.prisma.lead.count({ where: whereClause }),
@@ -59,16 +64,26 @@ const getLeads = async (req, res) => {
             data: {
                 leads: transformedLeads,
                 pagination: {
-                    currentPage: Number(page),
-                    totalPages: Math.ceil(totalCount / Number(limit)),
+                    currentPage: pageNum,
+                    totalPages: Math.ceil(totalCount / limitNum),
                     totalItems: totalCount,
-                    itemsPerPage: Number(limit),
+                    itemsPerPage: limitNum,
                 },
             },
         });
     }
     catch (error) {
         console.error("Get leads error:", error);
+        // Check for specific database errors
+        if (error instanceof Error) {
+            if (error.message.includes("connection") ||
+                error.message.includes("timeout")) {
+                return res.status(503).json({
+                    success: false,
+                    message: "Database connection error. Please try again.",
+                });
+            }
+        }
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -138,7 +153,7 @@ const createLead = async (req, res) => {
                 errors: errors.array(),
             });
         }
-        const { firstName, lastName, email, phone, company, position, sourceId, status, notes, assignedTo, tagIds, } = req.body;
+        const { firstName, lastName, email, phone, company, position, sourceId, status, notes, assignedTo, tags, } = req.body;
         const lead = await prisma_1.prisma.lead.create({
             data: {
                 firstName,
@@ -148,12 +163,12 @@ const createLead = async (req, res) => {
                 company,
                 position,
                 sourceId: sourceId ? parseInt(sourceId) : null,
-                status,
+                status: status ? status.toUpperCase() : undefined,
                 notes,
                 assignedTo: assignedTo ? parseInt(assignedTo) : null,
-                tags: tagIds && tagIds.length > 0
+                tags: tags && tags.length > 0
                     ? {
-                        create: tagIds.map((tagId) => ({
+                        create: tags.map((tagId) => ({
                             tag: {
                                 connect: { id: tagId },
                             },
@@ -188,6 +203,14 @@ const createLead = async (req, res) => {
             ...lead,
             tags: lead.tags.map((lt) => lt.tag),
         };
+        // Log
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.leadCreated({
+            id: lead.id,
+            firstName: lead.firstName,
+            lastName: lead.lastName,
+            email: lead.email,
+        }, actorId);
         res.status(201).json({
             success: true,
             message: "Lead created successfully",
@@ -214,7 +237,7 @@ const updateLead = async (req, res) => {
             });
         }
         const { id } = req.params;
-        const { firstName, lastName, email, phone, company, position, sourceId, status, notes, assignedTo, tagIds, } = req.body;
+        const { firstName, lastName, email, phone, company, position, sourceId, status, notes, assignedTo, tags, } = req.body;
         // Check if lead exists
         const existingLead = await prisma_1.prisma.lead.findUnique({
             where: { id: parseInt(id) },
@@ -235,13 +258,13 @@ const updateLead = async (req, res) => {
                 company,
                 position,
                 sourceId: sourceId ? parseInt(sourceId) : null,
-                status,
+                status: status ? status.toUpperCase() : undefined,
                 notes,
                 assignedTo: assignedTo ? parseInt(assignedTo) : null,
                 tags: {
                     deleteMany: {},
-                    create: tagIds && tagIds.length > 0
-                        ? tagIds.map((tagId) => ({
+                    create: tags && tags.length > 0
+                        ? tags.map((tagId) => ({
                             tag: {
                                 connect: { id: tagId },
                             },
@@ -276,6 +299,14 @@ const updateLead = async (req, res) => {
             ...lead,
             tags: lead.tags.map((lt) => lt.tag),
         };
+        // Log
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.leadUpdated({
+            id: lead.id,
+            firstName: lead.firstName,
+            lastName: lead.lastName,
+            email: lead.email,
+        }, actorId);
         res.json({
             success: true,
             message: "Lead updated successfully",
@@ -307,6 +338,14 @@ const deleteLead = async (req, res) => {
         await prisma_1.prisma.lead.delete({
             where: { id: parseInt(id) },
         });
+        // Log
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.leadDeleted({
+            id: existingLead.id,
+            firstName: existingLead.firstName,
+            lastName: existingLead.lastName,
+            email: existingLead.email,
+        }, actorId);
         res.json({
             success: true,
             message: "Lead deleted successfully",

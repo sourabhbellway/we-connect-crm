@@ -14,7 +14,7 @@
     "db:seed": "ts-node src/seeders/initialData.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.14.0",
+    "@prisma/client": "^6.15.0",
     "@types/multer": "^2.0.0",
     "@types/react-toastify": "^4.0.2",
     "bcryptjs": "^2.4.3",
@@ -28,7 +28,6 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
-    "prisma": "^6.14.0",
     "react-toastify": "^11.0.5"
   },
   "devDependencies": {
@@ -38,6 +37,7 @@
     "@types/jsonwebtoken": "^9.0.5",
     "@types/morgan": "^1.9.9",
     "nodemon": "^3.0.2",
+    "prisma": "^6.15.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   }

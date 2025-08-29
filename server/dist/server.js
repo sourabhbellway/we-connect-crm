@@ -18,7 +18,9 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const leadRoutes_1 = __importDefault(require("./routes/leadRoutes"));
 const tagRoutes_1 = __importDefault(require("./routes/tagRoutes"));
 const leadSourceRoutes_1 = __importDefault(require("./routes/leadSourceRoutes"));
+const industryRoutes_1 = __importDefault(require("./routes/industryRoutes"));
 const permissionRoutes_1 = __importDefault(require("./routes/permissionRoutes"));
+const activityRoutes_1 = __importDefault(require("./routes/activityRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
@@ -72,7 +74,9 @@ app.use("/api", userRoutes_1.default);
 app.use("/api", leadRoutes_1.default);
 app.use("/api", tagRoutes_1.default);
 app.use("/api", leadSourceRoutes_1.default);
+app.use("/api", industryRoutes_1.default);
 app.use("/api", permissionRoutes_1.default);
+app.use("/api", activityRoutes_1.default);
 // 404 handler
 app.use("*", (req, res) => {
     res.status(404).json({

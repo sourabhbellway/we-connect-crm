@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.seedInitialData = void 0;
 const prisma_1 = require("../lib/prisma");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const client_1 = require("@prisma/client");
 const seedInitialData = async () => {
     try {
         // Create default permissions
@@ -99,6 +100,19 @@ const seedInitialData = async () => {
                 module: "Leads",
                 description: "Can delete leads",
             },
+            // Activity permissions
+            {
+                name: "View Activities",
+                key: "activity.read",
+                module: "Activities",
+                description: "Can view activity logs",
+            },
+            {
+                name: "Create Activities",
+                key: "activity.create",
+                module: "Activities",
+                description: "Can create activity logs",
+            },
         ];
         for (const perm of permissions) {
             await prisma_1.prisma.permission.upsert({
@@ -151,7 +165,13 @@ const seedInitialData = async () => {
         const userPermissions = await prisma_1.prisma.permission.findMany({
             where: {
                 key: {
-                    in: ["dashboard.read", "user.read", "lead.read", "lead.create"],
+                    in: [
+                        "dashboard.read",
+                        "user.read",
+                        "lead.read",
+                        "lead.create",
+                        "activity.read",
+                    ],
                 },
             },
         });
@@ -248,6 +268,68 @@ const seedInitialData = async () => {
                 update: tagData,
                 create: tagData,
             });
+        }
+        // Optionally seed sample activities only if explicitly enabled
+        if (process.env.SEED_SAMPLE_ACTIVITIES === "true") {
+            const sampleActivities = [
+                {
+                    title: "New User Registered",
+                    description: "John Doe created a new account",
+                    type: client_1.ActivityType.USER_REGISTRATION,
+                    icon: "FiUser",
+                    iconColor: "text-blue-600",
+                    tags: ["User", "Registration"],
+                    userId: adminUser.id,
+                },
+                {
+                    title: "Role Permissions Updated",
+                    description: "Admin updated role permissions for User role",
+                    type: client_1.ActivityType.ROLE_UPDATE,
+                    icon: "FiEdit",
+                    iconColor: "text-orange-600",
+                    tags: ["Admin", "Security"],
+                    userId: adminUser.id,
+                },
+                {
+                    title: "System Backup Completed",
+                    description: "Daily backup process finished successfully",
+                    type: client_1.ActivityType.SYSTEM_BACKUP,
+                    icon: "FiDatabase",
+                    iconColor: "text-green-600",
+                    tags: ["System", "Backup"],
+                },
+                {
+                    title: "Database Migration Started",
+                    description: "Database migration process initiated",
+                    type: client_1.ActivityType.DATABASE_MIGRATION,
+                    icon: "FiDatabase",
+                    iconColor: "text-purple-600",
+                    tags: ["Database", "Migration"],
+                },
+                {
+                    title: "Security Alert",
+                    description: "Failed login attempt from unknown IP address",
+                    type: client_1.ActivityType.SECURITY_ALERT,
+                    icon: "FiAlertCircle",
+                    iconColor: "text-red-600",
+                    tags: ["Security", "Alert"],
+                },
+            ];
+            for (let i = 0; i < sampleActivities.length; i++) {
+                const activity = sampleActivities[i];
+                const createdAt = new Date();
+                createdAt.setMinutes(createdAt.getMinutes() - (i + 1) * 5);
+                await prisma_1.prisma.activity.create({
+                    data: {
+                        ...activity,
+                        createdAt,
+                    },
+                });
+            }
+            console.log("🔧 Sample activities seeded (SEED_SAMPLE_ACTIVITIES=true)");
+        }
+        else {
+            console.log("ℹ️ Skipping sample activities seeding");
         }
         console.log("✅ Initial data seeded successfully");
     }

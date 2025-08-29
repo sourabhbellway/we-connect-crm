@@ -8,6 +8,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const activityLogger_1 = require("../utils/activityLogger");
 const login = async (req, res) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
@@ -62,6 +63,13 @@ const login = async (req, res) => {
         await prisma_1.prisma.user.update({
             where: { id: user.id },
             data: { lastLogin: new Date() },
+        });
+        // Log user login activity
+        await activityLogger_1.activityLoggers.userLogin({
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
         });
         // Transform roles data
         const transformedRoles = user.roles.map((ur) => ({
@@ -151,6 +159,13 @@ const register = async (req, res) => {
                 createdAt: true,
             },
         });
+        // Log activity for user registration
+        await activityLogger_1.activityLoggers.userCreated({
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+        }, user.id);
         res.status(201).json({
             success: true,
             message: "User registered successfully",

@@ -1,11 +1,63 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getUserById = exports.createUser = exports.getUsers = void 0;
+exports.getUserStats = exports.deleteUser = exports.updateUser = exports.getUserById = exports.createUser = exports.getUsers = void 0;
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
+const activityLogger_1 = require("../utils/activityLogger");
 const getUsers = async (req, res) => {
     try {
+        const { search, status, roleId, page = 1, limit = 50 } = req.query;
+        console.log("Query parameters:", { search, status, roleId, page, limit });
+        // Build where clause for filtering
+        const where = {};
+        // Search filter (search in firstName, lastName, and email)
+        if (search && typeof search === "string") {
+            where.OR = [
+                { firstName: { contains: search, mode: "insensitive" } },
+                { lastName: { contains: search, mode: "insensitive" } },
+                { email: { contains: search, mode: "insensitive" } },
+            ];
+        }
+        // Status filter
+        if (status && typeof status === "string") {
+            if (status === "active") {
+                where.isActive = true;
+            }
+            else if (status === "inactive") {
+                where.isActive = false;
+            }
+        }
+        // Role filter
+        if (roleId && typeof roleId === "string") {
+            const roleIdNum = parseInt(roleId);
+            if (!isNaN(roleIdNum)) {
+                where.roles = {
+                    some: {
+                        roleId: roleIdNum,
+                    },
+                };
+            }
+        }
+        console.log("Where clause:", JSON.stringify(where, null, 2));
+        // Calculate pagination
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        if (isNaN(pageNum) || pageNum < 1) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid page number",
+            });
+        }
+        if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid limit number. Must be between 1 and 100",
+            });
+        }
+        const skip = (pageNum - 1) * limitNum;
+        // Get users with filters
         const users = await prisma_1.prisma.user.findMany({
+            where,
             select: {
                 id: true,
                 email: true,
@@ -42,10 +94,17 @@ const getUsers = async (req, res) => {
                 },
             },
             orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+            skip,
+            take: limitNum,
         });
+        // Get total count for pagination
+        const totalUsers = await prisma_1.prisma.user.count({ where });
+        const totalPages = Math.ceil(totalUsers / limitNum);
+        console.log(`Found ${users.length} users out of ${totalUsers} total`);
         // Transform the data to match the expected format
         const transformedUsers = users.map((user) => ({
             ...user,
+            fullName: `${user.firstName} ${user.lastName}`,
             roles: user.roles.map((ur) => ({
                 ...ur.role,
                 permissions: ur.role.permissions.map((rp) => rp.permission),
@@ -53,7 +112,16 @@ const getUsers = async (req, res) => {
         }));
         res.json({
             success: true,
-            data: { users: transformedUsers },
+            data: {
+                users: transformedUsers,
+                pagination: {
+                    currentPage: pageNum,
+                    totalPages,
+                    totalUsers,
+                    hasNextPage: pageNum < totalPages,
+                    hasPrevPage: pageNum > 1,
+                },
+            },
         });
     }
     catch (error) {
@@ -141,6 +209,14 @@ const createUser = async (req, res) => {
                 },
             },
         });
+        // Log activity for admin-created user
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.userCreated({
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+        }, actorId);
         // Transform the data to match the expected format
         const transformedUser = {
             ...user,
@@ -371,4 +447,43 @@ const deleteUser = async (req, res) => {
     }
 };
 exports.deleteUser = deleteUser;
+const getUserStats = async (req, res) => {
+    try {
+        // Calculate date for 30 days ago
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        // Get user statistics
+        const totalUsers = await prisma_1.prisma.user.count();
+        const activeUsers = await prisma_1.prisma.user.count({ where: { isActive: true } });
+        const inactiveUsers = await prisma_1.prisma.user.count({
+            where: { isActive: false },
+        });
+        const newUsers = await prisma_1.prisma.user.count({
+            where: {
+                createdAt: {
+                    gte: thirtyDaysAgo,
+                },
+            },
+        });
+        res.json({
+            success: true,
+            data: {
+                stats: {
+                    totalUsers,
+                    activeUsers,
+                    inactiveUsers,
+                    newUsers,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error("Get user stats error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.getUserStats = getUserStats;
 //# sourceMappingURL=userController.js.map

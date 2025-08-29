@@ -3,23 +3,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteRole = exports.updateRole = exports.createRole = exports.getRoles = void 0;
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
+const activityLogger_1 = require("../utils/activityLogger");
 const getRoles = async (req, res) => {
     try {
+        const { includeInactive } = req.query;
+        // Default to showing all roles (both active and inactive)
+        const whereClause = includeInactive === "false" ? { isActive: true } : {};
         const roles = await prisma_1.prisma.role.findMany({
-            where: { isActive: true },
+            where: whereClause,
+            orderBy: [{ name: "asc" }],
             include: {
                 permissions: {
                     include: {
                         permission: true,
                     },
                 },
+                users: {
+                    include: {
+                        user: true,
+                    },
+                },
             },
-            orderBy: { name: "asc" },
         });
         // Transform the data to match expected format
         const transformedRoles = roles.map((role) => ({
             ...role,
             permissions: role.permissions.map((rp) => rp.permission),
+            users: role.users.map((ur) => ur.user),
         }));
         res.json({
             success: true,
@@ -46,6 +56,23 @@ const createRole = async (req, res) => {
             });
         }
         const { name, description, permissionIds } = req.body;
+        // Check if role with this name already exists (including inactive ones)
+        const existingRole = await prisma_1.prisma.role.findFirst({
+            where: { name },
+        });
+        if (existingRole) {
+            return res.status(400).json({
+                success: false,
+                message: existingRole.isActive
+                    ? "Role with this name already exists"
+                    : "Role with this name exists but is inactive. Please reactivate it or use a different name.",
+                existingRole: {
+                    id: existingRole.id,
+                    name: existingRole.name,
+                    isActive: existingRole.isActive,
+                },
+            });
+        }
         const role = await prisma_1.prisma.role.create({
             data: {
                 name,
@@ -73,6 +100,9 @@ const createRole = async (req, res) => {
             ...role,
             permissions: role.permissions.map((rp) => rp.permission),
         };
+        // Log
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.roleChanged("CREATED", { id: role.id, name: role.name }, actorId);
         res.status(201).json({
             success: true,
             message: "Role created successfully",
@@ -147,6 +177,9 @@ const updateRole = async (req, res) => {
             ...role,
             permissions: role.permissions.map((rp) => rp.permission),
         };
+        // Log
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.roleChanged("UPDATED", { id: role.id, name: role.name }, actorId);
         res.json({
             success: true,
             message: "Role updated successfully",
@@ -178,6 +211,9 @@ const deleteRole = async (req, res) => {
         await prisma_1.prisma.role.delete({
             where: { id: parseInt(id) },
         });
+        // Log
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.roleChanged("DELETED", { id: existingRole.id, name: existingRole.name }, actorId);
         res.json({
             success: true,
             message: "Role deleted successfully",

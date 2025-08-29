@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteLeadSource = exports.updateLeadSource = exports.createLeadSource = exports.getLeadSources = void 0;
 const prisma_1 = require("../lib/prisma");
+const activityLogger_1 = require("../utils/activityLogger");
 const getLeadSources = async (req, res) => {
     try {
         const leadSources = await prisma_1.prisma.leadSource.findMany({
             where: { isActive: true },
-            orderBy: { name: "asc" },
+            orderBy: [{ name: "asc" }],
         });
         res.json({
             success: true,
@@ -31,6 +32,8 @@ const createLeadSource = async (req, res) => {
                 description,
             },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.leadSourceChanged("CREATED", { id: leadSource.id, name: leadSource.name }, actorId);
         res.status(201).json({
             success: true,
             message: "Lead source created successfully",
@@ -65,6 +68,8 @@ const updateLeadSource = async (req, res) => {
                 isActive,
             },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.leadSourceChanged("UPDATED", { id: leadSource.id, name: leadSource.name }, actorId);
         res.json({
             success: true,
             message: "Lead source updated successfully",
@@ -86,6 +91,8 @@ const deleteLeadSource = async (req, res) => {
         await prisma_1.prisma.leadSource.delete({
             where: { id: parseInt(id) },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.leadSourceChanged("DELETED", { id: parseInt(id), name: "" }, actorId);
         res.json({
             success: true,
             message: "Lead source deleted successfully",
