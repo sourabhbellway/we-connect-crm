@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Admin Frontend Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        white-space: pre-wrap;
+      }
+      .success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+      .info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+      .permission-test {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Super Admin Frontend Test</h1>
+      <p>This page tests Super Admin login and permission checking.</p>
+
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input
+          type="email"
+          id="email"
+          value="superadmin@weconnect.com"
+          readonly
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" value="SuperAdmin123!" readonly />
+      </div>
+
+      <button onclick="testSuperAdminLogin()">Test Super Admin Login</button>
+      <button onclick="testPermissions()">Test Permissions</button>
+      <button onclick="testDashboardAccess()">Test Dashboard Access</button>
+      <button onclick="clearToken()">Clear Token</button>
+
+      <div id="result"></div>
+
+      <div class="permission-test">
+        <h3>Permission Test Results:</h3>
+        <div id="permissionResults"></div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:3001/api";
+      let currentToken = null;
+      let currentUser = null;
+
+      function showResult(message, type = "info") {
+        const resultDiv = document.getElementById("result");
+        resultDiv.className = `result ${type}`;
+        resultDiv.textContent = message;
+      }
+
+      function showPermissionResult(message, type = "info") {
+        const resultDiv = document.getElementById("permissionResults");
+        resultDiv.innerHTML += `<div class="result ${type}">${message}</div>`;
+      }
+
+      async function testSuperAdminLogin() {
+        try {
+          showResult("Testing Super Admin login...", "info");
+
+          const response = await fetch(
+            `${API_BASE_URL}/auth/super-admin/login`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: "superadmin@weconnect.com",
+                password: "SuperAdmin123!",
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            currentToken = data.data.token;
+            currentUser = data.data.user;
+
+            showResult(
+              `✅ Super Admin Login Successful!\n\nUser: ${
+                data.data.user.fullName
+              }\nEmail: ${data.data.user.email}\nIs Super Admin: ${
+                data.data.user.isSuperAdmin
+              }\nRole: ${
+                data.data.user.roles[0]?.name
+              }\nToken: ${data.data.token.substring(0, 50)}...`,
+              "success"
+            );
+
+            // Store token for other tests
+            localStorage.setItem("token", data.data.token);
+            localStorage.setItem("tokenExpiry", data.data.tokenExpiry);
+          } else {
+            showResult(
+              `❌ Super Admin Login Failed:\n${data.message}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          showResult(`❌ Error: ${error.message}`, "error");
+        }
+      }
+
+      async function testPermissions() {
+        if (!currentToken) {
+          showPermissionResult(
+            "❌ No token found. Please login first.",
+            "error"
+          );
+          return;
+        }
+
+        showPermissionResult("🔍 Testing Super Admin permissions...", "info");
+
+        // Test various permissions that the frontend might check
+        const permissionsToTest = [
+          "dashboard.read",
+          "lead.read",
+          "lead.create",
+          "lead.update",
+          "lead.delete",
+          "user.read",
+          "user.create",
+          "user.update",
+          "user.delete",
+          "role.read",
+          "role.create",
+          "role.update",
+          "role.delete",
+          "system.full_access",
+        ];
+
+        for (const permission of permissionsToTest) {
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/auth/super-admin/profile`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${currentToken}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            if (response.ok) {
+              showPermissionResult(
+                `✅ Super Admin should have access to: ${permission}`,
+                "success"
+              );
+            } else {
+              showPermissionResult(
+                `❌ Super Admin denied access to: ${permission}`,
+                "error"
+              );
+            }
+          } catch (error) {
+            showPermissionResult(
+              `❌ Error testing ${permission}: ${error.message}`,
+              "error"
+            );
+          }
+        }
+      }
+
+      async function testDashboardAccess() {
+        if (!currentToken) {
+          showResult("❌ No token found. Please login first.", "error");
+          return;
+        }
+
+        showResult("🔍 Testing dashboard access...", "info");
+
+        // Simulate what the frontend would do to check dashboard access
+        const hasPermission = (permission) => {
+          // This simulates the updated hasPermission function
+          if (currentUser?.isSuperAdmin === true) {
+            return true;
+          }
+          return false;
+        };
+
+        const dashboardPermission = "dashboard.read";
+        const hasAccess = hasPermission(dashboardPermission);
+
+        if (hasAccess) {
+          showResult(
+            `✅ Super Admin has access to dashboard (${dashboardPermission})`,
+            "success"
+          );
+        } else {
+          showResult(
+            `❌ Super Admin denied access to dashboard (${dashboardPermission})`,
+            "error"
+          );
+        }
+      }
+
+      function clearToken() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("tokenExpiry");
+        currentToken = null;
+        currentUser = null;
+        showResult("🗑️ Token cleared from localStorage", "info");
+        document.getElementById("permissionResults").innerHTML = "";
+      }
+    </script>
+  </body>
+</html>

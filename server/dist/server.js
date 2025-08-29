@@ -13,6 +13,7 @@ const prisma_1 = require("./lib/prisma");
 const initialData_1 = require("./seeders/initialData");
 // Routes
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
+const superAdminAuthRoutes_1 = __importDefault(require("./routes/superAdminAuthRoutes"));
 const roleRoutes_1 = __importDefault(require("./routes/roleRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const leadRoutes_1 = __importDefault(require("./routes/leadRoutes"));
@@ -69,6 +70,7 @@ app.get("/api/health", (req, res) => {
 });
 // API routes
 app.use("/api/auth", authRoutes_1.default);
+app.use("/api/auth", superAdminAuthRoutes_1.default); // Super Admin authentication routes
 app.use("/api", roleRoutes_1.default);
 app.use("/api", userRoutes_1.default);
 app.use("/api", leadRoutes_1.default);

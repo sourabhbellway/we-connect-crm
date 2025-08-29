@@ -11,7 +11,11 @@
     "db:migrate": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "db:seed": "ts-node src/seeders/initialData.ts"
+    "db:seed": "ts-node src/seeders/initialData.ts",
+    "create:super-admin": "node createSuperAdmin.js",
+    "create:super-admin:ts": "ts-node src/seeders/superAdminSeeder.ts",
+    "verify:super-admin": "node verifySuperAdmin.js",
+    "test:super-admin-login": "node testSuperAdminLogin.js"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",

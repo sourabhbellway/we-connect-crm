@@ -10,6 +10,7 @@ import { seedInitialData } from "./seeders/initialData";
 
 // Routes
 import authRoutes from "./routes/authRoutes";
+import superAdminAuthRoutes from "./routes/superAdminAuthRoutes";
 import roleRoutes from "./routes/roleRoutes";
 import userRoutes from "./routes/userRoutes";
 import leadRoutes from "./routes/leadRoutes";
@@ -76,6 +77,7 @@ app.get("/api/health", (req, res) => {
 
 // API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", superAdminAuthRoutes); // Super Admin authentication routes
 app.use("/api", roleRoutes);
 app.use("/api", userRoutes);
 app.use("/api", leadRoutes);

@@ -26,6 +26,62 @@ const authenticateToken = async (req, res, next) => {
                 code: "TOKEN_EXPIRED",
             });
         }
+        // Check if this is a Super Admin token
+        if (decoded.isSuperAdmin && decoded.superAdminId) {
+            const superAdmin = await prisma_1.prisma.superAdmin.findUnique({
+                where: { id: decoded.superAdminId },
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    isActive: true,
+                    roleAssignments: {
+                        select: {
+                            role: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    rolePermissions: {
+                                        select: {
+                                            permission: {
+                                                select: {
+                                                    id: true,
+                                                    name: true,
+                                                    key: true,
+                                                    module: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+            if (!superAdmin || !superAdmin.isActive) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Super Admin not found or inactive",
+                });
+            }
+            // Transform Super Admin roles data
+            const transformedSuperAdmin = {
+                ...superAdmin,
+                superAdminId: superAdmin.id,
+                isSuperAdmin: true,
+                roles: superAdmin.roleAssignments.map((ra) => ({
+                    id: ra.role.id,
+                    name: ra.role.name,
+                    permissions: ra.role.rolePermissions.map((rp) => rp.permission),
+                })),
+            };
+            req.user = transformedSuperAdmin;
+            next();
+            return;
+        }
+        // Regular user authentication
         const user = await prisma_1.prisma.user.findUnique({
             where: { id: decoded.userId },
             select: {

@@ -19,6 +19,7 @@ interface AuthContextType extends AuthState {
   updateUser: (user: User) => void;
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string) => boolean;
+  isSuperAdmin: () => boolean;
   triggerTokenExpiry: () => void; // For testing
   manualCheckExpiry: () => boolean; // For DevTools testing
 }
@@ -167,7 +168,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginRequest) => {
     try {
       dispatch({ type: "LOGIN_START" });
-      const response = await authService.login(credentials);
+
+      // Check if this is a Super Admin login attempt
+      const isSuperAdminLogin =
+        credentials.email === "superadmin@weconnect.com";
+
+      let response;
+      if (isSuperAdminLogin) {
+        // Use Super Admin login endpoint
+        response = await authService.superAdminLogin(credentials);
+      } else {
+        // Use regular login endpoint
+        response = await authService.login(credentials);
+      }
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
@@ -202,8 +215,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      const response = await authService.getProfile();
-      dispatch({ type: "CHECK_AUTH_SUCCESS", payload: response.data.user });
+      // Decode the JWT token to check if it's a Super Admin token
+      try {
+        const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+
+        // If it's a Super Admin token, get Super Admin profile
+        if (tokenPayload.isSuperAdmin === true) {
+          try {
+            const superAdminResponse = await authService.getSuperAdminProfile();
+            dispatch({
+              type: "CHECK_AUTH_SUCCESS",
+              payload: superAdminResponse.data.user,
+            });
+            return;
+          } catch (superAdminError: any) {
+            if (superAdminError.response?.status === 401) {
+              dispatch({ type: "TOKEN_EXPIRED" });
+            } else {
+              dispatch({ type: "CHECK_AUTH_FAILURE" });
+            }
+            return;
+          }
+        }
+      } catch (decodeError) {
+        // If token decoding fails, continue with regular profile check
+      }
+
+      // Try to get regular user profile
+      try {
+        const response = await authService.getProfile();
+        dispatch({ type: "CHECK_AUTH_SUCCESS", payload: response.data.user });
+      } catch (profileError: any) {
+        if (profileError.response?.status === 401) {
+          dispatch({ type: "TOKEN_EXPIRED" });
+        } else {
+          dispatch({ type: "CHECK_AUTH_FAILURE" });
+        }
+      }
     } catch (error: any) {
       // Handle 401 errors by dispatching TOKEN_EXPIRED
       if (error.response?.status === 401) {
@@ -215,6 +263,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasPermission = (permission: string): boolean => {
+    // Super Admins have all permissions
+    if (state.user?.isSuperAdmin === true) {
+      return true;
+    }
+
     if (!state.user || !state.user.roles) return false;
 
     return state.user.roles.some((role) =>
@@ -223,9 +276,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasRole = (roleName: string): boolean => {
+    // Super Admins have all roles
+    if (state.user?.isSuperAdmin === true) {
+      return true;
+    }
+
     if (!state.user || !state.user.roles) return false;
 
     return state.user.roles.some((role) => role.name === roleName);
+  };
+
+  const isSuperAdmin = (): boolean => {
+    return state.user?.isSuperAdmin === true;
   };
 
   // For testing - manually trigger token expiry
@@ -340,6 +402,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateUser,
     hasPermission,
     hasRole,
+    isSuperAdmin,
     triggerTokenExpiry,
     manualCheckExpiry,
   };

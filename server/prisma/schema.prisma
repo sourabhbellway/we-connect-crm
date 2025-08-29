@@ -7,6 +7,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Super Admin System - Hidden from regular users
+model SuperAdmin {
+  id             Int                        @id @default(autoincrement())
+  email          String                     @unique
+  password       String
+  firstName      String
+  lastName       String
+  isActive       Boolean                    @default(true)
+  lastLogin      DateTime?
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  profilePicture String?
+  roleAssignments SuperAdminRoleAssignment[]
+  activities     Activity[]                 @relation("SuperAdminActivities")
+
+  @@map("super_admins")
+}
+
+model SuperAdminRole {
+  id           Int                        @id @default(autoincrement())
+  name         String                     @unique
+  description  String?
+  isActive     Boolean                    @default(true)
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+  roleAssignments SuperAdminRoleAssignment[]
+  rolePermissions SuperAdminRolePermission[]
+
+  @@map("super_admin_roles")
+}
+
+model SuperAdminPermission {
+  id           Int                        @id @default(autoincrement())
+  name         String
+  key          String                     @unique
+  description  String?
+  module       String
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+  rolePermissions SuperAdminRolePermission[]
+
+  @@map("super_admin_permissions")
+}
+
+model SuperAdminRoleAssignment {
+  id           Int           @id @default(autoincrement())
+  superAdminId Int
+  roleId       Int
+  role         SuperAdminRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  superAdmin   SuperAdmin    @relation(fields: [superAdminId], references: [id], onDelete: Cascade)
+
+  @@unique([superAdminId, roleId])
+  @@map("super_admin_role_assignments")
+}
+
+model SuperAdminRolePermission {
+  id           Int                 @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  permission   SuperAdminPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         SuperAdminRole      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("super_admin_role_permissions")
+}
+
+// Regular User System (existing)
 model User {
   id             Int        @id @default(autoincrement())
   email          String     @unique
@@ -144,6 +211,8 @@ model Activity {
   updatedAt   DateTime     @updatedAt
   userId      Int?
   user        User?        @relation("UserActivities", fields: [userId], references: [id])
+  superAdminId Int?
+  superAdmin  SuperAdmin?  @relation("SuperAdminActivities", fields: [superAdminId], references: [id])
 
   @@map("activities")
 }

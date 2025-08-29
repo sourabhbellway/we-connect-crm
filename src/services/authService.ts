@@ -49,8 +49,23 @@ export const authService = {
     return response.data;
   },
 
+  superAdminLogin: async (
+    credentials: LoginRequest
+  ): Promise<LoginResponse> => {
+    const response = await apiClient.post(
+      "/auth/super-admin/login",
+      credentials
+    );
+    return response.data;
+  },
+
   getProfile: async () => {
     const response = await apiClient.get("/auth/profile");
+    return response.data;
+  },
+
+  getSuperAdminProfile: async () => {
+    const response = await apiClient.get("/auth/super-admin/profile");
     return response.data;
   },
 
