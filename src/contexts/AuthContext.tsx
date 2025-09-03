@@ -8,10 +8,6 @@ import React, {
 import { User, AuthState, LoginRequest } from "../types/auth";
 import { authService } from "../services/authService";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://31.97.233.21:8081/api";
-
-// console.log(API_BASE_URL);
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;

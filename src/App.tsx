@@ -19,10 +19,7 @@ import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://31.97.233.21:8081/api";
 
-// console.log("API_BASE_URL", API_BASE_URL);
 
 function AppContent() {
   const { error } = useAuth();
