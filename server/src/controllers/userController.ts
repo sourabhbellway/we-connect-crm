@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { prisma } from "../lib/prisma";
 import { activityLoggers } from "../utils/activityLogger";
+import { Prisma } from "@prisma/client";
 
 // Extend Request interface to include user property
 interface AuthenticatedRequest extends Request {
@@ -12,7 +13,7 @@ export const getUsers = async (req: Request, res: Response) => {
   try {
     const { search, status, roleId, page = 1, limit = 50 } = req.query;
 
-    console.log("Query parameters:", { search, status, roleId, page, limit });
+    //console.log("Query parameters:", { search, status, roleId, page, limit });
 
     // Build where clause for filtering
     const where: any = {};
@@ -47,7 +48,7 @@ export const getUsers = async (req: Request, res: Response) => {
       }
     }
 
-    console.log("Where clause:", JSON.stringify(where, null, 2));
+    //console.log("Where clause:", JSON.stringify(where, null, 2));
 
     // Calculate pagination
     const pageNum = parseInt(page as string);
@@ -116,7 +117,7 @@ export const getUsers = async (req: Request, res: Response) => {
     const totalUsers = await prisma.user.count({ where });
     const totalPages = Math.ceil(totalUsers / limitNum);
 
-    console.log(`Found ${users.length} users out of ${totalUsers} total`);
+    //console.log(`Found ${users.length} users out of ${totalUsers} total`);
 
     // Transform the data to match the expected format
     const transformedUsers = users.map((user) => ({
@@ -188,12 +189,12 @@ export const createUser = async (req: Request, res: Response) => {
         roles:
           roleIds && roleIds.length > 0
             ? {
-                create: roleIds.map((roleId: number) => ({
-                  role: {
-                    connect: { id: roleId },
-                  },
-                })),
-              }
+              create: roleIds.map((roleId: number) => ({
+                role: {
+                  connect: { id: roleId },
+                },
+              })),
+            }
             : undefined,
       },
       select: {
@@ -388,10 +389,10 @@ export const updateUser = async (req: Request, res: Response) => {
           create:
             roleIds && roleIds.length > 0
               ? roleIds.map((roleId: number) => ({
-                  role: {
-                    connect: { id: roleId },
-                  },
-                }))
+                role: {
+                  connect: { id: roleId },
+                },
+              }))
               : [],
         },
       },
@@ -448,6 +449,12 @@ export const updateUser = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Update user error:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        message: "User with this email already exists, Please use a different email to update",
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Internal server error",

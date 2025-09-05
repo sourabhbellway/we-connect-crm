@@ -7,7 +7,7 @@ const activityLogger_1 = require("../utils/activityLogger");
 const getUsers = async (req, res) => {
     try {
         const { search, status, roleId, page = 1, limit = 50 } = req.query;
-        console.log("Query parameters:", { search, status, roleId, page, limit });
+        //console.log("Query parameters:", { search, status, roleId, page, limit });
         // Build where clause for filtering
         const where = {};
         // Search filter (search in firstName, lastName, and email)
@@ -38,7 +38,7 @@ const getUsers = async (req, res) => {
                 };
             }
         }
-        console.log("Where clause:", JSON.stringify(where, null, 2));
+        //console.log("Where clause:", JSON.stringify(where, null, 2));
         // Calculate pagination
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
@@ -100,7 +100,7 @@ const getUsers = async (req, res) => {
         // Get total count for pagination
         const totalUsers = await prisma_1.prisma.user.count({ where });
         const totalPages = Math.ceil(totalUsers / limitNum);
-        console.log(`Found ${users.length} users out of ${totalUsers} total`);
+        //console.log(`Found ${users.length} users out of ${totalUsers} total`);
         // Transform the data to match the expected format
         const transformedUsers = users.map((user) => ({
             ...user,

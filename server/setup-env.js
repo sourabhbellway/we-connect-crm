@@ -46,8 +46,8 @@ if (fs.existsSync(envBackupPath)) {
   console.log("If you need to restore the backup, copy .env.backup to .env");
 }
 
-console.log("\n🔧 Environment setup complete!");
-console.log(
-  "📝 Make sure to update the database credentials in .env if needed"
-);
-console.log("🚀 You can now start the server with: npm run dev");
+// console.log("\n🔧 Environment setup complete!");
+// console.log(
+//   "📝 Make sure to update the database credentials in .env if needed"
+// );
+// console.log("🚀 You can now start the server with: npm run dev");

@@ -4,13 +4,13 @@ import { ActivityType } from "@prisma/client";
 
 export const seedSuperAdminData = async () => {
   try {
-    console.log("🚀 Seeding Super Admin system...");
+    //console.log("🚀 Seeding Super Admin system...");
 
     // First, get ALL existing permissions from the regular system
     const existingPermissions = await prisma.permission.findMany();
-    console.log(
-      `📋 Found ${existingPermissions.length} existing permissions in database`
-    );
+    //console.log(
+    //   `📋 Found ${existingPermissions.length} existing permissions in database`
+    // );
 
     // Create Super Admin permissions (include ALL existing permissions + system permissions)
     const superAdminPermissions = [
@@ -85,9 +85,9 @@ export const seedSuperAdminData = async () => {
       },
     ];
 
-    console.log(
-      `📋 Creating ${superAdminPermissions.length} Super Admin permissions...`
-    );
+    //console.log(
+    //   `📋 Creating ${superAdminPermissions.length} Super Admin permissions...`
+    // );
 
     // Create Super Admin permissions
     for (const perm of superAdminPermissions) {
@@ -98,7 +98,7 @@ export const seedSuperAdminData = async () => {
       });
     }
 
-    console.log("✅ Super Admin permissions created");
+    //console.log("✅ Super Admin permissions created");
 
     // Create Super Admin role
     const superAdminRole = await prisma.superAdminRole.upsert({
@@ -113,7 +113,7 @@ export const seedSuperAdminData = async () => {
       },
     });
 
-    console.log("✅ Super Admin role created");
+    //console.log("✅ Super Admin role created");
 
     // Assign all permissions to Super Admin role
     const allSuperAdminPermissions =
@@ -134,9 +134,9 @@ export const seedSuperAdminData = async () => {
       });
     }
 
-    console.log(
-      `✅ All ${allSuperAdminPermissions.length} permissions assigned to Super Admin role`
-    );
+    //console.log(
+    //   `✅ All ${allSuperAdminPermissions.length} permissions assigned to Super Admin role`
+    // );
 
     // Create Super Admin user
     const hashedPassword = await bcrypt.hash("SuperAdmin123!", 10);
@@ -158,7 +158,7 @@ export const seedSuperAdminData = async () => {
       },
     });
 
-    console.log("✅ Super Admin user created");
+    //console.log("✅ Super Admin user created");
 
     // Assign Super Admin role to user
     await prisma.superAdminRoleAssignment.upsert({
@@ -175,7 +175,7 @@ export const seedSuperAdminData = async () => {
       },
     });
 
-    console.log("✅ Super Admin role assigned to user");
+    //console.log("✅ Super Admin role assigned to user");
 
     // Log the activity
     await prisma.activity.create({
@@ -190,16 +190,16 @@ export const seedSuperAdminData = async () => {
       },
     });
 
-    console.log("✅ Activity logged");
+    //console.log("✅ Activity logged");
 
-    console.log("\n🎉 Super Admin system seeded successfully!");
-    console.log("📧 Email: superadmin@weconnect.com");
-    console.log("🔑 Password: SuperAdmin123!");
-    console.log(
-      `🔐 Role: Super Admin (${allSuperAdminPermissions.length} permissions)`
-    );
-    console.log("🚫 Hidden from regular user interface");
-    console.log("\n⚠️  Please change the password after first login!");
+    //console.log("\n🎉 Super Admin system seeded successfully!");
+    //console.log("📧 Email: superadmin@weconnect.com");
+    //console.log("🔑 Password: SuperAdmin123!");
+    //console.log(
+    //   `🔐 Role: Super Admin (${allSuperAdminPermissions.length} permissions)`
+    // );
+    //console.log("🚫 Hidden from regular user interface");
+    //console.log("\n⚠️  Please change the password after first login!");
   } catch (error) {
     console.error("❌ Error seeding Super Admin data:", error);
     throw error;
@@ -210,7 +210,7 @@ export const seedSuperAdminData = async () => {
 if (require.main === module) {
   seedSuperAdminData()
     .then(() => {
-      console.log("✅ Super Admin seeder completed successfully");
+      //console.log("✅ Super Admin seeder completed successfully");
       process.exit(0);
     })
     .catch((error) => {

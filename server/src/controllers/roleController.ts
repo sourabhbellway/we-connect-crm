@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { prisma } from "../lib/prisma";
 import { activityLoggers } from "../utils/activityLogger";
+import { Prisma } from "@prisma/client";
 
 export const getRoles = async (req: Request, res: Response) => {
   try {
@@ -36,7 +37,7 @@ export const getRoles = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: { roles: transformedRoles },
+      data: { roles: transformedRoles, totalCount: transformedRoles.length },
     });
   } catch (error) {
     console.error("Get roles error:", error);
@@ -214,6 +215,12 @@ export const updateRole = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Update role error:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        message: "Role with this name already exists, Please use a different name to update",
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Internal server error",
