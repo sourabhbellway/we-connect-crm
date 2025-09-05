@@ -125,10 +125,10 @@ const startServer = async () => {
     // Start server
     app.listen(Number(PORT), "0.0.0.0", () => {
       const apiBaseUrl =
-        process.env.API_BASE_URL || `http://31.97.233.21:8081/api`;
+      process.env.API_BASE_URL || `http://31.97.233.21:8081/api`;
       console.log(`🚀 CRM API Server running on port ${PORT}`);
-      console.log(`🔗 Health check: http://31.97.233.21:8081/health`);
-      console.log(`🔗 API Base URL: ${apiBaseUrl}`);
+      // console.log(`🔗 Health check: http://31.97.233.21:8081/health`);
+      // console.log(`🔗 API Base URL: ${apiBaseUrl}`);
       console.log(`📚 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   } catch (error) {

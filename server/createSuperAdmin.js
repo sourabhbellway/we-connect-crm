@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function createSuperAdmin() {
   try {
-    console.log("🚀 Creating Super Admin user...");
+    //console.log("🚀 Creating Super Admin user...");
 
     // Hash password for super admin
     const hashedPassword = await bcrypt.hash("SuperAdmin123!", 10);
@@ -29,7 +29,7 @@ async function createSuperAdmin() {
       },
     });
 
-    console.log("✅ Super Admin user created:", superAdminUser.email);
+    //console.log("✅ Super Admin user created:", superAdminUser.email);
 
     // Get or create Super Admin role
     let superAdminRole = await prisma.superAdminRole.findUnique({
@@ -43,7 +43,7 @@ async function createSuperAdmin() {
           description: "Complete system access with all permissions",
         },
       });
-      console.log("✅ Super Admin role created");
+      //console.log("✅ Super Admin role created");
     }
 
     // Create Super Admin permissions if they don't exist
@@ -118,7 +118,7 @@ async function createSuperAdmin() {
       });
     }
 
-    console.log("✅ Super Admin permissions created");
+    //console.log("✅ Super Admin permissions created");
 
     // Assign all permissions to Super Admin role
     const allSuperAdminPermissions =
@@ -139,7 +139,7 @@ async function createSuperAdmin() {
       });
     }
 
-    console.log("✅ All permissions assigned to Super Admin role");
+    //console.log("✅ All permissions assigned to Super Admin role");
 
     // Assign Super Admin role to user
     await prisma.superAdminRoleAssignment.upsert({
@@ -156,7 +156,7 @@ async function createSuperAdmin() {
       },
     });
 
-    console.log("✅ Super Admin role assigned to user");
+    //console.log("✅ Super Admin role assigned to user");
 
     // Log the activity
     await prisma.activity.create({
@@ -171,14 +171,14 @@ async function createSuperAdmin() {
       },
     });
 
-    console.log("✅ Activity logged");
+    //console.log("✅ Activity logged");
 
-    console.log("\n🎉 Super Admin user created successfully!");
-    console.log("📧 Email: superadmin@weconnect.com");
-    console.log("🔑 Password: SuperAdmin123!");
-    console.log("🔐 Role: Super Admin (Complete system access)");
-    console.log("🚫 Hidden from regular user interface");
-    console.log("\n⚠️  Please change the password after first login!");
+    //console.log("\n🎉 Super Admin user created successfully!");
+    //console.log("📧 Email: superadmin@weconnect.com");
+    //console.log("🔑 Password: SuperAdmin123!");
+    //console.log("🔐 Role: Super Admin (Complete system access)");
+    //console.log("🚫 Hidden from regular user interface");
+    //console.log("\n⚠️  Please change the password after first login!");
   } catch (error) {
     console.error("❌ Error creating Super Admin:", error);
     throw error;
@@ -190,7 +190,7 @@ async function createSuperAdmin() {
 // Run the function
 createSuperAdmin()
   .then(() => {
-    console.log("✅ Script completed successfully");
+    //console.log("✅ Script completed successfully");
     process.exit(0);
   })
   .catch((error) => {

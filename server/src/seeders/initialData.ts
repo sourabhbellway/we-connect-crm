@@ -341,12 +341,12 @@ export const seedInitialData = async () => {
         });
       }
 
-      console.log("🔧 Sample activities seeded (SEED_SAMPLE_ACTIVITIES=true)");
+      //console.log("🔧 Sample activities seeded (SEED_SAMPLE_ACTIVITIES=true)");
     } else {
-      console.log("ℹ️ Skipping sample activities seeding");
+      //console.log("ℹ️ Skipping sample activities seeding");
     }
 
-    console.log("✅ Initial data seeded successfully");
+    //console.log("✅ Initial data seeded successfully");
   } catch (error) {
     console.error("❌ Error seeding initial data:", error);
     throw error;

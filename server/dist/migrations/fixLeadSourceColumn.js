@@ -11,7 +11,7 @@ const fixLeadSourceColumn = async () => {
       WHERE table_name = 'lead_sources'
     `);
         if (tableResults.length === 0) {
-            console.log('lead_sources table does not exist, creating it...');
+            //console.log('lead_sources table does not exist, creating it...');
             await models_1.sequelize.query(`
         CREATE TABLE lead_sources (
           id SERIAL PRIMARY KEY,
@@ -30,7 +30,7 @@ const fixLeadSourceColumn = async () => {
       WHERE table_name = 'tags'
     `);
         if (tagsTableResults.length === 0) {
-            console.log('tags table does not exist, creating it...');
+            //console.log('tags table does not exist, creating it...');
             await models_1.sequelize.query(`
         CREATE TABLE tags (
           id SERIAL PRIMARY KEY,
@@ -50,7 +50,7 @@ const fixLeadSourceColumn = async () => {
       WHERE table_name = 'lead_tags'
     `);
         if (leadTagsTableResults.length === 0) {
-            console.log('lead_tags table does not exist, creating it...');
+            //console.log('lead_tags table does not exist, creating it...');
             await models_1.sequelize.query(`
           CREATE TABLE lead_tags (
             id SERIAL PRIMARY KEY,
@@ -75,7 +75,7 @@ const fixLeadSourceColumn = async () => {
           `);
             }
             catch (e) {
-                console.log('Could not add foreign key constraints for lead_tags:', e);
+                //console.log('Could not add foreign key constraints for lead_tags:', e);
             }
         }
         // Check if the source column exists and sourceId doesn't
@@ -87,7 +87,7 @@ const fixLeadSourceColumn = async () => {
     `);
         const columns = results.map((r) => r.column_name);
         if (columns.includes('source') && !columns.includes('sourceId')) {
-            console.log('Migrating source column to sourceId...');
+            //console.log('Migrating source column to sourceId...');
             // Rename the column
             await models_1.sequelize.query('ALTER TABLE leads RENAME COLUMN source TO sourceId');
             // Change the column type to INTEGER
@@ -99,10 +99,10 @@ const fixLeadSourceColumn = async () => {
             catch (e) {
                 // Column might not have NOT NULL constraint
             }
-            console.log('Successfully migrated source column to sourceId');
+            //console.log('Successfully migrated source column to sourceId');
         }
         else if (columns.includes('sourceId')) {
-            console.log('sourceId column already exists, skipping migration');
+            //console.log('sourceId column already exists, skipping migration');
             // Check if the column type is correct
             try {
                 const [typeResults] = await models_1.sequelize.query(`
@@ -113,12 +113,12 @@ const fixLeadSourceColumn = async () => {
         `);
                 const dataType = typeResults[0]?.data_type;
                 if (dataType !== 'integer') {
-                    console.log('Converting sourceId column type to INTEGER...');
+                    //console.log('Converting sourceId column type to INTEGER...');
                     await models_1.sequelize.query('ALTER TABLE leads ALTER COLUMN sourceId TYPE INTEGER USING NULL');
                 }
             }
             catch (e) {
-                console.log('Could not check or convert column type:', e);
+                //console.log('Could not check or convert column type:', e);
             }
             // Check if foreign key constraint exists
             try {
@@ -130,7 +130,7 @@ const fixLeadSourceColumn = async () => {
           AND constraint_name LIKE '%sourceId%'
         `);
                 if (fkResults.length === 0) {
-                    console.log('Adding foreign key constraint for sourceId...');
+                    //console.log('Adding foreign key constraint for sourceId...');
                     await models_1.sequelize.query(`
             ALTER TABLE leads 
             ADD CONSTRAINT fk_leads_source 
@@ -139,11 +139,11 @@ const fixLeadSourceColumn = async () => {
                 }
             }
             catch (e) {
-                console.log('Could not add foreign key constraint:', e);
+                //console.log('Could not add foreign key constraint:', e);
             }
         }
         else {
-            console.log('Neither source nor sourceId column found, creating sourceId');
+            //console.log('Neither source nor sourceId column found, creating sourceId');
             try {
                 // Use quoted column name to preserve case sensitivity
                 await models_1.sequelize.query(`
@@ -159,18 +159,18 @@ const fixLeadSourceColumn = async () => {
            `);
                 }
                 catch (e) {
-                    console.log('Could not add foreign key constraint:', e);
+                    //console.log('Could not add foreign key constraint:', e);
                 }
             }
             catch (e) {
-                console.log('Could not add sourceId column:', e);
+                //console.log('Could not add sourceId column:', e);
             }
         }
     }
     catch (error) {
         console.error('Error during migration:', error);
         // Don't throw error, just log it and continue
-        console.log('Migration failed, but continuing with server startup...');
+        //console.log('Migration failed, but continuing with server startup...');
     }
     // Final verification - check if sourceId column exists
     try {
@@ -181,10 +181,10 @@ const fixLeadSourceColumn = async () => {
          AND column_name = 'sourceId'
        `);
         if (finalCheck.length > 0) {
-            console.log('✅ sourceId column successfully exists in leads table');
+            //console.log('✅ sourceId column successfully exists in leads table');
         }
         else {
-            console.log('❌ sourceId column still does not exist in leads table');
+            //console.log('❌ sourceId column still does not exist in leads table');
             // Let's also check what columns actually exist
             const [allColumns] = await models_1.sequelize.query(`
            SELECT column_name 
@@ -192,11 +192,11 @@ const fixLeadSourceColumn = async () => {
            WHERE table_name = 'leads'
            ORDER BY column_name
          `);
-            console.log('Available columns in leads table:', allColumns.map((c) => c.column_name));
+            //console.log('Available columns in leads table:', allColumns.map((c) => c.column_name));
         }
     }
     catch (e) {
-        console.log('Could not verify sourceId column:', e);
+        //console.log('Could not verify sourceId column:', e);
     }
 };
 exports.fixLeadSourceColumn = fixLeadSourceColumn;
