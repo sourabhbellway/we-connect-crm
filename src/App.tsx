@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { CountsProvider } from "./contexts/CountsContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Login from "./components/Login";
@@ -11,7 +12,11 @@ import Leads from "./components/Leads";
 import LeadCreate from "./components/LeadCreate";
 import LeadEdit from "./components/LeadEdit";
 import Users from "./components/Users";
+import UserCreate from "./components/UserCreate";
+import UserEdit from "./components/UserEdit";
 import Roles from "./components/Roles";
+import RoleCreate from "./components/RoleCreate";
+import RoleEdit from "./components/RoleEdit";
 import LeadSettings from "./components/LeadSettings";
 import IndustrySettings from "./components/IndustrySettings";
 import Profile from "./components/Profile";
@@ -19,7 +24,6 @@ import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 
 function AppContent() {
   const { error } = useAuth();
@@ -92,11 +96,51 @@ function AppContent() {
           }
         />
         <Route
+          path="/users/new"
+          element={
+            <ProtectedRoute requiredPermission="user.create">
+              <Layout>
+                <UserCreate />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/users/:id/edit"
+          element={
+            <ProtectedRoute requiredPermission="user.update">
+              <Layout>
+                <UserEdit />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/roles"
           element={
             <ProtectedRoute requiredPermission="role.read">
               <Layout>
                 <Roles />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/roles/new"
+          element={
+            <ProtectedRoute requiredPermission="role.create">
+              <Layout>
+                <RoleCreate />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/roles/:id/edit"
+          element={
+            <ProtectedRoute requiredPermission="role.update">
+              <Layout>
+                <RoleEdit />
               </Layout>
             </ProtectedRoute>
           }
@@ -154,7 +198,9 @@ function App() {
       <LanguageProvider>
         <ThemeProvider>
           <AuthProvider>
-            <AppContent />
+            <CountsProvider>
+              <AppContent />
+            </CountsProvider>
           </AuthProvider>
         </ThemeProvider>
       </LanguageProvider>

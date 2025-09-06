@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCounts } from "../contexts/CountsContext";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { userService } from "../services/userService";
 import { roleService } from "../services/roleService";
 import {
   Plus,
-  Search,
   MoreVertical,
   Edit,
   Trash2,
@@ -19,26 +20,13 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Search,
 } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
+import SearchInput from "./SearchInput";
+import DropdownFilter from "./DropdownFilter";
 import { toast } from "react-toastify";
-
-// Debounce utility function
-const useDebounce = (value: string, delay: number) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-};
+import { useDebouncedSearch } from "../hooks/useDebounce";
 
 interface User {
   id: number;
@@ -62,55 +50,37 @@ interface Pagination {
 
 const Users: React.FC = () => {
   const { hasPermission } = useAuth();
+  const { refreshUsersCount } = useCounts();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
 
   // Filter states
   const [filters, setFilters] = useState({
-    search: "",
     status: "",
     roleId: "",
+    search: "",
   });
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(50);
 
-  // Debounced search value
-  const debouncedSearch = useDebounce(filters.search, 500);
+  // Debounced search with 500ms delay for better UX
+  const { searchValue, debouncedSearchValue, setSearch, isSearching } =
+    useDebouncedSearch("", 500);
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [newUser, setNewUser] = useState({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-    roleIds: [] as number[],
-  });
-  const [editUser, setEditUser] = useState({
-    email: "",
-    firstName: "",
-    lastName: "",
-    roleIds: [] as number[],
-    isActive: true,
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchUsers();
     fetchRoles();
-  }, [debouncedSearch, filters.status, filters.roleId, currentPage]);
+  }, [debouncedSearchValue, filters.status, filters.roleId, currentPage]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -140,14 +110,12 @@ const Users: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      if (currentPage === 1) {
-        setIsLoading(true);
-      } else {
+      if (currentPage !== 1) {
         setIsFiltering(true);
       }
 
       const response = await userService.getUsers({
-        search: debouncedSearch,
+        search: debouncedSearchValue,
         status: filters.status,
         roleId: filters.roleId,
         page: currentPage,
@@ -159,7 +127,6 @@ const Users: React.FC = () => {
       console.error("Error fetching users:", error);
       toast.error("Failed to fetch users");
     } finally {
-      setIsLoading(false);
       setIsFiltering(false);
     }
   };
@@ -179,7 +146,7 @@ const Users: React.FC = () => {
   };
 
   const handleSearch = (value: string) => {
-    setFilters((prev) => ({ ...prev, search: value }));
+    setSearch(value);
     setCurrentPage(1);
   };
 
@@ -189,121 +156,8 @@ const Users: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const newErrors: Record<string, string> = {};
-
-    if (!newUser.email) newErrors.email = "Email is required";
-    if (!newUser.password || newUser.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    if (!newUser.firstName) newErrors.firstName = "First name is required";
-    if (!newUser.lastName) newErrors.lastName = "Last name is required";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsCreating(true);
-    setErrors({});
-
-    try {
-      await userService.createUser(newUser);
-      setShowCreateModal(false);
-      setNewUser({
-        email: "",
-        password: "",
-        firstName: "",
-        lastName: "",
-        roleIds: [],
-      });
-      setErrors({});
-      toast.success("User created successfully!");
-      fetchUsers();
-    } catch (error: any) {
-      console.error("Error creating user:", error);
-      let errorMessage = "An error occurred";
-
-      if (error.response?.status === 429) {
-        errorMessage = "Too many requests. Please wait a moment and try again.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      setErrors({
-        general: errorMessage,
-      });
-      toast.error(errorMessage);
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
   const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setEditUser({
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      roleIds: user.roles.map((role) => role.id),
-      isActive: user.isActive,
-    });
-    setErrors({});
-    setShowEditModal(true);
-  };
-
-  const handleUpdateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!editingUser) return;
-
-    const newErrors: Record<string, string> = {};
-
-    if (!editUser.email) newErrors.email = "Email is required";
-    if (!editUser.firstName) newErrors.firstName = "First name is required";
-    if (!editUser.lastName) newErrors.lastName = "Last name is required";
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsUpdating(true);
-    setErrors({});
-
-    try {
-      await userService.updateUser(editingUser.id, editUser);
-      setShowEditModal(false);
-      setEditingUser(null);
-      setEditUser({
-        email: "",
-        firstName: "",
-        lastName: "",
-        roleIds: [],
-        isActive: true,
-      });
-      setErrors({});
-      toast.success("User updated successfully!");
-      fetchUsers();
-    } catch (error: any) {
-      console.error("Error updating user:", error);
-      let errorMessage = "An error occurred";
-
-      if (error.response?.status === 429) {
-        errorMessage = "Too many requests. Please wait a moment and try again.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      setErrors({
-        general: errorMessage,
-      });
-      toast.error(errorMessage);
-    } finally {
-      setIsUpdating(false);
-    }
+    navigate(`/users/${user.id}/edit`, { state: { user } });
   };
 
   const handleDeleteUser = (user: User) => {
@@ -318,6 +172,7 @@ const Users: React.FC = () => {
 
     try {
       await userService.deleteUser(userToDelete.id);
+      await refreshUsersCount();
       setShowDeleteModal(false);
       setUserToDelete(null);
       toast.success("User deleted successfully!");
@@ -332,9 +187,6 @@ const Users: React.FC = () => {
         errorMessage = error.response.data.message;
       }
 
-      setErrors({
-        general: errorMessage,
-      });
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
@@ -350,210 +202,80 @@ const Users: React.FC = () => {
     setCurrentPage(1);
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-        {/* Header Section Skeleton */}
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-            <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2"></div>
-          </div>
-          <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-        </div>
-
-        {/* Filters Skeleton */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
-          <div className="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i}>
-                <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
-                <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Table Skeleton */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
-          <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
-              ></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {t("users.title")}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {t("users.userManagement")}
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={fetchUsers}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </button>
+      <div className="space-y-4">
+        {/* Mobile-first responsive layout */}
+        <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+          {/* Filters - Stack on mobile, row on desktop */}
+          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+            {/* Search */}
+            <div className="w-full sm:w-48">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div className="flex items-center gap-2">
+                  {t("common.search")}
+                  {isSearching && (
+                    <div className="flex items-center gap-1 text-xs text-blue-500">
+                      <Search className="h-3 w-3 animate-pulse" />
+                      <span>Searching...</span>
+                    </div>
+                  )}
+                </div>
+              </label>
+              <SearchInput
+                value={searchValue}
+                onChange={handleSearch}
+                placeholder={t("users.searchUsers")}
+              />
+            </div>
+
+            {/* Status */}
+            <div className="w-full sm:w-48">
+              <DropdownFilter
+                label="Status"
+                value={filters.status}
+                onChange={(value) =>
+                  handleFilterChange("status", value as string)
+                }
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+              />
+            </div>
+
+            {/* Role */}
+            <div className="w-full sm:w-48">
+              <DropdownFilter
+                label="Role"
+                value={filters.roleId}
+                onChange={(value) =>
+                  handleFilterChange("roleId", value as string)
+                }
+                options={[
+                  { value: "", label: "All Roles" },
+                  ...roles.map((role) => ({
+                    value: role.id.toString(),
+                    label: role.name,
+                  })),
+                ]}
+              />
+            </div>
           </div>
+
+          {/* Add User button - Full width on mobile, auto on desktop */}
           {hasPermission("user.create") && (
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center px-4 py-3 bg-[#ef444e] text-white rounded-full hover:bg-[#f26971] transition-colors text-sm font-semibold"
+              onClick={() => navigate("/users/new")}
+              className="w-full sm:w-auto flex items-center justify-center px-4 py-3 bg-[#ef444e] text-white rounded-full hover:bg-[#f26971] transition-colors text-sm font-semibold"
             >
               <Plus className="h-4 w-4 mr-2" />
               {t("users.addUser")}
             </button>
           )}
         </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {t("common.filter")}
-            </h3>
-            <div className="flex items-center gap-3">
-              {isFiltering && (
-                <div className="flex items-center text-sm text-blue-600 dark:text-blue-400">
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </div>
-              )}
-              <button
-                onClick={clearFilters}
-                className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Clear Filters
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t("common.search")}
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
-                <input
-                  type="text"
-                  placeholder={t("users.searchUsers")}
-                  value={filters.search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-10 pr-20 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                />
-                {filters.search && (
-                  <button
-                    onClick={() => handleSearch("")}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500">
-                  <span title="Press Ctrl+K (or Cmd+K on Mac) to focus search">
-                    ⌘K
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange("status", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Role
-              </label>
-              <select
-                value={filters.roleId}
-                onChange={(e) => handleFilterChange("roleId", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="">All Roles</option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Filters Summary */}
-        {(filters.search || filters.status || filters.roleId) && (
-          <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-100 dark:border-gray-600">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <span>Active filters:</span>
-              {filters.search && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
-                  Search: "{filters.search}"
-                  <button
-                    onClick={() => handleSearch("")}
-                    className="ml-1 text-blue-600 hover:text-blue-800"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              )}
-              {filters.status && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
-                  Status: {filters.status === "active" ? "Active" : "Inactive"}
-                  <button
-                    onClick={() => handleFilterChange("status", "")}
-                    className="ml-1 text-green-600 hover:text-green-800"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              )}
-              {filters.roleId && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400">
-                  Role:{" "}
-                  {roles.find((r) => r.id.toString() === filters.roleId)
-                    ?.name || filters.roleId}
-                  <button
-                    onClick={() => handleFilterChange("roleId", "")}
-                    className="ml-1 text-purple-600 hover:text-purple-800"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Users Table Card */}
@@ -756,7 +478,7 @@ const Users: React.FC = () => {
                       ) : (
                         hasPermission("user.create") && (
                           <button
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={() => navigate("/users/new")}
                             className="inline-flex items-center px-4 py-2 bg-[#ef444e] text-white rounded-lg hover:bg-[#f26971] transition-colors"
                           >
                             <Plus className="h-4 w-4 mr-2" />
@@ -861,353 +583,7 @@ const Users: React.FC = () => {
         )}
       </div>
 
-      {/* Create User Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-60 overflow-y-auto w-full z-50 flex items-center justify-center p-4">
-          <div className="relative mx-auto p-4 sm:p-6 border w-full max-w-2xl shadow-xl rounded-2xl bg-white dark:bg-gray-800 max-h-[90vh] overflow-y-auto border-gray-100 dark:border-gray-700">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Create New User
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setErrors({});
-                  }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateUser} className="space-y-6">
-                {errors.general && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">
-                    {errors.general}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newUser.firstName}
-                      onChange={(e) =>
-                        setNewUser({ ...newUser, firstName: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    {errors.firstName && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {errors.firstName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newUser.lastName}
-                      onChange={(e) =>
-                        setNewUser({ ...newUser, lastName: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    {errors.lastName && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {errors.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={newUser.email}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, email: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, password: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                  {errors.password && (
-                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                      {errors.password}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Roles
-                  </label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {roles.map((role) => (
-                      <label key={role.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={newUser.roleIds.includes(role.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewUser({
-                                ...newUser,
-                                roleIds: [...newUser.roleIds, role.id],
-                              });
-                            } else {
-                              setNewUser({
-                                ...newUser,
-                                roleIds: newUser.roleIds.filter(
-                                  (id) => id !== role.id
-                                ),
-                              });
-                            }
-                          }}
-                          className="mr-2"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {role.name}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateModal(false);
-                      setErrors({});
-                    }}
-                    disabled={isCreating}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isCreating}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
-                  >
-                    {isCreating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Creating...
-                      </>
-                    ) : (
-                      "Create User"
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit User Modal */}
-      {showEditModal && editingUser && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-60 overflow-y-auto w-full z-50 flex items-center justify-center p-4">
-          <div className="relative mx-auto p-4 sm:p-6 border w-full max-w-2xl shadow-xl rounded-2xl bg-white dark:bg-gray-800 max-h-[90vh] overflow-y-auto border-gray-100 dark:border-gray-700">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Edit User: {editingUser.fullName}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingUser(null);
-                    setErrors({});
-                  }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-
-              <form onSubmit={handleUpdateUser} className="space-y-6">
-                {errors.general && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400">
-                    {errors.general}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editUser.firstName}
-                      onChange={(e) =>
-                        setEditUser({ ...editUser, firstName: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    {errors.firstName && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {errors.firstName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={editUser.lastName}
-                      onChange={(e) =>
-                        setEditUser({ ...editUser, lastName: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    {errors.lastName && (
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {errors.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={editUser.email}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, email: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Status
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={editUser.isActive}
-                      onChange={(e) =>
-                        setEditUser({ ...editUser, isActive: e.target.checked })
-                      }
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                      Active
-                    </span>
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Roles
-                  </label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {roles.map((role) => (
-                      <label key={role.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={editUser.roleIds.includes(role.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setEditUser({
-                                ...editUser,
-                                roleIds: [...editUser.roleIds, role.id],
-                              });
-                            } else {
-                              setEditUser({
-                                ...editUser,
-                                roleIds: editUser.roleIds.filter(
-                                  (id) => id !== role.id
-                                ),
-                              });
-                            }
-                          }}
-                          className="mr-2"
-                        />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {role.name}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEditModal(false);
-                      setEditingUser(null);
-                      setErrors({});
-                    }}
-                    disabled={isUpdating}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isUpdating}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center"
-                  >
-                    {isUpdating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Updating...
-                      </>
-                    ) : (
-                      "Update User"
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Edit User Modal - Removed, using separate page now */}
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal
@@ -1238,11 +614,6 @@ const Users: React.FC = () => {
                 Are you sure you want to delete this user? This action will
                 deactivate their account and cannot be undone.
               </p>
-              {errors.general && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-400 mt-4">
-                  {errors.general}
-                </div>
-              )}
             </div>
           ) : null
         }

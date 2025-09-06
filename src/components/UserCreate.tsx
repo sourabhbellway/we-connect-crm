@@ -1,28 +1,44 @@
 import React, { useState } from "react";
-import LeadForm from "./LeadForm";
-import { leadService, LeadPayload } from "../services/leadService";
+import UserForm from "./UserForm";
+import { userService } from "../services/userService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import BackButton from "./BackButton";
 import { useCounts } from "../contexts/CountsContext";
 
-const LeadCreate: React.FC = () => {
+export interface UserPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  roleIds: number[];
+  isActive?: boolean;
+}
+
+export interface UserEditPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password?: string; // Optional for edit operations
+  roleIds: number[];
+  isActive?: boolean;
+}
+
+const UserCreate: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
-  const { refreshLeadsCount } = useCounts();
+  const { refreshUsersCount } = useCounts();
 
-  const handleSubmit = async (data: LeadPayload) => {
+  const handleSubmit = async (data: UserPayload) => {
     try {
       setSubmitting(true);
-      await leadService.createLead({
+      await userService.createUser({
         ...data,
-        // ensure numeric conversions
-        sourceId: data.sourceId ? Number(data.sourceId) : undefined,
-        assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
+        isActive: data.isActive ?? true,
       });
-      await refreshLeadsCount();
-      toast.success("Lead created");
-      navigate("/leads");
+      await refreshUsersCount();
+      toast.success("User created successfully!");
+      navigate("/users");
     } catch (e: any) {
       toast.error(e?.response?.data?.message || e?.message || "Create failed");
     } finally {
@@ -35,21 +51,21 @@ const LeadCreate: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Create Lead
+            Create User
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Fill in the details below
           </p>
         </div>
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/leads" />
+          <BackButton to="/users" />
         </div>
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-        <LeadForm onSubmit={handleSubmit} submitting={submitting} />
+        <UserForm onSubmit={handleSubmit} submitting={submitting} />
       </div>
     </div>
   );
 };
 
-export default LeadCreate;
+export default UserCreate;

@@ -89,6 +89,18 @@
       "negotiation": "谈判",
       "closed": "已关闭",
       "lost": "丢失"
+    },
+    "table": {
+      "lead": "线索",
+      "company": "公司",
+      "status": "状态",
+      "assignedTo": "分配给",
+      "created": "创建时间",
+      "actions": "操作"
+    },
+    "form": {
+      "email": "邮箱",
+      "allLeads": "所有线索"
     }
   },
   "roles": {

@@ -1,10 +1,25 @@
 import apiClient from "./authService";
 
+export interface RoleFilters {
+  search?: string;
+  showOnlyActive?: boolean;
+  page?: number;
+  limit?: number;
+}
+
 export const roleService = {
-  getRoles: async (showOnlyActive = false) => {
-    const response = await apiClient.get(
-      `/roles${showOnlyActive ? "?includeInactive=false" : ""}`
-    );
+  getRoles: async (filters: RoleFilters = {}) => {
+    const params = new URLSearchParams();
+
+    if (filters.search) params.append("search", filters.search);
+    if (filters.showOnlyActive) params.append("includeInactive", "false");
+    if (filters.page) params.append("page", filters.page.toString());
+    if (filters.limit) params.append("limit", filters.limit.toString());
+
+    const queryString = params.toString();
+    const url = queryString ? `/roles?${queryString}` : "/roles";
+
+    const response = await apiClient.get(url);
     return response.data;
   },
 

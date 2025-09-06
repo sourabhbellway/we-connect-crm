@@ -7,19 +7,29 @@ import FormModal from "./FormModal";
 import ColorPalette from "./ColorPalette";
 import InputField, { TextAreaField } from "./InputField";
 import { toast } from "react-toastify";
+import BackButton from "./BackButton";
 
-const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
+const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({
+  title,
+  subtitle,
+}) => (
   <div className="text-center py-10 text-gray-500 dark:text-gray-400">
     <p className="text-sm font-medium">{title}</p>
     {subtitle && <p className="text-xs mt-1">{subtitle}</p>}
   </div>
 );
 
-const SectionHeader: React.FC<{ icon: React.ReactNode; title: string; action?: React.ReactNode }> = ({ icon, title, action }) => (
+const SectionHeader: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  action?: React.ReactNode;
+}> = ({ icon, title, action }) => (
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center space-x-2">
       {icon}
-      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+        {title}
+      </h3>
     </div>
     {action}
   </div>
@@ -32,12 +42,15 @@ const LeadSettings: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canManageLeads = useMemo(() => ({
-    read: hasPermission("lead.read"),
-    create: hasPermission("lead.create"),
-    update: hasPermission("lead.update"),
-    delete: hasPermission("lead.delete"),
-  }), [hasPermission]);
+  const canManageLeads = useMemo(
+    () => ({
+      read: hasPermission("lead.read"),
+      create: hasPermission("lead.create"),
+      update: hasPermission("lead.update"),
+      delete: hasPermission("lead.delete"),
+    }),
+    [hasPermission]
+  );
 
   const fetchAll = async () => {
     try {
@@ -49,8 +62,12 @@ const LeadSettings: React.FC = () => {
       ]);
       // API returns wrapped data in backend; client services currently return response.data directly.
       // Normalize to arrays if wrapped
-      const tagsData = (tagsRes as any)?.data?.tags ?? (tagsRes as any)?.tags ?? tagsRes;
-      const srcData = (srcRes as any)?.data?.leadSources ?? (srcRes as any)?.leadSources ?? srcRes;
+      const tagsData =
+        (tagsRes as any)?.data?.tags ?? (tagsRes as any)?.tags ?? tagsRes;
+      const srcData =
+        (srcRes as any)?.data?.leadSources ??
+        (srcRes as any)?.leadSources ??
+        srcRes;
       setTags(tagsData || []);
       setLeadSources(srcData || []);
     } catch (e: any) {
@@ -105,9 +122,19 @@ const LeadSettings: React.FC = () => {
   };
 
   // Modal State
-  const [tagModal, setTagModal] = useState<{ open: boolean; editing: Tag | null }>({ open: false, editing: null });
-  const [sourceModal, setSourceModal] = useState<{ open: boolean; editing: LeadSource | null }>({ open: false, editing: null });
-  const [formState, setFormState] = useState<{ name: string; color?: string; description?: string }>({ name: "", color: "#3B82F6", description: "" });
+  const [tagModal, setTagModal] = useState<{
+    open: boolean;
+    editing: Tag | null;
+  }>({ open: false, editing: null });
+  const [sourceModal, setSourceModal] = useState<{
+    open: boolean;
+    editing: LeadSource | null;
+  }>({ open: false, editing: null });
+  const [formState, setFormState] = useState<{
+    name: string;
+    color?: string;
+    description?: string;
+  }>({ name: "", color: "#3B82F6", description: "" });
 
   useEffect(() => {
     if (tagModal.open) {
@@ -137,8 +164,13 @@ const LeadSettings: React.FC = () => {
           color: formState.color,
           description: formState.description,
         });
-        const payload = (updated as any)?.data?.tag ?? (updated as any)?.tag ?? updated;
-        setTags((prev) => prev.map((t) => (t.id === tagModal.editing!.id ? { ...t, ...payload } : t)));
+        const payload =
+          (updated as any)?.data?.tag ?? (updated as any)?.tag ?? updated;
+        setTags((prev) =>
+          prev.map((t) =>
+            t.id === tagModal.editing!.id ? { ...t, ...payload } : t
+          )
+        );
         toast.success("Tag updated");
       } else {
         const created = await tagService.createTag({
@@ -146,7 +178,8 @@ const LeadSettings: React.FC = () => {
           color: formState.color,
           description: formState.description,
         });
-        const payload = (created as any)?.data?.tag ?? (created as any)?.tag ?? created;
+        const payload =
+          (created as any)?.data?.tag ?? (created as any)?.tag ?? created;
         setTags((prev) => [payload, ...prev]);
         toast.success("Tag created");
       }
@@ -164,19 +197,32 @@ const LeadSettings: React.FC = () => {
     try {
       setLoading(true);
       if (sourceModal.editing) {
-        const updated = await leadSourceService.updateLeadSource(sourceModal.editing.id, {
-          name: formState.name,
-          description: formState.description,
-        });
-        const payload = (updated as any)?.data?.leadSource ?? (updated as any)?.leadSource ?? updated;
-        setLeadSources((prev) => prev.map((s) => (s.id === sourceModal.editing!.id ? { ...s, ...payload } : s)));
+        const updated = await leadSourceService.updateLeadSource(
+          sourceModal.editing.id,
+          {
+            name: formState.name,
+            description: formState.description,
+          }
+        );
+        const payload =
+          (updated as any)?.data?.leadSource ??
+          (updated as any)?.leadSource ??
+          updated;
+        setLeadSources((prev) =>
+          prev.map((s) =>
+            s.id === sourceModal.editing!.id ? { ...s, ...payload } : s
+          )
+        );
         toast.success("Lead source updated");
       } else {
         const created = await leadSourceService.createLeadSource({
           name: formState.name,
           description: formState.description,
         });
-        const payload = (created as any)?.data?.leadSource ?? (created as any)?.leadSource ?? created;
+        const payload =
+          (created as any)?.data?.leadSource ??
+          (created as any)?.leadSource ??
+          created;
         setLeadSources((prev) => [payload, ...prev]);
         toast.success("Lead source created");
       }
@@ -190,13 +236,24 @@ const LeadSettings: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Lead Settings</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Manage tags and lead sources</p>
+      <div className="mb-6 flex  items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Lead Settings
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Manage tags and lead sources
+          </p>
+        </div>
+        <div className="flex items-center gap-4 mb-4">
+          <BackButton to="/leads" />
+        </div>
       </div>
 
       {error && (
-        <div className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</div>
+        <div className="mb-3 text-sm text-red-600 dark:text-red-400">
+          {error}
+        </div>
       )}
 
       {/* Tags */}
@@ -222,14 +279,24 @@ const LeadSettings: React.FC = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {tags.map((tag) => (
-              <div key={tag.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 flex items-start justify-between">
+              <div
+                key={tag.id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 flex items-start justify-between"
+              >
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="w-3 h-3 rounded" style={{ backgroundColor: tag.color }} />
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{tag.name}</p>
+                    <span
+                      className="w-3 h-3 rounded"
+                      style={{ backgroundColor: tag.color }}
+                    />
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                      {tag.name}
+                    </p>
                   </div>
                   {tag.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{tag.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {tag.description}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
@@ -263,7 +330,9 @@ const LeadSettings: React.FC = () => {
       {/* Lead Sources */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         <SectionHeader
-          icon={<Database className="h-4 w-4 text-gray-600 dark:text-gray-300" />}
+          icon={
+            <Database className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          }
           title="Lead Sources"
           action={
             canManageLeads.create ? (
@@ -279,15 +348,25 @@ const LeadSettings: React.FC = () => {
         />
 
         {leadSources.length === 0 ? (
-          <EmptyState title="No lead sources yet" subtitle="Create your first source" />
+          <EmptyState
+            title="No lead sources yet"
+            subtitle="Create your first source"
+          />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {leadSources.map((src) => (
-              <div key={src.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 flex items-start justify-between">
+              <div
+                key={src.id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 flex items-start justify-between"
+              >
                 <div>
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{src.name}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    {src.name}
+                  </p>
                   {src.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{src.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {src.description}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center space-x-2">
@@ -330,18 +409,33 @@ const LeadSettings: React.FC = () => {
           <InputField
             label="Name"
             value={formState.name}
-            onChange={(e) => setFormState((s) => ({ ...s, name: (e.target as HTMLInputElement).value }))}
+            onChange={(e) =>
+              setFormState((s) => ({
+                ...s,
+                name: (e.target as HTMLInputElement).value,
+              }))
+            }
             placeholder="e.g. VIP"
             required
           />
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
-            <ColorPalette value={formState.color} onChange={(c) => setFormState((s) => ({ ...s, color: c }))} />
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Color
+            </label>
+            <ColorPalette
+              value={formState.color}
+              onChange={(c) => setFormState((s) => ({ ...s, color: c }))}
+            />
           </div>
           <TextAreaField
             label="Description"
             value={formState.description}
-            onChange={(e) => setFormState((s) => ({ ...s, description: (e.target as HTMLTextAreaElement).value }))}
+            onChange={(e) =>
+              setFormState((s) => ({
+                ...s,
+                description: (e.target as HTMLTextAreaElement).value,
+              }))
+            }
             placeholder="Optional"
             rows={3}
           />
@@ -361,14 +455,24 @@ const LeadSettings: React.FC = () => {
           <InputField
             label="Name"
             value={formState.name}
-            onChange={(e) => setFormState((s) => ({ ...s, name: (e.target as HTMLInputElement).value }))}
+            onChange={(e) =>
+              setFormState((s) => ({
+                ...s,
+                name: (e.target as HTMLInputElement).value,
+              }))
+            }
             placeholder="e.g. Website"
             required
           />
           <TextAreaField
             label="Description"
             value={formState.description}
-            onChange={(e) => setFormState((s) => ({ ...s, description: (e.target as HTMLTextAreaElement).value }))}
+            onChange={(e) =>
+              setFormState((s) => ({
+                ...s,
+                description: (e.target as HTMLTextAreaElement).value,
+              }))
+            }
             placeholder="Optional"
             rows={3}
           />
@@ -379,5 +483,3 @@ const LeadSettings: React.FC = () => {
 };
 
 export default LeadSettings;
-
-

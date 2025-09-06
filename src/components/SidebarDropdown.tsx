@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export interface SidebarChildItem {
@@ -10,7 +10,7 @@ export interface SidebarChildItem {
 
 export interface SidebarDropdownProps {
   name: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   isCollapsed: boolean;
   childrenItems: SidebarChildItem[];
   canShowChild: (permission?: string) => boolean;

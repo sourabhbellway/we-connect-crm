@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { useCounts } from "../contexts/CountsContext";
 import { useTranslation } from "react-i18next";
 import LanguageSelector from "./LanguageSelector";
 import ConfirmModal from "./ConfirmModal";
@@ -16,8 +17,6 @@ import {
   Users as AudienceIcon,
   FileText,
   Calendar,
-  PieChart,
-  Search,
   Bell,
   Sun,
   Moon,
@@ -39,6 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { user, logout, hasPermission } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { counts } = useCounts();
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
@@ -76,7 +76,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     handleLogout();
   };
 
-  const navigation = [
+  const navigation: Array<{
+    name: string;
+    href: string;
+    icon: any;
+    permission: string;
+    badge?: string;
+    badgeColor?: string;
+  }> = [
     {
       name: t("navigation.dashboard"),
       href: "/",
@@ -88,13 +95,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       href: "/users",
       icon: AudienceIcon,
       permission: "user.read",
+      badge: counts.users.toString(),
+      badgeColor: "bg-blue-500",
     },
     {
       name: t("navigation.leads"),
       href: "/leads",
       icon: FileText,
       permission: "lead.read",
-      badge: "8",
+      badge: counts.leads.toString(),
       badgeColor: "bg-green-500",
     },
     {
@@ -102,7 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       href: "/roles",
       icon: Calendar,
       permission: "role.read",
-      badge: "3",
+      badge: counts.roles.toString(),
       badgeColor: "bg-orange-500",
     },
   ].filter((item) => hasPermission(item.permission));
@@ -154,14 +163,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <Icon
               size={20}
-              // strokeWidth={2}
               className={`${sidebarCollapsed ? "mr-0 " : "mr-3"}`}
             />
             {!sidebarCollapsed && <span>{item.name}</span>}
           </div>
           {!sidebarCollapsed && (
             <div className="flex items-center">
-              {item.badge && (
+              {item.badge && item.badge !== "0" && (
                 <span
                   className={`ml-2 px-2 py-1 text-xs rounded-full text-white ${item.badgeColor}`}
                 >
@@ -265,21 +273,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between px-6 py-2">
-            <div className="flex items-center space-x-4">
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full rounded-lg border-gray-200 dark:border-gray-700 p-2"
-              />
-              <button
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                title={t("common.search")}
-              >
-                <Search className="h-5 w-5" />
-              </button>
-            </div>
-
+          <div className="flex items-center justify-end px-6 py-2">
             {/* Right side - Search, Notifications, Theme Toggle, and User Profile */}
             <div className="flex items-center space-x-4">
               {/* Notifications */}

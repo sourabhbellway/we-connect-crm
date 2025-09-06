@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRole = exports.updateRole = exports.createRole = exports.getRoles = void 0;
+exports.deleteRole = exports.updateRole = exports.createRole = exports.getRoleById = exports.getRoles = void 0;
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
 const activityLogger_1 = require("../utils/activityLogger");
@@ -45,6 +45,50 @@ const getRoles = async (req, res) => {
     }
 };
 exports.getRoles = getRoles;
+const getRoleById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const role = await prisma_1.prisma.role.findUnique({
+            where: { id: parseInt(id) },
+            include: {
+                permissions: {
+                    include: {
+                        permission: true,
+                    },
+                },
+                users: {
+                    include: {
+                        user: true,
+                    },
+                },
+            },
+        });
+        if (!role) {
+            return res.status(404).json({
+                success: false,
+                message: "Role not found",
+            });
+        }
+        // Transform the data to match expected format
+        const transformedRole = {
+            ...role,
+            permissions: role.permissions.map((rp) => rp.permission),
+            users: role.users.map((ur) => ur.user),
+        };
+        res.json({
+            success: true,
+            data: { role: transformedRole },
+        });
+    }
+    catch (error) {
+        console.error("Get role by ID error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.getRoleById = getRoleById;
 const createRole = async (req, res) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);

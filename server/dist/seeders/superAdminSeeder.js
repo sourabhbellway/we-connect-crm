@@ -10,9 +10,19 @@ const client_1 = require("@prisma/client");
 const seedSuperAdminData = async () => {
     try {
         console.log("🚀 Seeding Super Admin system...");
-        // Create Super Admin permissions (all system permissions)
+        // First, get ALL existing permissions from the regular system
+        const existingPermissions = await prisma_1.prisma.permission.findMany();
+        console.log(`📋 Found ${existingPermissions.length} existing permissions in database`);
+        // Create Super Admin permissions (include ALL existing permissions + system permissions)
         const superAdminPermissions = [
-            // System-wide permissions
+            // Include ALL existing permissions from the database
+            ...existingPermissions.map((perm) => ({
+                name: perm.name,
+                key: perm.key,
+                module: perm.module,
+                description: perm.description || `${perm.name} permission`,
+            })),
+            // Additional system-wide permissions
             {
                 name: "Full System Access",
                 key: "system.full_access",
@@ -74,6 +84,7 @@ const seedSuperAdminData = async () => {
                 description: "Monitor system performance and health",
             },
         ];
+        console.log(`📋 Creating ${superAdminPermissions.length} Super Admin permissions...`);
         // Create Super Admin permissions
         for (const perm of superAdminPermissions) {
             await prisma_1.prisma.superAdminPermission.upsert({
@@ -113,7 +124,7 @@ const seedSuperAdminData = async () => {
                 },
             });
         }
-        console.log("✅ All permissions assigned to Super Admin role");
+        console.log(`✅ All ${allSuperAdminPermissions.length} permissions assigned to Super Admin role`);
         // Create Super Admin user
         const hashedPassword = await bcryptjs_1.default.hash("SuperAdmin123!", 10);
         const superAdminUser = await prisma_1.prisma.superAdmin.upsert({
@@ -153,7 +164,7 @@ const seedSuperAdminData = async () => {
         await prisma_1.prisma.activity.create({
             data: {
                 title: "Super Admin System Initialized",
-                description: `Super Admin system created with user "${superAdminUser.firstName} ${superAdminUser.lastName}"`,
+                description: `Super Admin system created with user "${superAdminUser.firstName} ${superAdminUser.lastName}" with ${allSuperAdminPermissions.length} permissions`,
                 type: client_1.ActivityType.SYSTEM_MAINTENANCE,
                 icon: "FiShield",
                 iconColor: "text-red-600",
@@ -165,7 +176,7 @@ const seedSuperAdminData = async () => {
         console.log("\n🎉 Super Admin system seeded successfully!");
         console.log("📧 Email: superadmin@weconnect.com");
         console.log("🔑 Password: SuperAdmin123!");
-        console.log("🔐 Role: Super Admin (Complete system access)");
+        console.log(`🔐 Role: Super Admin (${allSuperAdminPermissions.length} permissions)`);
         console.log("🚫 Hidden from regular user interface");
         console.log("\n⚠️  Please change the password after first login!");
     }

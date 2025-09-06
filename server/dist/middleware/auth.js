@@ -150,6 +150,10 @@ const requirePermission = (permissionKey) => {
                 message: "Access denied - No roles assigned",
             });
         }
+        // Super Admins have access to everything
+        if (user.isSuperAdmin === true) {
+            return next();
+        }
         const hasPermission = user.roles.some((role) => role.permissions?.some((permission) => permission.key === permissionKey));
         if (!hasPermission) {
             return res.status(403).json({
@@ -170,6 +174,10 @@ const requireRole = (roleName) => {
                 success: false,
                 message: "Access denied - No roles assigned",
             });
+        }
+        // Super Admins have access to everything
+        if (user.isSuperAdmin === true) {
+            return next();
         }
         const hasRole = user.roles.some((role) => role.name === roleName);
         if (!hasRole) {

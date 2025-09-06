@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import FormModal from "./FormModal";
 import InputField, { TextAreaField } from "./InputField";
 import { toast } from "react-toastify";
+import BackButton from "./BackButton";
 
 const SectionHeader: React.FC<{
   icon: React.ReactNode;
@@ -172,13 +173,18 @@ const IndustrySettings: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Industry Settings
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Manage industries and their fields
-        </p>
+      <div className="mb-6 flex  items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Industry Settings
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Manage industries and their fields
+          </p>
+        </div>
+        <div className="flex items-center gap-4 mb-4">
+          <BackButton to="/settings" />
+        </div>
       </div>
 
       {error && (
