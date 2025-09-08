@@ -23,7 +23,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
   return (
     <div className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {label}
         </label>
       )}
@@ -38,7 +38,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
             else if (newValue === "false") onChange(false);
             else onChange(newValue);
           }}
-          className="w-full pl-10 pr-8 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer transition-all duration-200"
+          className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer transition-all duration-200"
         >
           <option value="">{placeholder}</option>
           {options.map((option) => (

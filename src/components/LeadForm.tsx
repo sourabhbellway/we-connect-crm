@@ -98,8 +98,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
         const tagsData =
           (tagsRes as any)?.data?.tags ?? (tagsRes as any)?.tags ?? tagsRes;
 
-      
-
         setUsers(Array.isArray(usersData) ? usersData : []);
         setLeadSources(Array.isArray(sourcesData) ? sourcesData : []);
         setAllTags(Array.isArray(tagsData) ? tagsData : []);
@@ -136,9 +134,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   const validatePhone = (phone: string): string | null => {
     if (!phone) return null; // Phone is optional
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    if (!phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ""))) {
-      return "Please enter a valid phone number";
+    const digitsOnly = phone.replace(/\D/g, "");
+    if (!/^\d{10}$/.test(digitsOnly)) {
+      return "Please enter a valid 10-digit mobile number";
     }
     return null;
   };
@@ -195,9 +193,15 @@ const LeadForm: React.FC<LeadFormProps> = ({
         if (emailError) newErrors.email = emailError;
       }
 
-      if (key === "phone" && value) {
-        const phoneError = validatePhone(value);
-        if (phoneError) newErrors.phone = phoneError;
+      if (key === "phone") {
+        const sanitized = (value || "").replace(/\D/g, "").slice(0, 10);
+        newForm.phone = sanitized as any;
+        const phoneError = validatePhone(sanitized);
+        if (phoneError) {
+          newErrors.phone = phoneError;
+        } else {
+          delete newErrors.phone;
+        }
       }
 
       return {
@@ -265,7 +269,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   // Error display component
   const ErrorMessage = ({ error }: { error: string }) => (
-    <div className="flex items-center mt-1 text-sm text-red-600 dark:text-red-400">
+    <div className="flex items-center mt-1 text-xs text-red-600 dark:text-red-400">
       <AlertCircle className="h-4 w-4 mr-1 flex-shrink-0" />
       <span>{error}</span>
     </div>
@@ -281,8 +285,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
       </div>
     );
   }
-
-
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -340,7 +342,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
               handleChange("email", (e.target as HTMLInputElement).value)
             }
             required
-            error={formState.errors.email}
+            // error={formState.errors.email}
           />
           {formState.errors.email && (
             <ErrorMessage error={formState.errors.email} />
@@ -351,11 +353,13 @@ const LeadForm: React.FC<LeadFormProps> = ({
             label="Phone"
             leftIcon={<PhoneIcon className="h-4 w-4 text-gray-400" />}
             type="tel"
+            inputMode="numeric"
+            pattern="\\d{10}"
+            maxLength={10}
             value={formState.form.phone || ""}
             onChange={(e) =>
               handleChange("phone", (e.target as HTMLInputElement).value)
             }
-            error={formState.errors.phone}
           />
           {formState.errors.phone && (
             <ErrorMessage error={formState.errors.phone} />
@@ -468,7 +472,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
                   onClick={() => toggleTag(tag.id)}
                   className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                     selected
-                      ? "bg-rose-500 text-white border-rose-500 hover:bg-rose-600"
+                      ? "bg-sky-500 text-white border-sky-500 hover:bg-sky-600"
                       : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                   }`}
                 >
