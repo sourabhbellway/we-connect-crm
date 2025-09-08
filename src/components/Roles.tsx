@@ -45,6 +45,8 @@ const Roles: React.FC = () => {
   const navigate = useNavigate();
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -65,7 +67,11 @@ const Roles: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      setIsLoading(true);
+      if (!hasLoaded) {
+        setIsLoading(true);
+      } else {
+        setIsFiltering(true);
+      }
       setSearchError(null);
 
       const response = await roleService.getRoles({
@@ -77,6 +83,7 @@ const Roles: React.FC = () => {
       const rolesData = response.data?.roles ?? response.roles ?? response;
       setRoles(Array.isArray(rolesData) ? rolesData : []);
       setBackendSearchSupported(true);
+      setHasLoaded(true);
     } catch (error: any) {
       console.error("Error fetching roles:", error);
 
@@ -102,7 +109,11 @@ const Roles: React.FC = () => {
         setSearchError("Failed to load roles");
       }
     } finally {
-      setIsLoading(false);
+      if (!hasLoaded) {
+        setIsLoading(false);
+      } else {
+        setIsFiltering(false);
+      }
     }
   };
 
