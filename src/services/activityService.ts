@@ -1,7 +1,5 @@
 import axios from "axios";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+import { API_BASE_URL } from "../config/config";
 
 // Get auth token from localStorage
 const getAuthToken = () => {

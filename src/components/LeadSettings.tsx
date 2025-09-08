@@ -185,7 +185,7 @@ const LeadSettings: React.FC = () => {
       }
       setTagModal({ open: false, editing: null });
     } catch (err: any) {
-      toast.error(err?.message || "Operation failed");
+      toast.error(err?.response?.data?.message || err?.message || "Operation failed");
     } finally {
       setLoading(false);
     }
@@ -228,7 +228,7 @@ const LeadSettings: React.FC = () => {
       }
       setSourceModal({ open: false, editing: null });
     } catch (err: any) {
-      toast.error(err?.message || "Operation failed");
+      toast.error(err?.response?.data?.message || err?.message || "Operation failed");
     } finally {
       setLoading(false);
     }

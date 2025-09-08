@@ -1,8 +1,9 @@
 import axios from "axios";
 import { LoginRequest, LoginResponse } from "../types/auth";
-
+import { API_BASE_URL } from "../config/config";
+console.log('33333333333333333333',API_BASE_URL)
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api",
+  baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -59,6 +60,11 @@ export const authService = {
   getProfile: async () => {
     const response = await apiClient.get("/auth/profile");
     return response.data;
+  },
+
+  getPermissionsForRole: async (roleId: string) => {
+    const response = await apiClient.get(`/auth/roles/${roleId}/permissions`);
+    return response.data.data.permissions;
   },
 
   getSuperAdminProfile: async () => {

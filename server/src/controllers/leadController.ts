@@ -183,7 +183,18 @@ export const createLead = async (req: Request, res: Response) => {
       assignedTo,
       tags,
     } = req.body;
+    if (email) {
+      const emailExists = await prisma.lead.findFirst({
+        where: { email },
+      });
 
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists For another lead",
+        });
+      }
+    }
     const lead = await prisma.lead.create({
       data: {
         firstName,
@@ -199,12 +210,12 @@ export const createLead = async (req: Request, res: Response) => {
         tags:
           tags && tags.length > 0
             ? {
-                create: tags.map((tagId: number) => ({
-                  tag: {
-                    connect: { id: tagId },
-                  },
-                })),
-              }
+              create: tags.map((tagId: number) => ({
+                tag: {
+                  connect: { id: tagId },
+                },
+              })),
+            }
             : undefined,
       },
       include: {
@@ -299,7 +310,24 @@ export const updateLead = async (req: Request, res: Response) => {
         message: "Lead not found",
       });
     }
+    if (email && email.toLowerCase() !== existingLead.email.toLowerCase()) {
+      const emailExists = await prisma.lead.findFirst({
+        where: {
+          email: {
+            equals: email,
+            mode: "insensitive", 
+          },
+          NOT: { id: existingLead.id },
+        },
+      });
 
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists for another lead",
+        });
+      }
+    }
     const lead = await prisma.lead.update({
       where: { id: parseInt(id) },
       data: {
@@ -318,10 +346,10 @@ export const updateLead = async (req: Request, res: Response) => {
           create:
             tags && tags.length > 0
               ? tags.map((tagId: number) => ({
-                  tag: {
-                    connect: { id: tagId },
-                  },
-                }))
+                tag: {
+                  connect: { id: tagId },
+                },
+              }))
               : [],
         },
       },

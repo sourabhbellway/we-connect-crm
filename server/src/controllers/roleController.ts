@@ -6,11 +6,20 @@ import { Prisma } from "@prisma/client";
 
 export const getRoles = async (req: Request, res: Response) => {
   try {
-    const { includeInactive } = req.query;
+    const { includeInactive, search } = req.query;
+    // console.log("Include Inactive:", includeInactive,search);
+    let whereClause: Prisma.RoleWhereInput = {};
 
-    // Default to showing all roles (both active and inactive)
-    const whereClause = includeInactive === "false" ? { isActive: true } : {};
+    if (includeInactive === "false") {
+      whereClause.isActive = true;
+    }
 
+    if (search && typeof search === "string" && search.trim() !== "") {
+      whereClause.name = {
+        contains: search.trim(),
+        mode: "insensitive",
+      };
+    }
     const roles = await prisma.role.findMany({
       where: whereClause,
       orderBy: [{ name: "asc" }],

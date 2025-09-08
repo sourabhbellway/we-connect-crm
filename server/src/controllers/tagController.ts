@@ -25,7 +25,21 @@ export const getTags = async (req: Request, res: Response) => {
 export const createTag = async (req: Request, res: Response) => {
   try {
     const { name, color, description } = req.body;
+    const existingTag = await prisma.tag.findFirst({
+      where: {
+        name: {
+          equals: name,
+          mode: "insensitive",
+        },
+      },
+    });
 
+    if (existingTag) {
+      return res.status(400).json({
+        success: false,
+        message: "Tag with this name already exists",
+      });
+    }
     const tag = await prisma.tag.create({
       data: {
         name,
@@ -68,6 +82,34 @@ export const updateTag = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, color, description, isActive } = req.body;
+    const existingTag = await prisma.tag.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existingTag) {
+      return res.status(404).json({
+        success: false,
+        message: "Tag not found",
+      });
+    }
+    if (name && name.toLowerCase() !== existingTag.name.toLowerCase()) {
+      const duplicateTag = await prisma.tag.findFirst({
+        where: {
+          name: {
+            equals: name,
+            mode: "insensitive",
+          },
+          NOT: { id: parseInt(id) },
+        },
+      });
+
+      if (duplicateTag) {
+        return res.status(400).json({
+          success: false,
+          message: "Tag with this name already exists",
+        });
+      }
+    }
 
     const tag = await prisma.tag.update({
       where: { id: parseInt(id) },

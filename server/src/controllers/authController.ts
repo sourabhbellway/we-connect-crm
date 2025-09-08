@@ -9,6 +9,132 @@ interface AuthenticatedRequest extends Request {
   user?: any;
 }
 
+// export const login = async (req: Request, res: Response) => {
+//   try {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Validation errors",
+//         errors: errors.array(),
+//       });
+//     }
+
+//     const { email, password } = req.body;
+
+//     const user = await prisma.user.findFirst({
+//       where: { email, isActive: true },
+//       select: {
+//         id: true,
+//         email: true,
+//         password: true,
+//         firstName: true,
+//         lastName: true,
+//         lastLogin: true,
+//         roles: {
+//           select: {
+//             role: {
+//               select: {
+//                 id: true,
+//                 name: true,
+//                 permissions: {
+//                   select: {
+//                     permission: {
+//                       select: {
+//                         id: true,
+//                         name: true,
+//                         key: true,
+//                         module: true,
+//                       },
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Invalid credentials",
+//       });
+//     }
+
+//     // Update last login
+//     await prisma.user.update({
+//       where: { id: user.id },
+//       data: { lastLogin: new Date() },
+//     });
+
+//     // Log user login activity
+//     await activityLoggers.userLogin({
+//       id: user.id,
+//       firstName: user.firstName,
+//       lastName: user.lastName,
+//       email: user.email,
+//     });
+
+//     // Transform roles data
+//     const transformedRoles = user.roles.map((ur) => ({
+//       id: ur.role.id,
+//       name: ur.role.name,
+//       permissions: ur.role.permissions.map((rp) => rp.permission),
+//     }));
+//     const deviceId = req.headers["x-device-id"];
+//     // Generate JWT token with expiry timestamp
+//     const secret =
+//       process.env.JWT_SECRET || "default-secret-change-in-production";
+//     const expiresIn = process.env.JWT_EXPIRE || "24h";
+//     const token = (jwt as any).sign(
+//       {
+//         userId: user.id,
+//         email: user.email,
+//         ip: req.ip,
+//         userAgent: req.headers["user-agent"],
+//         deviceId: deviceId || null,
+//         roles: transformedRoles.map((role) => ({
+//           id: role.id,
+//           name: role.name,
+//           permissions: role.permissions.map((perm) => perm.key),
+//         })),
+//       },
+//       secret,
+//       { expiresIn }
+//     );
+
+//     // Calculate expiry timestamp
+//     const expiryTime = new Date();
+//     expiryTime.setHours(expiryTime.getHours() + 24); // 24 hours from now
+
+//     res.json({
+//       success: true,
+//       message: "Login successful",
+//       data: {
+//         token,
+//         tokenExpiry: expiryTime.toISOString(),
+//         user: {
+//           id: user.id,
+//           email: user.email,
+//           // firstName: user.firstName,
+//           // lastName: user.lastName,
+//           fullName: `${user.firstName} ${user.lastName}`,
+//           lastLogin: user.lastLogin,
+//           roles: transformedRoles,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
+
 export const login = async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
@@ -37,18 +163,6 @@ export const login = async (req: Request, res: Response) => {
               select: {
                 id: true,
                 name: true,
-                permissions: {
-                  select: {
-                    permission: {
-                      select: {
-                        id: true,
-                        name: true,
-                        key: true,
-                        module: true,
-                      },
-                    },
-                  },
-                },
               },
             },
           },
@@ -62,14 +176,11 @@ export const login = async (req: Request, res: Response) => {
         message: "Invalid credentials",
       });
     }
-
-    // Update last login
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() },
     });
 
-    // Log user login activity
     await activityLoggers.userLogin({
       id: user.id,
       firstName: user.firstName,
@@ -77,34 +188,29 @@ export const login = async (req: Request, res: Response) => {
       email: user.email,
     });
 
-    // Transform roles data
-    const transformedRoles = user.roles.map((ur) => ({
+    const userRoles = user.roles.map((ur) => ({
       id: ur.role.id,
       name: ur.role.name,
-      permissions: ur.role.permissions.map((rp) => rp.permission),
     }));
 
-    // Generate JWT token with expiry timestamp
-    const secret =
-      process.env.JWT_SECRET || "default-secret-change-in-production";
+    const deviceId = req.headers["x-device-id"];
+    const secret = process.env.JWT_SECRET || "default-secret-change-in-production";
     const expiresIn = process.env.JWT_EXPIRE || "24h";
+
     const token = (jwt as any).sign(
       {
         userId: user.id,
         email: user.email,
-        roles: transformedRoles.map((role) => ({
-          id: role.id,
-          name: role.name,
-          permissions: role.permissions.map((perm) => perm.key),
-        })),
+        roles: userRoles.map((r) => ({ id: r.id, name: r.name })),
+        deviceId: deviceId || null,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
       },
       secret,
       { expiresIn }
     );
 
-    // Calculate expiry timestamp
-    const expiryTime = new Date();
-    expiryTime.setHours(expiryTime.getHours() + 24); // 24 hours from now
+    const expiryTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     res.json({
       success: true,
@@ -115,11 +221,9 @@ export const login = async (req: Request, res: Response) => {
         user: {
           id: user.id,
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
           fullName: `${user.firstName} ${user.lastName}`,
           lastLogin: user.lastLogin,
-          roles: transformedRoles,
+          roles: userRoles,
         },
       },
     });
@@ -129,6 +233,48 @@ export const login = async (req: Request, res: Response) => {
       success: false,
       message: "Internal server error",
     });
+  }
+};
+
+export const getRolePermissions = async (req: Request, res: Response) => {
+  try {
+    const roleId = Number(req.params.roleId);
+
+    const role = await prisma.role.findUnique({
+      where: { id: roleId },
+      select: {
+        id: true,
+        name: true,
+        permissions: {
+          select: {
+            permission: {
+              select: {
+                id: true,
+                name: true,
+                key: true,
+                module: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!role) {
+      return res.status(404).json({ success: false, message: "Role not found" });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: role.id,
+        name: role.name,
+        permissions: role.permissions.map((rp) => rp.permission),
+      },
+    });
+  } catch (error) {
+    console.error("Get role permissions error:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 

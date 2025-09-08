@@ -123,11 +123,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    console.warn("useAuth called outside AuthProvider!");
+    return {
+      ...initialState,
+      login: async () => {},
+      logout: () => {},
+      checkAuth: async () => {},
+      updateUser: () => {},
+      hasPermission: () => false,
+      hasRole: () => false,
+      isSuperAdmin: () => false,
+      triggerTokenExpiry: () => {},
+      manualCheckExpiry: () => false,
+    };
   }
   return context;
 };
-
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -161,7 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const login = async (credentials: LoginRequest) => {
+  const login_old = async (credentials: LoginRequest) => {
     try {
       dispatch({ type: "LOGIN_START" });
 
@@ -189,6 +200,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           tokenExpiry: response.data.tokenExpiry,
         },
       });
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || "An error occurred during login";
+      dispatch({ type: "LOGIN_FAILURE", payload: message });
+      throw error;
+    }
+  };
+  
+  const login = async (credentials: LoginRequest) => {
+    try {
+      dispatch({ type: "LOGIN_START" });
+
+      const isSuperAdminLogin =
+        credentials.email === "superadmin@weconnect.com";
+
+      let response;
+      if (isSuperAdminLogin) {
+        response = await authService.superAdminLogin(credentials);
+      } else {
+        response = await authService.login(credentials);
+      }
+
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
+      const roleId = response.data.user.roles[0]?.id?.toString() || "";
+      // localStorage.setItem("roleId", roleId);
+      const rolePermissions = await authService.getPermissionsForRole(roleId);
+      const enrichedRoles = response.data.user.roles.map((role: any) => ({
+        ...role,
+        permissions: rolePermissions,
+      }));
+      const enrichedUser = {
+        ...response.data.user,
+        roles: enrichedRoles,
+      };
+      // console.log("Enriched User:", enrichedUser);  
+      // ✅ Dispatch with enriched response
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user: enrichedUser,
+          token: response.data.token,
+          tokenExpiry: response.data.tokenExpiry,
+        },
+      });
+
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          user: enrichedUser,
+        },
+      };
     } catch (error: any) {
       const message =
         error.response?.data?.message || "An error occurred during login";

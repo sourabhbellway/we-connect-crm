@@ -25,7 +25,21 @@ export const getLeadSources = async (req: Request, res: Response) => {
 export const createLeadSource = async (req: Request, res: Response) => {
   try {
     const { name, description } = req.body;
+    const existingLeadSource = await prisma.leadSource.findFirst({
+      where: {
+        name: {
+          equals: name,
+          mode: "insensitive",
+        },
+      },
+    });
 
+    if (existingLeadSource) {
+      return res.status(400).json({
+        success: false,
+        message: "Lead source with this name already exists",
+      });
+    }
     const leadSource = await prisma.leadSource.create({
       data: {
         name,
@@ -67,7 +81,36 @@ export const updateLeadSource = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, description, isActive } = req.body;
+    const leadSourceId = parseInt(id);
 
+    const existingLeadSource = await prisma.leadSource.findUnique({
+      where: { id: leadSourceId },
+    });
+
+    if (!existingLeadSource) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead source not found",
+      });
+    }
+    if (name && name.toLowerCase() !== existingLeadSource.name.toLowerCase()) {
+      const duplicate = await prisma.leadSource.findFirst({
+        where: {
+          name: {
+            equals: name,
+            mode: "insensitive",
+          },
+          NOT: { id: leadSourceId },
+        },
+      });
+
+      if (duplicate) {
+        return res.status(400).json({
+          success: false,
+          message: "Lead source with this name already exists",
+        });
+      }
+    }
     const leadSource = await prisma.leadSource.update({
       where: { id: parseInt(id) },
       data: {

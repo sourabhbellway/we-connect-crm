@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import SidebarDropdown from "./SidebarDropdown";
 import WeConnectLogo from "../assets/WeConnect_Logo_C2C.svg";
+import { API_BASE_URL } from "../config/config";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -314,7 +315,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   {user?.profilePicture ? (
                     <img
                       src={`${
-                        import.meta.env.VITE_API_BASE_URL ||
+                        API_BASE_URL ||
                         "http://31.97.233.21:8081"
                       }/uploads/${user.profilePicture}`}
                       alt="Profile"
