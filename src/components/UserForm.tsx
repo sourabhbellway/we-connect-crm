@@ -2,7 +2,14 @@ import React, { useEffect, useState } from "react";
 import InputField from "./InputField";
 import { UserPayload, UserEditPayload } from "./UserCreate";
 import { roleService } from "../services/roleService";
-import { User, Mail, Lock, Shield, CheckCircle } from "lucide-react";
+import {
+  User,
+  Mail,
+  Lock,
+  Shield,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
 export interface UserFormProps<T = UserPayload> {
   initial?: T;
@@ -37,6 +44,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     ...(initial || {}),
   } as T);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initial) setForm({ ...defaultState, ...initial } as T);
@@ -56,6 +64,11 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
 
   const handleChange = (key: keyof T, value: any) => {
     setForm((s) => ({ ...s, [key]: value }));
+    if (key === "email") {
+      const valueStr = String(value || "");
+      const err = valueStr ? validateEmail(valueStr) : null; // no error when blank
+      setEmailError(err);
+    }
   };
 
   const toggleRole = (roleId: number) => {
@@ -73,8 +86,29 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const formEl = e.currentTarget as HTMLFormElement;
+    if (!formEl.reportValidity()) return; // native required check for blank
+
+    const emailValue = String((form as any).email || "");
+    const err = emailValue ? validateEmail(emailValue) : null;
+    setEmailError(err);
+    if (err) return;
     await onSubmit(form);
   };
+
+  const validateEmail = (email: string): string | null => {
+    // Only validate format when non-empty; blank handled by native required
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    return null;
+  };
+
+  const ErrorMessage = ({ error }: { error: string }) => (
+    <div className="flex items-center mt-1 text-xs text-red-600 dark:text-red-400">
+      <AlertCircle className="h-4 w-4 mr-1 flex-shrink-0" />
+      <span>{error}</span>
+    </div>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -113,6 +147,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
             }
             required
           />
+          {emailError && <ErrorMessage error={emailError} />}
         </div>
         <div>
           <InputField

@@ -132,14 +132,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
     return null;
   };
 
-  const validatePhone = (phone: string): string | null => {
-    if (!phone) return null; // Phone is optional
-    const digitsOnly = phone.replace(/\D/g, "");
-    if (!/^\d{10}$/.test(digitsOnly)) {
-      return "Please enter a valid 10-digit mobile number";
-    }
-    return null;
-  };
+  // Phone validation removed to allow varying country code lengths and formats
 
   const validateRequired = (
     value: string,
@@ -170,9 +163,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
     const emailError = validateEmail(formData.email || "");
     if (emailError) errors.email = emailError;
 
-    // Optional fields with specific validation
-    const phoneError = validatePhone(formData.phone || "");
-    if (phoneError) errors.phone = phoneError;
+    // Phone: no validation
 
     return errors;
   };
@@ -194,14 +185,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
       }
 
       if (key === "phone") {
-        const sanitized = (value || "").replace(/\D/g, "").slice(0, 10);
-        newForm.phone = sanitized as any;
-        const phoneError = validatePhone(sanitized);
-        if (phoneError) {
-          newErrors.phone = phoneError;
-        } else {
-          delete newErrors.phone;
-        }
+        // Accept any phone input without enforcing length/pattern
+        newForm.phone = value as any;
+        delete newErrors.phone;
       }
 
       return {
@@ -354,8 +340,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
             leftIcon={<PhoneIcon className="h-4 w-4 text-gray-400" />}
             type="tel"
             inputMode="numeric"
-            pattern="\\d{10}"
-            maxLength={10}
             value={formState.form.phone || ""}
             onChange={(e) =>
               handleChange("phone", (e.target as HTMLInputElement).value)
@@ -409,7 +393,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         <div>
           <SelectField
             label="Status"
-            leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
+            leftIcon={<ListFilter className="h-4 w- text-gray-400" />}
             value={formState.form.status || "new"}
             onChange={(e) =>
               handleChange("status", e.target.value as LeadPayload["status"])
