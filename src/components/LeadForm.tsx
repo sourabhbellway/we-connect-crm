@@ -338,7 +338,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
           <InputField
             label="Phone"
             leftIcon={<PhoneIcon className="h-4 w-4 text-gray-400" />}
-            type="tel"
+            type="number"
             inputMode="numeric"
             value={formState.form.phone || ""}
             onChange={(e) =>
