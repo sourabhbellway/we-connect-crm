@@ -185,8 +185,15 @@ const LeadForm: React.FC<LeadFormProps> = ({
       }
 
       if (key === "phone") {
-        // Accept any phone input without enforcing length/pattern
-        newForm.phone = value as any;
+        // Allow only digits and an optional leading '+'; any length is permitted
+        const raw = String(value ?? "");
+        let cleaned = raw.replace(/[^\d+]/g, "");
+        if (cleaned.includes("+")) {
+          const hasLeadingPlus = raw.trim().startsWith("+");
+          cleaned = cleaned.replace(/\+/g, "");
+          cleaned = hasLeadingPlus ? "+" + cleaned : cleaned;
+        }
+        newForm.phone = cleaned as any;
         delete newErrors.phone;
       }
 
@@ -338,7 +345,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
           <InputField
             label="Phone"
             leftIcon={<PhoneIcon className="h-4 w-4 text-gray-400" />}
-            type="number"
+            type="tel"
             inputMode="numeric"
             value={formState.form.phone || ""}
             onChange={(e) =>
