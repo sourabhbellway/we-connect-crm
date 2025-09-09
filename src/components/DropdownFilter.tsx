@@ -18,7 +18,6 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
   label,
   className = "",
 }) => {
-  const selectedOption = options.find((option) => option.value === value);
 
   return (
     <div className={`relative ${className}`}>
