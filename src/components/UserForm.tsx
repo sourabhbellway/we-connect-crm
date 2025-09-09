@@ -45,6 +45,14 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
   } as T);
   const [roles, setRoles] = useState<Role[]>([]);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    length: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    special: false,
+  });
 
   useEffect(() => {
     if (initial) setForm({ ...defaultState, ...initial } as T);
@@ -68,6 +76,11 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
       const valueStr = String(value || "");
       const err = valueStr ? validateEmail(valueStr) : null; // no error when blank
       setEmailError(err);
+    }
+    if (key === "password") {
+      const valueStr = String(value || "");
+      setPasswordCriteria(evaluatePassword(valueStr));
+      if (passwordError) setPasswordError(null);
     }
   };
 
@@ -93,6 +106,24 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     const err = emailValue ? validateEmail(emailValue) : null;
     setEmailError(err);
     if (err) return;
+
+    const passwordValue = String((form as any).password || "");
+    if (!isEdit || passwordValue) {
+      const criteria = evaluatePassword(passwordValue);
+      const allOk =
+        criteria.length &&
+        criteria.lowercase &&
+        criteria.uppercase &&
+        criteria.number &&
+        criteria.special;
+      if (!allOk) {
+        setPasswordCriteria(criteria);
+        setPasswordError(
+          "Password must be 8+ chars with uppercase, lowercase, number, and special symbol"
+        );
+        return;
+      }
+    }
     await onSubmit(form);
   };
 
@@ -101,6 +132,21 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) return "Please enter a valid email address";
     return null;
+  };
+
+  const evaluatePassword = (password: string) => {
+    const hasLower = /[a-z]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    const hasLength = password.length >= 8;
+    return {
+      length: hasLength,
+      lowercase: hasLower,
+      uppercase: hasUpper,
+      number: hasNumber,
+      special: hasSpecial,
+    };
   };
 
   const ErrorMessage = ({ error }: { error: string }) => (
@@ -159,17 +205,61 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
               handleChange("password", (e.target as HTMLInputElement).value)
             }
             required={!isEdit}
-            minLength={6}
+            minLength={8}
             placeholder={isEdit ? "Leave empty to keep current password" : ""}
           />
+          {passwordError && <ErrorMessage error={passwordError} />}
         </div>
       </div>
 
-      {/* Password hint */}
-      <div className="text-xs text-gray-500 dark:text-gray-400">
-        {isEdit
-          ? "Leave password empty to keep the current password, or enter a new password (minimum 6 characters)"
-          : "Password must be at least 6 characters long"}
+      {/* Password strength indicators */}
+      <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+        <div className="font-medium">Password must include:</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+          <div className="flex items-center">
+            {passwordCriteria.length ? (
+              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-gray-400 mr-1" />
+            )}
+            <span>At least 8 characters</span>
+          </div>
+          <div className="flex items-center">
+            {passwordCriteria.lowercase ? (
+              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-gray-400 mr-1" />
+            )}
+            <span>Lowercase letter (a-z)</span>
+          </div>
+          <div className="flex items-center">
+            {passwordCriteria.uppercase ? (
+              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-gray-400 mr-1" />
+            )}
+            <span>Uppercase letter (A-Z)</span>
+          </div>
+          <div className="flex items-center">
+            {passwordCriteria.number ? (
+              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-gray-400 mr-1" />
+            )}
+            <span>Number (0-9)</span>
+          </div>
+          <div className="flex items-center">
+            {passwordCriteria.special ? (
+              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+            ) : (
+              <AlertCircle className="h-4 w-4 text-gray-400 mr-1" />
+            )}
+            <span>Special symbol (!@#$%^&*...)</span>
+          </div>
+        </div>
+        <div className="text-gray-500 dark:text-gray-400">
+          {isEdit ? "Leave password empty to keep the current one." : ""}
+        </div>
       </div>
 
       {/* Status */}
