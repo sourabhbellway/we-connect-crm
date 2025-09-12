@@ -15,18 +15,16 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  RefreshCw,
   User,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Search,
 } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
 import SearchInput from "./SearchInput";
 import DropdownFilter from "./DropdownFilter";
 import { toast } from "react-toastify";
 import { useDebouncedSearch } from "../hooks/useDebounce";
+import NoResults from "./NoResults";
+import TableLoader from "./TableLoader";
+import Pagination from "./Pagination";
 
 interface User {
   id: number;
@@ -55,8 +53,8 @@ const Users: React.FC = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
-  const [isFiltering, setIsFiltering] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -70,7 +68,7 @@ const Users: React.FC = () => {
   const [pageSize] = useState(50);
 
   // Debounced search with 500ms delay for better UX
-  const { searchValue, debouncedSearchValue, setSearch, isSearching } =
+  const { searchValue, debouncedSearchValue, setSearch } =
     useDebouncedSearch("", 500);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -98,7 +96,7 @@ const Users: React.FC = () => {
 
       // Escape to clear filters
       if (e.key === "Escape") {
-        if (filters.search || filters.status || filters.roleId) {
+        if (debouncedSearchValue || filters.status || filters.roleId) {
           clearFilters();
         }
       }
@@ -110,10 +108,7 @@ const Users: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      if (currentPage !== 1) {
-        setIsFiltering(true);
-      }
-
+      setIsLoading(true);
       const response = await userService.getUsers({
         search: debouncedSearchValue,
         status: filters.status,
@@ -127,7 +122,7 @@ const Users: React.FC = () => {
       console.error("Error fetching users:", error);
       toast.error("Failed to fetch users");
     } finally {
-      setIsFiltering(false);
+      setIsLoading(false);
     }
   };
 
@@ -200,7 +195,19 @@ const Users: React.FC = () => {
       roleId: "",
     });
     setCurrentPage(1);
+    setSearch("");
   };
+
+  const isSearchActive = !!debouncedSearchValue;
+  const isStatusActive = !!filters.status;
+  const isRoleActive = !!filters.roleId;
+  const noResultsDescription = isSearchActive && (isStatusActive || isRoleActive)
+    ? "No users match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all users."
+    : isSearchActive
+    ? "No users found for your search. Try adjusting your search terms. You can also clear all filters to see all users."
+    : (isStatusActive || isRoleActive)
+    ? "No users found for the selected filters. Try adjusting your filters or clear all filters to see all users."
+    : undefined;
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -213,15 +220,7 @@ const Users: React.FC = () => {
             {/* Search */}
             <div className="w-full sm:w-48">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <div className="flex items-center gap-2">
-                  {t("common.search")}
-                  {isSearching && (
-                    <div className="flex items-center gap-1 text-xs text-blue-500">
-                      <Search className="h-3 w-3 animate-pulse" />
-                      <span>Searching...</span>
-                    </div>
-                  )}
-                </div>
+                <div className="flex items-center gap-2">{t("common.search")}</div>
               </label>
               <SearchInput
                 value={searchValue}
@@ -296,33 +295,18 @@ const Users: React.FC = () => {
                       ` • Page ${pagination.currentPage} of ${pagination.totalPages}`}
                   </span>
                 )}
-                {(filters.search || filters.status || filters.roleId) && (
+                {(debouncedSearchValue || filters.status || filters.roleId) && (
                   <span className="ml-2 text-blue-600 dark:text-blue-400">
                     • Filters active
                   </span>
                 )}
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              {isFiltering && (
-                <div className="flex items-center text-sm text-blue-600 dark:text-blue-400">
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  <span>Updating...</span>
-                </div>
-              )}
-            </div>
+            <div className="flex items-center space-x-2"></div>
           </div>
         </div>
 
         <div className="overflow-x-auto relative">
-          {isFiltering && (
-            <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center z-10">
-              <div className="flex items-center text-blue-600 dark:text-blue-400">
-                <RefreshCw className="h-6 w-6 mr-2 animate-spin" />
-                <span className="text-sm font-medium">Updating results...</span>
-              </div>
-            </div>
-          )}
           <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
@@ -346,6 +330,9 @@ const Users: React.FC = () => {
                 </th>
               </tr>
             </thead>
+            {isLoading ? (
+              <TableLoader rows={8} columns={6} />
+            ) : (
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {users.length > 0 ? (
                 users.map((user) => (
@@ -455,131 +442,36 @@ const Users: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center">
-                      <User className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        {filters.search || filters.status || filters.roleId
-                          ? "No users found"
-                          : "No users yet"}
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-400 mb-4 text-center max-w-md">
-                        {filters.search || filters.status || filters.roleId
-                          ? "Try adjusting your filters or search terms. You can also clear all filters to see all users."
-                          : "Get started by creating your first user. Users can be assigned roles and permissions to access different parts of the system."}
-                      </p>
-                      {filters.search || filters.status || filters.roleId ? (
-                        <button
-                          onClick={clearFilters}
-                          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Clear all filters
-                        </button>
-                      ) : (
-                        hasPermission("user.create") && (
-                          <button
-                            onClick={() => navigate("/users/new")}
-                            className="inline-flex items-center px-4 py-2 bg-[#ef444e] text-white rounded-lg hover:bg-[#f26971] transition-colors"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create your first user
-                          </button>
-                        )
-                      )}
-                    </div>
+                    {debouncedSearchValue || filters.status || filters.roleId ? (
+                      <NoResults
+                        icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                        showClearButton
+                        onClear={clearFilters}
+                        description={noResultsDescription}
+                      />
+                    ) : (
+                      <NoResults
+                        icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                        description={noResultsDescription}
+                      />
+                    )}
                   </td>
                 </tr>
               )}
             </tbody>
+            )}
           </table>
         </div>
 
         {/* Pagination */}
-        {pagination && pagination.totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                Showing page {pagination.currentPage} of {pagination.totalPages}
-                ({pagination.totalUsers} total users)
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(1)}
-                  disabled={!pagination.hasPrevPage}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="First page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <ChevronLeft className="h-4 w-4 -ml-3" />
-                </button>
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  disabled={!pagination.hasPrevPage}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Previous page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-
-                {/* Page numbers */}
-                <div className="flex items-center space-x-1">
-                  {Array.from(
-                    { length: Math.min(5, pagination.totalPages) },
-                    (_, i) => {
-                      let pageNum;
-                      if (pagination.totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (pagination.currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (
-                        pagination.currentPage >=
-                        pagination.totalPages - 2
-                      ) {
-                        pageNum = pagination.totalPages - 4 + i;
-                      } else {
-                        pageNum = pagination.currentPage - 2 + i;
-                      }
-
-                      if (pageNum < 1 || pageNum > pagination.totalPages)
-                        return null;
-
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`px-3 py-2 text-sm font-medium rounded-md ${
-                            pageNum === pagination.currentPage
-                              ? "bg-blue-600 text-white"
-                              : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
-
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  disabled={!pagination.hasNextPage}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Next page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handlePageChange(pagination.totalPages)}
-                  disabled={!pagination.hasNextPage}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Last page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                  <ChevronRight className="h-4 w-4 -ml-3" />
-                </button>
-              </div>
-            </div>
-          </div>
+        {pagination && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalUsers}
+            onPageChange={handlePageChange}
+            itemsPerPage={50}
+          />
         )}
       </div>
 

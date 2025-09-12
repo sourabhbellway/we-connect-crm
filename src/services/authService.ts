@@ -1,7 +1,7 @@
 import axios from "axios";
 import { LoginRequest, LoginResponse } from "../types/auth";
 import { API_BASE_URL } from "../config/config";
-console.log('33333333333333333333',API_BASE_URL)
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {

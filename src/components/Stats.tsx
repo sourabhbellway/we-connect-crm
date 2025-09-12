@@ -31,7 +31,7 @@ function Stats({
   const activityColorClass = getActivityColorClass(colorType);
 
   return (
-    <div className="bg-white/10 dark:bg-gray-800 rounded-lg shadow-md p-3 px-4 sm:px-6">
+    <div className="bg-white/10 dark:bg-gray-800 rounded-lg shadow-md p-3 px-4 sm:px-6 ">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 sm:space-x-6">
           <div className="text-lg sm:text-2xl text-white bg-white/10 p-2 sm:p-4 rounded-full">

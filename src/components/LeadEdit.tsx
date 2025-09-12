@@ -77,14 +77,17 @@ const LeadEdit: React.FC = () => {
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         {loading ? (
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Loading...
+          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-500 mr-2"></div>
+            Loading lead...
           </div>
         ) : (
           <LeadForm
             initial={initial}
             onSubmit={handleSubmit}
             submitting={submitting}
+            // Avoid duplicate loaders between parent and form
+            skipInternalLoadingUI
           />
         )}
       </div>

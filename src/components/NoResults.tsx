@@ -1,0 +1,44 @@
+import React from "react";
+
+interface NoResultsProps {
+  title?: string;
+  description?: string;
+  showClearButton?: boolean;
+  onClear?: () => void;
+  icon?: React.ReactNode;
+  className?: string;
+}
+
+const NoResults: React.FC<NoResultsProps> = ({
+  title = "No users found",
+  description =
+    "Try adjusting your filters or search terms. You can also clear all filters to see all users.",
+  showClearButton = false,
+  onClear,
+  icon,
+  className = "",
+}) => {
+  return (
+    <div className={`flex flex-col items-center ${className}`}>
+      {icon && <div className="mb-4">{icon}</div>}
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        {title}
+      </h3>
+      <p className="text-gray-500 dark:text-gray-400 mb-4 text-center max-w-md">
+        {description}
+      </p>
+      {showClearButton && (
+        <button
+          onClick={onClear}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Clear all filters
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default NoResults;
+
+

@@ -10,8 +10,6 @@ import {
   Phone,
   Briefcase,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   Search,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +19,9 @@ import ConfirmModal from "./ConfirmModal";
 import SearchInput from "./SearchInput";
 import DropdownFilter from "./DropdownFilter";
 import { useDebouncedSearch } from "../hooks/useDebounce";
+import Pagination from "./Pagination";
+import NoResults from "./NoResults";
+import TableLoader from "./TableLoader";
 
 const Leads: React.FC = () => {
   const { t } = useTranslation();
@@ -39,7 +40,7 @@ const Leads: React.FC = () => {
     totalItems: 0,
     itemsPerPage: 10,
   });
-  const [isFiltering, setIsFiltering] = useState(false);
+  
 
   // Pagination states - separate from filters for consistency with Users
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,10 +96,6 @@ const Leads: React.FC = () => {
 
   const fetchLeads = async () => {
     try {
-      if (currentPage !== 1) {
-        setIsFiltering(true);
-      }
-
       setLoading(true);
       const response = await leadService.getLeads({
         ...filters,
@@ -113,7 +110,6 @@ const Leads: React.FC = () => {
       setError(err.response?.data?.message || t("leads.fetchError"));
     } finally {
       setLoading(false);
-      setIsFiltering(false);
     }
   };
 
@@ -178,13 +174,26 @@ const Leads: React.FC = () => {
     return statusOption?.color || "bg-gray-100 text-gray-800";
   };
 
-  if (loading && leads.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Dynamic empty-state description similar to Users
+  const isSearchActive = !!debouncedSearchValue;
+  const isStatusActive = !!filters.status;
+  const noResultsDescription = isSearchActive && isStatusActive
+    ? "No leads match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all leads."
+    : isSearchActive
+    ? "No leads found for your search. Try adjusting your search terms. You can also clear all filters to see all leads."
+    : isStatusActive
+    ? "No leads found for the selected filters. Try adjusting your filters or clear all filters to see all leads."
+    : "No leads found.";
+
+  const clearFilters = () => {
+    setFilters({
+      page: 1,
+      limit: filters.limit || 10,
+      status: undefined,
+    });
+    setCurrentPage(1);
+    setSearch("");
+  };
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -280,37 +289,16 @@ const Leads: React.FC = () => {
 
           {leads.length === 0 ? (
             <div className="text-center py-12">
-              <div className="mx-auto h-12 w-12 text-gray-400">
-                <User className="h-12 w-12" />
-              </div>
-              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                {t("leads.noLeads")}
-              </h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {t("leads.getStartedByCreating")}
-              </p>
-              <div className="mt-6">
-                <button
-                  onClick={handleCreateLead}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#ef444e] hover:bg-[#f26971] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#ef444e]"
-                >
-                  <Plus className="-ml-1 mr-2 h-5 w-5" />
-                  {t("leads.addLead")}
-                </button>
-              </div>
+              <NoResults
+                title="No leads found"
+                description={noResultsDescription}
+                icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                showClearButton={isSearchActive || isStatusActive}
+                onClear={clearFilters}
+              />
             </div>
           ) : (
             <div className="overflow-hidden relative">
-              {isFiltering && (
-                <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center z-10">
-                  <div className="flex items-center text-blue-600 dark:text-blue-400">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
-                    <span className="text-sm font-medium">
-                      Updating results...
-                    </span>
-                  </div>
-                </div>
-              )}
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-900">
@@ -338,6 +326,9 @@ const Leads: React.FC = () => {
                       </th>
                     </tr>
                   </thead>
+                  {loading ? (
+                    <TableLoader rows={8} columns={7} />
+                  ) : (
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {leads.map((lead) => (
                       <tr
@@ -427,98 +418,20 @@ const Leads: React.FC = () => {
                       </tr>
                     ))}
                   </tbody>
+                  )}
                 </table>
               </div>
             </div>
           )}
 
           {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  Showing page {pagination.currentPage} of{" "}
-                  {pagination.totalPages}({pagination.totalItems} total leads)
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handlePageChange(1)}
-                    disabled={pagination.currentPage === 1}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="First page"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    <ChevronLeft className="h-4 w-4 -ml-3" />
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={pagination.currentPage === 1}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Previous page"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-
-                  {/* Page numbers */}
-                  <div className="flex items-center space-x-1">
-                    {Array.from(
-                      { length: Math.min(5, pagination.totalPages) },
-                      (_, i) => {
-                        let pageNum;
-                        if (pagination.totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (pagination.currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (
-                          pagination.currentPage >=
-                          pagination.totalPages - 2
-                        ) {
-                          pageNum = pagination.totalPages - 4 + i;
-                        } else {
-                          pageNum = pagination.currentPage - 2 + i;
-                        }
-
-                        if (pageNum < 1 || pageNum > pagination.totalPages)
-                          return null;
-
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
-                            className={`px-3 py-2 text-sm font-medium rounded-md ${
-                              pageNum === pagination.currentPage
-                                ? "bg-blue-600 text-white"
-                                : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      }
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={pagination.currentPage === pagination.totalPages}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Next page"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(pagination.totalPages)}
-                    disabled={pagination.currentPage === pagination.totalPages}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Last page"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                    <ChevronRight className="h-4 w-4 -ml-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            onPageChange={handlePageChange}
+            itemsPerPage={50}
+          />
         </div>
       </div>
 

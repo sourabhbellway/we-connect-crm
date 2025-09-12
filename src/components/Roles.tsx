@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import SearchInput from "./SearchInput";
 import { useDebouncedSearch } from "../hooks/useDebounce";
+import NoResults from "./NoResults";
 
 interface Role {
   id: number;
@@ -121,6 +122,22 @@ const Roles: React.FC = () => {
     setSearch(value);
   };
 
+  // Empty state helpers similar to Users/Leads
+  const isSearchActive = !!debouncedSearchValue;
+  const isActiveFilterActive = !!showOnlyActiveRoles;
+  const noResultsDescription = isSearchActive && isActiveFilterActive
+    ? "No roles match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all roles."
+    : isSearchActive
+    ? "No roles found for your search. Try adjusting your search terms. You can also clear all filters to see all roles."
+    : isActiveFilterActive
+    ? "No roles found for the selected filters. Try adjusting your filters or clear all filters to see all roles."
+    : "No roles found.";
+
+  const clearFilters = () => {
+    setShowOnlyActiveRoles(false);
+    setSearch("");
+  };
+
   const handleDeleteRole = async () => {
     if (!selectedRole) return;
 
@@ -169,20 +186,6 @@ const Roles: React.FC = () => {
       [roleId]: !prev[roleId],
     }));
   };
-
-  if (isLoading) {
-    return (
-      <Loader
-        containerClassName="space-y-6 p-6"
-        showTitle={true}
-        titleWidthClassName="w-1/4"
-        blocks={1}
-        gridColsClassName="grid-cols-1"
-        blockHeightClassName="h-64"
-        ariaLabel="Loading roles"
-      />
-    );
-  }
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -272,39 +275,30 @@ const Roles: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Results Info */}
-      {debouncedSearchValue && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Search className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2" />
-              <span className="text-sm text-blue-700 dark:text-blue-300">
-                Search results for "{debouncedSearchValue}":{" "}
-                {filteredRoles.length} of {roles.length} roles
-              </span>
-            </div>
-            {isSearching && (
-              <div className="flex items-center text-xs text-blue-500">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
-                Searching...
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+  
 
       {/* Roles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredRoles.length === 0 && debouncedSearchValue ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
-            <Search className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No roles found
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              No roles match your search for "{debouncedSearchValue}". Try a
-              different search term.
-            </p>
+        {isLoading || isFiltering ? (
+          <div className="col-span-full">
+            <Loader
+              containerClassName="p-0"
+              showTitle={false}
+              blocks={6}
+              gridColsClassName="grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              blockHeightClassName="h-64"
+              ariaLabel="Loading roles"
+            />
+          </div>
+        ) : filteredRoles.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <NoResults
+              title="No roles found"
+              description={noResultsDescription}
+              icon={<Shield className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+              showClearButton={isSearchActive || isActiveFilterActive}
+              onClear={clearFilters}
+            />
           </div>
         ) : (
           filteredRoles.map((role) => (

@@ -19,6 +19,7 @@ export interface LeadFormProps {
   initial?: LeadPayload;
   onSubmit: (data: LeadPayload) => Promise<void> | void;
   submitting?: boolean;
+  skipInternalLoadingUI?: boolean;
 }
 
 interface ValidationErrors {
@@ -50,6 +51,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
   initial,
   onSubmit,
   submitting,
+  skipInternalLoadingUI = false,
 }) => {
   const [formState, setFormState] = useState<FormState>({
     form: {
@@ -268,19 +270,16 @@ const LeadForm: React.FC<LeadFormProps> = ({
     </div>
   );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-500"></div>
-        <span className="ml-2 text-gray-600 dark:text-gray-400">
-          Loading form...
-        </span>
-      </div>
-    );
-  }
+  const showInlineLoading = loading && !skipInternalLoadingUI;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {showInlineLoading && (
+        <div className="flex items-center justify-start py-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-500 mr-2"></div>
+          Loading form data...
+        </div>
+      )}
       {/* General error message */}
       {formState.errors.general && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">

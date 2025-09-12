@@ -46,14 +46,14 @@ app.use(
 // Rate limiting - only in production
 if (process.env.NODE_ENV === "production") {
   const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || "15") * 60 * 1000, // 15 minutes
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || "1") * 60 * 1000, // 1 minutes
     max: parseInt(process.env.RATE_LIMIT_MAX || "100"), // limit each IP to 100 requests per windowMs
     message: {
       success: false,
       message: "Too many requests from this IP, please try again later.",
     },
   });
-  app.use("/api/", limiter);
+  app.use("/api/", limiter);  
   console.log("🔒 Rate limiting enabled (production mode)");
 } else {
   console.log("🚀 Rate limiting disabled (development mode)");

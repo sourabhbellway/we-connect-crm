@@ -22,6 +22,7 @@ import {
   Moon,
   LogOut,
   Settings,
+  Trash2,
 } from "lucide-react";
 import SidebarDropdown from "./SidebarDropdown";
 import WeConnectLogo from "../assets/WeConnect_Logo_C2C.svg";
@@ -81,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     name: string;
     href: string;
     icon: any;
-    permission: string;
+    permission?: string;
     badge?: string;
     badgeColor?: string;
   }> = [
@@ -115,7 +116,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       badge: counts.roles.toString(),
       badgeColor: "bg-orange-500",
     },
-  ].filter((item) => hasPermission(item.permission));
+    {
+      name: "Trash",
+      href: "/trash",
+      icon: Trash2,
+      permission: "user.read",
+    },
+  ].filter((item) => (item.permission ? hasPermission(item.permission) : true));
 
   const settingsChildren = [
     {
