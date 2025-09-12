@@ -205,3 +205,96 @@ export const getActivityStats = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getDeletedData = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+    const deletedUsers = await prisma.user.findMany({
+      where: { deletedAt: { not: null } },
+      skip,
+      take: limit,
+      orderBy: { deletedAt: "desc" },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        deletedAt: true,
+      },
+    });
+
+    const deletedUsersCount = await prisma.user.count({
+      where: { deletedAt: { not: null } },
+    });
+
+    const deletedLeads = await prisma.lead.findMany({
+      where: { deletedAt: { not: null } },
+      skip,
+      take: limit,
+      orderBy: { deletedAt: "desc" },
+      select: {
+        id: true,
+        // name: true,
+        email: true,
+        phone: true,
+        deletedAt: true,
+      },
+    });
+
+    const deletedLeadsCount = await prisma.lead.count({
+      where: { deletedAt: { not: null } },
+    });
+
+    // Fetch deleted roles
+    const deletedRoles = await prisma.role.findMany({
+      where: { deletedAt: { not: null } },
+      skip,
+      take: limit,
+      orderBy: { deletedAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        deletedAt: true,
+      },
+    });
+
+    const deletedRolesCount = await prisma.role.count({
+      where: { deletedAt: { not: null } },
+    });
+
+    // Combine response
+    res.json({
+      success: true,
+      data: {
+        users: {
+          records: deletedUsers,
+          total: deletedUsersCount,
+          pages: Math.ceil(deletedUsersCount / limit),
+        },
+        leads: {
+          records: deletedLeads,
+          total: deletedLeadsCount,
+          pages: Math.ceil(deletedLeadsCount / limit),
+        },
+        roles: {
+          records: deletedRoles,
+          total: deletedRolesCount,
+          pages: Math.ceil(deletedRolesCount / limit),
+        },
+      },
+      pagination: {
+        page,
+        limit,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching deleted data:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch deleted data",
+    });
+  }
+};

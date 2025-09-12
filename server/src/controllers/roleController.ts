@@ -8,7 +8,7 @@ export const getRoles = async (req: Request, res: Response) => {
   try {
     const { includeInactive, search } = req.query;
     // console.log("Include Inactive:", includeInactive,search);
-    let whereClause: Prisma.RoleWhereInput = {};
+    let whereClause: Prisma.RoleWhereInput = { deletedAt: null };
 
     if (includeInactive === "false") {
       whereClause.isActive = true;
@@ -72,7 +72,7 @@ export const createRole = async (req: Request, res: Response) => {
 
     // Check if role with this name already exists (including inactive ones)
     const existingRole = await prisma.role.findFirst({
-      where: { name },
+      where: { name, deletedAt: null },
     });
 
     if (existingRole) {
@@ -85,6 +85,7 @@ export const createRole = async (req: Request, res: Response) => {
           id: existingRole.id,
           name: existingRole.name,
           isActive: existingRole.isActive,
+          deletedAt: existingRole.deletedAt,
         },
       });
     }
@@ -96,12 +97,12 @@ export const createRole = async (req: Request, res: Response) => {
         permissions:
           permissionIds && permissionIds.length > 0
             ? {
-                create: permissionIds.map((permissionId: number) => ({
-                  permission: {
-                    connect: { id: permissionId },
-                  },
-                })),
-              }
+              create: permissionIds.map((permissionId: number) => ({
+                permission: {
+                  connect: { id: permissionId },
+                },
+              })),
+            }
             : undefined,
       },
       include: {
@@ -166,7 +167,7 @@ export const updateRole = async (req: Request, res: Response) => {
 
     // Check if role exists
     const existingRole = await prisma.role.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), deletedAt: null },
     });
 
     if (!existingRole) {
@@ -187,10 +188,10 @@ export const updateRole = async (req: Request, res: Response) => {
           create:
             permissionIds && permissionIds.length > 0
               ? permissionIds.map((permissionId: number) => ({
-                  permission: {
-                    connect: { id: permissionId },
-                  },
-                }))
+                permission: {
+                  connect: { id: permissionId },
+                },
+              }))
               : [],
         },
       },
@@ -253,8 +254,15 @@ export const deleteRole = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.role.delete({
+    // await prisma.role.delete({
+    //   where: { id: parseInt(id) },
+    // });
+    await prisma.role.update({
       where: { id: parseInt(id) },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
     });
 
     // Log

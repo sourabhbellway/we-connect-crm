@@ -7,31 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Super Admin System - Hidden from regular users
 model SuperAdmin {
-  id             Int                        @id @default(autoincrement())
-  email          String                     @unique
-  password       String
-  firstName      String
-  lastName       String
-  isActive       Boolean                    @default(true)
-  lastLogin      DateTime?
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
-  profilePicture String?
+  id              Int                        @id @default(autoincrement())
+  email           String                     @unique
+  password        String
+  firstName       String
+  lastName        String
+  isActive        Boolean                    @default(true)
+  lastLogin       DateTime?
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+  profilePicture  String?
+  activities      Activity[]                 @relation("SuperAdminActivities")
   roleAssignments SuperAdminRoleAssignment[]
-  activities     Activity[]                 @relation("SuperAdminActivities")
 
   @@map("super_admins")
 }
 
 model SuperAdminRole {
-  id           Int                        @id @default(autoincrement())
-  name         String                     @unique
-  description  String?
-  isActive     Boolean                    @default(true)
-  createdAt    DateTime                   @default(now())
-  updatedAt    DateTime                   @updatedAt
+  id              Int                        @id @default(autoincrement())
+  name            String                     @unique
+  description     String?
+  isActive        Boolean                    @default(true)
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
   roleAssignments SuperAdminRoleAssignment[]
   rolePermissions SuperAdminRolePermission[]
 
@@ -39,41 +38,40 @@ model SuperAdminRole {
 }
 
 model SuperAdminPermission {
-  id           Int                        @id @default(autoincrement())
-  name         String
-  key          String                     @unique
-  description  String?
-  module       String
-  createdAt    DateTime                   @default(now())
-  updatedAt    DateTime                   @updatedAt
+  id              Int                        @id @default(autoincrement())
+  name            String
+  key             String                     @unique
+  description     String?
+  module          String
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
   rolePermissions SuperAdminRolePermission[]
 
   @@map("super_admin_permissions")
 }
 
 model SuperAdminRoleAssignment {
-  id           Int           @id @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   superAdminId Int
   roleId       Int
   role         SuperAdminRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  superAdmin   SuperAdmin    @relation(fields: [superAdminId], references: [id], onDelete: Cascade)
+  superAdmin   SuperAdmin     @relation(fields: [superAdminId], references: [id], onDelete: Cascade)
 
   @@unique([superAdminId, roleId])
   @@map("super_admin_role_assignments")
 }
 
 model SuperAdminRolePermission {
-  id           Int                 @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   roleId       Int
   permissionId Int
   permission   SuperAdminPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  role         SuperAdminRole      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  role         SuperAdminRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
   @@map("super_admin_role_permissions")
 }
 
-// Regular User System (existing)
 model User {
   id             Int        @id @default(autoincrement())
   email          String     @unique
@@ -85,9 +83,12 @@ model User {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   profilePicture String?
+  companyId      Int?
   activities     Activity[] @relation("UserActivities")
   assignedLeads  Lead[]     @relation("UserAssignedLeads")
   roles          UserRole[]
+  companies      companies? @relation(fields: [companyId], references: [id])
+  deletedAt      DateTime?
 
   @@map("users")
 }
@@ -101,6 +102,7 @@ model Role {
   updatedAt   DateTime         @updatedAt
   permissions RolePermission[]
   users       UserRole[]
+  deletedAt   DateTime?
 
   @@map("roles")
 }
@@ -119,26 +121,30 @@ model Permission {
 }
 
 model LeadSource {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  companyId   Int?
+  companies   companies? @relation(fields: [companyId], references: [id])
   leads       Lead[]
 
   @@map("lead_sources")
 }
 
 model Tag {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  color       String    @default("#3B82F6")
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  color       String     @default("#3B82F6")
   description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  companyId   Int?
   leads       LeadTag[]
+  companies   companies? @relation(fields: [companyId], references: [id])
 
   @@map("tags")
 }
@@ -158,9 +164,12 @@ model Lead {
   updatedAt    DateTime    @updatedAt
   sourceId     Int?
   assignedTo   Int?
+  companyId    Int?
   tags         LeadTag[]
   assignedUser User?       @relation("UserAssignedLeads", fields: [assignedTo], references: [id])
+  companies    companies?  @relation(fields: [companyId], references: [id])
   source       LeadSource? @relation(fields: [sourceId], references: [id])
+  deletedAt    DateTime?
 
   @@map("leads")
 }
@@ -199,22 +208,69 @@ model LeadTag {
 }
 
 model Activity {
-  id          Int          @id @default(autoincrement())
-  title       String
-  description String
-  type        ActivityType
-  icon        String       @default("FiUser")
-  iconColor   String       @default("text-blue-600")
-  tags        String[]     @default([])
-  metadata    Json?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  userId      Int?
-  user        User?        @relation("UserActivities", fields: [userId], references: [id])
+  id           Int          @id @default(autoincrement())
+  title        String
+  description  String
+  type         ActivityType
+  icon         String       @default("FiUser")
+  iconColor    String       @default("text-blue-600")
+  tags         String[]     @default([])
+  metadata     Json?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  userId       Int?
   superAdminId Int?
-  superAdmin  SuperAdmin?  @relation("SuperAdminActivities", fields: [superAdminId], references: [id])
+  superAdmin   SuperAdmin?  @relation("SuperAdminActivities", fields: [superAdminId], references: [id])
+  user         User?        @relation("UserActivities", fields: [userId], references: [id])
 
   @@map("activities")
+}
+
+/// Industry master data for leads/companies
+model Industry {
+  id        Int             @id @default(autoincrement())
+  name      String          @unique
+  slug      String          @unique
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  companies companies[]
+  fields    IndustryField[]
+
+  @@map("industries")
+}
+
+/// Custom fields associated with an Industry
+model IndustryField {
+  id         Int       @id @default(autoincrement())
+  industryId Int
+  name       String
+  key        String
+  type       FieldType @default(TEXT)
+  isRequired Boolean   @default(false)
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  industry   Industry  @relation(fields: [industryId], references: [id], onDelete: Cascade)
+
+  @@unique([industryId, key])
+  @@map("industry_fields")
+}
+
+model companies {
+  id           Int          @id @default(autoincrement())
+  name         String       @unique
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  domain       String?      @unique
+  isActive     Boolean      @default(true)
+  slug         String?      @unique
+  industryId   Int?
+  industries   Industry?    @relation(fields: [industryId], references: [id])
+  lead_sources LeadSource[]
+  leads        Lead[]
+  tags         Tag[]
+  users        User[]
 }
 
 enum ActivityType {
@@ -242,36 +298,6 @@ enum LeadStatus {
   NEGOTIATION
   CLOSED
   LOST
-}
-
-/// Industry master data for leads/companies
-model Industry {
-  id          Int              @id @default(autoincrement())
-  name        String           @unique
-  slug        String           @unique
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  fields      IndustryField[]
-
-  @@map("industries")
-}
-
-/// Custom fields associated with an Industry
-model IndustryField {
-  id          Int       @id @default(autoincrement())
-  industryId  Int
-  name        String
-  key         String
-  type        FieldType  @default(TEXT)
-  isRequired  Boolean   @default(false)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  industry    Industry  @relation(fields: [industryId], references: [id], onDelete: Cascade)
-
-  @@unique([industryId, key])
-  @@map("industry_fields")
 }
 
 enum FieldType {

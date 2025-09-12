@@ -16,7 +16,9 @@ export const getUsers = async (req: Request, res: Response) => {
     //console.log("Query parameters:", { search, status, roleId, page, limit });
 
     // Build where clause for filtering
-    const where: any = {};
+    const where: any = {
+      deletedAt: null,
+    };
 
     // Search filter (search in firstName, lastName, and email)
     if (search && typeof search === "string") {
@@ -170,7 +172,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email, deletedAt: null },
     });
 
     if (existingUser) {
@@ -283,7 +285,7 @@ export const getUserById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), deletedAt: null },
       select: {
         id: true,
         email: true,
@@ -366,7 +368,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), deletedAt: null },
     });
 
     if (!existingUser) {
@@ -479,10 +481,26 @@ export const deleteUser = async (req: Request, res: Response) => {
     }
 
     // Delete user (this will cascade delete related records)
-    await prisma.user.delete({
+    // await prisma.user.delete({
+    //   where: { id: parseInt(id) },
+    // });
+    await prisma.user.update({
       where: { id: parseInt(id) },
+      data: {
+        isActive: false,
+        deletedAt: new Date(),
+      },
     });
-
+    const actorId = (req as any)?.user?.id;
+    await activityLoggers.userDeleted(
+      {
+        id: existingUser.id,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        email: existingUser.email,
+      },
+      actorId
+    );
     res.json({
       success: true,
       message: "User deleted successfully",

@@ -16,7 +16,7 @@ export const getLeads = async (req: Request, res: Response) => {
     const limitNum = Math.min(100, Math.max(1, Number(limit))); // Limit to 100 max
     const offset = (pageNum - 1) * limitNum;
 
-    const whereClause: any = { isActive: true };
+    const whereClause: any = { isActive: true, deletedAt: null };
 
     if (status) {
       whereClause.status = (status as string).toUpperCase();
@@ -109,7 +109,7 @@ export const getLeadById = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const lead = await prisma.lead.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), deletedAt: null },
       include: {
         assignedUser: {
           select: {
@@ -185,7 +185,7 @@ export const createLead = async (req: Request, res: Response) => {
     } = req.body;
     if (email) {
       const emailExists = await prisma.lead.findFirst({
-        where: { email },
+        where: { email, deletedAt: null },
       });
 
       if (emailExists) {
@@ -301,7 +301,7 @@ export const updateLead = async (req: Request, res: Response) => {
 
     // Check if lead exists
     const existingLead = await prisma.lead.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id), deletedAt: null },
     });
 
     if (!existingLead) {
@@ -315,7 +315,7 @@ export const updateLead = async (req: Request, res: Response) => {
         where: {
           email: {
             equals: email,
-            mode: "insensitive", 
+            mode: "insensitive",
           },
           NOT: { id: existingLead.id },
         },
@@ -424,8 +424,15 @@ export const deleteLead = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.lead.delete({
+    // await prisma.lead.delete({
+    //   where: { id: parseInt(id) },
+    // });
+    await prisma.lead.update({
       where: { id: parseInt(id) },
+      data: {
+        deletedAt: new Date(),
+        isActive: false,
+      },
     });
 
     // Log

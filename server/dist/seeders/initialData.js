@@ -113,6 +113,12 @@ const seedInitialData = async () => {
                 module: "Activities",
                 description: "Can create activity logs",
             },
+            {
+                name: "Create Deletd Activities",
+                key: "deleted.read",
+                module: "Activities",
+                description: "view deletd activity logs",
+            },
         ];
         for (const perm of permissions) {
             await prisma_1.prisma.permission.upsert({
