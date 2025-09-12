@@ -6,6 +6,7 @@ import {
   getActivityStats,
   getDeletedData
 } from "../controllers/activityController";
+import { createActivityValidation } from "../validators/activityValidators";
 import { authenticateToken, requirePermission } from "../middleware/auth";
 
 const router = express.Router();
@@ -39,6 +40,7 @@ router.post(
   "/activities",
   authenticateToken,
   requirePermission("activity.create"),
+  createActivityValidation,
   createActivity
 );
 

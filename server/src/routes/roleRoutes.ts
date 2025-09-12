@@ -9,6 +9,7 @@ import { authenticateToken, requirePermission } from "../middleware/auth";
 import {
   createRoleValidation,
   updateRoleValidation,
+  deleteRoleValidation,
 } from "../validators/roleValidators";
 
 const router = express.Router();
@@ -37,6 +38,7 @@ router.delete(
   "/roles/:id",
   authenticateToken,
   requirePermission("role.delete"),
+  deleteRoleValidation,
   deleteRole
 );
 

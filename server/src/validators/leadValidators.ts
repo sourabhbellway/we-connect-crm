@@ -1,5 +1,4 @@
 import { body, param } from "express-validator";
-
 export const createLeadValidation = [
   body("firstName")
     .isLength({ min: 2, max: 50 })
@@ -9,8 +8,9 @@ export const createLeadValidation = [
     .withMessage("Last name must be between 2 and 50 characters"),
   body("email").isEmail().withMessage("Please provide a valid email address"),
   body("phone")
-    .optional()
-    .isLength({ min: 10, max: 20 })
+    // .isLength({ min: 10, max: 10 })
+    .notEmpty().withMessage("Phone number is required")
+    .isMobilePhone("en-IN") 
     .withMessage("Phone number must be between 10 and 20 characters"),
   body("company")
     .optional()

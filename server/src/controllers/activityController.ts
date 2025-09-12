@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { validationResult } from "express-validator";
 
 const prisma = new PrismaClient();
 
@@ -99,7 +100,14 @@ export const createActivity = async (req: Request, res: Response) => {
       metadata,
       userId,
     } = req.body;
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
     const activity = await prisma.activity.create({
       data: {
         title,

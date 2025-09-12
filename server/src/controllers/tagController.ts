@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { validationResult } from "express-validator";
 import { activityLoggers } from "../utils/activityLogger";
 
 export const getTags = async (req: Request, res: Response) => {
@@ -25,6 +26,14 @@ export const getTags = async (req: Request, res: Response) => {
 export const createTag = async (req: Request, res: Response) => {
   try {
     const { name, color, description } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
     const existingTag = await prisma.tag.findFirst({
       where: {
         name: {
@@ -81,6 +90,14 @@ export const createTag = async (req: Request, res: Response) => {
 export const updateTag = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
     const { name, color, description, isActive } = req.body;
     const existingTag = await prisma.tag.findUnique({
       where: { id: parseInt(id) },
@@ -145,7 +162,23 @@ export const updateTag = async (req: Request, res: Response) => {
 export const deleteTag = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
+    const existingTag = await prisma.tag.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!existingTag) {
+      return res.status(404).json({
+        success: false,
+        message: "No tag found",
+      });
+    }
     await prisma.tag.delete({
       where: { id: parseInt(id) },
     });

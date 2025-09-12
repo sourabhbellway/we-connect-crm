@@ -12,6 +12,8 @@ export const getRoles = async (req: Request, res: Response) => {
 
     if (includeInactive === "false") {
       whereClause.isActive = true;
+    }else if(includeInactive === "true"){
+      whereClause.isActive = false;
     }
 
     if (search && typeof search === "string" && search.trim() !== "") {
@@ -241,7 +243,14 @@ export const updateRole = async (req: Request, res: Response) => {
 export const deleteRole = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
     // Check if role exists
     const existingRole = await prisma.role.findUnique({
       where: { id: parseInt(id) },

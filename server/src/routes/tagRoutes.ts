@@ -5,6 +5,7 @@ import {
   updateTag, 
   deleteTag 
 } from '../controllers/tagController';
+import { createTagValidation, updateTagValidation, deleteTagValidation } from '../validators/tagValidators';
 import { authenticateToken, requirePermission } from '../middleware/auth';
 
 const router = express.Router();
@@ -13,12 +14,12 @@ const router = express.Router();
 router.get('/tags', authenticateToken, requirePermission('lead.read'), getTags);
 
 // Create new tag
-router.post('/tags', authenticateToken, requirePermission('lead.create'), createTag);
+router.post('/tags', authenticateToken, requirePermission('lead.create'), createTagValidation, createTag);
 
 // Update tag
-router.put('/tags/:id', authenticateToken, requirePermission('lead.update'), updateTag);
+router.put('/tags/:id', authenticateToken, requirePermission('lead.update'), updateTagValidation, updateTag);
 
 // Delete tag
-router.delete('/tags/:id', authenticateToken, requirePermission('lead.delete'), deleteTag);
+router.delete('/tags/:id', authenticateToken, requirePermission('lead.delete'), deleteTagValidation, deleteTag);
 
 export default router;
