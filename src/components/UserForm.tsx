@@ -46,6 +46,8 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
   const [roles, setRoles] = useState<Role[]>([]);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [firstNameError, setFirstNameError] = useState<string | null>(null);
+  const [lastNameError, setLastNameError] = useState<string | null>(null);
   const [passwordCriteria, setPasswordCriteria] = useState({
     length: false,
     lowercase: false,
@@ -82,6 +84,14 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
       setPasswordCriteria(evaluatePassword(valueStr));
       if (passwordError) setPasswordError(null);
     }
+    if (key === "firstName") {
+      const err = validateName(String(value || ""));
+      setFirstNameError(err);
+    }
+    if (key === "lastName") {
+      const err = validateName(String(value || ""));
+      setLastNameError(err);
+    }
   };
 
   const toggleRole = (roleId: number) => {
@@ -106,6 +116,13 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     const err = emailValue ? validateEmail(emailValue) : null;
     setEmailError(err);
     if (err) return;
+
+    // Validate first and last name
+    const firstErr = validateName(String((form as any).firstName || ""));
+    const lastErr = validateName(String((form as any).lastName || ""));
+    setFirstNameError(firstErr);
+    setLastNameError(lastErr);
+    if (firstErr || lastErr) return;
 
     const passwordValue = String((form as any).password || "");
     if (!isEdit || passwordValue) {
@@ -134,6 +151,16 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     return null;
   };
 
+  const validateName = (value: string): string | null => {
+    const v = value.trim();
+    if (v.length < 3) return "Must be at least 3 characters";
+    // Reject any HTML/script-like tags
+    if (/<[^>]*>/i.test(value)) return "Invalid characters detected";
+    // Allow only letters and spaces (no special symbols or numbers)
+    if (!/^[A-Za-z\s]+$/.test(v)) return "Only letters and spaces are allowed";
+    return null;
+  };
+
   const evaluatePassword = (password: string) => {
     const hasLower = /[a-z]/.test(password);
     const hasUpper = /[A-Z]/.test(password);
@@ -149,12 +176,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     };
   };
 
-  const ErrorMessage = ({ error }: { error: string }) => (
-    <div className="flex items-center mt-1 text-xs text-red-600 dark:text-red-400">
-      <AlertCircle className="h-4 w-4 mr-1 flex-shrink-0" />
-      <span>{error}</span>
-    </div>
-  );
+  // Intentionally no inline error text rendering
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -169,6 +191,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
               handleChange("firstName", (e.target as HTMLInputElement).value)
             }
             required
+            error={firstNameError || undefined}
           />
         </div>
         <div>
@@ -180,6 +203,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
               handleChange("lastName", (e.target as HTMLInputElement).value)
             }
             required
+            error={lastNameError || undefined}
           />
         </div>
         <div>
@@ -192,8 +216,8 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
               handleChange("email", (e.target as HTMLInputElement).value)
             }
             required
+            error={emailError || undefined}
           />
-          {emailError && <ErrorMessage error={emailError} />}
         </div>
         <div>
           <InputField
@@ -207,8 +231,8 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
             required={!isEdit}
             minLength={8}
             placeholder={isEdit ? "Leave empty to keep current password" : ""}
+            error={passwordError || undefined}
           />
-          {passwordError && <ErrorMessage error={passwordError} />}
         </div>
       </div>
 

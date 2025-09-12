@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../contexts/ThemeContext";
 import { userService } from "../services/userService";
+import { authService } from "../services/authService";
+import InputField, { SelectField } from "./InputField";
+import { industryService, Industry } from "../services/industryService";
 import {
   User,
   Mail,
@@ -11,24 +14,80 @@ import {
   Edit,
   Save,
   X,
-  Bell,
-  Globe,
   Palette,
+  Building,
+  ListFilter,
 } from "lucide-react";
 
 const Profile: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, isSuperAdmin, hasRole } = useAuth();
   const { t } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
-
   const [loading, setLoading] = useState(false);
+  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [isLoadingIndustries, setIsLoadingIndustries] = useState(true);
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     email: user?.email || "",
+    company: (user as any)?.company || "",
+    industryId: (user as any)?.industryId as number | undefined,
   });
+
+  useEffect(() => {
+    const loadIndustries = async () => {
+      try {
+        setIsLoadingIndustries(true);
+        const list = await industryService.getIndustries();
+        setIndustries(Array.isArray(list) ? list : []);
+      } catch (e) {
+        console.error("Failed to load industries:", e);
+        setIndustries([]);
+      } finally {
+        setIsLoadingIndustries(false);
+      }
+    };
+    loadIndustries();
+  }, []);
+
+  // Ensure permissions are present on roles for display
+  useEffect(() => {
+    const enrichPermissionsIfMissing = async () => {
+      try {
+        const roles = user?.roles || [];
+        const rolesNeeding = roles.filter((r: any) => !Array.isArray(r.permissions) || r.permissions.length === 0);
+        if (rolesNeeding.length === 0) return;
+
+        const fetched = await Promise.all(
+          rolesNeeding.map(async (r: any) => {
+            try {
+              const perms = await authService.getPermissionsForRole(String(r.id));
+              return { id: r.id, permissions: perms };
+            } catch (e) {
+              console.error("Failed to load permissions for role", r.id, e);
+              return { id: r.id, permissions: [] };
+            }
+          })
+        );
+
+        const permsByRoleId = new Map(fetched.map((f) => [f.id, f.permissions]));
+        const newRoles = roles.map((r: any) => ({
+          ...r,
+          permissions: Array.isArray(r.permissions) && r.permissions.length > 0 ? r.permissions : (permsByRoleId.get(r.id) || []),
+        }));
+
+        updateUser({ ...(user as any), roles: newRoles } as any);
+      } catch (e) {
+        console.error("Failed to enrich permissions:", e);
+      }
+    };
+
+    enrichPermissionsIfMissing();
+  }, [user?.roles]);
+
+  const showAdminOnlyFields = (isSuperAdmin?.() || hasRole?.("Admin")) === true;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,9 +104,20 @@ const Profile: React.FC = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
+        company: formData.company || undefined,
+        industryId: formData.industryId ?? undefined,
       });
 
-      updateUser(response.data.user);
+      // Preserve existing roles/permissions if API doesn't return them
+      const mergedUser = {
+        ...user,
+        ...response.data.user,
+        roles: (response.data.user && (response.data.user as any).roles)
+          ? (response.data.user as any).roles
+          : user?.roles || [],
+      } as any;
+
+      updateUser(mergedUser);
       // You can add a toast notification here if you want
       console.log("Profile updated successfully");
       setIsEditing(false);
@@ -67,6 +137,8 @@ const Profile: React.FC = () => {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
+      company: (user as any)?.company || "",
+      industryId: (user as any)?.industryId,
     });
     setIsEditing(false);
   };
@@ -83,300 +155,211 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className=" mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             {t("user.profile")}
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            {t(
-              "user.profileDescription",
-              "Manage your account settings and preferences"
-            )}
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {t("user.profileDescription", "Manage your account settings and preferences")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Profile Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Overview */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-              {/* Profile Avatar (no upload) */}
-              <div className="text-center mb-6">
-                <div className="relative mx-auto h-24 w-24 mb-4">
-                  <div className="h-24 w-24 bg-gradient-to-br from-[#EF444E] to-[#ff5a64] rounded-full flex items-center justify-center border-4 border-white dark:border-gray-700 shadow-lg">
-                    <User className="h-12 w-12 text-white" />
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5">
+              <div className="text-center mb-4">
+                <div className="relative mx-auto h-16 w-16 mb-3">
+                  <div className="h-16 w-16 bg-gradient-to-br from-[#EF444E] to-[#ff5a64] rounded-full flex items-center justify-center border-4 border-white dark:border-gray-700 shadow">
+                    <User className="h-8 w-8 text-white" />
                   </div>
                 </div>
-
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {user?.fullName}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {user?.roles?.[0]?.name || t("common.noRole")}
-                </p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{user?.fullName}</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{user?.roles?.[0]?.name || t("common.noRole")}</p>
               </div>
-
-              {/* Quick Stats */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-700/60 rounded-lg">
                   <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {t("user.lastLogin")}
-                    </span>
+                    <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{t("user.lastLogin")}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatDate(user?.lastLogin)}
-                  </span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white">{formatDate(user?.lastLogin)}</span>
                 </div>
-
-                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-700/60 rounded-lg">
                   <div className="flex items-center">
-                    <Shield className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {t("user.permissions")}
-                    </span>
+                    <Shield className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{t("user.permissions")}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user?.roles?.reduce(
-                      (acc, role) => acc + role.permissions.length,
-                      0
-                    ) || 0}
-                  </span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-white">{user?.roles?.reduce((acc, role) => acc + ((role as any).permissions?.length ?? 0), 0) || 0}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Main Content */}
+          {/* Main */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Personal Information */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {t("user.personalInformation")}
-                  </h3>
-                  <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    {isEditing ? (
-                      <>
-                        <X className="h-4 w-4 mr-1.5" />
-                        {t("common.cancel")}
-                      </>
-                    ) : (
-                      <>
-                        <Edit className="h-4 w-4 mr-1.5" />
-                        {t("common.edit")}
-                      </>
-                    )}
-                  </button>
-                </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
+              <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">{t("user.personalInformation")}</h3>
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="flex items-center px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
+                >
+                  {isEditing ? (
+                    <>
+                      <X className="h-4 w-4 mr-1" />{t("common.cancel")}
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="h-4 w-4 mr-1" />{t("common.edit")}
+                    </>
+                  )}
+                </button>
               </div>
 
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t("user.firstName")}
-                    </label>
-                    <input
-                      type="text"
+              {/* Skeleton while loading industries */}
+              {isLoadingIndustries ? (
+                <div className="p-5 animate-pulse">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="h-9 bg-gray-100 dark:bg-gray-700 rounded-xl" />
+                    <div className="h-9 bg-gray-100 dark:bg-gray-700 rounded-xl" />
+                    <div className="h-9 bg-gray-100 dark:bg-gray-700 rounded-xl" />
+                    <div className="h-9 bg-gray-100 dark:bg-gray-700 rounded-xl" />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <InputField
+                      label={t("user.firstName") as string}
+                      leftIcon={<User className="h-4 w-4 text-gray-400" />}
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleInputChange}
                       disabled={!isEditing}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 focus:ring-2 focus:ring-[#EF444E] focus:border-transparent"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t("user.lastName")}
-                    </label>
-                    <input
-                      type="text"
+                    <InputField
+                      label={t("user.lastName") as string}
+                      leftIcon={<User className="h-4 w-4 text-gray-400" />}
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleInputChange}
                       disabled={!isEditing}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 focus:ring-2 focus:ring-[#EF444E] focus:border-transparent"
                     />
+                    <InputField
+                      label={t("user.email") as string}
+                      leftIcon={<Mail className="h-4 w-4 text-gray-400" />}
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
+                    {showAdminOnlyFields && (
+                      <>
+                        <InputField
+                          label={t("user.companyName", "Company Name") as string}
+                          leftIcon={<Building className="h-4 w-4 text-gray-400" />}
+                          name="company"
+                          value={formData.company}
+                          onChange={handleInputChange}
+                          disabled={!isEditing}
+                        />
+                        <SelectField
+                          label={t("user.chooseIndustry", "Choose your Industry") as string}
+                          leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
+                          value={formData.industryId ?? ""}
+                          onChange={(e) =>
+                            setFormData((s) => ({
+                              ...s,
+                              industryId: e.target.value ? Number(e.target.value) : undefined,
+                            }))
+                          }
+                          disabled={!isEditing}
+                        >
+                          <option value="">{t("common.selectOption", "Select option")}</option>
+                          {industries.map((i) => (
+                            <option key={i.id} value={i.id}>
+                              {i.name}
+                            </option>
+                          ))}
+                        </SelectField>
+                      </>
+                    )}
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      {t("user.email")}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 focus:ring-2 focus:ring-[#EF444E] focus:border-transparent"
-                      />
-                      <Mail className="absolute left-3 top-2.5 h-5 w-4 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-
-                {isEditing && (
-                  <div className="mt-6 flex justify-end space-x-3">
-                    <button
-                      onClick={handleCancel}
-                      disabled={loading}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-                    >
-                      {t("common.cancel")}
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={loading}
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#EF444E] rounded-lg hover:bg-[#dc2626] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                    >
-                      {loading ? (
-                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-1.5" />
-                      )}
-                      {t("common.save")}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Password Change removed */}
-
-            {/* Roles and Permissions */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t("user.rolesAndPermissions")}
-                </h3>
-              </div>
-
-              <div className="p-6">
-                <div className="space-y-4">
-                  {user?.roles?.map((role) => (
-                    <div
-                      key={role.id}
-                      className="border border-gray-200 dark:border-gray-600 rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {role.name}
-                        </h4>
-                        <span className="px-2 py-1 text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
-                          {t("common.active")}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {role.permissions.map((permission) => (
-                          <span
-                            key={permission.id}
-                            className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md"
-                          >
-                            {permission.name}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Account Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t("user.accountSettings")}
-                </h3>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Theme Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Palette className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                        {t("common.theme")}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {t(
-                          "user.themeDescription",
-                          "Choose your preferred theme"
+                  {isEditing && (
+                    <div className="mt-5 flex justify-end gap-2">
+                      <button
+                        onClick={handleCancel}
+                        disabled={loading}
+                        className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
+                      >
+                        {t("common.cancel")}
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        disabled={loading}
+                        className="px-4 py-2 text-xs font-semibold text-white bg-[#EF444E] rounded-full hover:bg-[#dc2626] disabled:opacity-50 flex items-center"
+                      >
+                        {loading ? (
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-1.5" />
                         )}
-                      </p>
+                        {t("common.save")}
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    onClick={toggleTheme}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      isDark ? "bg-[#EF444E]" : "bg-gray-200"
-                    }`}
-                  >
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Aggregated User Permissions */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">{t("user.permissions", "Permissions")}</h3>
+              <div className="flex flex-wrap gap-2">
+                {(() => {
+                  const allPerms = (user?.roles || []).flatMap((r: any) => Array.isArray(r.permissions) ? r.permissions : []);
+                  const uniqueById = new Map<number, any>();
+                  for (const p of allPerms) {
+                    if (p && typeof p.id === "number" && !uniqueById.has(p.id)) uniqueById.set(p.id, p);
+                  }
+                  const uniquePerms = Array.from(uniqueById.values());
+                  if (uniquePerms.length === 0) {
+                    return (
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{t("user.noPermissions", "No permissions assigned")}</span>
+                    );
+                  }
+                  return uniquePerms.map((permission: any) => (
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        isDark ? "translate-x-6" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                </div>
+                      key={permission.id}
+                      className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md"
+                    >
+                      {permission.name}
+                    </span>
+                  ));
+                })()}
+              </div>
+            </div>
 
-                {/* Language Settings */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Globe className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                        {t("common.language")}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {t(
-                          "user.languageDescription",
-                          "Select your preferred language"
-                        )}
-                      </p>
-                    </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Palette className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">{t("common.theme")}</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t("user.themeDescription", "Choose your preferred theme")}</p>
                   </div>
-                  <select className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#EF444E] focus:border-transparent">
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                    <option value="ar">العربية</option>
-                  </select>
                 </div>
-
-                {/* Notifications */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-3" />
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                        {t("common.notifications")}
-                      </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {t(
-                          "user.notificationsDescription",
-                          "Manage your notification preferences"
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-[#EF444E] transition-colors">
-                    <span className="inline-block h-4 w-4 transform translate-x-6 rounded-full bg-white transition-transform" />
-                  </button>
-                </div>
+                <button
+                  onClick={toggleTheme}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isDark ? "bg-[#EF444E]" : "bg-gray-200"}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
               </div>
             </div>
           </div>

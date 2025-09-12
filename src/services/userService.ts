@@ -70,6 +70,8 @@ export const userService = {
     firstName: string;
     lastName: string;
     email: string;
+    company?: string;
+    industryId?: number;
   }) => {
     return retryWithBackoff(async () => {
       const response = await apiClient.put("/users/profile", profileData);

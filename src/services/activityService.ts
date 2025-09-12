@@ -78,4 +78,17 @@ export const activityService = {
       throw error;
     }
   },
+
+  // Get deleted data (users, leads, roles)
+  getDeletedData: async (page = 1, limit = 10) => {
+    try {
+      const response = await createAuthInstance().get(
+        `/activities/deleted-data?page=${page}&limit=${limit}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching deleted data:", error);
+      throw error;
+    }
+  },
 };

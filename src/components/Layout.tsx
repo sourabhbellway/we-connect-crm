@@ -120,7 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       name: "Trash",
       href: "/trash",
       icon: Trash2,
-      permission: "user.read",
+      permission: "deleted.read",
     },
   ].filter((item) => (item.permission ? hasPermission(item.permission) : true));
 
@@ -128,13 +128,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     {
       name: "Lead Settings",
       href: "/settings/leads",
-      permission: "lead.read",
+      permission: "settings.read",
     },
     {
       name: "Industry Settings",
       href: "/settings/industries",
-      // Only show to Admin via canShowChild using role check is not available here.
-      // We rely on route protection for Admin, so no permission needed here.
+      permission: "settings.read",
     },
   ];
 

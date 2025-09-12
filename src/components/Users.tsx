@@ -16,6 +16,7 @@ import {
   CheckCircle,
   XCircle,
   User,
+  Search,
 } from "lucide-react";
 import ConfirmModal from "./ConfirmModal";
 import SearchInput from "./SearchInput";
@@ -55,6 +56,7 @@ const Users: React.FC = () => {
   const [roles, setRoles] = useState<any[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -68,7 +70,7 @@ const Users: React.FC = () => {
   const [pageSize] = useState(50);
 
   // Debounced search with 500ms delay for better UX
-  const { searchValue, debouncedSearchValue, setSearch } =
+  const { searchValue, debouncedSearchValue, setSearch, isSearching } =
     useDebouncedSearch("", 500);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -109,6 +111,7 @@ const Users: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await userService.getUsers({
         search: debouncedSearchValue,
         status: filters.status,
@@ -118,9 +121,11 @@ const Users: React.FC = () => {
       });
       setUsers(response.data.users);
       setPagination(response.data.pagination);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users");
+      const errorMessage = error?.response?.data?.message || "Failed to fetch users";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -220,7 +225,14 @@ const Users: React.FC = () => {
             {/* Search */}
             <div className="w-full sm:w-48">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <div className="flex items-center gap-2">{t("common.search")}</div>
+                <div className="flex items-center gap-2">{t("common.search")}
+                  {isSearching && (
+                    <div className="flex items-center gap-1 text-xs text-blue-500">
+                      <Search className="h-3 w-3 animate-pulse" />
+                      <span>Searching...</span>
+                    </div>
+                  )}
+                </div>
               </label>
               <SearchInput
                 value={searchValue}
@@ -283,8 +295,7 @@ const Users: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t("users.allUsers")}{" "}
-                {pagination && `(${pagination.totalUsers})`}
+                {t("users.allUsers")} {pagination && `(${pagination.totalUsers})`}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {t("users.manageAndTrack")}
@@ -334,7 +345,18 @@ const Users: React.FC = () => {
               <TableLoader rows={8} columns={6} />
             ) : (
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {users.length > 0 ? (
+              {error ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <NoResults
+                      title="Network or server error"
+                      description={error}
+                      icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                      isError
+                    />
+                  </td>
+                </tr>
+              ) : users.length > 0 ? (
                 users.map((user) => (
                   <tr
                     key={user.id}
@@ -442,19 +464,10 @@ const Users: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
-                    {debouncedSearchValue || filters.status || filters.roleId ? (
-                      <NoResults
-                        icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                        showClearButton
-                        onClear={clearFilters}
-                        description={noResultsDescription}
-                      />
-                    ) : (
-                      <NoResults
-                        icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                        description={noResultsDescription}
-                      />
-                    )}
+                    <NoResults
+                      icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                      description={noResultsDescription}
+                    />
                   </td>
                 </tr>
               )}

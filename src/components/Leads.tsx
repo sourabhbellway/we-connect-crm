@@ -107,7 +107,9 @@ const Leads: React.FC = () => {
       setPagination(response.data.pagination);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || t("leads.fetchError"));
+      const message = err?.response?.data?.message || t("leads.fetchError");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -276,61 +278,59 @@ const Leads: React.FC = () => {
               {t("leads.form.allLeads")}
             </h3>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {t("common.showing")} {leads.length} {t("common.of")}{" "}
-              {pagination.totalItems} {t("leads.title")}
+              {t("common.showing")} {leads.length} {t("common.of")} {pagination.totalItems} {t("leads.title")}
             </div>
           </div>
 
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-600 dark:text-red-400">{error}</p>
-            </div>
-          )}
+        
 
-          {leads.length === 0 ? (
-            <div className="text-center py-12">
-              <NoResults
-                title="No leads found"
-                description={noResultsDescription}
-                icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                showClearButton={isSearchActive || isStatusActive}
-                onClear={clearFilters}
-              />
-            </div>
-          ) : (
-            <div className="overflow-hidden relative">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-900">
+          <div className="overflow-hidden relative">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.table.lead")}
+                    </th>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.form.email")}
+                    </th>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.table.company")}
+                    </th>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.table.status")}
+                    </th>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.table.assignedTo")}
+                    </th>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.table.created")}
+                    </th>
+                    <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      {t("leads.table.actions")}
+                    </th>
+                  </tr>
+                </thead>
+                {loading ? (
+                  <TableLoader rows={8} columns={7} />
+                ) : (
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {leads.length === 0 ? (
                     <tr>
-                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.table.lead")}
-                      </th>
-                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.form.email")}
-                      </th>
-                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.table.company")}
-                      </th>
-                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.table.status")}
-                      </th>
-                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.table.assignedTo")}
-                      </th>
-                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.table.created")}
-                      </th>
-                      <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        {t("leads.table.actions")}
-                      </th>
+                      <td colSpan={7} className="px-6 py-12 text-center">
+                        <NoResults
+                          title={error ? "Network or server error" : "No leads found"}
+                          description={error ? (typeof error === 'string' ? error : String(error)) : noResultsDescription}
+                          icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                          showClearButton={!error && (isSearchActive || isStatusActive)}
+                          onClear={!error ? clearFilters : undefined}
+                          isError={!!error}
+                        />
+                      </td>
                     </tr>
-                  </thead>
-                  {loading ? (
-                    <TableLoader rows={8} columns={7} />
                   ) : (
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {leads.map((lead) => (
+                    leads.map((lead) => (
                       <tr
                         key={lead.id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -416,13 +416,13 @@ const Leads: React.FC = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
+                    ))
                   )}
-                </table>
-              </div>
+                </tbody>
+                )}
+              </table>
             </div>
-          )}
+          </div>
 
           {/* Pagination */}
           <Pagination

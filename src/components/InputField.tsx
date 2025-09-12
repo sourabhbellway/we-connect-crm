@@ -50,7 +50,7 @@ export const InputField: React.FC<InputFieldProps> = ({
             "py-2 rounded-xl border transition-colors",
             "bg-white dark:bg-gray-700",
             error
-              ? "border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              ? "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none ring-2 ring-rose-500 focus:ring-rose-500"
               : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
             className || "",
           ].join(" ")}
@@ -84,7 +84,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
           "w-full rounded-xl border p-2 text-sm transition-colors",
           "bg-white dark:bg-gray-700",
           error
-            ? "border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            ? "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none ring-2 ring-rose-500 focus:ring-rose-500"
             : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
           className || "",
         ].join(" ")}
@@ -128,7 +128,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
             "py-2.5 rounded-xl border text-sm transition-colors",
             "bg-white dark:bg-gray-700",
             error
-              ? "border-blue-300 hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              ? "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none ring-2 ring-rose-500 focus:ring-rose-500"
               : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
             className || "",
           ].join(" ")}

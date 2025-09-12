@@ -17,6 +17,7 @@ import {
   CheckCircle,
   MoreHorizontal,
   Search,
+  User,
 } from "lucide-react";
 import SearchInput from "./SearchInput";
 import { useDebouncedSearch } from "../hooks/useDebounce";
@@ -88,6 +89,9 @@ const Roles: React.FC = () => {
     } catch (error: any) {
       console.error("Error fetching roles:", error);
 
+      const message = error?.response?.data?.message || "Failed to load roles";
+      toast.error(message);
+
       // If backend search fails, fall back to frontend search
       if (debouncedSearchValue) {
         setBackendSearchSupported(false);
@@ -104,10 +108,10 @@ const Roles: React.FC = () => {
           setRoles(Array.isArray(rolesData) ? rolesData : []);
         } catch (fallbackError) {
           console.error("Fallback fetch also failed:", fallbackError);
-          setSearchError("Failed to load roles");
+          setSearchError(message);
         }
       } else {
-        setSearchError("Failed to load roles");
+        setSearchError(message);
       }
     } finally {
       if (!hasLoaded) {
@@ -206,11 +210,7 @@ const Roles: React.FC = () => {
                       <span>Searching...</span>
                     </div>
                   )}
-                  {searchError && (
-                    <div className="flex items-center gap-1 text-xs text-orange-500">
-                      <span>⚠️ {searchError}</span>
-                    </div>
-                  )}
+                 
                 </div>
               </label>
               <SearchInput
@@ -293,11 +293,12 @@ const Roles: React.FC = () => {
         ) : filteredRoles.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <NoResults
-              title="No roles found"
-              description={noResultsDescription}
-              icon={<Shield className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-              showClearButton={isSearchActive || isActiveFilterActive}
-              onClear={clearFilters}
+              title={searchError ? "Network or server error" : "No roles found"}
+              description={searchError || noResultsDescription}
+              icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+              showClearButton={!searchError && (isSearchActive || isActiveFilterActive)}
+              onClear={!searchError ? clearFilters : undefined}
+              isError={!!searchError}
             />
           </div>
         ) : (

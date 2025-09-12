@@ -134,6 +134,15 @@ const LeadForm: React.FC<LeadFormProps> = ({
     return null;
   };
 
+  const validateName = (value: string, label: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return `${label} is required`;
+    if (v.length < 3) return `${label} must be at least 3 characters`;
+    if (/<[^>]*>/i.test(v)) return "Invalid characters detected";
+    if (!/^[A-Za-z\s]+$/.test(v)) return "Only letters and spaces are allowed";
+    return null;
+  };
+
   // Phone validation removed to allow varying country code lengths and formats
 
   const validateRequired = (
@@ -149,17 +158,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const validateForm = (formData: LeadPayload): ValidationErrors => {
     const errors: ValidationErrors = {};
 
-    // Required fields
-    const firstNameError = validateRequired(
-      formData.firstName || "",
-      "First Name"
-    );
+    // First/Last name strict validation
+    const firstNameError = validateName(formData.firstName || "", "First Name");
     if (firstNameError) errors.firstName = firstNameError;
 
-    const lastNameError = validateRequired(
-      formData.lastName || "",
-      "Last Name"
-    );
+    const lastNameError = validateName(formData.lastName || "", "Last Name");
     if (lastNameError) errors.lastName = lastNameError;
 
     const emailError = validateEmail(formData.email || "");
@@ -182,8 +185,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
       // Real-time validation for specific fields
       if (key === "email" && value) {
-        const emailError = validateEmail(value);
+        const emailError = validateEmail(String(value));
         if (emailError) newErrors.email = emailError;
+      }
+
+      if (key === "firstName") {
+        const err = validateName(String(value), "First Name");
+        if (err) newErrors.firstName = err;
+      }
+
+      if (key === "lastName") {
+        const err = validateName(String(value), "Last Name");
+        if (err) newErrors.lastName = err;
       }
 
       if (key === "phone") {
@@ -305,9 +318,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             required
             error={formState.errors.firstName}
           />
-          {formState.errors.firstName && (
-            <ErrorMessage error={formState.errors.firstName} />
-          )}
+     
         </div>
         <div>
           <InputField
@@ -320,9 +331,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             required
             error={formState.errors.lastName}
           />
-          {formState.errors.lastName && (
-            <ErrorMessage error={formState.errors.lastName} />
-          )}
+        
         </div>
         <div>
           <InputField
@@ -334,11 +343,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
               handleChange("email", (e.target as HTMLInputElement).value)
             }
             required
-            // error={formState.errors.email}
+            error={formState.errors.email}
           />
-          {formState.errors.email && (
-            <ErrorMessage error={formState.errors.email} />
-          )}
+       
         </div>
         <div>
           <InputField
@@ -351,9 +358,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
               handleChange("phone", (e.target as HTMLInputElement).value)
             }
           />
-          {formState.errors.phone && (
-            <ErrorMessage error={formState.errors.phone} />
-          )}
+        
         </div>
         <div>
           <InputField

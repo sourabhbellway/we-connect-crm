@@ -74,6 +74,20 @@ export const seedInitialData = async () => {
         description: "Can access dashboard",
       },
 
+      // Settings permissions
+      {
+        name: "View Settings",
+        key: "settings.read",
+        module: "Settings",
+        description: "Can view application settings",
+      },
+      {
+        name: "Update Settings",
+        key: "settings.update",
+        module: "Settings",
+        description: "Can update application settings",
+      },
+
       // Lead permissions
       {
         name: "View Leads",
@@ -112,6 +126,12 @@ export const seedInitialData = async () => {
         key: "activity.create",
         module: "Activities",
         description: "Can create activity logs",
+      },
+      {
+        name: "View Deleted Data",
+        key: "deleted.read",
+        module: "Activities",
+        description: "Can view deleted users, leads and roles",
       },
     ];
 

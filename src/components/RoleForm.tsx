@@ -53,8 +53,18 @@ const RoleForm: React.FC<RoleFormProps> = ({
   useEffect(() => {
     if (initial) {
       setFormData(initial);
+      setErrors({});
     }
   }, [initial]);
+
+  const validateRoleName = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return "Role name is required";
+    if (v.length < 3) return "Role name must be at least 3 characters";
+    if (/<[^>]*>/i.test(v)) return "Invalid characters detected";
+    if (!/^[A-Za-z\s]+$/.test(v)) return "Only letters and spaces are allowed";
+    return null;
+  };
 
   const fetchPermissions = async () => {
     try {
@@ -87,7 +97,8 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name) newErrors.name = "Role name is required";
+    const nameError = validateRoleName(formData.name);
+    if (nameError) newErrors.name = nameError;
     if (formData.permissionIds.length === 0) {
       newErrors.permissions = "At least one permission is required";
     }
@@ -132,14 +143,22 @@ const RoleForm: React.FC<RoleFormProps> = ({
             label="Role Name"
             leftIcon={<Shield className="h-4 w-4 text-gray-400" />}
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              setFormData({ ...formData, name: value });
+              const err = validateRoleName(value);
+              setErrors((prev) => ({ ...prev, name: err || "" }));
+              if (!err) {
+                // cleanup empty string to avoid triggering error style when valid
+                setErrors((prev) => {
+                  const { name, ...rest } = prev;
+                  return rest as Record<string, string>;
+                });
+              }
+            }}
             required
+            error={errors.name}
           />
-          {errors.name && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-              {errors.name}
-            </p>
-          )}
         </div>
 
         {initial && (
