@@ -4,6 +4,7 @@ import {
   getRecentActivities,
   createActivity,
   getActivityStats,
+  getDeletedData
 } from "../controllers/activityController";
 import { authenticateToken, requirePermission } from "../middleware/auth";
 
@@ -41,4 +42,10 @@ router.post(
   createActivity
 );
 
+router.get(
+  "/activities/deleted-data",
+  authenticateToken,
+  requirePermission("deleted.read"),
+  getDeletedData
+);
 export default router;
