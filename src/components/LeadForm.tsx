@@ -143,17 +143,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
     return null;
   };
 
-  // Phone validation removed to allow varying country code lengths and formats
 
-  const validateRequired = (
-    value: string,
-    fieldName: string
-  ): string | null => {
-    if (!value || value.trim() === "") {
-      return `${fieldName} is required`;
-    }
-    return null;
-  };
 
   const validateForm = (formData: LeadPayload): ValidationErrors => {
     const errors: ValidationErrors = {};
@@ -274,14 +264,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
       }));
     }
   };
-
-  // Error display component
-  const ErrorMessage = ({ error }: { error: string }) => (
-    <div className="flex items-center mt-1 text-xs text-red-600 dark:text-red-400">
-      <AlertCircle className="h-4 w-4 mr-1 flex-shrink-0" />
-      <span>{error}</span>
-    </div>
-  );
 
   const showInlineLoading = loading && !skipInternalLoadingUI;
 
