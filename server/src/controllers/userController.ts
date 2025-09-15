@@ -444,7 +444,7 @@ export const updateUser = async (req: Request, res: Response) => {
       })),
     };
     const actorId = (req as any)?.user?.id;
-    await activityLoggers.userDeleted(
+    await activityLoggers.userEdited(
       {
         id: existingUser.id,
         firstName: existingUser.firstName,
