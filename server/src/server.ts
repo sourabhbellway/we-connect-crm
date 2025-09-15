@@ -4,6 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json";
 
 import { prisma } from "./lib/prisma";
 import { seedInitialData } from "./seeders/initialData";
@@ -62,6 +64,7 @@ if (process.env.NODE_ENV === "production") {
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Logging
 app.use(morgan("combined"));
