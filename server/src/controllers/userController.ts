@@ -443,7 +443,16 @@ export const updateUser = async (req: Request, res: Response) => {
         permissions: ur.role.permissions.map((rp) => rp.permission),
       })),
     };
-
+    const actorId = (req as any)?.user?.id;
+    await activityLoggers.userDeleted(
+      {
+        id: existingUser.id,
+        firstName: existingUser.firstName,
+        lastName: existingUser.lastName,
+        email: existingUser.email,
+      },
+      actorId
+    );
     res.json({
       success: true,
       message: "User updated successfully",
