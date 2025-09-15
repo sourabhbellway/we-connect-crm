@@ -27,7 +27,7 @@ const FormModal: React.FC<FormModalProps> = ({
         <div className="mb-3">
           <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
         </div>
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-3" noValidate>
           {children}
           <div className="flex justify-end space-x-2 pt-2">
             <button

@@ -90,7 +90,7 @@ const Roles: React.FC = () => {
       console.error("Error fetching roles:", error);
 
       const message = error?.response?.data?.message || "Failed to load roles";
-      toast.error(message);
+      toast.error(message, { toastId: "roles_fetch_error" });
 
       // If backend search fails, fall back to frontend search
       if (debouncedSearchValue) {
@@ -322,14 +322,14 @@ const Roles: React.FC = () => {
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {role.permissions.length} permissions
+                        
                       </p>
+                                          
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
+                
                     {hasPermission("role.update") && (
                       <button
                         onClick={() =>
@@ -404,36 +404,48 @@ const Roles: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Permission Tags */}
+                {/* Permission Tags - module wise with show more/less */}
                 <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex flex-wrap gap-2">
-                    {expandedPermissions[role.id]
-                      ? role.permissions.map((permission) => (
-                          <span
-                            key={permission.id}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400"
-                          >
-                            {permission.module}
-                          </span>
-                        ))
-                      : role.permissions.slice(0, 3).map((permission) => (
-                          <span
-                            key={permission.id}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400"
-                          >
-                            {permission.module}
-                          </span>
-                        ))}
-                    {role.permissions.length > 3 && (
-                      <button
-                        onClick={() => togglePermissions(role.id)}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
-                      >
-                        {expandedPermissions[role.id]
-                          ? "Show less"
-                          : `+${role.permissions.length - 3} more`}
-                      </button>
-                    )}
+                    {(() => {
+                      const modulesMap: Record<string, string[]> = {};
+                      (role.permissions || []).forEach((p) => {
+                        const key = p.module || "General";
+                        if (!modulesMap[key]) modulesMap[key] = [];
+                        modulesMap[key].push(p.name);
+                      });
+                      const modules = Object.keys(modulesMap);
+                      const isExpanded = !!expandedPermissions[role.id];
+                      const visibleModules = isExpanded ? modules : modules.slice(0, 3);
+                      const remaining = modules.length - (isExpanded ? 3 : visibleModules.length);
+                      return (
+                        <>
+                          {visibleModules.map((moduleKey) => (
+                            <div key={moduleKey} className="flex items-center flex-wrap gap-1">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                                {moduleKey}
+                              </span>
+                              {modulesMap[moduleKey].map((permName, idx) => (
+                                <span
+                                  key={`${moduleKey}-${idx}`}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400"
+                                >
+                                  {permName}
+                                </span>
+                              ))}
+                            </div>
+                          ))}
+                          {(modules.length > 3 || isExpanded) && (
+                            <button
+                              onClick={() => togglePermissions(role.id)}
+                              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                            >
+                              {isExpanded ? "Show less" : `+${remaining} more`}
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

@@ -36,7 +36,7 @@ const TrashLeads: React.FC = () => {
       } catch (e: any) {
         const message = e?.response?.data?.message || "Failed to load deleted leads";
         setError(message);
-        toast.error(message);
+        toast.error(message, { toastId: "trash_leads_fetch_error" });
       } finally {
         setLoading(false);
       }

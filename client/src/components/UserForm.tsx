@@ -109,22 +109,42 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formEl = e.currentTarget as HTMLFormElement;
-    if (!formEl.reportValidity()) return; // native required check for blank
-
+    // Custom required checks to avoid native tooltips
+    let hasBlockingError = false;
+    const firstNameValue = String((form as any).firstName || "").trim();
+    const lastNameValue = String((form as any).lastName || "").trim();
     const emailValue = String((form as any).email || "");
+    const passwordValue = String((form as any).password || "");
+
+    if (!firstNameValue) {
+      setFirstNameError("First name is required");
+      hasBlockingError = true;
+    }
+    if (!lastNameValue) {
+      setLastNameError("Last name is required");
+      hasBlockingError = true;
+    }
+    if (!emailValue) {
+      setEmailError("Email is required");
+      hasBlockingError = true;
+    }
+    if (!isEdit && !passwordValue) {
+      setPasswordError("Password is required");
+      hasBlockingError = true;
+    }
+    if (hasBlockingError) return;
+
     const err = emailValue ? validateEmail(emailValue) : null;
     setEmailError(err);
     if (err) return;
 
     // Validate first and last name
-    const firstErr = validateName(String((form as any).firstName || ""));
-    const lastErr = validateName(String((form as any).lastName || ""));
+    const firstErr = validateName(firstNameValue);
+    const lastErr = validateName(lastNameValue);
     setFirstNameError(firstErr);
     setLastNameError(lastErr);
     if (firstErr || lastErr) return;
 
-    const passwordValue = String((form as any).password || "");
     if (!isEdit || passwordValue) {
       const criteria = evaluatePassword(passwordValue);
       const allOk =
@@ -145,9 +165,22 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
   };
 
   const validateEmail = (email: string): string | null => {
-    // Only validate format when non-empty; blank handled by native required
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    // Only validate format when non-empty; blank handled by required checks above
+    const value = (email || "").trim();
+    if (!value) return "Please enter a valid email address";
+    const basicPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!basicPattern.test(value)) return "Please enter a valid email address";
+    const [localPart, domainPart] = value.split("@");
+    if (localPart.startsWith(".") || localPart.endsWith(".") || localPart.includes("..")) {
+      return "Please enter a valid email address";
+    }
+    if (domainPart.includes("..")) {
+      return "Please enter a valid email address";
+    }
+    const labels = domainPart.split(".");
+    if (labels.some((label) => !label || label.startsWith("-") || label.endsWith("-"))) {
+      return "Please enter a valid email address";
+    }
     return null;
   };
 
@@ -179,7 +212,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
   // Intentionally no inline error text rendering
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       {/* Fields grid: 1 col (mobile), 3 cols (md), 4 cols (lg) */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <div>

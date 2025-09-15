@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import BackButton from "./BackButton";
 import { useCounts } from "../contexts/CountsContext";
+import Loader from "./Loader";
 
 const LeadEdit: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -77,10 +78,7 @@ const LeadEdit: React.FC = () => {
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         {loading ? (
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-500 mr-2"></div>
-            Loading lead...
-          </div>
+          <Loader />
         ) : (
           <LeadForm
             initial={initial}

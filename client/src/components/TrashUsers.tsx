@@ -38,7 +38,7 @@ const TrashUsers: React.FC = () => {
       } catch (e: any) {
         const message = e?.response?.data?.message || "Failed to load deleted users";
         setError(message);
-        toast.error(message);
+        toast.error(message, { toastId: "trash_users_fetch_error" });
       } finally {
         setLoading(false);
       }

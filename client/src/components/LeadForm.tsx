@@ -128,9 +128,30 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   // Validation functions
   const validateEmail = (email: string): string | null => {
-    if (!email) return "Email is required";
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    const value = (email || "").trim();
+    if (!value) return "Email is required";
+    // Basic pattern: allowed local chars, domain labels, and TLD length >= 2
+    const basicPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!basicPattern.test(value)) return "Please enter a valid email address";
+
+    const [localPart, domainPart] = value.split("@");
+    // Local part cannot start/end with dot and cannot contain consecutive dots
+    if (localPart.startsWith(".") || localPart.endsWith(".") || localPart.includes("..")) {
+      return "Please enter a valid email address";
+    }
+    // Domain cannot contain consecutive dots
+    if (domainPart.includes("..")) {
+      return "Please enter a valid email address";
+    }
+    // Each domain label must not start/end with hyphen and must be non-empty
+    const labels = domainPart.split(".");
+    if (
+      labels.some(
+        (label) => !label || label.startsWith("-") || label.endsWith("-")
+      )
+    ) {
+      return "Please enter a valid email address";
+    }
     return null;
   };
 
@@ -268,7 +289,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const showInlineLoading = loading && !skipInternalLoadingUI;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       {showInlineLoading && (
         <div className="flex items-center justify-start py-2 text-sm text-gray-600 dark:text-gray-400">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-500 mr-2"></div>

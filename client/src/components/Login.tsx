@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
 import WeConnectLogo from "../assets/logo.png";
+import { toast } from "react-toastify";
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -50,7 +51,14 @@ const Login: React.FC = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    if (Object.keys(newErrors).length > 0) {
+      // Show the first error via toast on the top-right
+      const firstErrorMessage = newErrors.email || newErrors.password;
+      if (firstErrorMessage) toast.error(firstErrorMessage);
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -117,7 +125,7 @@ const Login: React.FC = () => {
           )}
 
           {/* Form */}
-          <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+          <form className="mt-6 space-y-6" onSubmit={handleSubmit} noValidate>
             <div>
               <label
                 htmlFor="email"
@@ -127,7 +135,7 @@ const Login: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 " />
+                  <Mail className="h-5 w-5 text-white " />
                 </div>
                 <input
                   id="email"
@@ -144,9 +152,7 @@ const Login: React.FC = () => {
                   placeholder="Enter your email"
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-300">{errors.email}</p>
-              )}
+              {/* Inline error removed in favor of toast notifications */}
             </div>
 
             <div>
@@ -158,7 +164,7 @@ const Login: React.FC = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 " />
+                  <Lock className="h-5 w-5 text-white" />
                 </div>
                 <input
                   id="password"
@@ -180,15 +186,13 @@ const Login: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 " />
+                    <EyeOff className="h-5 w-5 text-white" />
                   ) : (
-                    <Eye className="h-5 w-5 " />
+                    <Eye className="h-5 w-5 text-white" />
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-300">{errors.password}</p>
-              )}
+              {/* Inline error removed in favor of toast notifications */}
             </div>
 
             {/* Options row */}

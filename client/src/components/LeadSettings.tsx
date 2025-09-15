@@ -135,6 +135,7 @@ const LeadSettings: React.FC = () => {
     color?: string;
     description?: string;
   }>({ name: "", color: "#3B82F6", description: "" });
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string }>({});
 
   useEffect(() => {
     if (tagModal.open) {
@@ -143,19 +144,25 @@ const LeadSettings: React.FC = () => {
         color: tagModal.editing?.color || "#3B82F6",
         description: tagModal.editing?.description || "",
       });
+      setFieldErrors({});
     } else if (sourceModal.open) {
       setFormState({
         name: sourceModal.editing?.name || "",
         description: sourceModal.editing?.description || "",
       });
+      setFieldErrors({});
     } else {
       setFormState({ name: "", color: "#3B82F6", description: "" });
+      setFieldErrors({});
     }
   }, [tagModal, sourceModal]);
 
   const submitTag = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name?.trim()) return;
+    if (!formState.name?.trim()) {
+      setFieldErrors({ name: "Name is required" });
+      return;
+    }
     try {
       setLoading(true);
       if (tagModal.editing) {
@@ -193,7 +200,10 @@ const LeadSettings: React.FC = () => {
 
   const submitSource = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name?.trim()) return;
+    if (!formState.name?.trim()) {
+      setFieldErrors({ name: "Name is required" });
+      return;
+    }
     try {
       setLoading(true);
       if (sourceModal.editing) {
@@ -417,6 +427,7 @@ const LeadSettings: React.FC = () => {
             }
             placeholder="e.g. VIP"
             required
+            error={fieldErrors.name}
           />
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -463,6 +474,7 @@ const LeadSettings: React.FC = () => {
             }
             placeholder="e.g. Website"
             required
+            error={fieldErrors.name}
           />
           <TextAreaField
             label="Description"

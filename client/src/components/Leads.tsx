@@ -109,7 +109,7 @@ const Leads: React.FC = () => {
     } catch (err: any) {
       const message = err?.response?.data?.message || t("leads.fetchError");
       setError(message);
-      toast.error(message);
+      toast.error(message, { toastId: "leads_fetch_error" });
     } finally {
       setLoading(false);
     }
@@ -274,12 +274,22 @@ const Leads: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {t("leads.form.allLeads")}
-            </h3>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {t("common.showing")} {leads.length} {t("common.of")} {pagination.totalItems} {t("leads.title")}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t("leads.form.allLeads")} {pagination && `(${pagination.totalItems})`}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Manage and track your leads
+                {pagination && (
+                  <span className="ml-2 text-gray-500">
+                    • Showing {leads.length} of {pagination.totalItems} leads
+                    {pagination.totalPages > 1 &&
+                      ` • Page ${pagination.currentPage} of ${pagination.totalPages}`}
+                  </span>
+                )}
+              </p>
             </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400"></div>
           </div>
 
         

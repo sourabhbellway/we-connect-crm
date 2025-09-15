@@ -82,20 +82,9 @@ const Users: React.FC = () => {
     fetchRoles();
   }, [debouncedSearchValue, filters.status, filters.roleId, currentPage]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (do not override Ctrl/Cmd+K to allow browser omnibox)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + K to focus search
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        const searchInput = document.querySelector(
-          'input[placeholder*="search"]'
-        ) as HTMLInputElement;
-        if (searchInput) {
-          searchInput.focus();
-        }
-      }
-
       // Escape to clear filters
       if (e.key === "Escape") {
         if (debouncedSearchValue || filters.status || filters.roleId) {
@@ -106,7 +95,7 @@ const Users: React.FC = () => {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [filters]);
+  }, [filters, debouncedSearchValue]);
 
   const fetchUsers = async () => {
     try {
@@ -125,7 +114,7 @@ const Users: React.FC = () => {
       console.error("Error fetching users:", error);
       const errorMessage = error?.response?.data?.message || "Failed to fetch users";
       setError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(errorMessage, { toastId: "users_fetch_error" });
     } finally {
       setIsLoading(false);
     }
