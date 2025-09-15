@@ -699,7 +699,7 @@ function Dashboard() {
         {/* System Status Card */}
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-semibold">SYSTEM STATUS</h3>
+            <h3 className="text-sm font-semibold dark:text-white">SYSTEM STATUS</h3>
             <a
               href="#"
               className="text-red-500  hover:text-red-600 text-xs font-semibold "
@@ -839,7 +839,7 @@ function Dashboard() {
         {/* System Activity Card */}
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-semibold">SYSTEM ACTIVITY</h3>
+            <h3 className="text-sm font-semibold dark:text-white">SYSTEM ACTIVITY</h3>
             <a
               href="#"
               className="text-red-500 hover:text-red-600 text-xs font-semibold"
@@ -898,10 +898,10 @@ function Dashboard() {
         {/* Activity Calendar */}
         <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 lg:col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">ACTIVITY CALENDAR</h3>
+            <h3 className="text-sm font-semibold dark:text-white">ACTIVITY CALENDAR</h3>
             <div className="flex items-center gap-2">
               <button
-                className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
                 onClick={() =>
                   setCurrentMonth(
                     (m) => new Date(m.getFullYear(), m.getMonth() - 1, 1)
@@ -911,11 +911,11 @@ function Dashboard() {
               >
                 <HiOutlineChevronLeft className="w-4 h-4" />
               </button>
-              <div className="text-xs font-medium text-gray-700 dark:text-gray-200">
+              <div className="text-xs font-medium text-gray-700 dark:text-gray-200 ">
                 {monthLabel(currentMonth)}
               </div>
               <button
-                className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
                 onClick={() =>
                   setCurrentMonth(
                     (m) => new Date(m.getFullYear(), m.getMonth() + 1, 1)

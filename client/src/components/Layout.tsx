@@ -149,7 +149,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
       <div key={item.name} className="relative">
         <div
-          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium  cursor-pointer ${
             sidebarCollapsed ? "justify-center px-3 py-2" : "justify-between"
           } ${
             isItemActive
@@ -206,7 +206,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-black dark:bg-opacity-75 transition-opacity lg:hidden"
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-black dark:bg-opacity-75  lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -233,7 +233,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <img
                   src={WeConnectLogo}
                   alt="WeConnect"
-                  className="h-16 w-auto"
+                  className="h-16 w-auto dark:invert"
                 />
               </div>
             )}

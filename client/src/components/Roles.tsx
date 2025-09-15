@@ -15,7 +15,6 @@ import {
   Edit,
   Trash2,
   CheckCircle,
-  MoreHorizontal,
   Search,
   User,
 } from "lucide-react";

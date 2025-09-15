@@ -42,7 +42,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [isDark]);
 
   const toggleTheme = () => {
+    const root = window.document.documentElement;
+    // Disable transitions during theme flip for instant color change
+    root.classList.add("disable-transitions");
+    // Flip theme state
     setIsDark(!isDark);
+    // Re-enable transitions shortly after paint
+    window.setTimeout(() => {
+      root.classList.remove("disable-transitions");
+    }, 100);
   };
 
   return (
