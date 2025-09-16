@@ -9,9 +9,8 @@ const auth_1 = require("../middleware/auth");
 const roleValidators_1 = require("../validators/roleValidators");
 const router = express_1.default.Router();
 router.get("/roles", auth_1.authenticateToken, (0, auth_1.requirePermission)("role.read"), roleController_1.getRoles);
-router.get("/roles/:id", auth_1.authenticateToken, (0, auth_1.requirePermission)("role.read"), roleController_1.getRoleById);
 router.post("/roles", auth_1.authenticateToken, (0, auth_1.requirePermission)("role.create"), roleValidators_1.createRoleValidation, roleController_1.createRole);
 router.put("/roles/:id", auth_1.authenticateToken, (0, auth_1.requirePermission)("role.update"), roleValidators_1.updateRoleValidation, roleController_1.updateRole);
-router.delete("/roles/:id", auth_1.authenticateToken, (0, auth_1.requirePermission)("role.delete"), roleController_1.deleteRole);
+router.delete("/roles/:id", auth_1.authenticateToken, (0, auth_1.requirePermission)("role.delete"), roleValidators_1.deleteRoleValidation, roleController_1.deleteRole);
 exports.default = router;
 //# sourceMappingURL=roleRoutes.js.map

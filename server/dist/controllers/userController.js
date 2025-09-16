@@ -4,12 +4,15 @@ exports.getUserStats = exports.deleteUser = exports.updateUser = exports.getUser
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
 const activityLogger_1 = require("../utils/activityLogger");
+const client_1 = require("@prisma/client");
 const getUsers = async (req, res) => {
     try {
         const { search, status, roleId, page = 1, limit = 50 } = req.query;
         //console.log("Query parameters:", { search, status, roleId, page, limit });
         // Build where clause for filtering
-        const where = {};
+        const where = {
+            deletedAt: null,
+        };
         // Search filter (search in firstName, lastName, and email)
         if (search && typeof search === "string") {
             where.OR = [
@@ -149,7 +152,7 @@ const createUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 12);
         // Check if user already exists
         const existingUser = await prisma_1.prisma.user.findUnique({
-            where: { email },
+            where: { email, deletedAt: null },
         });
         if (existingUser) {
             return res.status(400).json({
@@ -251,7 +254,7 @@ const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
         const user = await prisma_1.prisma.user.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), deletedAt: null },
             select: {
                 id: true,
                 email: true,
@@ -330,7 +333,7 @@ const updateUser = async (req, res) => {
         const { email, firstName, lastName, isActive, roleIds } = req.body;
         // Check if user exists
         const existingUser = await prisma_1.prisma.user.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), deletedAt: null },
         });
         if (!existingUser) {
             return res.status(404).json({
@@ -401,6 +404,13 @@ const updateUser = async (req, res) => {
                 permissions: ur.role.permissions.map((rp) => rp.permission),
             })),
         };
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.userEdited({
+            id: existingUser.id,
+            firstName: existingUser.firstName,
+            lastName: existingUser.lastName,
+            email: existingUser.email,
+        }, actorId);
         res.json({
             success: true,
             message: "User updated successfully",
@@ -409,6 +419,12 @@ const updateUser = async (req, res) => {
     }
     catch (error) {
         console.error("Update user error:", error);
+        if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            return res.status(409).json({
+                success: false,
+                message: "User with this email already exists, Please use a different email to update",
+            });
+        }
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -430,9 +446,23 @@ const deleteUser = async (req, res) => {
             });
         }
         // Delete user (this will cascade delete related records)
-        await prisma_1.prisma.user.delete({
+        // await prisma.user.delete({
+        //   where: { id: parseInt(id) },
+        // });
+        await prisma_1.prisma.user.update({
             where: { id: parseInt(id) },
+            data: {
+                isActive: false,
+                deletedAt: new Date(),
+            },
         });
+        const actorId = req?.user?.id;
+        await activityLogger_1.activityLoggers.userDeleted({
+            id: existingUser.id,
+            firstName: existingUser.firstName,
+            lastName: existingUser.lastName,
+            email: existingUser.email,
+        }, actorId);
         res.json({
             success: true,
             message: "User deleted successfully",

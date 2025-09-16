@@ -11,7 +11,7 @@ const getLeads = async (req, res) => {
         const pageNum = Math.max(1, Number(page));
         const limitNum = Math.min(100, Math.max(1, Number(limit))); // Limit to 100 max
         const offset = (pageNum - 1) * limitNum;
-        const whereClause = { isActive: true };
+        const whereClause = { isActive: true, deletedAt: null };
         if (status) {
             whereClause.status = status.toUpperCase();
         }
@@ -95,7 +95,7 @@ const getLeadById = async (req, res) => {
     try {
         const { id } = req.params;
         const lead = await prisma_1.prisma.lead.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), deletedAt: null },
             include: {
                 assignedUser: {
                     select: {
@@ -154,6 +154,17 @@ const createLead = async (req, res) => {
             });
         }
         const { firstName, lastName, email, phone, company, position, sourceId, status, notes, assignedTo, tags, } = req.body;
+        if (email) {
+            const emailExists = await prisma_1.prisma.lead.findFirst({
+                where: { email, deletedAt: null },
+            });
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email already exists For another lead",
+                });
+            }
+        }
         const lead = await prisma_1.prisma.lead.create({
             data: {
                 firstName,
@@ -240,13 +251,30 @@ const updateLead = async (req, res) => {
         const { firstName, lastName, email, phone, company, position, sourceId, status, notes, assignedTo, tags, } = req.body;
         // Check if lead exists
         const existingLead = await prisma_1.prisma.lead.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), deletedAt: null },
         });
         if (!existingLead) {
             return res.status(404).json({
                 success: false,
                 message: "Lead not found",
             });
+        }
+        if (email && email.toLowerCase() !== existingLead.email.toLowerCase()) {
+            const emailExists = await prisma_1.prisma.lead.findFirst({
+                where: {
+                    email: {
+                        equals: email,
+                        mode: "insensitive",
+                    },
+                    NOT: { id: existingLead.id },
+                },
+            });
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email already exists for another lead",
+                });
+            }
         }
         const lead = await prisma_1.prisma.lead.update({
             where: { id: parseInt(id) },
@@ -335,8 +363,15 @@ const deleteLead = async (req, res) => {
                 message: "Lead not found",
             });
         }
-        await prisma_1.prisma.lead.delete({
+        // await prisma.lead.delete({
+        //   where: { id: parseInt(id) },
+        // });
+        await prisma_1.prisma.lead.update({
             where: { id: parseInt(id) },
+            data: {
+                deletedAt: new Date(),
+                isActive: false,
+            },
         });
         // Log
         const actorId = req?.user?.id;

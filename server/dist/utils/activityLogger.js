@@ -41,8 +41,22 @@ exports.activityLoggers = {
         });
     },
     userUpdated: (userData, updatedBy) => {
+        console.log("Logging user update activity for:", userData);
         return (0, exports.logActivity)({
             title: "User Updated",
+            description: `${userData.firstName} ${userData.lastName} (${userData.email}) was updated`,
+            type: client_2.ActivityType.USER_REGISTRATION, // Consider adding USER_UPDATE to enum later
+            icon: "FiEdit",
+            iconColor: "text-orange-600",
+            tags: ["User", "Update"],
+            metadata: { userId: userData.id, email: userData.email },
+            userId: updatedBy,
+        });
+    },
+    userEdited: (userData, updatedBy) => {
+        console.log("Logging user update activity for:", userData);
+        return (0, exports.logActivity)({
+            title: "User Edited",
             description: `${userData.firstName} ${userData.lastName} (${userData.email}) was updated`,
             type: client_2.ActivityType.USER_REGISTRATION, // Consider adding USER_UPDATE to enum later
             icon: "FiEdit",

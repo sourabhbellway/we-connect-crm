@@ -9,10 +9,12 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const client_1 = require("@prisma/client");
 const seedSuperAdminData = async () => {
     try {
-        console.log("🚀 Seeding Super Admin system...");
+        //console.log("🚀 Seeding Super Admin system...");
         // First, get ALL existing permissions from the regular system
         const existingPermissions = await prisma_1.prisma.permission.findMany();
-        console.log(`📋 Found ${existingPermissions.length} existing permissions in database`);
+        //console.log(
+        //   `📋 Found ${existingPermissions.length} existing permissions in database`
+        // );
         // Create Super Admin permissions (include ALL existing permissions + system permissions)
         const superAdminPermissions = [
             // Include ALL existing permissions from the database
@@ -84,7 +86,9 @@ const seedSuperAdminData = async () => {
                 description: "Monitor system performance and health",
             },
         ];
-        console.log(`📋 Creating ${superAdminPermissions.length} Super Admin permissions...`);
+        //console.log(
+        //   `📋 Creating ${superAdminPermissions.length} Super Admin permissions...`
+        // );
         // Create Super Admin permissions
         for (const perm of superAdminPermissions) {
             await prisma_1.prisma.superAdminPermission.upsert({
@@ -93,7 +97,7 @@ const seedSuperAdminData = async () => {
                 create: perm,
             });
         }
-        console.log("✅ Super Admin permissions created");
+        //console.log("✅ Super Admin permissions created");
         // Create Super Admin role
         const superAdminRole = await prisma_1.prisma.superAdminRole.upsert({
             where: { name: "Super Admin" },
@@ -106,7 +110,7 @@ const seedSuperAdminData = async () => {
                 description: "Complete system access with all permissions",
             },
         });
-        console.log("✅ Super Admin role created");
+        //console.log("✅ Super Admin role created");
         // Assign all permissions to Super Admin role
         const allSuperAdminPermissions = await prisma_1.prisma.superAdminPermission.findMany();
         for (const permission of allSuperAdminPermissions) {
@@ -124,7 +128,9 @@ const seedSuperAdminData = async () => {
                 },
             });
         }
-        console.log(`✅ All ${allSuperAdminPermissions.length} permissions assigned to Super Admin role`);
+        //console.log(
+        //   `✅ All ${allSuperAdminPermissions.length} permissions assigned to Super Admin role`
+        // );
         // Create Super Admin user
         const hashedPassword = await bcryptjs_1.default.hash("SuperAdmin123!", 10);
         const superAdminUser = await prisma_1.prisma.superAdmin.upsert({
@@ -144,7 +150,7 @@ const seedSuperAdminData = async () => {
                 isActive: true,
             },
         });
-        console.log("✅ Super Admin user created");
+        //console.log("✅ Super Admin user created");
         // Assign Super Admin role to user
         await prisma_1.prisma.superAdminRoleAssignment.upsert({
             where: {
@@ -159,7 +165,7 @@ const seedSuperAdminData = async () => {
                 roleId: superAdminRole.id,
             },
         });
-        console.log("✅ Super Admin role assigned to user");
+        //console.log("✅ Super Admin role assigned to user");
         // Log the activity
         await prisma_1.prisma.activity.create({
             data: {
@@ -172,13 +178,15 @@ const seedSuperAdminData = async () => {
                 superAdminId: superAdminUser.id,
             },
         });
-        console.log("✅ Activity logged");
-        console.log("\n🎉 Super Admin system seeded successfully!");
-        console.log("📧 Email: superadmin@weconnect.com");
-        console.log("🔑 Password: SuperAdmin123!");
-        console.log(`🔐 Role: Super Admin (${allSuperAdminPermissions.length} permissions)`);
-        console.log("🚫 Hidden from regular user interface");
-        console.log("\n⚠️  Please change the password after first login!");
+        //console.log("✅ Activity logged");
+        //console.log("\n🎉 Super Admin system seeded successfully!");
+        //console.log("📧 Email: superadmin@weconnect.com");
+        //console.log("🔑 Password: SuperAdmin123!");
+        //console.log(
+        //   `🔐 Role: Super Admin (${allSuperAdminPermissions.length} permissions)`
+        // );
+        //console.log("🚫 Hidden from regular user interface");
+        //console.log("\n⚠️  Please change the password after first login!");
     }
     catch (error) {
         console.error("❌ Error seeding Super Admin data:", error);
@@ -190,7 +198,7 @@ exports.seedSuperAdminData = seedSuperAdminData;
 if (require.main === module) {
     (0, exports.seedSuperAdminData)()
         .then(() => {
-        console.log("✅ Super Admin seeder completed successfully");
+        //console.log("✅ Super Admin seeder completed successfully");
         process.exit(0);
     })
         .catch((error) => {

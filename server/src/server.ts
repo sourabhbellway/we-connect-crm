@@ -33,11 +33,12 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
-        ? ["http://31.97.233.21", "http://31.97.233.21:8081"]
+        ? ["http://31.97.233.21", "http://31.97.233.21:8081", "http://31.97.233.21:7001", "http://31.97.233.21:3001"]
         : [
             "http://localhost:5173",
             "http://localhost:3000",
             "http://localhost:5174",
+            "http://localhost:7001",
           ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -128,7 +129,7 @@ const startServer = async () => {
     // Start server
     app.listen(Number(PORT), "0.0.0.0", () => {
       const apiBaseUrl =
-      process.env.API_BASE_URL || `http://31.97.233.21:8081/api`;
+      process.env.API_BASE_URL || `http://31.97.233.21:3001/api`;
       console.log(`🚀 CRM API Server running on port ${PORT}`);
       // console.log(`🔗 Health check: http://31.97.233.21:8081/health`);
       // console.log(`🔗 API Base URL: ${apiBaseUrl}`);

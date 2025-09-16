@@ -75,6 +75,19 @@ const seedInitialData = async () => {
                 module: "Dashboard",
                 description: "Can access dashboard",
             },
+            // Settings permissions
+            {
+                name: "View Settings",
+                key: "settings.read",
+                module: "Settings",
+                description: "Can view application settings",
+            },
+            {
+                name: "Update Settings",
+                key: "settings.update",
+                module: "Settings",
+                description: "Can update application settings",
+            },
             // Lead permissions
             {
                 name: "View Leads",
@@ -114,10 +127,10 @@ const seedInitialData = async () => {
                 description: "Can create activity logs",
             },
             {
-                name: "Create Deletd Activities",
+                name: "View Deleted Data",
                 key: "deleted.read",
                 module: "Activities",
-                description: "view deletd activity logs",
+                description: "Can view deleted users, leads and roles",
             },
         ];
         for (const perm of permissions) {

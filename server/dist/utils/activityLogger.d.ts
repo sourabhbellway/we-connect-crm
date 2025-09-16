@@ -23,6 +23,12 @@ export declare const activityLoggers: {
         lastName: string;
         email: string;
     }, updatedBy?: number) => Promise<void>;
+    userEdited: (userData: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    }, updatedBy?: number) => Promise<void>;
     userDeleted: (userData: {
         id: number;
         firstName: string;

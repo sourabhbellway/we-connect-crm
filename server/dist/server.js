@@ -9,6 +9,8 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+const swagger_json_1 = __importDefault(require("../swagger.json"));
 const prisma_1 = require("./lib/prisma");
 const initialData_1 = require("./seeders/initialData");
 // Routes
@@ -29,11 +31,12 @@ const PORT = process.env.PORT || 3001;
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
     origin: process.env.NODE_ENV === "production"
-        ? ["http://31.97.233.21", "http://31.97.233.21:8081"]
+        ? ["http://31.97.233.21", "http://31.97.233.21:8081", "http://31.97.233.21:7001", "http://31.97.233.21:3001"]
         : [
             "http://localhost:5173",
             "http://localhost:3000",
             "http://localhost:5174",
+            "http://localhost:7001",
         ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -42,7 +45,7 @@ app.use((0, cors_1.default)({
 // Rate limiting - only in production
 if (process.env.NODE_ENV === "production") {
     const limiter = (0, express_rate_limit_1.default)({
-        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || "15") * 60 * 1000, // 15 minutes
+        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || "1") * 60 * 1000, // 1 minutes
         max: parseInt(process.env.RATE_LIMIT_MAX || "100"), // limit each IP to 100 requests per windowMs
         message: {
             success: false,
@@ -58,6 +61,7 @@ else {
 // Body parsing middleware
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ extended: true, limit: "10mb" }));
+app.use("/api-docs", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_json_1.default));
 // Logging
 app.use((0, morgan_1.default)("combined"));
 // Health check endpoint
@@ -105,10 +109,10 @@ const startServer = async () => {
         await (0, initialData_1.seedInitialData)();
         // Start server
         app.listen(Number(PORT), "0.0.0.0", () => {
-            const apiBaseUrl = process.env.API_BASE_URL || `http://31.97.233.21:8081/api`;
+            const apiBaseUrl = process.env.API_BASE_URL || `http://31.97.233.21:3001/api`;
             console.log(`🚀 CRM API Server running on port ${PORT}`);
-            console.log(`🔗 Health check: http://31.97.233.21:8081/health`);
-            console.log(`🔗 API Base URL: ${apiBaseUrl}`);
+            // console.log(`🔗 Health check: http://31.97.233.21:8081/health`);
+            // console.log(`🔗 API Base URL: ${apiBaseUrl}`);
             console.log(`📚 Environment: ${process.env.NODE_ENV || "development"}`);
         });
     }

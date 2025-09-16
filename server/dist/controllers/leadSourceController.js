@@ -26,6 +26,20 @@ exports.getLeadSources = getLeadSources;
 const createLeadSource = async (req, res) => {
     try {
         const { name, description } = req.body;
+        const existingLeadSource = await prisma_1.prisma.leadSource.findFirst({
+            where: {
+                name: {
+                    equals: name,
+                    mode: "insensitive",
+                },
+            },
+        });
+        if (existingLeadSource) {
+            return res.status(400).json({
+                success: false,
+                message: "Lead source with this name already exists",
+            });
+        }
         const leadSource = await prisma_1.prisma.leadSource.create({
             data: {
                 name,
@@ -60,6 +74,33 @@ const updateLeadSource = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, isActive } = req.body;
+        const leadSourceId = parseInt(id);
+        const existingLeadSource = await prisma_1.prisma.leadSource.findUnique({
+            where: { id: leadSourceId },
+        });
+        if (!existingLeadSource) {
+            return res.status(404).json({
+                success: false,
+                message: "Lead source not found",
+            });
+        }
+        if (name && name.toLowerCase() !== existingLeadSource.name.toLowerCase()) {
+            const duplicate = await prisma_1.prisma.leadSource.findFirst({
+                where: {
+                    name: {
+                        equals: name,
+                        mode: "insensitive",
+                    },
+                    NOT: { id: leadSourceId },
+                },
+            });
+            if (duplicate) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Lead source with this name already exists",
+                });
+            }
+        }
         const leadSource = await prisma_1.prisma.leadSource.update({
             where: { id: parseInt(id) },
             data: {

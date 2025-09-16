@@ -9,6 +9,7 @@ const auth_1 = require("../middleware/auth");
 const authValidators_1 = require("../validators/authValidators");
 const router = express_1.default.Router();
 router.post("/login", authValidators_1.loginValidation, authController_1.login);
+router.get("/roles/:roleId/permissions", auth_1.authenticateToken, authController_1.getRolePermissions);
 router.post("/register", authController_1.register);
 router.get("/profile", auth_1.authenticateToken, authController_1.getProfile);
 exports.default = router;

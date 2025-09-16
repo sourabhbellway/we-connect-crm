@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTag = exports.updateTag = exports.createTag = exports.getTags = void 0;
 const prisma_1 = require("../lib/prisma");
+const express_validator_1 = require("express-validator");
 const activityLogger_1 = require("../utils/activityLogger");
 const getTags = async (req, res) => {
     try {
@@ -26,6 +27,28 @@ exports.getTags = getTags;
 const createTag = async (req, res) => {
     try {
         const { name, color, description } = req.body;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation errors",
+                errors: errors.array(),
+            });
+        }
+        const existingTag = await prisma_1.prisma.tag.findFirst({
+            where: {
+                name: {
+                    equals: name,
+                    mode: "insensitive",
+                },
+            },
+        });
+        if (existingTag) {
+            return res.status(400).json({
+                success: false,
+                message: "Tag with this name already exists",
+            });
+        }
         const tag = await prisma_1.prisma.tag.create({
             data: {
                 name,
@@ -60,7 +83,41 @@ exports.createTag = createTag;
 const updateTag = async (req, res) => {
     try {
         const { id } = req.params;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation errors",
+                errors: errors.array(),
+            });
+        }
         const { name, color, description, isActive } = req.body;
+        const existingTag = await prisma_1.prisma.tag.findUnique({
+            where: { id: parseInt(id) },
+        });
+        if (!existingTag) {
+            return res.status(404).json({
+                success: false,
+                message: "Tag not found",
+            });
+        }
+        if (name && name.toLowerCase() !== existingTag.name.toLowerCase()) {
+            const duplicateTag = await prisma_1.prisma.tag.findFirst({
+                where: {
+                    name: {
+                        equals: name,
+                        mode: "insensitive",
+                    },
+                    NOT: { id: parseInt(id) },
+                },
+            });
+            if (duplicateTag) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Tag with this name already exists",
+                });
+            }
+        }
         const tag = await prisma_1.prisma.tag.update({
             where: { id: parseInt(id) },
             data: {
@@ -90,6 +147,23 @@ exports.updateTag = updateTag;
 const deleteTag = async (req, res) => {
     try {
         const { id } = req.params;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation errors",
+                errors: errors.array(),
+            });
+        }
+        const existingTag = await prisma_1.prisma.tag.findUnique({
+            where: { id: parseInt(id) },
+        });
+        if (!existingTag) {
+            return res.status(404).json({
+                success: false,
+                message: "No tag found",
+            });
+        }
         await prisma_1.prisma.tag.delete({
             where: { id: parseInt(id) },
         });

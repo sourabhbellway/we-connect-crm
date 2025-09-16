@@ -3,6 +3,7 @@ interface AuthenticatedRequest extends Request {
     user?: any;
 }
 export declare const login: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const getRolePermissions: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const register: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getProfile: (req: AuthenticatedRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export {};

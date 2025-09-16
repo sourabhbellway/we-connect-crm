@@ -1,14 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteRole = exports.updateRole = exports.createRole = exports.getRoleById = exports.getRoles = void 0;
+exports.deleteRole = exports.updateRole = exports.createRole = exports.getRoles = void 0;
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
 const activityLogger_1 = require("../utils/activityLogger");
+const client_1 = require("@prisma/client");
 const getRoles = async (req, res) => {
     try {
-        const { includeInactive } = req.query;
-        // Default to showing all roles (both active and inactive)
-        const whereClause = includeInactive === "false" ? { isActive: true } : {};
+        const { includeInactive, search } = req.query;
+        // console.log("Include Inactive:", includeInactive,search);
+        let whereClause = { deletedAt: null };
+        if (includeInactive === "false") {
+            whereClause.isActive = true;
+        }
+        else if (includeInactive === "true") {
+            whereClause.isActive = false;
+        }
+        if (search && typeof search === "string" && search.trim() !== "") {
+            whereClause.name = {
+                contains: search.trim(),
+                mode: "insensitive",
+            };
+        }
         const roles = await prisma_1.prisma.role.findMany({
             where: whereClause,
             orderBy: [{ name: "asc" }],
@@ -33,7 +46,7 @@ const getRoles = async (req, res) => {
         }));
         res.json({
             success: true,
-            data: { roles: transformedRoles },
+            data: { roles: transformedRoles, totalCount: transformedRoles.length },
         });
     }
     catch (error) {
@@ -45,50 +58,6 @@ const getRoles = async (req, res) => {
     }
 };
 exports.getRoles = getRoles;
-const getRoleById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const role = await prisma_1.prisma.role.findUnique({
-            where: { id: parseInt(id) },
-            include: {
-                permissions: {
-                    include: {
-                        permission: true,
-                    },
-                },
-                users: {
-                    include: {
-                        user: true,
-                    },
-                },
-            },
-        });
-        if (!role) {
-            return res.status(404).json({
-                success: false,
-                message: "Role not found",
-            });
-        }
-        // Transform the data to match expected format
-        const transformedRole = {
-            ...role,
-            permissions: role.permissions.map((rp) => rp.permission),
-            users: role.users.map((ur) => ur.user),
-        };
-        res.json({
-            success: true,
-            data: { role: transformedRole },
-        });
-    }
-    catch (error) {
-        console.error("Get role by ID error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
-    }
-};
-exports.getRoleById = getRoleById;
 const createRole = async (req, res) => {
     try {
         const errors = (0, express_validator_1.validationResult)(req);
@@ -102,7 +71,7 @@ const createRole = async (req, res) => {
         const { name, description, permissionIds } = req.body;
         // Check if role with this name already exists (including inactive ones)
         const existingRole = await prisma_1.prisma.role.findFirst({
-            where: { name },
+            where: { name, deletedAt: null },
         });
         if (existingRole) {
             return res.status(400).json({
@@ -114,6 +83,7 @@ const createRole = async (req, res) => {
                     id: existingRole.id,
                     name: existingRole.name,
                     isActive: existingRole.isActive,
+                    deletedAt: existingRole.deletedAt,
                 },
             });
         }
@@ -183,7 +153,7 @@ const updateRole = async (req, res) => {
         const { name, description, isActive, permissionIds } = req.body;
         // Check if role exists
         const existingRole = await prisma_1.prisma.role.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), deletedAt: null },
         });
         if (!existingRole) {
             return res.status(404).json({
@@ -232,6 +202,12 @@ const updateRole = async (req, res) => {
     }
     catch (error) {
         console.error("Update role error:", error);
+        if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+            return res.status(409).json({
+                success: false,
+                message: "Role with this name already exists, Please use a different name to update",
+            });
+        }
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -242,6 +218,14 @@ exports.updateRole = updateRole;
 const deleteRole = async (req, res) => {
     try {
         const { id } = req.params;
+        const errors = (0, express_validator_1.validationResult)(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation errors",
+                errors: errors.array(),
+            });
+        }
         // Check if role exists
         const existingRole = await prisma_1.prisma.role.findUnique({
             where: { id: parseInt(id) },
@@ -252,8 +236,15 @@ const deleteRole = async (req, res) => {
                 message: "Role not found",
             });
         }
-        await prisma_1.prisma.role.delete({
+        // await prisma.role.delete({
+        //   where: { id: parseInt(id) },
+        // });
+        await prisma_1.prisma.role.update({
             where: { id: parseInt(id) },
+            data: {
+                deletedAt: new Date(),
+                isActive: false,
+            },
         });
         // Log
         const actorId = req?.user?.id;

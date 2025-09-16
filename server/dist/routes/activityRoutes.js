@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const activityController_1 = require("../controllers/activityController");
+const activityValidators_1 = require("../validators/activityValidators");
 const auth_1 = require("../middleware/auth");
 const router = express_1.default.Router();
 // Get all activities with pagination
@@ -14,6 +15,7 @@ router.get("/activities/recent", auth_1.authenticateToken, (0, auth_1.requirePer
 // Get activity statistics
 router.get("/activities/stats", auth_1.authenticateToken, (0, auth_1.requirePermission)("activity.read"), activityController_1.getActivityStats);
 // Create a new activity
-router.post("/activities", auth_1.authenticateToken, (0, auth_1.requirePermission)("activity.create"), activityController_1.createActivity);
+router.post("/activities", auth_1.authenticateToken, (0, auth_1.requirePermission)("activity.create"), activityValidators_1.createActivityValidation, activityController_1.createActivity);
+router.get("/activities/deleted-data", auth_1.authenticateToken, (0, auth_1.requirePermission)("deleted.read"), activityController_1.getDeletedData);
 exports.default = router;
 //# sourceMappingURL=activityRoutes.js.map
