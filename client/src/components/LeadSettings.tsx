@@ -9,6 +9,24 @@ import InputField, { TextAreaField } from "./InputField";
 import { toast } from "react-toastify";
 import BackButton from "./BackButton";
 
+// Allow only letters, numbers, spaces, hyphen and underscore
+const NAME_REGEX = /^[A-Za-z0-9 _-]+$/;
+const validateName = (value: string): string | undefined => {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return "Name is required";
+  if (!NAME_REGEX.test(trimmed))
+    return "Only letters, numbers, spaces, hyphen (-) and underscore (_) allowed";
+  return undefined;
+};
+
+const validateDescription = (value?: string): string | undefined => {
+  const v = (value || "").trim();
+  if (!v) return undefined; // optional field
+  if (!NAME_REGEX.test(v))
+    return "Only letters, numbers, spaces, hyphen (-) and underscore (_) allowed";
+  return undefined;
+};
+
 const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({
   title,
   subtitle,
@@ -135,7 +153,7 @@ const LeadSettings: React.FC = () => {
     color?: string;
     description?: string;
   }>({ name: "", color: "#3B82F6", description: "" });
-  const [fieldErrors, setFieldErrors] = useState<{ name?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string }>({});
 
   useEffect(() => {
     if (tagModal.open) {
@@ -159,8 +177,10 @@ const LeadSettings: React.FC = () => {
 
   const submitTag = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name?.trim()) {
-      setFieldErrors({ name: "Name is required" });
+    const nameError = validateName(formState.name);
+    const descError = validateDescription(formState.description);
+    if (nameError || descError) {
+      setFieldErrors({ name: nameError, description: descError });
       return;
     }
     try {
@@ -200,8 +220,10 @@ const LeadSettings: React.FC = () => {
 
   const submitSource = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name?.trim()) {
-      setFieldErrors({ name: "Name is required" });
+    const nameError = validateName(formState.name);
+    const descError = validateDescription(formState.description);
+    if (nameError || descError) {
+      setFieldErrors({ name: nameError, description: descError });
       return;
     }
     try {
@@ -419,12 +441,12 @@ const LeadSettings: React.FC = () => {
           <InputField
             label="Name"
             value={formState.name}
-            onChange={(e) =>
-              setFormState((s) => ({
-                ...s,
-                name: (e.target as HTMLInputElement).value,
-              }))
-            }
+            onChange={(e) => {
+              const value = (e.target as HTMLInputElement).value;
+              setFormState((s) => ({ ...s, name: value }));
+              const err = validateName(value);
+              setFieldErrors((prev) => ({ ...prev, name: err }));
+            }}
             placeholder="e.g. VIP"
             required
             error={fieldErrors.name}
@@ -441,14 +463,15 @@ const LeadSettings: React.FC = () => {
           <TextAreaField
             label="Description"
             value={formState.description}
-            onChange={(e) =>
-              setFormState((s) => ({
-                ...s,
-                description: (e.target as HTMLTextAreaElement).value,
-              }))
-            }
+            onChange={(e) => {
+              const value = (e.target as HTMLTextAreaElement).value;
+              setFormState((s) => ({ ...s, description: value }));
+              const err = validateDescription(value);
+              setFieldErrors((prev) => ({ ...prev, description: err }));
+            }}
             placeholder="Optional"
             rows={3}
+            error={fieldErrors.description}
           />
         </div>
       </FormModal>
@@ -466,12 +489,12 @@ const LeadSettings: React.FC = () => {
           <InputField
             label="Name"
             value={formState.name}
-            onChange={(e) =>
-              setFormState((s) => ({
-                ...s,
-                name: (e.target as HTMLInputElement).value,
-              }))
-            }
+            onChange={(e) => {
+              const value = (e.target as HTMLInputElement).value;
+              setFormState((s) => ({ ...s, name: value }));
+              const err = validateName(value);
+              setFieldErrors((prev) => ({ ...prev, name: err }));
+            }}
             placeholder="e.g. Website"
             required
             error={fieldErrors.name}
@@ -479,14 +502,15 @@ const LeadSettings: React.FC = () => {
           <TextAreaField
             label="Description"
             value={formState.description}
-            onChange={(e) =>
-              setFormState((s) => ({
-                ...s,
-                description: (e.target as HTMLTextAreaElement).value,
-              }))
-            }
+            onChange={(e) => {
+              const value = (e.target as HTMLTextAreaElement).value;
+              setFormState((s) => ({ ...s, description: value }));
+              const err = validateDescription(value);
+              setFieldErrors((prev) => ({ ...prev, description: err }));
+            }}
             placeholder="Optional"
             rows={3}
+            error={fieldErrors.description}
           />
         </div>
       </FormModal>

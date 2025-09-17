@@ -8,6 +8,7 @@ import React, {
 import { userService } from "../services/userService";
 import { leadService } from "../services/leadService";
 import { roleService } from "../services/roleService";
+import { useAuth } from "./AuthContext";
 
 interface CountsContextType {
   counts: {
@@ -33,8 +34,10 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
     leads: 0,
     roles: 0,
   });
+  const { isAuthenticated } = useAuth();
 
   const refreshCounts = async () => {
+    if (!isAuthenticated) return;
     try {
       const [usersResponse, leadsResponse, rolesResponse] = await Promise.all([
         userService.getUsers().catch(() => ({ data: { users: [] } })),
@@ -54,6 +57,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
 
   const refreshUsersCount = async () => {
     try {
+      if (!isAuthenticated) return;
       const response = await userService.getUsers();
       setCounts((prev) => ({
         ...prev,
@@ -66,6 +70,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
 
   const refreshLeadsCount = async () => {
     try {
+      if (!isAuthenticated) return;
       const response = await leadService.getLeads();
       setCounts((prev) => ({
         ...prev,
@@ -78,6 +83,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
 
   const refreshRolesCount = async () => {
     try {
+      if (!isAuthenticated) return;
       const response = await roleService.getRoles();
       setCounts((prev) => ({
         ...prev,
@@ -89,8 +95,10 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    refreshCounts();
-  }, []);
+    if (isAuthenticated) {
+      refreshCounts();
+    }
+  }, [isAuthenticated]);
 
   return (
     <CountsContext.Provider

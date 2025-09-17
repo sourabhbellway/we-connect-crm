@@ -164,6 +164,45 @@ const LeadForm: React.FC<LeadFormProps> = ({
     return null;
   };
 
+  const hasSpecialChars = (value: string): boolean => /[^A-Za-z0-9\s]/.test(value || "");
+
+  // Phone validation: required, 10-20 characters (matches backend messages)
+  const validatePhone = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return "Phone number is required";
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 20) {
+      return "Phone number must be between 10 and 20 characters";
+    }
+    return null;
+  };
+
+  // Company and Position validation: 2-100 chars
+  const validateCompany = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return "Company is required";
+    if (hasSpecialChars(v)) return "Company cannot contain special characters";
+    if (v.length < 2) return "Company name must be between 2 and 100 characters";
+    if (v.length > 100) return "Company name must be between 2 and 100 characters";
+    return null;
+  };
+
+  const validatePosition = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return "Position is required";
+    if (hasSpecialChars(v)) return "Position cannot contain special characters";
+    if (v.length < 2) return "Position must be between 2 and 100 characters";
+    if (v.length > 100) return "Position must be between 2 and 100 characters";
+    return null;
+  };
+
+  const validateNotes = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return null; // notes optional
+    if (hasSpecialChars(v)) return "Notes cannot contain special characters";
+    return null;
+  };
+
 
 
   const validateForm = (formData: LeadPayload): ValidationErrors => {
@@ -179,7 +218,20 @@ const LeadForm: React.FC<LeadFormProps> = ({
     const emailError = validateEmail(formData.email || "");
     if (emailError) errors.email = emailError;
 
-    // Phone: no validation
+    // Phone
+    const phoneError = validatePhone(formData.phone || "");
+    if (phoneError) errors.phone = phoneError;
+
+    // Company & Position
+    const companyError = validateCompany(formData.company || "");
+    if (companyError) errors.company = companyError;
+
+    const positionError = validatePosition(formData.position || "");
+    if (positionError) errors.position = positionError;
+
+    // Notes
+    const notesError = validateNotes(formData.notes || "");
+    if (notesError) errors.notes = notesError;
 
     return errors;
   };
@@ -210,8 +262,23 @@ const LeadForm: React.FC<LeadFormProps> = ({
         if (err) newErrors.lastName = err;
       }
 
+      if (key === "company") {
+        const err = validateCompany(String(value));
+        if (err) newErrors.company = err;
+      }
+
+      if (key === "position") {
+        const err = validatePosition(String(value));
+        if (err) newErrors.position = err;
+      }
+
+      if (key === "notes") {
+        const err = validateNotes(String(value));
+        if (err) newErrors.notes = err;
+      }
+
       if (key === "phone") {
-        // Allow only digits and an optional leading '+'; any length is permitted
+        // Normalize phone to allow digits and an optional leading '+'
         const raw = String(value ?? "");
         let cleaned = raw.replace(/[^\d+]/g, "");
         if (cleaned.includes("+")) {
@@ -220,7 +287,8 @@ const LeadForm: React.FC<LeadFormProps> = ({
           cleaned = hasLeadingPlus ? "+" + cleaned : cleaned;
         }
         newForm.phone = cleaned as any;
-        delete newErrors.phone;
+        const err = validatePhone(cleaned);
+        if (err) newErrors.phone = err;
       }
 
       return {
@@ -271,13 +339,38 @@ const LeadForm: React.FC<LeadFormProps> = ({
       await onSubmit(formState.form);
     } catch (error) {
       console.error("Error submitting form:", error);
-      setFormState((prev) => ({
-        ...prev,
-        errors: {
-          ...prev.errors,
-          general: "Failed to save lead. Please try again.",
-        },
-      }));
+      // Map server-side validation errors to field errors where possible
+      const data: any = (error as any)?.response?.data;
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        const fieldErrors: Record<string, string> = {};
+        const messages: string[] = [];
+        for (const err of data.errors) {
+          const field = err?.path;
+          const msg = err?.msg || err?.message;
+          if (field && msg) {
+            fieldErrors[field] = msg;
+            messages.push(`[${field}] ${msg}`);
+          } else if (msg) {
+            messages.push(msg);
+          }
+        }
+        setFormState((prev) => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            ...fieldErrors,
+            general: messages.join(" | "),
+          },
+        }));
+      } else {
+        setFormState((prev) => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            general: data?.message || "Failed to save lead. Please try again.",
+          },
+        }));
+      }
     } finally {
       setFormState((prev) => ({
         ...prev,
@@ -360,6 +453,8 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) =>
               handleChange("phone", (e.target as HTMLInputElement).value)
             }
+            required
+            error={formState.errors.phone}
           />
         
         </div>
@@ -371,6 +466,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) =>
               handleChange("company", (e.target as HTMLInputElement).value)
             }
+            required
+            error={formState.errors.company}
+            placeholder="Enter company name"
           />
         </div>
         <div>
@@ -381,6 +479,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) =>
               handleChange("position", (e.target as HTMLInputElement).value)
             }
+            required
+            error={formState.errors.position}
+            placeholder="Enter position"
           />
         </div>
         <div>
@@ -452,6 +553,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         onChange={(e) =>
           handleChange("notes", (e.target as HTMLTextAreaElement).value)
         }
+        error={formState.errors.notes}
       />
 
       {/* Tags as pills */}

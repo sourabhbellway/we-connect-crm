@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import WeConnectLogo from "../assets/logo.png";
 import { toast } from "react-toastify";
 
@@ -24,6 +24,13 @@ const Login: React.FC = () => {
       navigate("/", { replace: true });
     }
   }, [isAuthenticated, navigate]);
+
+  // Show auth errors via toast only
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   // Prefill email from localStorage when Remember Me is enabled
   useEffect(() => {
@@ -116,13 +123,7 @@ const Login: React.FC = () => {
             </p>
           </div>
 
-          {/* Error Alert */}
-          {error && (
-            <div className="mt-4 p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-200">{error}</p>
-            </div>
-          )}
+          {/* Error is shown via toast only */}
 
           {/* Form */}
           <form className="mt-6 space-y-6" onSubmit={handleSubmit} noValidate>

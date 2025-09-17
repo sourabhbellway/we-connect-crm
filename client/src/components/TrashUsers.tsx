@@ -73,7 +73,6 @@ const TrashUsers: React.FC = () => {
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Deleted</th>
-                <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             {loading ? (
@@ -117,16 +116,7 @@ const TrashUsers: React.FC = () => {
                         <Calendar className="h-3 w-3 mr-1" /> {new Date(user.deletedAt).toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="px-2 py-1 rounded-full bg-green-600 hover:bg-green-700 text-white text-xs inline-flex items-center">
-                          <Undo2 className="h-3 w-3 mr-1" /> Restore
-                        </button>
-                        <button className="px-2 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs inline-flex items-center">
-                          <XCircle className="h-3 w-3 mr-1" /> Delete
-                        </button>
-                      </div>
-                    </td>
+                 
                   </tr>
                 ))
               ) : (
