@@ -40,6 +40,18 @@ function AppContent() {
     }
   }, [error]);
 
+  // Listen for token expiry events
+  React.useEffect(() => {
+    const handleTokenExpiry = () => {
+      setShowExpiryModal(true);
+    };
+    
+    window.addEventListener('tokenExpired', handleTokenExpiry);
+    
+    return () => {
+      window.removeEventListener('tokenExpired', handleTokenExpiry);
+    };
+  }, []);
   const handleLoginAgain = () => {
     setShowExpiryModal(false);
     navigate("/login");

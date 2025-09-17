@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import {  Users as UsersIcon, Mail, Calendar, Undo2, XCircle, User } from "lucide-react";
+import {  Users as UsersIcon, Mail, Calendar, User } from "lucide-react";
 import BackButton from "./BackButton";
 import { activityService } from "../services/activityService";
 import Pagination from "./Pagination";
@@ -59,7 +59,7 @@ const TrashUsers: React.FC = () => {
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Users Trash</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Restore or permanently delete users.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">View soft-deleted users (30-day retention policy).</p>
         </div>
       </div>
 
@@ -118,13 +118,8 @@ const TrashUsers: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="px-2 py-1 rounded-full bg-green-600 hover:bg-green-700 text-white text-xs inline-flex items-center">
-                          <Undo2 className="h-3 w-3 mr-1" /> Restore
-                        </button>
-                        <button className="px-2 py-1 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs inline-flex items-center">
-                          <XCircle className="h-3 w-3 mr-1" /> Delete
-                        </button>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Soft deleted (30 days retention)
                       </div>
                     </td>
                   </tr>
@@ -156,5 +151,3 @@ const TrashUsers: React.FC = () => {
 };
 
 export default TrashUsers;
-
-

@@ -60,12 +60,20 @@ export const updateLeadValidation = [
   param("id").isInt({ min: 1 }).withMessage("Invalid lead ID"),
   body("firstName")
     .optional()
-    .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters"),
+    .custom((value) => {
+      if (!value) return true;
+      if (value.length < 2 || value.length > 50) return false;
+      return /^[A-Za-z\s]+$/.test(value);
+    })
+    .withMessage("First name must be 2-50 characters and contain only letters and spaces"),
   body("lastName")
     .optional()
-    .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters"),
+    .custom((value) => {
+      if (!value) return true;
+      if (value.length < 2 || value.length > 50) return false;
+      return /^[A-Za-z\s]+$/.test(value);
+    })
+    .withMessage("Last name must be 2-50 characters and contain only letters and spaces"),
   body("email")
     .optional()
     .isEmail()
@@ -73,10 +81,11 @@ export const updateLeadValidation = [
   body("phone")
     .optional()
     .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return value.length >= 10 && value.length <= 20;
+      if (!value) return true;
+      const phoneRegex = /^\+?[0-9]{10,15}$/;
+      return phoneRegex.test(value);
     })
-    .withMessage("Phone number must be between 10 and 20 characters"),
+    .withMessage("Phone number must be 10-15 digits, optionally starting with +"),
   body("company")
     .optional()
     .custom((value) => {
@@ -114,9 +123,12 @@ export const updateLeadValidation = [
     .optional()
     .custom((value) => {
       if (value === "" || value === null || value === undefined) return true;
-      return value.length <= 1000;
+      if (value.length > 1000) return false;
+      // Restrict special characters that could be harmful
+      const restrictedChars = /<script|<\/script|javascript:|on\w+\s*=|<iframe|<object|<embed/i;
+      return !restrictedChars.test(value);
     })
-    .withMessage("Notes must not exceed 1000 characters"),
+    .withMessage("Notes must not exceed 1000 characters and cannot contain restricted characters"),
   body("assignedTo")
     .optional()
     .custom((value) => {
