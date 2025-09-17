@@ -9,6 +9,16 @@ import InputField, { TextAreaField } from "./InputField";
 import { toast } from "react-toastify";
 import BackButton from "./BackButton";
 
+// Allow only letters, numbers, spaces, hyphen and underscore
+const NAME_REGEX = /^[A-Za-z0-9 _-]+$/;
+const validateName = (value: string): string | undefined => {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return "Name is required";
+  if (!NAME_REGEX.test(trimmed))
+    return "Only letters, numbers, spaces, hyphen (-) and underscore (_) allowed";
+  return undefined;
+};
+
 const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({
   title,
   subtitle,
@@ -159,8 +169,9 @@ const LeadSettings: React.FC = () => {
 
   const submitTag = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name?.trim()) {
-      setFieldErrors({ name: "Name is required" });
+    const nameError = validateName(formState.name);
+    if (nameError) {
+      setFieldErrors({ name: nameError });
       return;
     }
     try {
@@ -200,8 +211,9 @@ const LeadSettings: React.FC = () => {
 
   const submitSource = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formState.name?.trim()) {
-      setFieldErrors({ name: "Name is required" });
+    const nameError = validateName(formState.name);
+    if (nameError) {
+      setFieldErrors({ name: nameError });
       return;
     }
     try {
@@ -419,12 +431,12 @@ const LeadSettings: React.FC = () => {
           <InputField
             label="Name"
             value={formState.name}
-            onChange={(e) =>
-              setFormState((s) => ({
-                ...s,
-                name: (e.target as HTMLInputElement).value,
-              }))
-            }
+            onChange={(e) => {
+              const value = (e.target as HTMLInputElement).value;
+              setFormState((s) => ({ ...s, name: value }));
+              const err = validateName(value);
+              setFieldErrors((prev) => ({ ...prev, name: err }));
+            }}
             placeholder="e.g. VIP"
             required
             error={fieldErrors.name}
@@ -466,12 +478,12 @@ const LeadSettings: React.FC = () => {
           <InputField
             label="Name"
             value={formState.name}
-            onChange={(e) =>
-              setFormState((s) => ({
-                ...s,
-                name: (e.target as HTMLInputElement).value,
-              }))
-            }
+            onChange={(e) => {
+              const value = (e.target as HTMLInputElement).value;
+              setFormState((s) => ({ ...s, name: value }));
+              const err = validateName(value);
+              setFieldErrors((prev) => ({ ...prev, name: err }));
+            }}
             placeholder="e.g. Website"
             required
             error={fieldErrors.name}

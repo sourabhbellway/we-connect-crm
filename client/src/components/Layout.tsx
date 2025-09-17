@@ -126,6 +126,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const settingsChildren = [
     {
+      name: "User Settings",
+      href: "/settings/users",
+      permission: "settings.read",
+    },
+    {
       name: "Lead Settings",
       href: "/settings/leads",
       permission: "settings.read",

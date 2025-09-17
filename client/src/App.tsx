@@ -159,6 +159,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+    
         <Route
           path="/settings/industries"
           element={
