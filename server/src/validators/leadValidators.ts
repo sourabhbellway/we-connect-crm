@@ -2,28 +2,47 @@ import { body, param } from "express-validator";
 export const createLeadValidation = [
   body("firstName")
     .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters"),
+    .withMessage("First name must be between 2 and 50 characters")
+    .matches(/^[A-Za-z\s]+$/)
+    .withMessage("First name can only contain letters and spaces")
+    .custom((val) => {
+      console.log("VALIDATING firstName:", val); 
+      return true;
+    }),
+
   body("lastName")
     .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters"),
-  body("email").isEmail().withMessage("Please provide a valid email address"),
+    .withMessage("Last name must be between 2 and 50 characters")
+    .matches(/^[A-Za-z\s]+$/)
+    .withMessage("Last name can only contain letters and spaces"),
+
+  body("email")
+    .isEmail()
+    .withMessage("Please provide a valid email address"),
+
   body("phone")
-    // .isLength({ min: 10, max: 10 })
-    .notEmpty().withMessage("Phone number is required")
-    .isMobilePhone("en-IN") 
-    .withMessage("Phone number must be between 10 and 20 characters"),
+    .isMobilePhone("en-IN")
+    .withMessage("Phone number must be a valid Indian mobile number"),
+
   body("company")
     .optional()
     .isLength({ min: 2, max: 100 })
-    .withMessage("Company name must be between 2 and 100 characters"),
+    .withMessage("Company name must be between 2 and 100 characters")
+    .matches(/^[A-Za-z0-9\s&.,-]+$/)
+    .withMessage("Company name contains invalid characters"),
+
   body("position")
     .optional()
     .isLength({ min: 2, max: 100 })
-    .withMessage("Position must be between 2 and 100 characters"),
+    .withMessage("Position must be between 2 and 100 characters")
+    .matches(/^[A-Za-z0-9\s&.,-]+$/)
+    .withMessage("Position contains invalid characters"),
+
   body("sourceId")
     .optional()
     .isInt({ min: 1 })
     .withMessage("Source ID must be a valid integer"),
+
   body("status")
     .optional()
     .isIn([
@@ -36,14 +55,17 @@ export const createLeadValidation = [
       "lost",
     ])
     .withMessage("Invalid status value"),
+
   body("notes")
     .optional()
     .isLength({ max: 1000 })
     .withMessage("Notes must not exceed 1000 characters"),
+
   body("assignedTo")
     .optional()
     .isInt({ min: 1 })
     .withMessage("Assigned user ID must be a valid integer"),
+
   body("tags")
     .optional()
     .custom((value) => {
@@ -57,47 +79,52 @@ export const createLeadValidation = [
 ];
 
 export const updateLeadValidation = [
-  param("id").isInt({ min: 1 }).withMessage("Invalid lead ID"),
+  param("id")
+    .isInt({ min: 1 })
+    .withMessage("Invalid lead ID"),
+
   body("firstName")
     .optional()
     .isLength({ min: 2, max: 50 })
-    .withMessage("First name must be between 2 and 50 characters"),
+    .withMessage("First name must be between 2 and 50 characters")
+    .matches(/^[A-Za-z\s]+$/)
+    .withMessage("First name can only contain letters and spaces"),
+
   body("lastName")
     .optional()
     .isLength({ min: 2, max: 50 })
-    .withMessage("Last name must be between 2 and 50 characters"),
+    .withMessage("Last name must be between 2 and 50 characters")
+    .matches(/^[A-Za-z\s]+$/)
+    .withMessage("Last name can only contain letters and spaces"),
+
   body("email")
     .optional()
     .isEmail()
     .withMessage("Please provide a valid email address"),
+
   body("phone")
-    .optional()
-    .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return value.length >= 10 && value.length <= 20;
-    })
-    .withMessage("Phone number must be between 10 and 20 characters"),
+    .isMobilePhone("en-IN")
+    .withMessage("Phone number must be a valid Indian mobile number"),
+
   body("company")
     .optional()
-    .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return value.length >= 2 && value.length <= 100;
-    })
-    .withMessage("Company name must be between 2 and 100 characters"),
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Company name must be between 2 and 100 characters")
+    .matches(/^[A-Za-z0-9\s&.,-]+$/)
+    .withMessage("Company name contains invalid characters"),
+
   body("position")
     .optional()
-    .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return value.length >= 2 && value.length <= 100;
-    })
-    .withMessage("Position must be between 2 and 100 characters"),
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Position must be between 2 and 100 characters")
+    .matches(/^[A-Za-z0-9\s&.,-]+$/)
+    .withMessage("Position contains invalid characters"),
+
   body("sourceId")
     .optional()
-    .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return Number.isInteger(Number(value)) && Number(value) >= 1;
-    })
+    .isInt({ min: 1 })
     .withMessage("Source ID must be a valid integer"),
+
   body("status")
     .optional()
     .isIn([
@@ -110,20 +137,17 @@ export const updateLeadValidation = [
       "lost",
     ])
     .withMessage("Invalid status value"),
+
   body("notes")
     .optional()
-    .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return value.length <= 1000;
-    })
+    .isLength({ max: 1000 })
     .withMessage("Notes must not exceed 1000 characters"),
+
   body("assignedTo")
     .optional()
-    .custom((value) => {
-      if (value === "" || value === null || value === undefined) return true;
-      return Number.isInteger(Number(value)) && Number(value) >= 1;
-    })
+    .isInt({ min: 1 })
     .withMessage("Assigned user ID must be a valid integer"),
+
   body("tags")
     .optional()
     .custom((value) => {
