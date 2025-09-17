@@ -23,6 +23,51 @@ import Pagination from "./Pagination";
 import NoResults from "./NoResults";
 import TableLoader from "./TableLoader";
 
+// Add getStatusColor function that was missing
+const getStatusColor = (status: string) => {
+  const statusOptions = [
+    {
+      value: "new",
+      label: "New",
+      color: "bg-blue-100 text-blue-800",
+    },
+    {
+      value: "contacted",
+      label: "Contacted",
+      color: "bg-yellow-100 text-yellow-800",
+    },
+    {
+      value: "qualified",
+      label: "Qualified",
+      color: "bg-green-100 text-green-800",
+    },
+    {
+      value: "proposal",
+      label: "Proposal",
+      color: "bg-purple-100 text-purple-800",
+    },
+    {
+      value: "negotiation",
+      label: "Negotiation",
+      color: "bg-orange-100 text-orange-800",
+    },
+    {
+      value: "closed",
+      label: "Closed",
+      color: "bg-green-100 text-green-800",
+    },
+    {
+      value: "lost",
+      label: "Lost",
+      color: "bg-red-100 text-red-800",
+    },
+  ];
+  
+  const statusOption = statusOptions.find(
+    (option) => option.value === status
+  );
+  return statusOption?.color || "bg-gray-100 text-gray-800";
+};
 const Leads: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -169,12 +214,6 @@ const Leads: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    const statusOption = statusOptions.find(
-      (option) => option.value === status
-    );
-    return statusOption?.color || "bg-gray-100 text-gray-800";
-  };
 
   // Dynamic empty-state description similar to Users
   const isSearchActive = !!debouncedSearchValue;
