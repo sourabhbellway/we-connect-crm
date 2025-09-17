@@ -213,20 +213,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
       if (key === "phone") {
         // Allow only digits and an optional leading '+'; any length is permitted
         const raw = String(value ?? "");
-        
-        // Validate phone format
-        if (raw && raw.trim()) {
-          const phoneRegex = /^\+?[0-9]{10,15}$/;
-          if (!phoneRegex.test(raw.replace(/\s/g, ''))) {
-            newErrors.phone = "Phone number must be 10-15 digits, optionally starting with +";
-          } else {
-            delete newErrors.phone;
-          }
-        } else {
-          delete newErrors.phone;
-        }
-        
-        // Clean the phone number
         let cleaned = raw.replace(/[^\d+]/g, "");
         if (cleaned.includes("+")) {
           const hasLeadingPlus = raw.trim().startsWith("+");
@@ -234,13 +220,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
           cleaned = hasLeadingPlus ? "+" + cleaned : cleaned;
         }
         newForm.phone = cleaned as any;
+        delete newErrors.phone;
       }
 
-      if (key === "notes") {
-        const notesError = validateNotes(String(value));
-        if (notesError) newErrors.notes = notesError;
-        else delete newErrors.notes;
-      }
       return {
         ...prev,
         form: newForm,
@@ -276,14 +258,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
         errors,
         hasSubmitted: true,
       }));
-      
-      // Show first error as toast notification
-      const firstError = Object.values(errors)[0];
-      if (firstError) {
-        import('react-toastify').then(({ toast }) => {
-          toast.error(firstError);
-        });
-      }
       return;
     }
 
@@ -304,11 +278,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
           general: "Failed to save lead. Please try again.",
         },
       }));
-      
-      // Show error toast
-      import('react-toastify').then(({ toast }) => {
-        toast.error("Failed to save lead. Please try again.");
-      });
     } finally {
       setFormState((prev) => ({
         ...prev,

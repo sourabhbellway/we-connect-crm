@@ -50,13 +50,4 @@ router.get(
   requirePermission("deleted.read"),
   getDeletedData
 );
-
-// Cleanup old deleted records (admin only)
-router.post(
-  "/activities/cleanup-deleted",
-  authenticateToken,
-  requireRole("Admin"),
-  cleanupOldDeletedRecords
-);
-
 export default router;

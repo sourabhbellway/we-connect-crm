@@ -53,7 +53,7 @@ const Trash: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Trash</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">View soft-deleted records with 30-day retention policy.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Restore or permanently delete soft-deleted records.</p>
           </div>
         </div>
       </div>
@@ -69,7 +69,7 @@ const Trash: React.FC = () => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Users</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">View deleted users (auto-cleanup after 30 days)</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Restore or permanently delete users</p>
             </div>
           </div>
         </button>
@@ -83,7 +83,7 @@ const Trash: React.FC = () => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Leads</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">View deleted leads (auto-cleanup after 30 days)</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Manage deleted leads</p>
             </div>
           </div>
         </button>
@@ -97,7 +97,7 @@ const Trash: React.FC = () => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Roles</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">View deleted roles (auto-cleanup after 30 days)</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Manage deleted roles</p>
             </div>
           </div>
         </button>

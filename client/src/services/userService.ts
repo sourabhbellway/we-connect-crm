@@ -92,12 +92,4 @@ export const userService = {
       return response.data;
     });
   },
-
-  // Get user roles and permissions
-  getUserRoles: async (userId: number) => {
-    return retryWithBackoff(async () => {
-      const response = await apiClient.get(`/users/${userId}/roles`);
-      return response.data;
-    });
-  },
 };

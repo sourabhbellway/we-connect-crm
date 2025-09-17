@@ -28,22 +28,6 @@ router.get(
   requirePermission("user.read"),
   getUserStats
 );
-
-// Get user roles and permissions
-router.get(
-  "/users/:id/roles",
-  authenticateToken,
-  requirePermission("user.read"),
-  getUserRoles
-);
-
-// Update user profile
-router.put(
-  "/users/profile",
-  authenticateToken,
-  updateProfile
-);
-
 router.post(
   "/users",
   authenticateToken,

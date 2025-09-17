@@ -32,7 +32,6 @@ export const authenticateToken = async (
         success: false,
         message: "Token expired",
         code: "TOKEN_EXPIRED",
-        tokenExpired: true,
       });
     }
 

@@ -12,20 +12,7 @@ const apiClient = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    // Check if user is authenticated before making API calls
     const token = localStorage.getItem("token");
-    const currentPath = window.location.pathname;
-    
-    // Allow login and health check without token
-    const allowedPaths = ['/auth/login', '/auth/register', '/health'];
-    const isAllowedPath = allowedPaths.some(path => config.url?.includes(path));
-    
-    if (!token && !isAllowedPath && currentPath !== '/login') {
-      // Redirect to login if no token and not on login page
-      window.location.href = '/login';
-      return Promise.reject(new Error('No authentication token'));
-    }
-    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -46,15 +33,9 @@ apiClient.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      // Clear token and trigger token expiry modal
+      // Clear token but don't auto-redirect - let the app handle it
       localStorage.removeItem("token");
       localStorage.removeItem("tokenExpiry");
-      
-      // Check if it's a token expiry error
-      if (error.response?.data?.tokenExpired || error.response?.data?.code === 'TOKEN_EXPIRED') {
-        // Dispatch custom event for token expiry
-        window.dispatchEvent(new CustomEvent('tokenExpired'));
-      }
     }
     return Promise.reject(error);
   }

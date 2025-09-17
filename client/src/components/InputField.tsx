@@ -68,27 +68,8 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   error,
   className,
   rows = 3,
-  onChange,
   ...rest
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    let value = e.target.value;
-    
-    // Restrict special characters that could be harmful
-    const restrictedChars = /<script|<\/script|javascript:|on\w+\s*=|<iframe|<object|<embed/i;
-    if (restrictedChars.test(value)) {
-      // Remove restricted content
-      value = value.replace(restrictedChars, '');
-    }
-    
-    // Update the event target value
-    e.target.value = value;
-    
-    if (onChange) {
-      onChange(e);
-    }
-  };
-
   return (
     <div>
       {label && (
@@ -99,7 +80,6 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
       <textarea
         rows={rows}
         {...rest}
-        onChange={handleChange}
         className={[
           "w-full rounded-xl border p-2 text-sm transition-colors",
           "bg-white dark:bg-gray-700",

@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { User, AuthState, LoginRequest } from "../types/auth";
 import { authService } from "../services/authService";
-import { userService } from "../services/userService";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
@@ -449,17 +448,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     checkAuth();
-    
-    // Listen for token expiry events from API interceptor
-    const handleTokenExpiry = () => {
-      dispatch({ type: "TOKEN_EXPIRED" });
-    };
-    
-    window.addEventListener('tokenExpired', handleTokenExpiry);
-    
-    return () => {
-      window.removeEventListener('tokenExpired', handleTokenExpiry);
-    };
   }, []);
 
   const updateUser = (user: User) => {
