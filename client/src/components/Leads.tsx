@@ -479,7 +479,7 @@ const Leads: React.FC = () => {
             totalPages={pagination.totalPages}
             totalItems={pagination.totalItems}
             onPageChange={handlePageChange}
-            itemsPerPage={50}
+            itemsPerPage={pagination.itemsPerPage || filters.limit || 10}
           />
         </div>
       </div>

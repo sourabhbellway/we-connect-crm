@@ -5,7 +5,9 @@ export const createTagValidation = [
     .notEmpty()
     .withMessage("Tag name is required")
     .isLength({ min: 2, max: 50 })
-    .withMessage("Tag name must be between 2 and 50 characters"),
+    .withMessage("Tag name must be between 2 and 50 characters")
+    .matches(/^[A-Za-z0-9\s&.,'-]+$/)
+    .withMessage("Tag name contains invalid characters"),
   body("color")
     .notEmpty()
     .withMessage("Tag name is required")
@@ -16,10 +18,13 @@ export const createTagValidation = [
 export const updateTagValidation = [
   param("id").isInt({ min: 1 }).withMessage("Invalid tag ID"),
   body("name")
+    .optional()
     .notEmpty()
     .withMessage("Tag name is required")
     .isLength({ min: 2, max: 50 })
-    .withMessage("Tag name must be between 2 and 50 characters"),
+    .withMessage("Tag name must be between 2 and 50 characters")
+    .matches(/^[A-Za-z0-9\s&.,'-]+$/)
+    .withMessage("Tag name contains invalid characters"),
   body("color")
     .notEmpty()
     .withMessage("Tag name is required")

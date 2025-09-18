@@ -9,6 +9,7 @@ import {
   deleteIndustryField,
 } from "../controllers/industryController";
 import { authenticateToken, requireRole } from "../middleware/auth";
+import { createIndustryValidation, deleteIndustryValidation, updateIndustryValidation } from "../validators/industryValidators";
 
 const router = express.Router();
 
@@ -23,18 +24,21 @@ router.post(
   "/industries",
   authenticateToken,
   requireRole("Admin"),
+  createIndustryValidation,
   createIndustry
 );
 router.put(
   "/industries/:id",
   authenticateToken,
   requireRole("Admin"),
+  updateIndustryValidation,
   updateIndustry
 );
 router.delete(
   "/industries/:id",
   authenticateToken,
   requireRole("Admin"),
+  deleteIndustryValidation,
   deleteIndustry
 );
 

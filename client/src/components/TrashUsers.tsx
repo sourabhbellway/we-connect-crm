@@ -73,7 +73,6 @@ const TrashUsers: React.FC = () => {
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Deleted</th>
-                <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             {loading ? (
@@ -122,6 +121,7 @@ const TrashUsers: React.FC = () => {
                         Soft deleted (30 days retention)
                       </div>
                     </td>
+                 
                   </tr>
                 ))
               ) : (

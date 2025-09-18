@@ -7,7 +7,7 @@
   },
   "servers": [
     { "url": "http://localhost:3001/api", "description": "Local" },
-    { "url": "http://31.97.233.21:8081/api", "description": "Production" }
+    { "url": "http://31.97.233.21:3001/api", "description": "Production" }
   ],
   "security": [{ "bearerAuth": [] }],
   "paths": {
@@ -19,7 +19,6 @@
         }
       }
     },
-
     "/auth/login": {
       "post": {
         "summary": "Login",
@@ -45,6 +44,34 @@
         }
       }
     },
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "roleIds": { "type": "array", "items": { "type": "integer" } }
+                },
+                "required": ["firstName", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" }
+        }
+      }
+    },
     "/auth/logout": {
       "post": {
         "summary": "Logout",
@@ -55,7 +82,36 @@
         }
       }
     },
-
+    "/auth/profile": {
+      "get": {
+        "summary": "Get user profile",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Returns user profile" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/roles/{roleId}/permissions": {
+      "get": {
+        "summary": "Get permissions of a role",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Role permissions" },
+          "404": { "description": "Role not found" }
+        }
+      }
+    },
     "/users": {
       "get": {
         "summary": "Get all users",
@@ -69,24 +125,7 @@
         "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "firstName": { "type": "string" },
-                  "lastName": { "type": "string" },
-                  "email": { "type": "string" },
-                  "password": { "type": "string" },
-                  "roleIds": {
-                    "type": "array",
-                    "items": { "type": "integer" }
-                  }
-                },
-                "required": ["firstName", "email", "password"]
-              }
-            }
-          }
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
         },
         "responses": { "201": { "description": "User created successfully" } }
       }
@@ -95,22 +134,22 @@
       "get": {
         "summary": "Get user by ID",
         "tags": ["Users"],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "User details" }, "404": { "description": "User not found" } }
       },
       "put": {
         "summary": "Update user",
         "tags": ["Users"],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/paths/~1users/post/requestBody/content/application~1json/schema" } } }
-        },
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
         "responses": { "200": { "description": "User updated successfully" } }
       },
       "delete": {
         "summary": "Delete user",
         "tags": ["Users"],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "User deleted successfully" } }
       }
@@ -127,10 +166,7 @@
         "summary": "Create lead",
         "tags": ["Leads"],
         "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } }
-        },
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/Lead" } } },
         "responses": { "201": { "description": "Lead created successfully" } }
       }
     },
@@ -138,62 +174,66 @@
       "get": {
         "summary": "Get lead by ID",
         "tags": ["Leads"],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "Lead details" }, "404": { "description": "Lead not found" } }
       },
       "put": {
         "summary": "Update lead",
         "tags": ["Leads"],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Lead" } } }
-        },
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/Lead" } } },
         "responses": { "200": { "description": "Lead updated successfully" } }
       },
       "delete": {
         "summary": "Delete lead",
         "tags": ["Leads"],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
         "responses": { "200": { "description": "Lead deleted successfully" } }
       }
     },
 
-    "/roles": {
+    "/leads/stats": {
       "get": {
-        "summary": "Get all roles",
-        "tags": ["Roles"],
+        "summary": "Get lead statistics",
+        "tags": ["Leads"],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "List of roles" } }
-      },
-      "post": {
-        "summary": "Create role",
-        "tags": ["Roles"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Role" } } }
-        },
-        "responses": { "201": { "description": "Role created successfully" } }
+        "responses": { "200": { "description": "Lead stats data" } }
       }
     },
 
-    "/tags": {
+    "/lead-sources": {
       "get": {
-        "summary": "Get all tags",
-        "tags": ["Tags"],
+        "summary": "Get all lead sources",
+        "tags": ["Lead Sources"],
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "List of tags" } }
+        "responses": { "200": { "description": "List of lead sources" } }
       },
       "post": {
-        "summary": "Create tag",
-        "tags": ["Tags"],
+        "summary": "Create lead source",
+        "tags": ["Lead Sources"],
         "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Tag" } } }
-        },
-        "responses": { "201": { "description": "Tag created successfully" } }
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/LeadSource" } } },
+        "responses": { "201": { "description": "Lead source created successfully" } }
+      }
+    },
+    "/lead-sources/{id}": {
+      "put": {
+        "summary": "Update lead source",
+        "tags": ["Lead Sources"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/LeadSource" } } },
+        "responses": { "200": { "description": "Lead source updated successfully" } }
+      },
+      "delete": {
+        "summary": "Delete lead source",
+        "tags": ["Lead Sources"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Lead source deleted successfully" } }
       }
     },
 
@@ -208,23 +248,111 @@
         "summary": "Create activity",
         "tags": ["Activities"],
         "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Activity" } } }
-        },
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/Activity" } } },
         "responses": { "201": { "description": "Activity created successfully" } }
+      }
+    },
+    "/activities/recent": {
+      "get": {
+        "summary": "Get recent activities",
+        "tags": ["Activities"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Recent activities" } }
+      }
+    },
+    "/activities/stats": {
+      "get": {
+        "summary": "Get activity statistics",
+        "tags": ["Activities"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Activity stats" } }
+      }
+    },
+    "/activities/deleted-data": {
+      "get": {
+        "summary": "Get deleted data",
+        "tags": ["Activities"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Deleted data list" } }
+      }
+    },
+
+    "/industries": {
+      "get": {
+        "summary": "Get all industries",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of industries" } }
+      },
+      "post": {
+        "summary": "Create industry",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/Industry" } } },
+        "responses": { "201": { "description": "Industry created successfully" } }
+      }
+    },
+    "/industries/{id}": {
+      "put": {
+        "summary": "Update industry",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/Industry" } } },
+        "responses": { "200": { "description": "Industry updated successfully" } }
+      },
+      "delete": {
+        "summary": "Delete industry",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Industry deleted successfully" } }
+      }
+    },
+    "/industries/{id}/fields": {
+      "post": {
+        "summary": "Add a field to industry",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "id", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/IndustryField" } } },
+        "responses": { "201": { "description": "Field added successfully" } }
+      }
+    },
+    "/industries/fields/{fieldId}": {
+      "put": {
+        "summary": "Update industry field",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "fieldId", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "$ref": "#/components/schemas/IndustryField" } } },
+        "responses": { "200": { "description": "Field updated successfully" } }
+      },
+      "delete": {
+        "summary": "Delete industry field",
+        "tags": ["Industries"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "path", "name": "fieldId", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Field deleted successfully" } }
       }
     }
   },
   "components": {
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT"
-      }
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
     },
     "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string" },
+          "lastName": { "type": "string" },
+          "email": { "type": "string" },
+          "password": { "type": "string" },
+          "roleIds": { "type": "array", "items": { "type": "integer" } }
+        },
+        "required": ["firstName", "email", "password"]
+      },
       "Lead": {
         "type": "object",
         "properties": {
@@ -242,24 +370,13 @@
         },
         "required": ["firstName", "lastName", "email", "phone"]
       },
-      "Role": {
+      "LeadSource": {
         "type": "object",
         "properties": {
           "name": { "type": "string" },
-          "description": { "type": "string" },
-          "permissionIds": { "type": "array", "items": { "type": "integer" } }
+          "description": { "type": "string" }
         },
-        "required": ["name", "permissionIds"]
-      },
-      "Tag": {
-        "type": "object",
-        "properties": {
-          "name": { "type": "string" },
-          "color": { "type": "string" },
-          "description": { "type": "string" },
-          "isActive": { "type": "boolean" }
-        },
-        "required": ["name", "color"]
+        "required": ["name"]
       },
       "Activity": {
         "type": "object",
@@ -274,6 +391,24 @@
           "userId": { "type": "integer" }
         },
         "required": ["title", "type"]
+      },
+      "Industry": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "IndustryField": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "options": { "type": "array", "items": { "type": "string" } },
+          "isRequired": { "type": "boolean" }
+        },
+        "required": ["name", "type"]
       }
     }
   }

@@ -150,10 +150,19 @@ export const authenticateToken = async (
     next();
   } catch (error) {
     console.error("Token verification error:", error);
-    return res.status(403).json({
-      success: false,
-      message: "Invalid token",
-    });
+    const err = error as any;
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Token expired",
+        expiredAt: err.expiredAt,
+      });
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
   }
 };
 
