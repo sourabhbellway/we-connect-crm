@@ -310,7 +310,7 @@ const Leads: React.FC = () => {
       </div>
 
       {/* Leads List */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700  transition-all duration-300">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>

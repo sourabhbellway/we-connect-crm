@@ -9,6 +9,8 @@ import {
   Shield,
   CheckCircle,
   AlertCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export interface UserFormProps<T = UserPayload> {
@@ -55,6 +57,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     number: false,
     special: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (initial) setForm({ ...defaultState, ...initial } as T);
@@ -256,7 +259,21 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
           <InputField
             label={isEdit ? "New Password (optional)" : "Password"}
             leftIcon={<Lock className="h-4 w-4 text-gray-400" />}
-            type="password"
+            rightIcon={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            }
+            type={showPassword ? "text" : "password"}
             value={form.password || ""}
             onChange={(e) =>
               handleChange("password", (e.target as HTMLInputElement).value)

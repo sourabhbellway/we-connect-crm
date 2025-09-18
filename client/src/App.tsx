@@ -22,6 +22,7 @@ import TrashUsers from "./components/TrashUsers";
 import TrashLeads from "./components/TrashLeads";
 import TrashRoles from "./components/TrashRoles";
 import LeadSettings from "./components/LeadSettings";
+import UserSettings from "./components/UserSettings";
 import IndustrySettings from "./components/IndustrySettings";
 import Profile from "./components/Profile";
 import TokenExpiryModal from "./components/TokenExpiryModal";
@@ -167,6 +168,16 @@ function AppContent() {
             <ProtectedRoute requiredPermission="lead.read">
               <Layout>
                 <LeadSettings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings/users"
+          element={
+            <ProtectedRoute requiredRole="Admin">
+              <Layout>
+                <UserSettings />
               </Layout>
             </ProtectedRoute>
           }

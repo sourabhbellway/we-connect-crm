@@ -195,6 +195,7 @@ const Users: React.FC = () => {
   const isSearchActive = !!debouncedSearchValue;
   const isStatusActive = !!filters.status;
   const isRoleActive = !!filters.roleId;
+  const hasActiveFilters = isSearchActive || isStatusActive || isRoleActive;
   const noResultsDescription = isSearchActive && (isStatusActive || isRoleActive)
     ? "No users match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all users."
     : isSearchActive
@@ -279,7 +280,7 @@ const Users: React.FC = () => {
       </div>
 
       {/* Users Table Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 overflow-hidden  transition-all duration-300">
         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
@@ -456,6 +457,8 @@ const Users: React.FC = () => {
                     <NoResults
                       icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
                       description={noResultsDescription}
+                      showClearButton={hasActiveFilters}
+                      onClear={clearFilters}
                     />
                   </td>
                 </tr>

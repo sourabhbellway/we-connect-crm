@@ -9,17 +9,22 @@ import { userService } from "../services/userService";
 import { leadService } from "../services/leadService";
 import { roleService } from "../services/roleService";
 import { useAuth } from "./AuthContext";
+import { activityService } from "../services/activityService";
 
 interface CountsContextType {
   counts: {
     users: number;
     leads: number;
     roles: number;
+    trashUsers: number;
+    trashLeads: number;
+    trashRoles: number;
   };
   refreshCounts: () => Promise<void>;
   refreshUsersCount: () => Promise<void>;
   refreshLeadsCount: () => Promise<void>;
   refreshRolesCount: () => Promise<void>;
+  refreshTrashCounts: () => Promise<void>;
 }
 
 const CountsContext = createContext<CountsContextType | undefined>(undefined);
@@ -33,22 +38,31 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
     users: 0,
     leads: 0,
     roles: 0,
+    trashUsers: 0,
+    trashLeads: 0,
+    trashRoles: 0,
   });
   const { isAuthenticated } = useAuth();
 
   const refreshCounts = async () => {
     if (!isAuthenticated) return;
     try {
-      const [usersResponse, leadsResponse, rolesResponse] = await Promise.all([
+      const [usersResponse, leadsResponse, rolesResponse, deletedRes] = await Promise.all([
         userService.getUsers().catch(() => ({ data: { users: [] } })),
         leadService.getLeads().catch(() => ({ data: { leads: [] } })),
         roleService.getRoles().catch(() => ({ data: { roles: [] } })),
+        activityService
+          .getDeletedData(1, 1)
+          .catch(() => ({ data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } } })),
       ]);
 
       setCounts({
         users: usersResponse.data.users?.length || 0,
         leads: leadsResponse.data.leads?.length || 0,
         roles: rolesResponse.data.roles?.length || 0,
+        trashUsers: deletedRes?.data?.users?.total ?? 0,
+        trashLeads: deletedRes?.data?.leads?.total ?? 0,
+        trashRoles: deletedRes?.data?.roles?.total ?? 0,
       });
     } catch (error) {
       console.error("Error fetching counts:", error);
@@ -94,6 +108,21 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
     }
   };
 
+  const refreshTrashCounts = async () => {
+    try {
+      if (!isAuthenticated) return;
+      const res = await activityService.getDeletedData(1, 1);
+      setCounts((prev) => ({
+        ...prev,
+        trashUsers: res?.data?.users?.total ?? 0,
+        trashLeads: res?.data?.leads?.total ?? 0,
+        trashRoles: res?.data?.roles?.total ?? 0,
+      }));
+    } catch (error) {
+      console.error("Error fetching trash counts:", error);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       refreshCounts();
@@ -108,6 +137,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
         refreshUsersCount,
         refreshLeadsCount,
         refreshRolesCount,
+        refreshTrashCounts,
       }}
     >
       {children}

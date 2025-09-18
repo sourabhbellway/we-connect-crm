@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 import { roleService } from "../services/roleService";
 import { toast } from "react-toastify";
 import { Settings, Shield, CheckCircle } from "lucide-react";
@@ -32,7 +32,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   onSubmit,
   submitting,
 }) => {
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
   const [formData, setFormData] = useState<RoleFormData>({
     name: "",
     description: "",
@@ -42,7 +42,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const [groupedPermissions, setGroupedPermissions] = useState<
     Record<string, Permission[]>
   >({});
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  // Note: we compute groupedPermissions directly; no separate flat permissions state needed
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -66,10 +66,19 @@ const RoleForm: React.FC<RoleFormProps> = ({
     return null;
   };
 
+  // Allow only letters, numbers, spaces, hyphen and underscore for description (if provided)
+  const NAME_REGEX = /^[A-Za-z0-9 _-]+$/;
+  const validateDescription = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return null; // optional
+    if (!NAME_REGEX.test(v))
+      return "Only letters, numbers, spaces, hyphen (-) and underscore (_) allowed";
+    return null;
+  };
+
   const fetchPermissions = async () => {
     try {
       const response = await roleService.getPermissions();
-      setPermissions(response.data.permissions);
 
       // Group permissions by module on the frontend
       const grouped = response.data.permissions.reduce(
@@ -102,6 +111,9 @@ const RoleForm: React.FC<RoleFormProps> = ({
     if (formData.permissionIds.length === 0) {
       newErrors.permissions = "At least one permission is required";
     }
+
+    const descError = validateDescription(formData.description);
+    if (descError) newErrors.description = descError;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -191,9 +203,19 @@ const RoleForm: React.FC<RoleFormProps> = ({
       <TextAreaField
         label="Description (Optional)"
         value={formData.description}
-        onChange={(e) =>
-          setFormData({ ...formData, description: e.target.value })
-        }
+        onChange={(e) => {
+          const value = e.target.value;
+          setFormData({ ...formData, description: value });
+          const err = validateDescription(value);
+          setErrors((prev) => ({ ...prev, description: err || "" }));
+          if (!err) {
+            setErrors((prev) => {
+              const { description, ...rest } = prev;
+              return rest as Record<string, string>;
+            });
+          }
+        }}
+        error={errors.description}
         rows={3}
       />
 

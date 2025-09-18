@@ -4,6 +4,7 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 interface TextAreaFieldProps
@@ -23,6 +24,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   label,
   error,
   leftIcon,
+  rightIcon,
   className,
   ...rest
 }) => {
@@ -46,7 +48,8 @@ export const InputField: React.FC<InputFieldProps> = ({
           {...rest}
           className={[
             "block w-full",
-            leftIcon ? "pl-12 pr-3" : "px-3",
+            leftIcon ? "pl-12" : "pl-3",
+            rightIcon ? "pr-12" : "pr-3",
             "py-2 rounded-xl border transition-colors",
             "bg-white dark:bg-gray-700",
             error
@@ -55,6 +58,11 @@ export const InputField: React.FC<InputFieldProps> = ({
             className || "",
           ].join(" ")}
         />
+        {rightIcon && (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            {rightIcon}
+          </div>
+        )}
       </div>
       {error && (
         <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>

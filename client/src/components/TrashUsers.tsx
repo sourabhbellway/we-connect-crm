@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import {  Users as UsersIcon, Mail, Calendar, User } from "lucide-react";
+import {  Users as UsersIcon, Mail, Calendar, User, Trash2 } from "lucide-react";
 import BackButton from "./BackButton";
 import { activityService } from "../services/activityService";
 import Pagination from "./Pagination";
@@ -51,7 +51,15 @@ const TrashUsers: React.FC = () => {
   }, [fetchData, page]);
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div className="relative space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen overflow-hidden">
+      {/* Decorative background */}
+      <div className="pointer-events-none absolute -right-10 -top-10 md:right-0 md:-top-8 aspect-square opacity-20 dark:opacity-15">
+        <div className="relative w-[220px] h-[220px] md:w-[320px] md:h-[320px] rotate-12">
+          <div className="absolute inset-0 blur-2xl bg-gradient-to-br from-rose-400/40 to-orange-400/30 rounded-full"></div>
+          <div className="absolute inset-6 rounded-3xl border-2 border-white/40 dark:border-white/10"></div>
+          <UsersIcon className="absolute inset-0 m-auto w-44 h-44 md:w-64 md:h-64 text-rose-600/60 dark:text-rose-400/50" />
+        </div>
+      </div>
     <div className="flex items-center  justify-between">
     <div className="flex items-center gap-3">
         <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#EF444E] to-[#ff5a64] text-white shadow-md">
@@ -59,13 +67,13 @@ const TrashUsers: React.FC = () => {
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Users Trash</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">View soft-deleted users (30-day retention policy).</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">View soft-deleted users. Items are permanently deleted after 30 days.</p>
         </div>
       </div>
 
       <BackButton to="/trash" />
     </div>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300">
         <div className="overflow-x-auto relative">
           <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900">
@@ -118,7 +126,7 @@ const TrashUsers: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Soft deleted (30 days retention)
+                        Auto-delete after 30 days
                       </div>
                     </td>
                  

@@ -345,14 +345,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         errors,
         hasSubmitted: true,
       }));
-      
-      // Show first error as toast notification
-      const firstError = Object.values(errors)[0];
-      if (firstError) {
-        import('react-toastify').then(({ toast }) => {
-          toast.error(firstError);
-        });
-      }
+      // Do not toast on client-side validation; show inline errors only
       return;
     }
 
@@ -376,7 +369,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
           const msg = err?.msg || err?.message;
           if (field && msg) {
             fieldErrors[field] = msg;
-            messages.push(`[${field}] ${msg}`);
+            messages.push(msg);
           } else if (msg) {
             messages.push(msg);
           }
@@ -389,6 +382,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
             general: messages.join(" | "),
           },
         }));
+        // Show combined server validation messages in a toast
+        import('react-toastify').then(({ toast }) => {
+          const combined = messages.length > 0 ? messages.join("\n") : data?.message || 'Validation errors';
+          toast.error(combined, { toastId: 'lead_submit_validation_errors' });
+        });
       } else {
         setFormState((prev) => ({
           ...prev,
@@ -397,6 +395,12 @@ const LeadForm: React.FC<LeadFormProps> = ({
             general: data?.message || "Failed to save lead. Please try again.",
           },
         }));
+        // Show server message if available
+        if (data?.message) {
+          import('react-toastify').then(({ toast }) => {
+            toast.error(data.message, { toastId: 'lead_submit_error' });
+          });
+        }
       }
     } finally {
       setFormState((prev) => ({

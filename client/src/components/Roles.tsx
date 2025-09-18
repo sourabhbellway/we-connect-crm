@@ -290,7 +290,7 @@ const Roles: React.FC = () => {
             />
           </div>
         ) : filteredRoles.length === 0 ? (
-          <div className="col-span-full text-center py-12">
+          <div className="col-span-full text-center py-20">
             <NoResults
               title={searchError ? "Network or server error" : "No roles found"}
               description={searchError || noResultsDescription}
@@ -304,22 +304,22 @@ const Roles: React.FC = () => {
           filteredRoles.map((role) => (
             <div
               key={role.id}
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden ${
+              className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow transition-all duration-300 hover:shadow-md overflow-hidden ${
                 !role.isActive ? "opacity-75" : ""
               }`}
             >
               {/* Card Header */}
-              <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md">
+                    <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-900 rounded-lg shadow-2xl">
                       <Shield className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                         {role.name}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs text-purple-800 dark:text-purple-400">
                         {role.permissions.length} permissions
                         
                       </p>
@@ -327,7 +327,7 @@ const Roles: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 ">
                 
                     {hasPermission("role.update") && (
                       <button
@@ -353,17 +353,17 @@ const Roles: React.FC = () => {
                 </div>
 
                 {role.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                     {role.description}
                   </p>
                 )}
               </div>
 
               {/* Card Content */}
-              <div className="p-4">
-                <div className="space-y-3">
+              <div className="">
+                <div className="space-y-1 p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       Status
                     </span>
                     <span
@@ -383,28 +383,28 @@ const Roles: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       Users
                     </span>
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <Users className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                      <Users className="h-3 w-3 mr-2" />
                       {role.users?.length || 0}
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       Permissions
                     </span>
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <Key className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                      <Key className="h-3 w-3 mr-2" />
                       {role.permissions.length}
                     </div>
                   </div>
                 </div>
 
                 {/* Permission Tags - module wise with show more/less */}
-                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <div className="p-4  border-t border-gray-200 dark:border-gray-700">
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const modulesMap: Record<string, string[]> = {};
@@ -421,7 +421,7 @@ const Roles: React.FC = () => {
                         <>
                           {visibleModules.map((moduleKey) => (
                             <div key={moduleKey} className="flex items-center flex-wrap gap-1">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs  bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                                 {moduleKey}
                               </span>
                               {modulesMap[moduleKey].map((permName, idx) => (
