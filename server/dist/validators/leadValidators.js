@@ -5,24 +5,36 @@ const express_validator_1 = require("express-validator");
 exports.createLeadValidation = [
     (0, express_validator_1.body)("firstName")
         .isLength({ min: 2, max: 50 })
-        .withMessage("First name must be between 2 and 50 characters"),
+        .withMessage("First name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("First name can only contain letters and spaces")
+        .custom((val) => {
+        console.log("VALIDATING firstName:", val);
+        return true;
+    }),
     (0, express_validator_1.body)("lastName")
         .isLength({ min: 2, max: 50 })
-        .withMessage("Last name must be between 2 and 50 characters"),
-    (0, express_validator_1.body)("email").isEmail().withMessage("Please provide a valid email address"),
+        .withMessage("Last name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("Last name can only contain letters and spaces"),
+    (0, express_validator_1.body)("email")
+        .isEmail()
+        .withMessage("Please provide a valid email address"),
     (0, express_validator_1.body)("phone")
-        // .isLength({ min: 10, max: 10 })
-        .notEmpty().withMessage("Phone number is required")
         .isMobilePhone("en-IN")
-        .withMessage("Phone number must be between 10 and 20 characters"),
+        .withMessage("Phone number must be a valid Indian mobile number"),
     (0, express_validator_1.body)("company")
         .optional()
         .isLength({ min: 2, max: 100 })
-        .withMessage("Company name must be between 2 and 100 characters"),
+        .withMessage("Company name must be between 2 and 100 characters")
+        .matches(/^[A-Za-z0-9\s&.,-]+$/)
+        .withMessage("Company name contains invalid characters"),
     (0, express_validator_1.body)("position")
         .optional()
         .isLength({ min: 2, max: 100 })
-        .withMessage("Position must be between 2 and 100 characters"),
+        .withMessage("Position must be between 2 and 100 characters")
+        .matches(/^[A-Za-z0-9\s&.,-]+$/)
+        .withMessage("Position contains invalid characters"),
     (0, express_validator_1.body)("sourceId")
         .optional()
         .isInt({ min: 1 })
@@ -59,50 +71,43 @@ exports.createLeadValidation = [
         .withMessage("Tags must be an array of positive integers"),
 ];
 exports.updateLeadValidation = [
-    (0, express_validator_1.param)("id").isInt({ min: 1 }).withMessage("Invalid lead ID"),
+    (0, express_validator_1.param)("id")
+        .isInt({ min: 1 })
+        .withMessage("Invalid lead ID"),
     (0, express_validator_1.body)("firstName")
         .optional()
         .isLength({ min: 2, max: 50 })
-        .withMessage("First name must be between 2 and 50 characters"),
+        .withMessage("First name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("First name can only contain letters and spaces"),
     (0, express_validator_1.body)("lastName")
         .optional()
         .isLength({ min: 2, max: 50 })
-        .withMessage("Last name must be between 2 and 50 characters"),
+        .withMessage("Last name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("Last name can only contain letters and spaces"),
     (0, express_validator_1.body)("email")
         .optional()
         .isEmail()
         .withMessage("Please provide a valid email address"),
     (0, express_validator_1.body)("phone")
-        .optional()
-        .custom((value) => {
-        if (value === "" || value === null || value === undefined)
-            return true;
-        return value.length >= 10 && value.length <= 20;
-    })
-        .withMessage("Phone number must be between 10 and 20 characters"),
+        .isMobilePhone("en-IN")
+        .withMessage("Phone number must be a valid Indian mobile number"),
     (0, express_validator_1.body)("company")
         .optional()
-        .custom((value) => {
-        if (value === "" || value === null || value === undefined)
-            return true;
-        return value.length >= 2 && value.length <= 100;
-    })
-        .withMessage("Company name must be between 2 and 100 characters"),
+        .isLength({ min: 2, max: 100 })
+        .withMessage("Company name must be between 2 and 100 characters")
+        .matches(/^[A-Za-z0-9\s&.,-]+$/)
+        .withMessage("Company name contains invalid characters"),
     (0, express_validator_1.body)("position")
         .optional()
-        .custom((value) => {
-        if (value === "" || value === null || value === undefined)
-            return true;
-        return value.length >= 2 && value.length <= 100;
-    })
-        .withMessage("Position must be between 2 and 100 characters"),
+        .isLength({ min: 2, max: 100 })
+        .withMessage("Position must be between 2 and 100 characters")
+        .matches(/^[A-Za-z0-9\s&.,-]+$/)
+        .withMessage("Position contains invalid characters"),
     (0, express_validator_1.body)("sourceId")
         .optional()
-        .custom((value) => {
-        if (value === "" || value === null || value === undefined)
-            return true;
-        return Number.isInteger(Number(value)) && Number(value) >= 1;
-    })
+        .isInt({ min: 1 })
         .withMessage("Source ID must be a valid integer"),
     (0, express_validator_1.body)("status")
         .optional()
@@ -118,19 +123,11 @@ exports.updateLeadValidation = [
         .withMessage("Invalid status value"),
     (0, express_validator_1.body)("notes")
         .optional()
-        .custom((value) => {
-        if (value === "" || value === null || value === undefined)
-            return true;
-        return value.length <= 1000;
-    })
+        .isLength({ max: 1000 })
         .withMessage("Notes must not exceed 1000 characters"),
     (0, express_validator_1.body)("assignedTo")
         .optional()
-        .custom((value) => {
-        if (value === "" || value === null || value === undefined)
-            return true;
-        return Number.isInteger(Number(value)) && Number(value) >= 1;
-    })
+        .isInt({ min: 1 })
         .withMessage("Assigned user ID must be a valid integer"),
     (0, express_validator_1.body)("tags")
         .optional()

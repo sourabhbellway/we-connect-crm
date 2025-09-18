@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserStats = exports.deleteUser = exports.updateUser = exports.getUserById = exports.createUser = exports.getUsers = void 0;
+exports.updateProfile = exports.getUserRoles = exports.getUserStats = exports.deleteUser = exports.updateUser = exports.getUserById = exports.createUser = exports.getUsers = void 0;
 const express_validator_1 = require("express-validator");
 const prisma_1 = require("../lib/prisma");
 const activityLogger_1 = require("../utils/activityLogger");
@@ -516,4 +516,121 @@ const getUserStats = async (req, res) => {
     }
 };
 exports.getUserStats = getUserStats;
+// Get user roles and permissions
+const getUserRoles = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await prisma_1.prisma.user.findUnique({
+            where: { id: parseInt(id), deletedAt: null },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                roles: {
+                    select: {
+                        role: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                permissions: {
+                                    select: {
+                                        permission: {
+                                            select: {
+                                                id: true,
+                                                name: true,
+                                                key: true,
+                                                module: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+        // Transform roles data
+        const transformedRoles = user.roles.map((ur) => ({
+            id: ur.role.id,
+            name: ur.role.name,
+            description: ur.role.description,
+            permissions: ur.role.permissions.map((rp) => rp.permission),
+        }));
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    fullName: `${user.firstName} ${user.lastName}`,
+                    roles: transformedRoles,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error("Get user roles error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.getUserRoles = getUserRoles;
+// Update user profile
+const updateProfile = async (req, res) => {
+    try {
+        const userId = req?.user?.id;
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "User not authenticated",
+            });
+        }
+        const { firstName, lastName, email, company, industryId } = req.body;
+        const updatedUser = await prisma_1.prisma.user.update({
+            where: { id: userId },
+            data: {
+                firstName,
+                lastName,
+                email,
+                // Add company and industryId if your schema supports it
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                isActive: true,
+                lastLogin: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            data: { user: updatedUser },
+        });
+    }
+    catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+exports.updateProfile = updateProfile;
 //# sourceMappingURL=userController.js.map

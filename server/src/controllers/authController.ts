@@ -135,6 +135,91 @@ interface AuthenticatedRequest extends Request {
 //   }
 // };
 
+// export const login = async (req: Request, res: Response) => {
+//   try {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Validation errors",
+//         errors: errors.array(),
+//       });
+//     }
+
+//     const { email, password } = req.body;
+
+//     const user = await prisma.user.findFirst({
+//       where: { email, isActive: true },
+//       select: {
+//         id: true,
+//         email: true,
+//         password: true,
+//         firstName: true,
+//         lastName: true,
+//         lastLogin: true,
+//       },
+//     });
+
+//     if (!user || !(await bcrypt.compare(password, user.password))) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Invalid credentials",
+//       });
+//     }
+//     await prisma.user.update({
+//       where: { id: user.id },
+//       data: { lastLogin: new Date() },
+//     });
+
+//     await activityLoggers.userLogin({
+//       id: user.id,
+//       firstName: user.firstName,
+//       lastName: user.lastName,
+//       email: user.email,
+//     });
+
+
+//     const deviceId = req.headers["x-device-id"];
+//     const secret = process.env.JWT_SECRET || "default-secret-change-in-production";
+//     const expiresIn = process.env.JWT_EXPIRE || "24h";
+
+//     const token = (jwt as any).sign(
+//       {
+//         userId: user.id,
+//         email: user.email,
+//         deviceId: deviceId || null,
+//         ip: req.ip,
+//         userAgent: req.headers["user-agent"],
+//       },
+//       secret,
+//       { expiresIn }
+//     );
+
+//     const expiryTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+//     res.json({
+//       success: true,
+//       message: "Login successful",
+//       data: {
+//         token,
+//         tokenExpiry: expiryTime.toISOString(),
+//         user: {
+//           id: user.id,
+//           email: user.email,
+//           fullName: `${user.firstName} ${user.lastName}`,
+//           lastLogin: user.lastLogin,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Login error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
+
 export const login = async (req: Request, res: Response) => {
   try {
     const errors = validationResult(req);
@@ -157,6 +242,16 @@ export const login = async (req: Request, res: Response) => {
         firstName: true,
         lastName: true,
         lastLogin: true,
+        roles: {
+          select: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -178,6 +273,10 @@ export const login = async (req: Request, res: Response) => {
       email: user.email,
     });
 
+    const userRoles = user.roles.map((ur) => ({
+      id: ur.role.id,
+      name: ur.role.name,
+    }));
 
     const deviceId = req.headers["x-device-id"];
     const secret = process.env.JWT_SECRET || "default-secret-change-in-production";
@@ -187,6 +286,7 @@ export const login = async (req: Request, res: Response) => {
       {
         userId: user.id,
         email: user.email,
+        roles: userRoles.map((r) => ({ id: r.id, name: r.name })),
         deviceId: deviceId || null,
         ip: req.ip,
         userAgent: req.headers["user-agent"],
@@ -208,6 +308,7 @@ export const login = async (req: Request, res: Response) => {
           email: user.email,
           fullName: `${user.firstName} ${user.lastName}`,
           lastLogin: user.lastLogin,
+          roles: userRoles,
         },
       },
     });

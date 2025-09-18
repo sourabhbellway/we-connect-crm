@@ -24,6 +24,7 @@ const authenticateToken = async (req, res, next) => {
                 success: false,
                 message: "Token expired",
                 code: "TOKEN_EXPIRED",
+                tokenExpired: true,
             });
         }
         // Check if this is a Super Admin token
@@ -134,10 +135,20 @@ const authenticateToken = async (req, res, next) => {
     }
     catch (error) {
         console.error("Token verification error:", error);
-        return res.status(403).json({
-            success: false,
-            message: "Invalid token",
-        });
+        const err = error;
+        if (err.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                message: "Token expired",
+                expiredAt: err.expiredAt,
+            });
+        }
+        else {
+            return res.status(403).json({
+                success: false,
+                message: "Invalid token",
+            });
+        }
     }
 };
 exports.authenticateToken = authenticateToken;

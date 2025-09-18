@@ -5,6 +5,8 @@ import {
   updateUser,
   deleteUser,
   getUserStats,
+  getUserRoles,
+  updateProfile
 } from "../controllers/userController";
 import { authenticateToken, requirePermission } from "../middleware/auth";
 import {

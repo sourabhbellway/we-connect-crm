@@ -3,13 +3,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteRoleValidation = exports.assignRoleValidation = exports.updateRoleValidation = exports.createRoleValidation = void 0;
 const express_validator_1 = require("express-validator");
 exports.createRoleValidation = [
-    (0, express_validator_1.body)('name')
+    (0, express_validator_1.body)("name")
         .isLength({ min: 2, max: 50 })
-        .withMessage('Role name must be between 2 and 50 characters'),
-    (0, express_validator_1.body)('description')
+        .withMessage("Role name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("Role name can only contain letters and spaces"),
+    (0, express_validator_1.body)("description")
         .optional()
         .isLength({ max: 500 })
-        .withMessage('Description must not exceed 500 characters'),
+        .withMessage("Description must not exceed 500 characters")
+        .matches(/^[A-Za-z0-9\s.,'-]*$/)
+        .withMessage("Description contains invalid characters"),
     (0, express_validator_1.body)("permissionIds")
         .isArray({ min: 1 })
         .withMessage("Provide at least one permission ID")
@@ -20,14 +24,17 @@ exports.updateRoleValidation = [
     (0, express_validator_1.param)('id')
         .isInt({ min: 1 })
         .withMessage('Invalid role ID'),
-    (0, express_validator_1.body)('name')
-        // .optional()
+    (0, express_validator_1.body)("name")
         .isLength({ min: 2, max: 50 })
-        .withMessage('Role name must be between 2 and 50 characters'),
-    (0, express_validator_1.body)('description')
+        .withMessage("Role name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("Role name can only contain letters and spaces"),
+    (0, express_validator_1.body)("description")
         .optional()
         .isLength({ max: 500 })
-        .withMessage('Description must not exceed 500 characters'),
+        .withMessage("Description must not exceed 500 characters")
+        .matches(/^[A-Za-z0-9\s.,'-]*$/)
+        .withMessage("Description contains invalid characters"),
     (0, express_validator_1.body)("permissionIds")
         .isArray({ min: 1 })
         .withMessage("Provide at least one permission ID")

@@ -12,10 +12,14 @@ exports.createUserValidation = [
         .withMessage("Password must be at least 6 characters long"),
     (0, express_validator_1.body)("firstName")
         .isLength({ min: 2, max: 50 })
-        .withMessage("First name must be between 2 and 50 characters"),
+        .withMessage("First name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("First name can only contain letters and spaces"),
     (0, express_validator_1.body)("lastName")
         .isLength({ min: 2, max: 50 })
-        .withMessage("Last name must be between 2 and 50 characters"),
+        .withMessage("Last name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("Last name can only contain letters and spaces"),
     (0, express_validator_1.body)("roleIds").optional().isArray().withMessage("Role IDs must be an array"),
 ];
 exports.updateUserValidation = [
@@ -24,11 +28,17 @@ exports.updateUserValidation = [
         .normalizeEmail()
         .withMessage("Please provide a valid email"),
     (0, express_validator_1.body)("firstName")
+        .optional()
         .isLength({ min: 2, max: 50 })
-        .withMessage("First name must be between 2 and 50 characters"),
+        .withMessage("First name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("First name can only contain letters and spaces"),
     (0, express_validator_1.body)("lastName")
+        .optional()
         .isLength({ min: 2, max: 50 })
-        .withMessage("Last name must be between 2 and 50 characters"),
+        .withMessage("Last name must be between 2 and 50 characters")
+        .matches(/^[A-Za-z\s]+$/)
+        .withMessage("Last name can only contain letters and spaces"),
     (0, express_validator_1.body)("roleIds").optional().isArray().withMessage("Role IDs must be an array"),
     (0, express_validator_1.body)("isActive")
         .optional()

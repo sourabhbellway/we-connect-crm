@@ -17,5 +17,7 @@ router.get("/activities/stats", auth_1.authenticateToken, (0, auth_1.requirePerm
 // Create a new activity
 router.post("/activities", auth_1.authenticateToken, (0, auth_1.requirePermission)("activity.create"), activityValidators_1.createActivityValidation, activityController_1.createActivity);
 router.get("/activities/deleted-data", auth_1.authenticateToken, (0, auth_1.requirePermission)("deleted.read"), activityController_1.getDeletedData);
+// Cleanup old deleted records (admin only)
+router.post("/activities/cleanup-deleted", auth_1.authenticateToken, (0, auth_1.requireRole)("Admin"), activityController_1.cleanupOldDeletedRecords);
 exports.default = router;
 //# sourceMappingURL=activityRoutes.js.map

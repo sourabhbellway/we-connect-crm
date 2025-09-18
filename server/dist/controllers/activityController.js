@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDeletedData = exports.getActivityStats = exports.createActivity = exports.getRecentActivities = exports.getActivities = void 0;
+exports.cleanupOldDeletedRecords = exports.getDeletedData = exports.getActivityStats = exports.createActivity = exports.getRecentActivities = exports.getActivities = void 0;
 const client_1 = require("@prisma/client");
 const express_validator_1 = require("express-validator");
 const prisma = new client_1.PrismaClient();
@@ -203,8 +203,16 @@ const getDeletedData = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
+        // Calculate 30 days ago for soft delete filtering
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const deletedUsers = await prisma.user.findMany({
-            where: { deletedAt: { not: null } },
+            where: {
+                deletedAt: {
+                    not: null,
+                    gte: thirtyDaysAgo // Only show items deleted within last 30 days
+                }
+            },
             skip,
             take: limit,
             orderBy: { deletedAt: "desc" },
@@ -217,27 +225,46 @@ const getDeletedData = async (req, res) => {
             },
         });
         const deletedUsersCount = await prisma.user.count({
-            where: { deletedAt: { not: null } },
+            where: {
+                deletedAt: {
+                    not: null,
+                    gte: thirtyDaysAgo
+                }
+            },
         });
         const deletedLeads = await prisma.lead.findMany({
-            where: { deletedAt: { not: null } },
+            where: {
+                deletedAt: {
+                    not: null,
+                    gte: thirtyDaysAgo
+                }
+            },
             skip,
             take: limit,
             orderBy: { deletedAt: "desc" },
             select: {
                 id: true,
-                // name: true,
                 email: true,
                 phone: true,
                 deletedAt: true,
             },
         });
         const deletedLeadsCount = await prisma.lead.count({
-            where: { deletedAt: { not: null } },
+            where: {
+                deletedAt: {
+                    not: null,
+                    gte: thirtyDaysAgo
+                }
+            },
         });
         // Fetch deleted roles
         const deletedRoles = await prisma.role.findMany({
-            where: { deletedAt: { not: null } },
+            where: {
+                deletedAt: {
+                    not: null,
+                    gte: thirtyDaysAgo
+                }
+            },
             skip,
             take: limit,
             orderBy: { deletedAt: "desc" },
@@ -249,7 +276,12 @@ const getDeletedData = async (req, res) => {
             },
         });
         const deletedRolesCount = await prisma.role.count({
-            where: { deletedAt: { not: null } },
+            where: {
+                deletedAt: {
+                    not: null,
+                    gte: thirtyDaysAgo
+                }
+            },
         });
         // Combine response
         res.json({
@@ -274,6 +306,8 @@ const getDeletedData = async (req, res) => {
             pagination: {
                 page,
                 limit,
+                retentionDays: 30,
+                description: "Showing items deleted within the last 30 days",
             },
         });
     }
@@ -286,4 +320,55 @@ const getDeletedData = async (req, res) => {
     }
 };
 exports.getDeletedData = getDeletedData;
+// Cleanup old soft-deleted records (older than 30 days)
+const cleanupOldDeletedRecords = async (req, res) => {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        // Permanently delete records older than 30 days
+        const [deletedUsers, deletedLeads, deletedRoles] = await Promise.all([
+            prisma.user.deleteMany({
+                where: {
+                    deletedAt: {
+                        not: null,
+                        lt: thirtyDaysAgo,
+                    },
+                },
+            }),
+            prisma.lead.deleteMany({
+                where: {
+                    deletedAt: {
+                        not: null,
+                        lt: thirtyDaysAgo,
+                    },
+                },
+            }),
+            prisma.role.deleteMany({
+                where: {
+                    deletedAt: {
+                        not: null,
+                        lt: thirtyDaysAgo,
+                    },
+                },
+            }),
+        ]);
+        res.json({
+            success: true,
+            message: "Old deleted records cleaned up successfully",
+            data: {
+                deletedUsers: deletedUsers.count,
+                deletedLeads: deletedLeads.count,
+                deletedRoles: deletedRoles.count,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error cleaning up old records:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to cleanup old records",
+        });
+    }
+};
+exports.cleanupOldDeletedRecords = cleanupOldDeletedRecords;
 //# sourceMappingURL=activityController.js.map

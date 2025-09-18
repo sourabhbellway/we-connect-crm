@@ -4,10 +4,11 @@ import {
   getRecentActivities,
   createActivity,
   getActivityStats,
-  getDeletedData
+  getDeletedData,
+  cleanupOldDeletedRecords
 } from "../controllers/activityController";
 import { createActivityValidation } from "../validators/activityValidators";
-import { authenticateToken, requirePermission } from "../middleware/auth";
+import { authenticateToken, requirePermission, requireRole  } from "../middleware/auth";
 
 const router = express.Router();
 

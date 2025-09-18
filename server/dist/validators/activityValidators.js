@@ -7,11 +7,14 @@ exports.createActivityValidation = [
         .notEmpty()
         .withMessage("Title is required")
         .isLength({ min: 3, max: 100 })
-        .withMessage("Title must be between 3 and 100 characters"),
+        .withMessage("Title must be between 3 and 100 characters")
+        .matches(/^[A-Za-z0-9\s.,!?-]+$/)
+        .withMessage("Title contains invalid characters"),
     (0, express_validator_1.body)("description")
-        // .optional()
         .isLength({ max: 500 })
-        .withMessage("Description must not exceed 500 characters"),
+        .withMessage("Description must not exceed 500 characters")
+        .matches(/^[A-Za-z0-9\s.,!?-]*$/)
+        .withMessage("Description contains invalid characters"),
     (0, express_validator_1.body)("type")
         .notEmpty()
         .withMessage("Type is required")
