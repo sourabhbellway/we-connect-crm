@@ -1,6 +1,7 @@
 import axios from "axios";
 import { LoginRequest, LoginResponse } from "../types/auth";
 import { API_BASE_URL } from "../config/config";
+import { parseJwt } from "../utils/activityUtils";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -26,8 +27,14 @@ apiClient.interceptors.request.use(
       return Promise.reject(new Error('No authentication token'));
     }
     
+    const userid = localStorage.getItem("userId")
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      const payload = parseJwt(token);
+      if (payload && payload.userId !== Number(userid)) {
+        console.log("Decoded username from JWT:", payload.username);
+      }else{
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

@@ -225,6 +225,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
+      const userid = response.data.user.id?.toString();
+      localStorage.setItem("userId",userid);
       const roleId = response.data.user.roles[0]?.id?.toString() || "";
       // localStorage.setItem("roleId", roleId);
       const rolePermissions = await authService.getPermissionsForRole(roleId);
@@ -237,7 +239,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         roles: enrichedRoles,
       };
       // console.log("Enriched User:", enrichedUser);  
-      // ✅ Dispatch with enriched response
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
