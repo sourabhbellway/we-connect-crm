@@ -4,11 +4,15 @@ import { AlertTriangle, LogIn } from "lucide-react";
 interface TokenExpiryModalProps {
   isOpen: boolean;
   onLogin: () => void;
+  title?: string;
+  message?: string;
 }
 
 const TokenExpiryModal: React.FC<TokenExpiryModalProps> = ({
   isOpen,
   onLogin,
+  title = "Session Expired",
+  message = "Your session has expired for security reasons. Please login again to continue using the application.",
 }) => {
   // Auto-focus on login button when modal opens
   React.useEffect(() => {
@@ -36,10 +40,10 @@ const TokenExpiryModal: React.FC<TokenExpiryModalProps> = ({
 
         <div className="text-center mb-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Session Expired
+            {title}
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            Your session has expired for security reasons. Please login again to continue using the application.
+            {message}
           </p>
         </div>
 

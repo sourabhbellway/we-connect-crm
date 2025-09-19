@@ -15,23 +15,34 @@ apiClient.interceptors.request.use(
   (config) => {
     // Check if user is authenticated before making API calls
     const token = localStorage.getItem("token");
-    const currentPath = window.location.pathname;
+    // const currentPath = window.location.pathname;
     
-    // Allow login and health check without token
-    const allowedPaths = ['/auth/login', '/auth/register', '/health'];
-    const isAllowedPath = allowedPaths.some(path => config.url?.includes(path));
+    // // Allow login and health check without token
+    // const allowedPaths = ['/auth/login', '/auth/register', '/health'];
+    // const isAllowedPath = allowedPaths.some(path => config.url?.includes(path));
     
-    if (!token && !isAllowedPath && currentPath !== '/login') {
-      // Redirect to login if no token and not on login page
-      window.location.href = '/login';
-      return Promise.reject(new Error('No authentication token'));
-    }
+    // if (!token && !isAllowedPath && currentPath !== '/login') {
+    //   // Redirect to login if no token and not on login page
+    //   window.location.href = '/login';
+    //   return Promise.reject(new Error('No authentication token'));
+    // }
     
     const userid = localStorage.getItem("userId")
     if (token) {
       const payload = parseJwt(token);
       if (payload && payload.userId !== Number(userid)) {
-        console.log("Decoded username from JWT:", payload.username);
+        // Token user does not match stored user; clear and notify UI
+        localStorage.removeItem("token");
+        localStorage.removeItem("tokenExpiry");
+        window.dispatchEvent(
+          new CustomEvent('tokenExpired', {
+            detail: {
+              title: 'Invalid Session',
+              message: "Token doesn't match. We're redirecting you to the login screen. Please log in again.",
+            },
+          })
+        );
+        return Promise.reject(new Error('Token user mismatch'));
       }else{
         config.headers.Authorization = `Bearer ${token}`;
       }

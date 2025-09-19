@@ -16,7 +16,7 @@ const Login: React.FC = () => {
     () => localStorage.getItem("rememberMe") === "true"
   );
 
-  const { login, isLoading, error, isAuthenticated } = useAuth();
+  const { login, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,12 +25,7 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Show auth errors via toast only
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  // Do not show toast for auth errors
 
   // Prefill email from localStorage when Remember Me is enabled
   useEffect(() => {
@@ -60,9 +55,6 @@ const Login: React.FC = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
-      // Show the first error via toast on the top-right
-      const firstErrorMessage = newErrors.email || newErrors.password;
-      if (firstErrorMessage) toast.error(firstErrorMessage);
       return false;
     }
     return true;
@@ -84,7 +76,10 @@ const Login: React.FC = () => {
       }
       navigate("/", { replace: true });
     } catch (err) {
-      // Error is handled by the context
+      const anyErr: any = err;
+      const message =
+        anyErr?.response?.data?.message || anyErr?.message || "Invalid credentials";
+      toast.error(message, { toastId: "login_invalid" });
     }
   };
 
@@ -153,7 +148,9 @@ const Login: React.FC = () => {
                   placeholder="Enter your email"
                 />
               </div>
-              {/* Inline error removed in favor of toast notifications */}
+              {errors.email && (
+                <p className="mt-2 text-sm text-red-400">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -193,7 +190,9 @@ const Login: React.FC = () => {
                   )}
                 </button>
               </div>
-              {/* Inline error removed in favor of toast notifications */}
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-400">{errors.password}</p>
+              )}
             </div>
 
             {/* Options row */}

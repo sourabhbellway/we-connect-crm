@@ -1,36 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, FileText, Wrench } from "lucide-react";
-import ToggleSwitch from "./ToggleSwitch";
+import { Plus, Wrench } from "lucide-react";
 import FormModal from "./FormModal";
 import BackButton from "./BackButton";
+import FieldConfigTable, { FieldDef, FieldType } from "./FieldConfigTable";
 import { toast } from "react-toastify";
 
-// User field types
-type UserFieldType =
-  | "TEXT"
-  | "EMAIL"
-  | "PHONE"
-  | "NUMBER"
-  | "DATE"
-  | "DROPDOWN"
-  | "MULTI_SELECT"
-  | "CHECKBOX"
-  | "TOGGLE"
-  | "IMAGE";
-
-interface UserFieldDef {
-  id: number;
-  name: string;
-  key: string;
-  type: UserFieldType;
-  canBeTurnedOff: boolean;
-  required: boolean;
-  description?: string;
-  options?: string[]; // for dropdowns
-  optionsSource?: "manual" | "roles" | "users";
-  isActive: boolean;
-  isDefault: boolean;
-}
+// Use the generic FieldDef from FieldConfigTable
+type UserFieldDef = FieldDef;
 
 const NAME_REGEX = /^[A-Za-z0-9 _-]+$/;
 const validateName = (value: string): string | undefined => {
@@ -65,15 +41,6 @@ const saveFields = (fields: UserFieldDef[]) => {
   } catch {}
 };
 
-const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({
-  title,
-  subtitle,
-}) => (
-  <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-    <p className="text-sm font-medium">{title}</p>
-    {subtitle && <p className="text-xs mt-1">{subtitle}</p>}
-  </div>
-);
 
 const SectionHeader: React.FC<{
   icon: React.ReactNode;
@@ -94,7 +61,7 @@ const SectionHeader: React.FC<{
 const UserSettings: React.FC = () => {
   const [userFields, setUserFields] = useState<UserFieldDef[]>([]);
   const [fieldModal, setFieldModal] = useState<{ open: boolean; editing: UserFieldDef | null }>({ open: false, editing: null });
-  const [modalType, setModalType] = useState<UserFieldType>("TEXT");
+  const [modalType, setModalType] = useState<FieldType>("TEXT");
 
   const openNewField = () => setFieldModal({ open: true, editing: null });
   const openEditField = (f: UserFieldDef) => setFieldModal({ open: true, editing: f });
@@ -140,7 +107,7 @@ const UserSettings: React.FC = () => {
       id: fieldModal.editing?.id,
       name: String(fd.get("name") || "").trim(),
       key: String(fd.get("key") || "").trim(),
-      type: String(fd.get("type") || "TEXT") as UserFieldType,
+      type: String(fd.get("type") || "TEXT") as FieldType,
       canBeTurnedOff: Boolean(fd.get("canBeTurnedOff")),
       required: Boolean(fd.get("required")),
       description: String(fd.get("description") || "").trim() || undefined,
@@ -178,7 +145,7 @@ const UserSettings: React.FC = () => {
           id: Date.now(),
           name: payload.name as string,
           key: payload.key as string,
-          type: (payload.type as UserFieldType) || "TEXT",
+          type: (payload.type as FieldType) || "TEXT",
           canBeTurnedOff: Boolean(payload.canBeTurnedOff),
           required: Boolean(payload.required),
           description: payload.description,
@@ -264,87 +231,13 @@ const UserSettings: React.FC = () => {
               }
             />
 
-            {userFields.length === 0 ? (
-              <EmptyState
-                title="No fields configured"
-                subtitle="Default and custom fields will appear here"
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-gray-600 dark:text-gray-300">
-                      <th className="py-2 pr-3">Field</th>
-                      <th className="py-2 pr-3">Key</th>
-                      <th className="py-2 pr-3">Type</th>
-                      <th className="py-2 pr-3">Options</th>
-                      <th className="py-2 pr-3">Can Turn Off</th>
-                      <th className="py-2 pr-3">Required</th>
-                      <th className="py-2 pr-3">Active</th>
-                      <th className="py-2 pr-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {userFields.map((f) => (
-                      <tr key={f.id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50/70 dark:hover:bg-gray-700/40 transition-colors">
-                        <td className="py-2 pr-3">
-                          <div className="font-medium text-gray-900 dark:text-white flex items-center">
-                            <FileText className="h-4 w-4 mr-2 text-gray-400" /> {f.name}
-                          </div>
-                          {f.description && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{f.description}</div>
-                          )}
-                        </td>
-                        <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">{f.key}</td>
-                        <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
-                          <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">{f.type}</span>
-                        </td>
-                        <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
-                          {f.type === "DROPDOWN" || f.type === "MULTI_SELECT" ? (
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                              {f.optionsSource === "roles"
-                                ? "Roles"
-                                : f.optionsSource === "users"
-                                ? "Users"
-                                : `${f.options?.length || 0} values`}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="py-2 pr-3">{f.canBeTurnedOff ? "Yes" : "No"}</td>
-                        <td className="py-2 pr-3">{f.required ? "Yes" : "No"}</td>
-                        <td className="py-2 pr-3">
-                          <div title={f.canBeTurnedOff ? "" : "This field cannot be turned off"}>
-                            <ToggleSwitch
-                              checked={f.isActive}
-                              onChange={(v) => {
-                                if (f.canBeTurnedOff) toggleFieldActive(f, v);
-                              }}
-                              activeLabel="On"
-                              inactiveLabel="Off"
-                              className={f.canBeTurnedOff ? "" : "opacity-50 pointer-events-none"}
-                            />
-                          </div>
-                        </td>
-                        <td className="py-2 pr-3">
-                          <div className="flex justify-end space-x-2">
-                            <button onClick={() => openEditField(f)} className="px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-xs hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm">
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            {!f.isDefault && (
-                              <button onClick={() => removeField(f.id, f.isDefault)} className="px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-xs hover:bg-red-50 dark:hover:bg-gray-700 text-red-600 shadow-sm">
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <FieldConfigTable
+              fields={userFields}
+              onEdit={openEditField}
+              onDelete={removeField}
+              onToggleActive={toggleFieldActive}
+              showOptionsSource={true}
+            />
           </div>
 
           {/* Field Modal */}
@@ -380,7 +273,7 @@ const UserSettings: React.FC = () => {
                   <select
                     name="type"
                     defaultValue={fieldModal.editing?.type || "TEXT"}
-                    onChange={(e) => setModalType(e.target.value as UserFieldType)}
+                    onChange={(e) => setModalType(e.target.value as FieldType)}
                     className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
                   >
                     <option value="TEXT">Text</option>

@@ -34,6 +34,8 @@ function AppContent() {
   const { error } = useAuth();
   const navigate = useNavigate();
   const [showExpiryModal, setShowExpiryModal] = useState(false);
+  const [expiryTitle, setExpiryTitle] = useState<string | undefined>(undefined);
+  const [expiryMessage, setExpiryMessage] = useState<string | undefined>(undefined);
 
   React.useEffect(() => {
     if (error === "Session expired. Please login again.") {
@@ -43,7 +45,10 @@ function AppContent() {
 
   // Listen for token expiry events
   React.useEffect(() => {
-    const handleTokenExpiry = () => {
+    const handleTokenExpiry = (event: Event) => {
+      const customEvent = event as CustomEvent<{ title?: string; message?: string }>;
+      setExpiryTitle(customEvent.detail?.title);
+      setExpiryMessage(customEvent.detail?.message);
       setShowExpiryModal(true);
     };
     
@@ -55,6 +60,8 @@ function AppContent() {
   }, []);
   const handleLoginAgain = () => {
     setShowExpiryModal(false);
+    setExpiryTitle(undefined);
+    setExpiryMessage(undefined);
     navigate("/login");
   };
 
@@ -246,7 +253,7 @@ function AppContent() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      <TokenExpiryModal isOpen={showExpiryModal} onLogin={handleLoginAgain} />
+      <TokenExpiryModal isOpen={showExpiryModal} onLogin={handleLoginAgain} title={expiryTitle} message={expiryMessage} />
       <ToastContainer
         position="top-right"
         autoClose={2500}

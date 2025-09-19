@@ -5,7 +5,6 @@ import {
   Trash2,
   Tags,
   Database,
-  FileText,
   Wrench,
 } from "lucide-react";
 import { tagService, Tag } from "../services/tagService";
@@ -14,9 +13,9 @@ import { useAuth } from "../contexts/AuthContext";
 import FormModal from "./FormModal";
 import ColorPalette from "./ColorPalette";
 import InputField, { TextAreaField } from "./InputField";
+import FieldConfigTable, { FieldDef, FieldType } from "./FieldConfigTable";
 import { toast } from "react-toastify";
 import BackButton from "./BackButton";
-import ToggleSwitch from "./ToggleSwitch";
 
 // Allow only letters, numbers, spaces, hyphen and underscore
 const NAME_REGEX = /^[A-Za-z0-9 _-]+$/;
@@ -36,30 +35,8 @@ const validateDescription = (value?: string): string | undefined => {
   return undefined;
 };
 
-// Lead form configuration (UI-only for now)
-type LeadFieldType =
-  | "TEXT"
-  | "EMAIL"
-  | "PHONE"
-  | "NUMBER"
-  | "DATE"
-  | "DROPDOWN"
-  | "MULTI_SELECT"
-  | "CHECKBOX"
-  | "TOGGLE";
-
-interface LeadFieldDef {
-  id: number;
-  name: string;
-  key: string;
-  type: LeadFieldType;
-  canBeTurnedOff: boolean;
-  required: boolean;
-  description?: string;
-  options?: string[]; // for DROPDOWN and MULTI_SELECT
-  isActive: boolean;
-  isDefault: boolean;
-}
+// Use the generic FieldDef from FieldConfigTable
+type LeadFieldDef = FieldDef;
 
 const LS_FIELDS_KEY = "lead_form_fields";
 const loadFields = (): LeadFieldDef[] => {
@@ -451,7 +428,7 @@ const LeadSettings: React.FC = () => {
       id: fieldModal.editing?.id,
       name: String(fd.get("name") || "").trim(),
       key: String(fd.get("key") || "").trim(),
-      type: String(fd.get("type") || "TEXT") as LeadFieldType,
+      type: String(fd.get("type") || "TEXT") as FieldType,
       canBeTurnedOff: Boolean(fd.get("canBeTurnedOff")),
       required: Boolean(fd.get("required")),
       // options are only relevant for DROPDOWN / MULTI_SELECT
@@ -489,7 +466,7 @@ const LeadSettings: React.FC = () => {
           id: Date.now(),
           name: payload.name as string,
           key: payload.key as string,
-          type: (payload.type as LeadFieldType) || "TEXT",
+          type: (payload.type as FieldType) || "TEXT",
           canBeTurnedOff: Boolean(payload.canBeTurnedOff),
           required: Boolean(payload.required),
           description: payload.description,
@@ -709,126 +686,13 @@ const LeadSettings: React.FC = () => {
               }
             />
 
-            {leadFields.length === 0 ? (
-              <EmptyState
-                title="No fields configured"
-                subtitle="Default and custom fields will appear here"
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-gray-600 dark:text-gray-300">
-                      <th className="py-2 pr-3">Field</th>
-                      <th className="py-2 pr-3">Key</th>
-                      <th className="py-2 pr-3">Type</th>
-                      <th className="py-2 pr-3">Options</th>
-                      <th className="py-2 pr-3">Can Turn Off</th>
-                      <th className="py-2 pr-3">Required</th>
-                      <th className="py-2 pr-3">Active</th>
-                      <th className="py-2 pr-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leadFields.map((f) => (
-                      <tr
-                        key={f.id}
-                        className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50/70 dark:hover:bg-gray-700/40 transition-colors"
-                      >
-                        <td className="py-2 pr-3">
-                          <div className="font-medium text-gray-900 dark:text-white flex items-center">
-                            <FileText className="h-4 w-4 mr-2 text-gray-400" /> {f.name}
-                          </div>
-                          {f.description && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {f.description}
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                            {f.key}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
-                          <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200">
-                            {f.type}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
-                          {f.type === "DROPDOWN" || f.type === "MULTI_SELECT" ? (
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-200">
-                              {(f.options?.length || 0)} values
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
-                        </td>
-                        <td className="py-2 pr-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                            f.canBeTurnedOff
-                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200"
-                              : "bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200"
-                          }`}>
-                            {f.canBeTurnedOff ? "Yes" : "No"}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                            f.required
-                              ? "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200"
-                              : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-                          }`}>
-                            {f.required ? "Yes" : "No"}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-3">
-                          <div
-                            title={
-                              f.canBeTurnedOff
-                                ? ""
-                                : "This field cannot be turned off"
-                            }
-                          >
-                            <ToggleSwitch
-                              checked={f.isActive}
-                              onChange={(v) => {
-                                if (f.canBeTurnedOff) toggleFieldActive(f, v);
-                              }}
-                              activeLabel="On"
-                              inactiveLabel="Off"
-                              className={
-                                f.canBeTurnedOff
-                                  ? ""
-                                  : "opacity-50 pointer-events-none"
-                              }
-                            />
-                          </div>
-                        </td>
-                        <td className="py-2 pr-3">
-                          <div className="flex justify-end space-x-2">
-                            <button
-                              onClick={() => openEditField(f)}
-                              className="px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-xs hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white shadow-sm"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            {!f.isDefault && (
-                              <button
-                                onClick={() => removeField(f.id, f.isDefault)}
-                                className="px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-xs hover:bg-red-50 dark:hover:bg-gray-700 text-red-600 shadow-sm"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <FieldConfigTable
+              fields={leadFields}
+              onEdit={openEditField}
+              onDelete={removeField}
+              onToggleActive={toggleFieldActive}
+              showOptionsSource={false}
+            />
           </div>
 
           {/* Field Modal */}
