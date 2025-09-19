@@ -8,7 +8,7 @@ import {
   getUserRoles,
   updateProfile
 } from "../controllers/userController";
-import { authenticateToken, requirePermission } from "../middleware/auth";
+import { authenticateToken, requirePermission, allowSelfOrPermission } from "../middleware/auth";
 import {
   createUserValidation,
   updateUserValidation,
@@ -35,7 +35,7 @@ router.get(
 router.get(
   "/users/:id/roles",
   authenticateToken,
-  requirePermission("user.read"),
+  allowSelfOrPermission("user.read", "id"),
   getUserRoles
 );
 

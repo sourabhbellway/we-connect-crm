@@ -242,16 +242,6 @@ export const login = async (req: Request, res: Response) => {
         firstName: true,
         lastName: true,
         lastLogin: true,
-        roles: {
-          select: {
-            role: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -273,11 +263,6 @@ export const login = async (req: Request, res: Response) => {
       email: user.email,
     });
 
-    const userRoles = user.roles.map((ur) => ({
-      id: ur.role.id,
-      name: ur.role.name,
-    }));
-
     const deviceId = req.headers["x-device-id"];
     const secret = process.env.JWT_SECRET || "default-secret-change-in-production";
     const expiresIn = process.env.JWT_EXPIRE || "24h";
@@ -286,7 +271,6 @@ export const login = async (req: Request, res: Response) => {
       {
         userId: user.id,
         email: user.email,
-        roles: userRoles.map((r) => ({ id: r.id, name: r.name })),
         deviceId: deviceId || null,
         ip: req.ip,
         userAgent: req.headers["user-agent"],
@@ -308,7 +292,6 @@ export const login = async (req: Request, res: Response) => {
           email: user.email,
           fullName: `${user.firstName} ${user.lastName}`,
           lastLogin: user.lastLogin,
-          roles: userRoles,
         },
       },
     });

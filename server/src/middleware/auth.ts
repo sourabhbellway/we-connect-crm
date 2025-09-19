@@ -229,3 +229,42 @@ export const requireRole = (roleName: string) => {
     next();
   };
 };
+
+// Allow access if the authenticated user is requesting their own resource (by :id),
+// otherwise require a specific permission key
+export const allowSelfOrPermission = (permissionKey: string, paramKey: string = "id") => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
+
+    // Super Admin has full access
+    if (user.isSuperAdmin === true) {
+      return next();
+    }
+
+    // If :id matches authenticated user's id, allow
+    const paramValue = req.params?.[paramKey];
+    const paramId = typeof paramValue === "string" ? parseInt(paramValue, 10) : undefined;
+    if (Number.isInteger(paramId) && paramId === user.id) {
+      return next();
+    }
+
+    // Otherwise require the specified permission
+    const hasPermission = Array.isArray(user.roles) && user.roles.some((role: any) =>
+      Array.isArray(role.permissions) && role.permissions.some((p: any) => p.key === permissionKey)
+    );
+
+    if (!hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied - Insufficient permissions",
+        required: permissionKey,
+      });
+    }
+
+    next();
+  };
+};

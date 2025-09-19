@@ -12,7 +12,7 @@ router.get("/users", auth_1.authenticateToken, (0, auth_1.requirePermission)("us
 // Get user statistics
 router.get("/users/stats", auth_1.authenticateToken, (0, auth_1.requirePermission)("user.read"), userController_1.getUserStats);
 // Get user roles and permissions
-router.get("/users/:id/roles", auth_1.authenticateToken, (0, auth_1.requirePermission)("user.read"), userController_1.getUserRoles);
+router.get("/users/:id/roles", auth_1.authenticateToken, (0, auth_1.allowSelfOrPermission)("user.read", "id"), userController_1.getUserRoles);
 // Update user profile
 router.put("/users/profile", auth_1.authenticateToken, userController_1.updateProfile);
 router.post("/users", auth_1.authenticateToken, (0, auth_1.requirePermission)("user.create"), userValidators_1.createUserValidation, userController_1.createUser);

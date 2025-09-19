@@ -1,1 +1,0 @@
-{"version":3,"file":"addProfilePictureColumn.d.ts","sourceRoot":"","sources":["../../src/migrations/addProfilePictureColumn.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAa,MAAM,WAAW,CAAC;AAEtD,wBAAsB,EAAE,CAAC,cAAc,EAAE,cAAc,iBAKtD;AAED,wBAAsB,IAAI,CAAC,cAAc,EAAE,cAAc,iBAExD"}

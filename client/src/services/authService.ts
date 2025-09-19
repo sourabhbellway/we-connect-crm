@@ -81,10 +81,10 @@ apiClient.interceptors.response.use(
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post("/auth/login", credentials);
+    console.log("Login Response:", response.data);
     return response.data;
-  },
 
-  // super admin removed
+  },
 
   getProfile: async () => {
     const response = await apiClient.get("/auth/profile");

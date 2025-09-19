@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireRole = exports.requirePermission = exports.authenticateToken = void 0;
+exports.allowSelfOrPermission = exports.requireRole = exports.requirePermission = exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = require("../lib/prisma");
 const authenticateToken = async (req, res, next) => {
@@ -202,4 +202,35 @@ const requireRole = (roleName) => {
     };
 };
 exports.requireRole = requireRole;
+// Allow access if the authenticated user is requesting their own resource (by :id),
+// otherwise require a specific permission key
+const allowSelfOrPermission = (permissionKey, paramKey = "id") => {
+    return (req, res, next) => {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ success: false, message: "User not authenticated" });
+        }
+        // Super Admin has full access
+        if (user.isSuperAdmin === true) {
+            return next();
+        }
+        // If :id matches authenticated user's id, allow
+        const paramValue = req.params?.[paramKey];
+        const paramId = typeof paramValue === "string" ? parseInt(paramValue, 10) : undefined;
+        if (Number.isInteger(paramId) && paramId === user.id) {
+            return next();
+        }
+        // Otherwise require the specified permission
+        const hasPermission = Array.isArray(user.roles) && user.roles.some((role) => Array.isArray(role.permissions) && role.permissions.some((p) => p.key === permissionKey));
+        if (!hasPermission) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied - Insufficient permissions",
+                required: permissionKey,
+            });
+        }
+        next();
+    };
+};
+exports.allowSelfOrPermission = allowSelfOrPermission;
 //# sourceMappingURL=auth.js.map

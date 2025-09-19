@@ -42,18 +42,31 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
     trashLeads: 0,
     trashRoles: 0,
   });
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasPermission } = useAuth();
 
   const refreshCounts = async () => {
     if (!isAuthenticated) return;
     try {
+      const canReadUsers = hasPermission("user.read");
+      const canReadLeads = hasPermission("lead.read");
+      const canReadRoles = hasPermission("role.read");
+      const canReadDeleted = hasPermission("deleted.read");
+
       const [usersResponse, leadsResponse, rolesResponse, deletedRes] = await Promise.all([
-        userService.getUsers().catch(() => ({ data: { users: [] } })),
-        leadService.getLeads().catch(() => ({ data: { leads: [] } })),
-        roleService.getRoles().catch(() => ({ data: { roles: [] } })),
-        activityService
-          .getDeletedData(1, 1)
-          .catch(() => ({ data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } } })),
+        canReadUsers
+          ? userService.getUsers().catch(() => ({ data: { users: [] } }))
+          : Promise.resolve({ data: { users: [] } }),
+        canReadLeads
+          ? leadService.getLeads().catch(() => ({ data: { leads: [] } }))
+          : Promise.resolve({ data: { leads: [] } }),
+        canReadRoles
+          ? roleService.getRoles().catch(() => ({ data: { roles: [] } }))
+          : Promise.resolve({ data: { roles: [] } }),
+        canReadDeleted
+          ? activityService
+              .getDeletedData(1, 1)
+              .catch(() => ({ data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } } }))
+          : Promise.resolve({ data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } } }),
       ]);
 
       setCounts({
@@ -72,6 +85,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
   const refreshUsersCount = async () => {
     try {
       if (!isAuthenticated) return;
+      if (!hasPermission("user.read")) return;
       const response = await userService.getUsers();
       setCounts((prev) => ({
         ...prev,
@@ -85,6 +99,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
   const refreshLeadsCount = async () => {
     try {
       if (!isAuthenticated) return;
+      if (!hasPermission("lead.read")) return;
       const response = await leadService.getLeads();
       setCounts((prev) => ({
         ...prev,
@@ -98,6 +113,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
   const refreshRolesCount = async () => {
     try {
       if (!isAuthenticated) return;
+      if (!hasPermission("role.read")) return;
       const response = await roleService.getRoles();
       setCounts((prev) => ({
         ...prev,
@@ -111,6 +127,7 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
   const refreshTrashCounts = async () => {
     try {
       if (!isAuthenticated) return;
+      if (!hasPermission("deleted.read")) return;
       const res = await activityService.getDeletedData(1, 1);
       setCounts((prev) => ({
         ...prev,
