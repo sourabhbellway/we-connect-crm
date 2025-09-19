@@ -84,15 +84,7 @@ export const authService = {
     return response.data;
   },
 
-  superAdminLogin: async (
-    credentials: LoginRequest
-  ): Promise<LoginResponse> => {
-    const response = await apiClient.post(
-      "/auth/super-admin/login",
-      credentials
-    );
-    return response.data;
-  },
+  // super admin removed
 
   getProfile: async () => {
     const response = await apiClient.get("/auth/profile");
@@ -104,10 +96,7 @@ export const authService = {
     return response.data.data.permissions;
   },
 
-  getSuperAdminProfile: async () => {
-    const response = await apiClient.get("/auth/super-admin/profile");
-    return response.data;
-  },
+
 
   register: async (userData: any) => {
     const response = await apiClient.post("/auth/register", userData);

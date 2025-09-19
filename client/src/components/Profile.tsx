@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 const Profile: React.FC = () => {
-  const { user, updateUser, isSuperAdmin, hasRole } = useAuth();
+  const { user, updateUser, hasRole } = useAuth();
   const { t } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
@@ -87,7 +87,7 @@ const Profile: React.FC = () => {
     enrichPermissionsIfMissing();
   }, [user?.roles]);
 
-  const showAdminOnlyFields = (isSuperAdmin?.() || hasRole?.("Admin")) === true;
+  const showAdminOnlyFields = hasRole?.("Admin") === true;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

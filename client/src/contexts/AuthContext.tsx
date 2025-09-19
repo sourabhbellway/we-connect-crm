@@ -16,9 +16,6 @@ interface AuthContextType extends AuthState {
   updateUser: (user: User) => void;
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string) => boolean;
-  isSuperAdmin: () => boolean;
-  triggerTokenExpiry: () => void; // For testing
-  manualCheckExpiry: () => boolean; // For DevTools testing
 }
 
 type AuthAction =
@@ -133,9 +130,6 @@ export const useAuth = (): AuthContextType => {
       updateUser: () => {},
       hasPermission: () => false,
       hasRole: () => false,
-      isSuperAdmin: () => false,
-      triggerTokenExpiry: () => {},
-      manualCheckExpiry: () => false,
     };
   }
   return context;
@@ -147,98 +141,70 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Make manualCheckExpiry available globally for DevTools testing
-  React.useEffect(() => {
-    (window as any).checkTokenExpiry = () => {
-      const tokenExpiry = localStorage.getItem("tokenExpiry");
-      if (tokenExpiry) {
-        const expiryTime = new Date(tokenExpiry);
-        const now = new Date();
+  // No global testing helpers
+  React.useEffect(() => {}, []);
 
-        console.log("Manual token expiry check:", {
-          tokenExpiry,
-          expiryTime: expiryTime.toISOString(),
-          now: now.toISOString(),
-          isExpired: now >= expiryTime,
-        });
-
-        if (now >= expiryTime) {
-          dispatch({ type: "TOKEN_EXPIRED" });
-          localStorage.removeItem("token");
-          localStorage.removeItem("tokenExpiry");
-          return true;
-        }
-      }
-      return false;
-    };
-  }, []);
-
-  const login_old = async (credentials: LoginRequest) => {
-    try {
-      dispatch({ type: "LOGIN_START" });
-
-      // Check if this is a Super Admin login attempt
-      const isSuperAdminLogin =
-        credentials.email === "superadmin@weconnect.com";
-
-      let response;
-      if (isSuperAdminLogin) {
-        // Use Super Admin login endpoint
-        response = await authService.superAdminLogin(credentials);
-      } else {
-        // Use regular login endpoint
-        response = await authService.login(credentials);
-      }
-
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
-
-      dispatch({
-        type: "LOGIN_SUCCESS",
-        payload: {
-          user: response.data.user,
-          token: response.data.token,
-          tokenExpiry: response.data.tokenExpiry,
-        },
-      });
-    } catch (error: any) {
-      const message =
-        error.response?.data?.message || "An error occurred during login";
-      dispatch({ type: "LOGIN_FAILURE", payload: message });
-      throw error;
-    }
-  };
-  
   const login = async (credentials: LoginRequest) => {
     try {
       dispatch({ type: "LOGIN_START" });
 
-      const isSuperAdminLogin =
-        credentials.email === "superadmin@weconnect.com";
-
-      let response;
-      if (isSuperAdminLogin) {
-        response = await authService.superAdminLogin(credentials);
-      } else {
-        response = await authService.login(credentials);
-      }
+      const response = await authService.login(credentials);
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
       const userid = response.data.user.id?.toString();
-      localStorage.setItem("userId",userid);
-      const roleId = response.data.user.roles[0]?.id?.toString() || "";
-      // localStorage.setItem("roleId", roleId);
-      const rolePermissions = await authService.getPermissionsForRole(roleId);
-      const enrichedRoles = response.data.user.roles.map((role: any) => ({
-        ...role,
-        permissions: rolePermissions,
-      }));
+      if (userid) {
+        localStorage.setItem("userId", userid);
+      }
+
+      // Fetch roles from new API and enrich with permissions
+      let rolesFromApi: any[] = [];
+      try {
+        if (userid) {
+          const rolesResp = await userService.getUserRoles(Number(userid));
+          rolesFromApi = (rolesResp as any)?.data?.user?.roles
+            ?? (rolesResp as any)?.roles
+            ?? (rolesResp as any)?.data?.roles
+            ?? (Array.isArray(rolesResp) ? (rolesResp as any) : []);
+        }
+      } catch (e) {
+        console.error("Failed to fetch user roles from API", e);
+        rolesFromApi = [];
+      }
+
+      let enrichedRoles = rolesFromApi;
+      try {
+        const rolesNeedingPermissions = enrichedRoles.filter(
+          (r: any) => !Array.isArray(r?.permissions) || r.permissions.length === 0
+        );
+        if (rolesNeedingPermissions.length > 0) {
+          const permissionsByRoleIdEntries = await Promise.all(
+            rolesNeedingPermissions.map(async (r: any) => {
+              try {
+                const perms = await authService.getPermissionsForRole(String(r.id));
+                return [r.id, perms] as const;
+              } catch (err) {
+                console.error("Failed to fetch permissions for role", r?.id, err);
+                return [r.id, []] as const;
+              }
+            })
+          );
+          const permissionsByRoleId = new Map<number, any[]>(permissionsByRoleIdEntries as any);
+          enrichedRoles = enrichedRoles.map((r: any) => ({
+            ...r,
+            permissions: Array.isArray(r?.permissions) && r.permissions.length > 0
+              ? r.permissions
+              : permissionsByRoleId.get(r.id) || [],
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to enrich roles with permissions", e);
+      }
+
       const enrichedUser = {
         ...response.data.user,
         roles: enrichedRoles,
-      };
-      // console.log("Enriched User:", enrichedUser);  
+      } as any;
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -247,14 +213,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           tokenExpiry: response.data.tokenExpiry,
         },
       });
-
-      return {
-        ...response,
-        data: {
-          ...response.data,
-          user: enrichedUser,
-        },
-      };
     } catch (error: any) {
       const message =
         error.response?.data?.message || "An error occurred during login";
@@ -276,37 +234,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         dispatch({ type: "CHECK_AUTH_FAILURE" });
         return;
       }
-
-      // Decode the JWT token to check if it's a Super Admin token
-      try {
-        const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-
-        // If it's a Super Admin token, get Super Admin profile
-        if (tokenPayload.isSuperAdmin === true) {
-          try {
-            const superAdminResponse = await authService.getSuperAdminProfile();
-            dispatch({
-              type: "CHECK_AUTH_SUCCESS",
-              payload: superAdminResponse.data.user,
-            });
-            return;
-          } catch (superAdminError: any) {
-            if (superAdminError.response?.status === 401) {
-              dispatch({ type: "TOKEN_EXPIRED" });
-            } else {
-              dispatch({ type: "CHECK_AUTH_FAILURE" });
-            }
-            return;
-          }
-        }
-      } catch (decodeError) {
-        // If token decoding fails, continue with regular profile check
-      }
-
       // Try to get regular user profile
       try {
         const response = await authService.getProfile();
-        dispatch({ type: "CHECK_AUTH_SUCCESS", payload: response.data.user });
+        const baseUser = response.data.user;
+
+        // Fetch roles from new API and enrich with permissions
+        let rolesFromApi: any[] = [];
+        try {
+          const uid = baseUser?.id;
+          if (typeof uid === "number") {
+            const rolesResp = await userService.getUserRoles(uid);
+            rolesFromApi = (rolesResp as any)?.data?.user?.roles
+              ?? (rolesResp as any)?.roles
+              ?? (rolesResp as any)?.data?.roles
+              ?? (Array.isArray(rolesResp) ? (rolesResp as any) : []);
+          }
+        } catch (e) {
+          console.error("Failed to fetch user roles during checkAuth", e);
+        }
+
+        let enrichedRoles = rolesFromApi;
+        try {
+          const rolesNeedingPermissions = enrichedRoles.filter(
+            (r: any) => !Array.isArray(r?.permissions) || r.permissions.length === 0
+          );
+          if (rolesNeedingPermissions.length > 0) {
+            const permissionsByRoleIdEntries = await Promise.all(
+              rolesNeedingPermissions.map(async (r: any) => {
+                try {
+                  const perms = await authService.getPermissionsForRole(String(r.id));
+                  return [r.id, perms] as const;
+                } catch (err) {
+                  console.error("Failed to fetch permissions for role", r?.id, err);
+                  return [r.id, []] as const;
+                }
+              })
+            );
+            const permissionsByRoleId = new Map<number, any[]>(permissionsByRoleIdEntries as any);
+            enrichedRoles = enrichedRoles.map((r: any) => ({
+              ...r,
+              permissions: Array.isArray(r?.permissions) && r.permissions.length > 0
+                ? r.permissions
+                : permissionsByRoleId.get(r.id) || [],
+            }));
+          }
+        } catch (e) {
+          console.error("Failed to enrich roles with permissions during checkAuth", e);
+        }
+
+        const enrichedUser = { ...(baseUser as any), roles: enrichedRoles } as any;
+        dispatch({ type: "CHECK_AUTH_SUCCESS", payload: enrichedUser });
       } catch (profileError: any) {
         if (profileError.response?.status === 401) {
           dispatch({ type: "TOKEN_EXPIRED" });
@@ -325,11 +303,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasPermission = (permission: string): boolean => {
-    // Super Admins have all permissions
-    if (state.user?.isSuperAdmin === true) {
-      return true;
-    }
-
     if (!state.user || !state.user.roles) return false;
 
     return state.user.roles.some((role) =>
@@ -338,67 +311,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const hasRole = (roleName: string): boolean => {
-    // Super Admins have all roles
-    if (state.user?.isSuperAdmin === true) {
-      return true;
-    }
-
     if (!state.user || !state.user.roles) return false;
 
     return state.user.roles.some((role) => role.name === roleName);
   };
 
-  const isSuperAdmin = (): boolean => {
-    return state.user?.isSuperAdmin === true;
-  };
-
-  // For testing - manually trigger token expiry
-  const triggerTokenExpiry = () => {
-    dispatch({ type: "TOKEN_EXPIRED" });
-    localStorage.removeItem("token");
-    localStorage.removeItem("tokenExpiry");
-  };
-
-  // Check token expiry
-  const checkTokenExpiry = () => {
-    const tokenExpiry = localStorage.getItem("tokenExpiry");
-    if (tokenExpiry) {
-      const expiryTime = new Date(tokenExpiry);
-      const now = new Date();
-
-      if (now >= expiryTime) {
-        dispatch({ type: "TOKEN_EXPIRED" });
-        localStorage.removeItem("token");
-        localStorage.removeItem("tokenExpiry");
-        return true;
-      }
-    }
-    return false;
-  };
-
-  // Manual check for DevTools testing
-  const manualCheckExpiry = () => {
-    const tokenExpiry = localStorage.getItem("tokenExpiry");
-    if (tokenExpiry) {
-      const expiryTime = new Date(tokenExpiry);
-      const now = new Date();
-
-      console.log("Token expiry check:", {
-        tokenExpiry,
-        expiryTime: expiryTime.toISOString(),
-        now: now.toISOString(),
-        isExpired: now >= expiryTime,
-      });
-
-      if (now >= expiryTime) {
-        dispatch({ type: "TOKEN_EXPIRED" });
-        localStorage.removeItem("token");
-        localStorage.removeItem("tokenExpiry");
-        return true;
-      }
-    }
-    return false;
-  };
 
   // Set up token expiry timer
   useEffect(() => {
@@ -475,9 +392,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateUser,
     hasPermission,
     hasRole,
-    isSuperAdmin,
-    triggerTokenExpiry,
-    manualCheckExpiry,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
