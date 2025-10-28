@@ -1,9 +1,11 @@
 node_modules/
 .env
 
-# Ignore root docs (keep primary README/SETUP)
+# Ignore root docs (keep primary README/SETUP and core guides)
 /*.md
 !README.md
 !SETUP.md
+!CODE_STRUCTURE.md
+!DESIGN_MOODBOARD.md
 
 # Ignore docs in nested folders by pattern if needed will be handled locally per package
