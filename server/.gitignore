@@ -5,3 +5,7 @@ node_modules
 /src/generated/prisma
 server/server/uploads/
 uploads/
+
+# Ignore markdown docs under server
+/*.md
+**/*.md

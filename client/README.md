@@ -41,17 +41,13 @@ A comprehensive CRM system with full user authentication, role management, and t
 - **Context API** for state management
 
 ### Backend
-- **Node.js** with Express
-- **TypeScript** for type safety
-- **JWT** for authentication
+- **NestJS** (Node.js) with **TypeScript**
+- **Prisma ORM** with **PostgreSQL**
+- **JWT** for authentication, **Passport** strategies
 - **Bcrypt** for password hashing
-- **Sequelize ORM** for database operations
-- **PostgreSQL** database
-- **Express Validator** for input validation
-- **Helmet** for security headers
-- **Morgan** for logging
-- **CORS** for cross-origin requests
-- **Rate Limiting** for API protection
+- **class-validator** for DTO validation
+- **Helmet**, **CORS**, **Rate Limiting** via Nest middleware/interceptors
+- **Morgan-like logging** via interceptor
 
 ## 📋 Prerequisites
 
@@ -105,12 +101,11 @@ NODE_ENV=development
 
 ### 4. Start the Application
 
-#### Start Backend Server
+#### Start Backend Server (NestJS)
 ```bash
-cd server
-npm run dev
+npm --prefix api run start:dev
 ```
-The backend server will run on `http://localhost:3001`
+The backend server will run on `http://localhost:3001` (base path `/api`).
 
 #### Start Frontend Development Server
 ```bash
@@ -177,7 +172,8 @@ After the initial setup, use these credentials to log in:
 
 ### Authentication Routes
 - `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
+- `GET /api/auth/profile` - Get current user
+- `POST /api/auth/refresh-token` - Refresh access token
 - `POST /api/auth/logout` - Logout user
 
 ### User Management Routes
@@ -262,8 +258,8 @@ npm run build
 ### Database Migration
 Ensure PostgreSQL is set up in production and run:
 ```bash
-cd server
-npm start
+npm --prefix api run prisma:migrate
+npm --prefix api run start:prod
 ```
 
 ## 🤝 Contributing

@@ -1,2 +1,9 @@
 node_modules/
 .env
+
+# Ignore root docs (keep primary README/SETUP)
+/*.md
+!README.md
+!SETUP.md
+
+# Ignore docs in nested folders by pattern if needed will be handled locally per package

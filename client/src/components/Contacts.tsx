@@ -8,11 +8,9 @@ import { contactService, Contact } from '../services/contactService';
 import { toast } from 'react-toastify';
 import {
   Plus,
-  Filter,
   User,
   Mail,
   Phone,
-  Building,
   Calendar,
   Edit,
   Trash2,
@@ -35,31 +33,33 @@ const Contacts: React.FC = () => {
   // Debounced search for consistent UX with Leads
   const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch('', 500);
 
-  // Local sorting, filtering, and pagination state
-  type SortBy = 'createdAt' | 'firstName' | 'lastName' | 'company';
-  type SortOrder = 'asc' | 'desc';
-  const [sortBy, setSortBy] = useState<SortBy>('createdAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  // Filters and pagination (server-side like Leads)
   const [phoneFilter, setPhoneFilter] = useState<'all' | 'has' | 'none'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 10 });
 
   useEffect(() => {
     fetchContacts();
-  }, []);
-
-  // Reset to first page on query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearchValue, sortBy, sortOrder, phoneFilter, itemsPerPage]);
+  }, [debouncedSearchValue, itemsPerPage, currentPage]);
 
   const fetchContacts = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await contactService.getContacts(1, 100, debouncedSearchValue || undefined); // Fetch a larger set for client-side ops
-      setContacts(response.data.contacts || []);
-      await refreshContactsCount(); // Update the sidebar count
+      const response = await contactService.getContacts(currentPage, itemsPerPage, debouncedSearchValue || undefined);
+      const apiContacts = response.data.contacts || [];
+      // Apply simple client-side phone filter on current page
+      const filtered = apiContacts.filter(c => phoneFilter === 'all' ? true : phoneFilter === 'has' ? Boolean(c.phone) : !c.phone);
+      setContacts(filtered);
+      const p = response.data.pagination || { page: currentPage, limit: itemsPerPage, total: apiContacts.length, pages: 1 } as any;
+      setPagination({
+        currentPage: (p.currentPage || p.page || currentPage) as number,
+        totalPages: (p.totalPages || p.pages || 1) as number,
+        totalItems: (p.totalItems || p.total || apiContacts.length) as number,
+        itemsPerPage: (p.itemsPerPage || p.limit || itemsPerPage) as number,
+      });
+      await refreshContactsCount();
     } catch (err: any) {
       console.error('Error fetching contacts:', err);
       if (err.response?.status === 404) {
@@ -75,49 +75,9 @@ const Contacts: React.FC = () => {
     }
   };
 
-  // Filter
-  const filtered = contacts.filter(contact => {
-    const term = debouncedSearchValue.toLowerCase();
-    const matchesSearch = !term ||
-      `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(term) ||
-      contact.email.toLowerCase().includes(term) ||
-      (contact.company?.toLowerCase().includes(term) ?? false);
-
-    const matchesPhone = phoneFilter === 'all'
-      ? true
-      : phoneFilter === 'has'
-        ? Boolean(contact.phone)
-        : !contact.phone;
-
-    return matchesSearch && matchesPhone;
-  });
-
-  // Sort
-  const sorted = [...filtered].sort((a, b) => {
-    const dir = sortOrder === 'asc' ? 1 : -1;
-    const getVal = (c: Contact) => {
-      switch (sortBy) {
-        case 'firstName': return c.firstName || '';
-        case 'lastName': return c.lastName || '';
-        case 'company': return c.company || '';
-        case 'createdAt': default: return c.createdAt;
-      }
-    };
-    const va = getVal(a);
-    const vb = getVal(b);
-
-    if (sortBy === 'createdAt') {
-      return (new Date(va as string).getTime() - new Date(vb as string).getTime()) * dir;
-    }
-    return String(va).localeCompare(String(vb)) * dir;
-  });
-
-  // Paginate
-  const totalItems = sorted.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const start = (currentPage - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  const pageItems = sorted.slice(start, end);
+  // No client-side sort; we rely on API (createdAt desc). We only keep phone filter applied above.
+  const pageItems = contacts;
+  const totalItems = pagination.totalItems;
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this contact?')) return;
@@ -143,28 +103,27 @@ const Contacts: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Contacts</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your converted leads and customer contacts
-          </p>
+      {/* Header + Actions (match Leads) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Contacts</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Manage your converted leads and customer contacts
+            </p>
+          </div>
+          {hasPermission(PERMISSIONS.CONTACT.CREATE) && (
+            <Link to="/contacts/new">
+              <Button variant="PRIMARY" size="MD">
+                <Plus size={20} className="mr-2" />
+                New Contact
+              </Button>
+            </Link>
+          )}
         </div>
-        {hasPermission(PERMISSIONS.CONTACT.CREATE) && (
-          <Link to="/contacts/new">
-            <Button variant="PRIMARY" size="MD">
-              <Plus size={20} className="mr-2" />
-              New Contact
-            </Button>
-          </Link>
-        )}
-      </div>
 
-      {/* Search, Sort, Filter */}
-      <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-end gap-4">
-<div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 gap-3 md:gap-4 flex-1 min-w-0">
-          {/* Search */}
+        {/* Filters (match Leads layout) */}
+        <div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4 flex-1 min-w-0">
           <div className="w-full">
             <SearchInput
               value={searchValue}
@@ -175,37 +134,7 @@ const Contacts: React.FC = () => {
               <div className="mt-1 text-xs text-blue-500">Searching...</div>
             )}
           </div>
-
-          {/* Sort By */}
-          <div className="w-full sm:w-56 sm:min-w-[220px]">
-            <DropdownFilter
-              label="Sort by"
-              value={sortBy}
-              onChange={(v) => setSortBy((v as string) as any)}
-              options={[
-                { value: 'createdAt', label: 'Created date' },
-                { value: 'firstName', label: 'First name' },
-                { value: 'lastName', label: 'Last name' },
-                { value: 'company', label: 'Company' },
-              ]}
-            />
-          </div>
-
-          {/* Sort Order */}
-          <div className="w-full sm:w-40 sm:min-w-[200px]">
-            <DropdownFilter
-              label="Order"
-              value={sortOrder}
-              onChange={(v) => setSortOrder((v as string) as any)}
-              options={[
-                { value: 'asc', label: 'Ascending' },
-                { value: 'desc', label: 'Descending' },
-              ]}
-            />
-          </div>
-
-          {/* Phone Filter */}
-          <div className="w-full sm:w-56 sm:min-w-[220px]">
+          <div className="w-full sm:w-56">
             <DropdownFilter
               label="Phone"
               value={phoneFilter}
@@ -217,9 +146,7 @@ const Contacts: React.FC = () => {
               ]}
             />
           </div>
-
-          {/* Items per page */}
-          <div className="w-full sm:w-40 sm:min-w-[200px]">
+          <div className="w-full sm:w-40">
             <DropdownFilter
               label="Items per page"
               value={String(itemsPerPage)}
@@ -232,12 +159,6 @@ const Contacts: React.FC = () => {
               ]}
             />
           </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button variant="SECONDARY">
-            <Filter size={20} className="mr-2" />
-            Filter
-          </Button>
         </div>
       </div>
 
@@ -361,10 +282,10 @@ const Contacts: React.FC = () => {
             {/* Pagination */}
             {!error && totalItems > 0 && (
               <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                itemsPerPage={itemsPerPage}
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                totalItems={pagination.totalItems}
+                itemsPerPage={pagination.itemsPerPage || itemsPerPage}
                 onPageChange={(p) => setCurrentPage(p)}
               />
             )}
