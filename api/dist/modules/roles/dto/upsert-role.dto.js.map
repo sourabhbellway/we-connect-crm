@@ -1,0 +1,1 @@
+{"version":3,"file":"upsert-role.dto.js","sourceRoot":"","sources":["../../../../src/modules/roles/dto/upsert-role.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,qDAAuD;AAEvD,MAAa,aAAa;IACZ,IAAI,CAAS;IACC,WAAW,CAAU;CAChD;AAHD,sCAGC;AAFa;IAAX,IAAA,0BAAQ,GAAE;;2CAAc;AACC;IAAzB,IAAA,4BAAU,GAAE;IAAE,IAAA,0BAAQ,GAAE;;kDAAsB"}

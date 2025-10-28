@@ -11,6 +11,17 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async assignRoles(userId: number, roleIds: number[]) {
+    // Clear existing roles
+    await this.prisma.userRole.deleteMany({ where: { userId } });
+    if (roleIds?.length) {
+      await this.prisma.userRole.createMany({
+        data: roleIds.map((roleId) => ({ userId, roleId })),
+      });
+    }
+    return { success: true };
+  }
+
   async create(dto: CreateUserDto) {
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({

@@ -25,6 +25,9 @@ let UsersController = class UsersController {
     findOne(id) {
         return this.usersService.findOne(+id);
     }
+    assignRoles(id, roleIds) {
+        return this.usersService.assignRoles(Number(id), roleIds || []);
+    }
     create(dto) {
         return this.usersService.create(dto);
     }
@@ -37,6 +40,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Put)(':id/role'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('roleIds')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Array]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "assignRoles", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),

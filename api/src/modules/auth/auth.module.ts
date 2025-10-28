@@ -13,7 +13,9 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('jwt.secret'),
-        signOptions: { expiresIn: config.get<number>('jwt.expiresIn') ?? 86400 },
+        signOptions: {
+          expiresIn: config.get<number>('jwt.expiresIn') ?? 86400,
+        },
       }),
     }),
   ],

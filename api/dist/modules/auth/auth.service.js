@@ -62,7 +62,9 @@ let AuthService = class AuthService {
         return d.toISOString();
     }
     async login(dto) {
-        const user = await this.prisma.user.findUnique({ where: { email: dto.email } }).catch(() => null);
+        const user = await this.prisma.user
+            .findUnique({ where: { email: dto.email } })
+            .catch(() => null);
         if (!user || !(await bcrypt.compare(dto.password, user.password))) {
             return { success: false, message: 'Invalid credentials' };
         }
@@ -90,16 +92,25 @@ let AuthService = class AuthService {
     async register(dto) {
         const hashed = await bcrypt.hash(dto.password, 10);
         const user = await this.prisma.user.create({
-            data: { email: dto.email, password: hashed, firstName: dto.firstName, lastName: dto.lastName },
+            data: {
+                email: dto.email,
+                password: hashed,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+            },
         });
         return { success: true, data: { user } };
     }
     async refreshToken(dto) {
-        const record = await this.prisma.refreshToken.findUnique({ where: { token: dto.refreshToken } });
+        const record = await this.prisma.refreshToken.findUnique({
+            where: { token: dto.refreshToken },
+        });
         if (!record || record.isRevoked || record.expiresAt <= new Date()) {
             return { success: false, message: 'Invalid refresh token' };
         }
-        const user = await this.prisma.user.findUnique({ where: { id: record.userId } });
+        const user = await this.prisma.user.findUnique({
+            where: { id: record.userId },
+        });
         if (!user)
             return { success: false, message: 'User not found' };
         const payload = { sub: user.id, email: user.email };
@@ -109,12 +120,18 @@ let AuthService = class AuthService {
     }
     async logout(refreshToken) {
         if (refreshToken) {
-            await this.prisma.refreshToken.updateMany({ where: { token: refreshToken }, data: { isRevoked: true } });
+            await this.prisma.refreshToken.updateMany({
+                where: { token: refreshToken },
+                data: { isRevoked: true },
+            });
         }
         return { success: true, message: 'Logged out successfully' };
     }
     async profile(userId) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { roles: true } });
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { roles: true },
+        });
         return { success: true, data: { user } };
     }
 };

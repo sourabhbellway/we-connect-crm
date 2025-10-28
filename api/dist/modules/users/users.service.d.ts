@@ -26,6 +26,9 @@ export declare class UsersService {
         twoFactorEnabled: boolean;
         twoFactorSecret: string | null;
     } | null>;
+    assignRoles(userId: number, roleIds: number[]): Promise<{
+        success: boolean;
+    }>;
     create(dto: CreateUserDto): Promise<{
         success: boolean;
         data: {

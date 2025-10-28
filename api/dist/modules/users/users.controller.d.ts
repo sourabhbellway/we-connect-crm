@@ -26,6 +26,9 @@ export declare class UsersController {
         twoFactorEnabled: boolean;
         twoFactorSecret: string | null;
     } | null>;
+    assignRoles(id: string, roleIds: number[]): Promise<{
+        success: boolean;
+    }>;
     create(dto: CreateUserDto): Promise<{
         success: boolean;
         data: {

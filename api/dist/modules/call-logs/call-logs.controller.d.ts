@@ -1,0 +1,107 @@
+import { CallLogsService } from './call-logs.service';
+import { CreateCallLogDto } from './dto/create-call-log.dto';
+import { UpdateCallLogDto } from './dto/update-call-log.dto';
+export declare class CallLogsController {
+    private readonly service;
+    constructor(service: CallLogsService);
+    list(leadId?: string, userId?: string): Promise<{
+        success: boolean;
+        data: {
+            items: {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number;
+                notes: string | null;
+                leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                duration: number | null;
+                outcome: string | null;
+                phoneNumber: string;
+                callType: import("@prisma/client").$Enums.CallType;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
+                startTime: Date | null;
+                endTime: Date | null;
+                recordingUrl: string | null;
+                isAnswered: boolean;
+            }[];
+        };
+    }>;
+    get(id: string): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            item: {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number;
+                notes: string | null;
+                leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                duration: number | null;
+                outcome: string | null;
+                phoneNumber: string;
+                callType: import("@prisma/client").$Enums.CallType;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
+                startTime: Date | null;
+                endTime: Date | null;
+                recordingUrl: string | null;
+                isAnswered: boolean;
+            };
+        };
+        message?: undefined;
+    }>;
+    create(dto: CreateCallLogDto): Promise<{
+        success: boolean;
+        data: {
+            item: {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number;
+                notes: string | null;
+                leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                duration: number | null;
+                outcome: string | null;
+                phoneNumber: string;
+                callType: import("@prisma/client").$Enums.CallType;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
+                startTime: Date | null;
+                endTime: Date | null;
+                recordingUrl: string | null;
+                isAnswered: boolean;
+            };
+        };
+    }>;
+    update(id: string, dto: UpdateCallLogDto): Promise<{
+        success: boolean;
+        data: {
+            item: {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number;
+                notes: string | null;
+                leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                duration: number | null;
+                outcome: string | null;
+                phoneNumber: string;
+                callType: import("@prisma/client").$Enums.CallType;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
+                startTime: Date | null;
+                endTime: Date | null;
+                recordingUrl: string | null;
+                isAnswered: boolean;
+            };
+        };
+    }>;
+    remove(id: string): Promise<{
+        success: boolean;
+    }>;
+}
