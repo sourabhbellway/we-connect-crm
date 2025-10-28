@@ -211,7 +211,7 @@ const Users: React.FC = () => {
         {/* Mobile-first responsive layout */}
         <div className="flex flex-col lg:flex-row lg:items-end gap-4">
           {/* Filters - Stack on mobile, row on desktop */}
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
+<div className="flex flex-col sm:flex-row gap-4 flex-1">
             {/* Search */}
             <div className="w-full sm:w-48">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

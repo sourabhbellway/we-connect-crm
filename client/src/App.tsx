@@ -4,13 +4,33 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { CountsProvider } from "./contexts/CountsContext";
+import { BusinessSettingsProvider } from "./contexts/BusinessSettingsContext";
+import { MenuProvider } from "./contexts/MenuContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Layout from "./components/Layout";
+import { MainLayout } from "./layouts";
+import { BusinessSettingsPage } from "./pages";
+import CompanySettingsPage from "./pages/business-settings/CompanySettingsPage";
+import CurrencyTaxSettingsPage from "./pages/business-settings/CurrencyTaxSettingsPage";
+import LeadSourcesPage from "./pages/business-settings/LeadSourcesPage";
+import DealStagesPage from "./pages/business-settings/DealStagesPage";
+import CommunicationPage from "./pages/business-settings/CommunicationPage";
+import CommunicationAPIPage from "./pages/business-settings/CommunicationAPIPage";
+import QuotationTemplatesPage from "./pages/business-settings/QuotationTemplatesPage";
+import QuotationsPage from "./pages/quotations/QuotationsPage";
+import CreateQuotationPage from "./pages/quotations/CreateQuotationPage";
+import InvoicesPage from "./pages/invoices/InvoicesPage";
+import { PERMISSIONS, TOAST_CONFIG } from "./constants";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Leads from "./components/Leads";
 import LeadCreate from "./components/LeadCreate";
 import LeadEdit from "./components/LeadEdit";
+import LeadProfile from "./components/LeadProfile";
+import Contacts from "./components/Contacts";
+import Deals from "./components/Deals";
+import ContactProfile from "./components/ContactProfile";
+import DealProfile from "./components/DealProfile";
+import DealCreate from "./components/DealCreate";
 import Users from "./components/Users";
 import UserCreate from "./components/UserCreate";
 import UserEdit from "./components/UserEdit";
@@ -21,9 +41,7 @@ import Trash from "./components/Trash";
 import TrashUsers from "./components/TrashUsers";
 import TrashLeads from "./components/TrashLeads";
 import TrashRoles from "./components/TrashRoles";
-import LeadSettings from "./components/LeadSettings";
-import UserSettings from "./components/UserSettings";
-import IndustrySettings from "./components/IndustrySettings";
+import IntegrationSettings from "./components/IntegrationSettings";
 import Profile from "./components/Profile";
 import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -31,7 +49,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function AppContent() {
-  const { error } = useAuth();
+  const { error, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [expiryTitle, setExpiryTitle] = useState<string | undefined>(undefined);
@@ -65,27 +83,40 @@ function AppContent() {
     navigate("/login");
   };
 
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
   return (
     <>
       <Routes>
-        <Route path="/login" element={<Login />} />
         <Route
           path="/"
           element={
-            <ProtectedRoute requiredPermission="dashboard.read">
-              <Layout>
+            <ProtectedRoute requiredPermission={PERMISSIONS.DASHBOARD.READ}>
+              <MainLayout>
                 <Dashboard />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
         <Route
           path="/leads"
           element={
-            <ProtectedRoute requiredPermission="lead.read">
-              <Layout>
+            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.READ}>
+              <MainLayout>
                 <Leads />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -93,9 +124,9 @@ function AppContent() {
           path="/leads/new"
           element={
             <ProtectedRoute requiredPermission="lead.create">
-              <Layout>
+              <MainLayout>
                 <LeadCreate />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -103,9 +134,99 @@ function AppContent() {
           path="/leads/:id/edit"
           element={
             <ProtectedRoute requiredPermission="lead.update">
-              <Layout>
+              <MainLayout>
                 <LeadEdit />
-              </Layout>
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leads/:id"
+          element={
+            <ProtectedRoute requiredPermission="lead.read">
+              <MainLayout>
+                <LeadProfile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.CONTACT.READ}>
+              <MainLayout>
+                <Contacts />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contacts/:id"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.CONTACT.READ}>
+              <MainLayout>
+                <ContactProfile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/deals"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
+              <MainLayout>
+                <Deals />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/deals/new"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.CREATE}>
+              <MainLayout>
+                <DealCreate />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/deals/:id"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
+              <MainLayout>
+                <DealProfile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quotations"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
+              <MainLayout>
+                <QuotationsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quotations/new"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.CREATE}>
+              <MainLayout>
+                <CreateQuotationPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invoices"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
+              <MainLayout>
+                <InvoicesPage />
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -113,9 +234,9 @@ function AppContent() {
           path="/users"
           element={
             <ProtectedRoute requiredPermission="user.read">
-              <Layout>
+              <MainLayout>
                 <Users />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -123,9 +244,9 @@ function AppContent() {
           path="/users/new"
           element={
             <ProtectedRoute requiredPermission="user.create">
-              <Layout>
+              <MainLayout>
                 <UserCreate />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -133,9 +254,9 @@ function AppContent() {
           path="/users/:id/edit"
           element={
             <ProtectedRoute requiredPermission="user.update">
-              <Layout>
+              <MainLayout>
                 <UserEdit />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -143,9 +264,9 @@ function AppContent() {
           path="/roles"
           element={
             <ProtectedRoute requiredPermission="role.read">
-              <Layout>
+              <MainLayout>
                 <Roles />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -153,50 +274,129 @@ function AppContent() {
           path="/roles/new"
           element={
             <ProtectedRoute requiredPermission="role.create">
-              <Layout>
+              <MainLayout>
                 <RoleCreate />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
         <Route
           path="/roles/:id/edit"
           element={
-            <ProtectedRoute requiredPermission="role.update">
-              <Layout>
+            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.UPDATE}>
+              <MainLayout>
                 <RoleEdit />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/settings/leads"
+          path="/business-settings"
           element={
-            <ProtectedRoute requiredPermission="lead.read">
-              <Layout>
-                <LeadSettings />
-              </Layout>
+            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+              <MainLayout>
+                <BusinessSettingsPage />
+              </MainLayout>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/settings/users"
+          path="/business-settings/company"
           element={
-            <ProtectedRoute requiredRole="Admin">
-              <Layout>
-                <UserSettings />
-              </Layout>
+            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+              <MainLayout>
+                <CompanySettingsPage />
+              </MainLayout>
             </ProtectedRoute>
           }
         />
-    
         <Route
-          path="/settings/industries"
+          path="/business-settings/currency"
           element={
-            <ProtectedRoute requiredRole="Admin">
-              <Layout>
-                <IndustrySettings />
-              </Layout>
+            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+              <MainLayout>
+                <CurrencyTaxSettingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/tax"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+              <MainLayout>
+                <CurrencyTaxSettingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/lead-sources"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.UPDATE}>
+              <MainLayout>
+                <LeadSourcesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/pipelines"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.UPDATE}>
+              <MainLayout>
+                <DealStagesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/deal-stages"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.UPDATE}>
+              <MainLayout>
+                <DealStagesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/communication"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.USER.UPDATE}>
+              <MainLayout>
+                <CommunicationPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/integrations/communication"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.USER.UPDATE}>
+              <MainLayout>
+                <CommunicationAPIPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/integrations/leads"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.CREATE}>
+              <MainLayout>
+                <IntegrationSettings />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/quotation-templates"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+              <MainLayout>
+                <QuotationTemplatesPage />
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -204,9 +404,9 @@ function AppContent() {
           path="/profile"
           element={
             <ProtectedRoute>
-              <Layout>
+              <MainLayout>
                 <Profile />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -214,9 +414,9 @@ function AppContent() {
           path="/trash"
           element={
             <ProtectedRoute>
-              <Layout>
+              <MainLayout>
                 <Trash />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -224,9 +424,9 @@ function AppContent() {
           path="/trash/users"
           element={
             <ProtectedRoute>
-              <Layout>
+              <MainLayout>
                 <TrashUsers />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -234,9 +434,9 @@ function AppContent() {
           path="/trash/leads"
           element={
             <ProtectedRoute>
-              <Layout>
+              <MainLayout>
                 <TrashLeads />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -244,9 +444,9 @@ function AppContent() {
           path="/trash/roles"
           element={
             <ProtectedRoute>
-              <Layout>
+              <MainLayout>
                 <TrashRoles />
-              </Layout>
+              </MainLayout>
             </ProtectedRoute>
           }
         />
@@ -255,12 +455,13 @@ function AppContent() {
 
       <TokenExpiryModal isOpen={showExpiryModal} onLogin={handleLoginAgain} title={expiryTitle} message={expiryMessage} />
       <ToastContainer
-        position="top-right"
-        autoClose={2500}
-        hideProgressBar={false}
+        position={TOAST_CONFIG.POSITION as any}
+        autoClose={TOAST_CONFIG.AUTO_CLOSE}
+        hideProgressBar={TOAST_CONFIG.HIDE_PROGRESS_BAR}
         newestOnTop
-        closeOnClick
-        pauseOnHover
+        closeOnClick={TOAST_CONFIG.CLOSE_ON_CLICK}
+        pauseOnHover={TOAST_CONFIG.PAUSE_ON_HOVER}
+        draggable={TOAST_CONFIG.DRAGGABLE}
         theme="colored"
       />
     </>
@@ -274,7 +475,11 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <CountsProvider>
-              <AppContent />
+              <BusinessSettingsProvider>
+                <MenuProvider>
+                  <AppContent />
+                </MenuProvider>
+              </BusinessSettingsProvider>
             </CountsProvider>
           </AuthProvider>
         </ThemeProvider>

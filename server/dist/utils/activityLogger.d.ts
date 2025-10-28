@@ -41,6 +41,12 @@ export declare const activityLoggers: {
         lastName: string;
         email: string;
     }) => Promise<void>;
+    userLogout: (userData: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    }) => Promise<void>;
     leadCreated: (leadData: {
         id: number;
         firstName: string;
@@ -75,5 +81,70 @@ export declare const activityLoggers: {
         id: number;
         name: string;
     }, byUserId?: number) => Promise<void>;
+    leadFollowUpCreated: (followUpData: {
+        leadId: number;
+        leadName: string;
+        followUpType: string;
+        subject: string;
+    }, createdBy?: number) => Promise<void>;
+    leadFollowUpCompleted: (followUpData: {
+        leadId: number;
+        leadName: string;
+        followUpType: string;
+        subject: string;
+    }, completedBy?: number) => Promise<void>;
+    communicationLogged: (commData: {
+        leadId: number;
+        communicationType: string;
+        direction: string;
+    }, loggedBy?: number) => Promise<void>;
+    taskCreated: (taskData: {
+        id: number;
+        title: string;
+        assignedTo: string | null;
+        leadId: number | null;
+        leadName: string | null;
+    }, createdBy?: number) => Promise<void>;
+    taskCompleted: (taskData: {
+        id: number;
+        title: string;
+        leadId: number | null;
+        leadName: string | null;
+    }, completedBy?: number) => Promise<void>;
+    contactCreated: (contactData: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+    }, createdBy?: number) => Promise<void>;
+    dealCreated: (dealData: {
+        id: number;
+        title: string;
+        value: any;
+        contactId: number | null;
+        contactName: string | null;
+    }, createdBy?: number) => Promise<void>;
+    dealWon: (dealData: {
+        id: number;
+        title: string;
+        value: any;
+        contactName: string | null;
+    }, wonBy?: number) => Promise<void>;
+    dealLost: (dealData: {
+        id: number;
+        title: string;
+        value: any;
+        contactName: string | null;
+    }, lostBy?: number) => Promise<void>;
+    leadConverted: (conversionData: {
+        leadId: number;
+        leadName: string;
+        contactId: number;
+        dealId?: number;
+    }, convertedBy?: number) => Promise<void>;
+    companyCreated: (companyData: {
+        id: number;
+        name: string;
+    }, createdBy?: number) => Promise<void>;
 };
 //# sourceMappingURL=activityLogger.d.ts.map

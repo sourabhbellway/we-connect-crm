@@ -1,4 +1,4 @@
-import apiClient from "./authService";
+import apiClient from "./apiClient";
 
 // Helper function for exponential backoff retry
 const retryWithBackoff = async (

@@ -26,8 +26,8 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
           {label}
         </label>
       )}
-      <div className="relative">
-        <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+      <div className="relative max-w-full">
+<Filter className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
         <select
           value={typeof value === "boolean" ? value.toString() : value}
           onChange={(e) => {
@@ -37,7 +37,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
             else if (newValue === "false") onChange(false);
             else onChange(newValue);
           }}
-          className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer transition-all duration-200"
+className="w-full max-w-full h-11 pl-11 pr-8 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-brand-blue focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer transition-colors duration-200"
         >
           <option value="">{placeholder}</option>
           {options.map((option) => (
@@ -46,7 +46,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
+<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
       </div>
     </div>
   );

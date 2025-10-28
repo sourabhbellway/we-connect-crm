@@ -90,6 +90,18 @@ exports.activityLoggers = {
             userId: userData.id,
         });
     },
+    userLogout: (userData) => {
+        return (0, exports.logActivity)({
+            title: "User Logout",
+            description: `${userData.firstName} ${userData.lastName} logged out`,
+            type: client_2.ActivityType.USER_LOGOUT,
+            icon: "FiLogOut",
+            iconColor: "text-gray-600",
+            tags: ["User", "Logout"],
+            metadata: { userId: userData.id, email: userData.email },
+            userId: userData.id,
+        });
+    },
     // Lead activities
     leadCreated: (leadData, createdBy) => {
         return (0, exports.logActivity)({
@@ -208,6 +220,150 @@ exports.activityLoggers = {
             tags: ["LeadSource", action],
             metadata: { leadSourceId: source.id, name: source.name, action },
             userId: byUserId,
+        });
+    },
+    // Lead follow-up activities
+    leadFollowUpCreated: (followUpData, createdBy) => {
+        return (0, exports.logActivity)({
+            title: "Follow-up Scheduled",
+            description: `Follow-up "${followUpData.subject}" scheduled for lead ${followUpData.leadName}`,
+            type: client_2.ActivityType.LEAD_FOLLOW_UP_CREATED,
+            icon: "FiCalendar",
+            iconColor: "text-blue-600",
+            tags: ["Lead", "FollowUp", followUpData.followUpType],
+            metadata: { leadId: followUpData.leadId, type: followUpData.followUpType },
+            userId: createdBy,
+        });
+    },
+    leadFollowUpCompleted: (followUpData, completedBy) => {
+        return (0, exports.logActivity)({
+            title: "Follow-up Completed",
+            description: `Follow-up "${followUpData.subject}" completed for lead ${followUpData.leadName}`,
+            type: client_2.ActivityType.LEAD_FOLLOW_UP_COMPLETED,
+            icon: "FiCheck",
+            iconColor: "text-green-600",
+            tags: ["Lead", "FollowUp", "Completed"],
+            metadata: { leadId: followUpData.leadId, type: followUpData.followUpType },
+            userId: completedBy,
+        });
+    },
+    // Communication activities
+    communicationLogged: (commData, loggedBy) => {
+        return (0, exports.logActivity)({
+            title: "Communication Logged",
+            description: `${commData.direction} ${commData.communicationType.toLowerCase()} logged for lead`,
+            type: client_2.ActivityType.COMMUNICATION_LOGGED,
+            icon: commData.communicationType === "CALL" ? "FiPhone" :
+                commData.communicationType === "EMAIL" ? "FiMail" : "FiMessageSquare",
+            iconColor: "text-purple-600",
+            tags: ["Lead", "Communication", commData.communicationType],
+            metadata: { leadId: commData.leadId, type: commData.communicationType, direction: commData.direction },
+            userId: loggedBy,
+        });
+    },
+    // Task activities
+    taskCreated: (taskData, createdBy) => {
+        return (0, exports.logActivity)({
+            title: "Task Created",
+            description: `Task "${taskData.title}" created${taskData.assignedTo ? ` for ${taskData.assignedTo}` : ""}${taskData.leadName ? ` (Lead: ${taskData.leadName})` : ""}`,
+            type: client_2.ActivityType.TASK_CREATED,
+            icon: "FiPlus",
+            iconColor: "text-blue-600",
+            tags: ["Task", "Created", ...(taskData.leadId ? ["Lead"] : [])],
+            metadata: { taskId: taskData.id, leadId: taskData.leadId },
+            userId: createdBy,
+        });
+    },
+    taskCompleted: (taskData, completedBy) => {
+        return (0, exports.logActivity)({
+            title: "Task Completed",
+            description: `Task "${taskData.title}" completed${taskData.leadName ? ` (Lead: ${taskData.leadName})` : ""}`,
+            type: client_2.ActivityType.TASK_COMPLETED,
+            icon: "FiCheck",
+            iconColor: "text-green-600",
+            tags: ["Task", "Completed", ...(taskData.leadId ? ["Lead"] : [])],
+            metadata: { taskId: taskData.id, leadId: taskData.leadId },
+            userId: completedBy,
+        });
+    },
+    // Contact activities
+    contactCreated: (contactData, createdBy) => {
+        return (0, exports.logActivity)({
+            title: "Contact Created",
+            description: `Contact ${contactData.firstName} ${contactData.lastName} (${contactData.email}) created`,
+            type: client_2.ActivityType.CONTACT_CREATED,
+            icon: "FiUser",
+            iconColor: "text-green-600",
+            tags: ["Contact", "Created"],
+            metadata: { contactId: contactData.id, email: contactData.email },
+            userId: createdBy,
+        });
+    },
+    // Deal activities
+    dealCreated: (dealData, createdBy) => {
+        return (0, exports.logActivity)({
+            title: "Deal Created",
+            description: `Deal "${dealData.title}" created${dealData.value ? ` (${dealData.value})` : ""}${dealData.contactName ? ` for ${dealData.contactName}` : ""}`,
+            type: client_2.ActivityType.DEAL_CREATED,
+            icon: "FiDollarSign",
+            iconColor: "text-green-600",
+            tags: ["Deal", "Created"],
+            metadata: { dealId: dealData.id, value: dealData.value, contactId: dealData.contactId },
+            userId: createdBy,
+        });
+    },
+    dealWon: (dealData, wonBy) => {
+        return (0, exports.logActivity)({
+            title: "Deal Won",
+            description: `Deal "${dealData.title}" won${dealData.value ? ` (${dealData.value})` : ""}${dealData.contactName ? ` - ${dealData.contactName}` : ""}`,
+            type: client_2.ActivityType.DEAL_WON,
+            icon: "FiTrendingUp",
+            iconColor: "text-green-600",
+            tags: ["Deal", "Won", "Success"],
+            metadata: { dealId: dealData.id, value: dealData.value },
+            userId: wonBy,
+        });
+    },
+    dealLost: (dealData, lostBy) => {
+        return (0, exports.logActivity)({
+            title: "Deal Lost",
+            description: `Deal "${dealData.title}" lost${dealData.value ? ` (${dealData.value})` : ""}${dealData.contactName ? ` - ${dealData.contactName}` : ""}`,
+            type: client_2.ActivityType.DEAL_LOST,
+            icon: "FiTrendingDown",
+            iconColor: "text-red-600",
+            tags: ["Deal", "Lost"],
+            metadata: { dealId: dealData.id, value: dealData.value },
+            userId: lostBy,
+        });
+    },
+    // Lead conversion activity
+    leadConverted: (conversionData, convertedBy) => {
+        return (0, exports.logActivity)({
+            title: "Lead Converted",
+            description: `Lead ${conversionData.leadName} converted to contact${conversionData.dealId ? " and deal" : ""}`,
+            type: client_2.ActivityType.LEAD_CONVERTED,
+            icon: "FiRepeat",
+            iconColor: "text-purple-600",
+            tags: ["Lead", "Converted", "Contact", ...(conversionData.dealId ? ["Deal"] : [])],
+            metadata: {
+                leadId: conversionData.leadId,
+                contactId: conversionData.contactId,
+                dealId: conversionData.dealId
+            },
+            userId: convertedBy,
+        });
+    },
+    // Company activities
+    companyCreated: (companyData, createdBy) => {
+        return (0, exports.logActivity)({
+            title: "Company Created",
+            description: `Company ${companyData.name} was created`,
+            type: client_2.ActivityType.CONTACT_CREATED, // Using available type, consider adding COMPANY_CREATED
+            icon: "FiPlus",
+            iconColor: "text-blue-600",
+            tags: ["Company", "Created"],
+            metadata: { companyId: companyData.id, name: companyData.name },
+            userId: createdBy,
         });
     },
 };

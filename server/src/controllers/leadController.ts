@@ -2,6 +2,12 @@ import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { prisma } from "../lib/prisma";
 import { activityLoggers } from "../utils/activityLogger";
+import { BulkImportService } from "../services/BulkImportService";
+import { IntegrationManager } from "../services/integrations/IntegrationManager";
+import { automationService } from '../services/AutomationService';
+import * as multer from 'multer';
+import * as path from 'path';
+import * as fs from 'fs';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
@@ -23,13 +29,17 @@ export const getLeads = async (req: Request, res: Response) => {
     }
 
     if (search) {
-      const searchTerm = search as string;
-      whereClause.OR = [
-        { firstName: { contains: searchTerm } },
-        { lastName: { contains: searchTerm } },
-        { email: { contains: searchTerm } },
-        { company: { contains: searchTerm } },
-      ];
+      const raw = (search as string) || "";
+      const searchTerm = raw.trim();
+      if (searchTerm.length > 0) {
+        whereClause.OR = [
+          { firstName: { contains: searchTerm, mode: "insensitive" } },
+          { lastName: { contains: searchTerm, mode: "insensitive" } },
+          { email: { contains: searchTerm, mode: "insensitive" } },
+          { company: { contains: searchTerm, mode: "insensitive" } },
+          { phone: { contains: searchTerm, mode: "insensitive" } },
+        ];
+      }
     }
 
     const [leads, totalCount] = await Promise.all([
@@ -259,6 +269,14 @@ export const createLead = async (req: Request, res: Response) => {
       actorId
     );
 
+    // Trigger automation for lead created
+    try {
+      await automationService.triggerLeadCreated(lead.id, actorId);
+    } catch (automationError) {
+      console.error('Error triggering lead created automation:', automationError);
+      // Don't fail the request if automation fails
+    }
+
     res.status(201).json({
       success: true,
       message: "Lead created successfully",
@@ -460,6 +478,156 @@ export const deleteLead = async (req: Request, res: Response) => {
   }
 };
 
+// Transfer lead to another user
+export const transferLead = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { newUserId, notes } = req.body;
+    const currentUserId = (req as any)?.user?.id;
+
+    // Check if lead exists
+    const existingLead = await prisma.lead.findUnique({
+      where: { id: parseInt(id), deletedAt: null },
+      include: {
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true }
+        }
+      },
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    // Validate new user exists if provided
+    if (newUserId) {
+      const newUser = await prisma.user.findUnique({
+        where: { id: parseInt(newUserId) },
+      });
+
+      if (!newUser) {
+        return res.status(400).json({
+          success: false,
+          message: "New assigned user not found",
+        });
+      }
+    }
+
+    const previousUserId = existingLead.assignedTo;
+
+    // Update the lead assignment
+    const updatedLead = await prisma.lead.update({
+      where: { id: parseInt(id) },
+      data: {
+        assignedTo: newUserId ? parseInt(newUserId) : null,
+        notes: notes ? `${existingLead.notes || ''}\n\n[Transfer Note]: ${notes}` : existingLead.notes,
+        updatedAt: new Date(),
+      },
+      include: {
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true }
+        },
+        tags: {
+          select: {
+            tag: {
+              select: { id: true, name: true, color: true }
+            },
+          },
+        },
+      },
+    });
+
+    // Transform tags data
+    const transformedLead = {
+      ...updatedLead,
+      tags: updatedLead.tags.map((lt) => lt.tag),
+    };
+
+    // Log the transfer activity
+    const actorId = currentUserId;
+    await activityLoggers.leadUpdated(
+      {
+        id: updatedLead.id,
+        firstName: updatedLead.firstName,
+        lastName: updatedLead.lastName,
+        email: updatedLead.email,
+      },
+      actorId
+    );
+
+    res.json({
+      success: true,
+      message: "Lead transferred successfully",
+      data: { lead: transformedLead },
+    });
+  } catch (error) {
+    console.error("Transfer lead error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Bulk assign leads to a user
+export const bulkAssignLeads = async (req: Request, res: Response) => {
+  try {
+    const { leadIds, newUserId } = req.body;
+    const currentUserId = (req as any)?.user?.id;
+
+    if (!Array.isArray(leadIds) || leadIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Lead IDs array is required",
+      });
+    }
+
+    // Validate new user exists if provided
+    if (newUserId) {
+      const newUser = await prisma.user.findUnique({
+        where: { id: parseInt(newUserId) },
+      });
+
+      if (!newUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Assigned user not found",
+        });
+      }
+    }
+
+    // Update all leads at once
+    const updatedLeads = await prisma.lead.updateMany({
+      where: {
+        id: { in: leadIds.map((id: string) => parseInt(id)) },
+        deletedAt: null,
+      },
+      data: {
+        assignedTo: newUserId ? parseInt(newUserId) : null,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Log the bulk assignment activity (simplified for performance)
+    // In a real application, you might want to log each lead individually
+    
+    res.json({
+      success: true,
+      message: `${updatedLeads.count} leads assigned successfully`,
+      data: { updatedCount: updatedLeads.count },
+    });
+  } catch (error) {
+    console.error("Bulk assign leads error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 export const getLeadStats = async (req: Request, res: Response) => {
   try {
     const totalLeads = await prisma.lead.count({ where: { isActive: true } });
@@ -500,6 +668,808 @@ export const getLeadStats = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Get lead stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Lead Follow-up Management
+export const getLeadFollowUps = async (req: Request, res: Response) => {
+  try {
+    const { leadId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.min(100, Math.max(1, Number(limit)));
+    const offset = (pageNum - 1) * limitNum;
+
+    const [followUps, totalCount] = await Promise.all([
+      prisma.leadFollowUp.findMany({
+        where: { leadId: parseInt(leadId) },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limitNum,
+        skip: offset,
+      }),
+      prisma.leadFollowUp.count({ where: { leadId: parseInt(leadId) } }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        followUps,
+        pagination: {
+          currentPage: pageNum,
+          totalPages: Math.ceil(totalCount / limitNum),
+          totalItems: totalCount,
+          itemsPerPage: limitNum,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get lead follow-ups error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const createLeadFollowUp = async (req: Request, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
+
+    const { leadId } = req.params;
+    const { type, subject, notes, scheduledAt, reminderSet } = req.body;
+    const userId = (req as AuthenticatedRequest).user?.id;
+
+    // Check if lead exists
+    const lead = await prisma.lead.findUnique({
+      where: { id: parseInt(leadId), deletedAt: null },
+    });
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    const followUp = await prisma.leadFollowUp.create({
+      data: {
+        leadId: parseInt(leadId),
+        userId,
+        type: type?.toUpperCase() || "NOTE",
+        subject,
+        notes,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        reminderSet: Boolean(reminderSet),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // Log activity
+    await activityLoggers.leadFollowUpCreated(
+      {
+        leadId: lead.id,
+        leadName: `${lead.firstName} ${lead.lastName}`,
+        followUpType: followUp.type,
+        subject: followUp.subject,
+      },
+      userId
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Follow-up created successfully",
+      data: { followUp },
+    });
+  } catch (error) {
+    console.error("Create lead follow-up error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const updateLeadFollowUp = async (req: Request, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
+
+    const { leadId, followUpId } = req.params;
+    const { subject, notes, scheduledAt, completedAt, isCompleted } = req.body;
+    const userId = (req as AuthenticatedRequest).user?.id;
+
+    const followUp = await prisma.leadFollowUp.update({
+      where: { 
+        id: parseInt(followUpId),
+        leadId: parseInt(leadId)
+      },
+      data: {
+        subject,
+        notes,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+        completedAt: completedAt ? new Date(completedAt) : isCompleted ? new Date() : undefined,
+        isCompleted: Boolean(isCompleted),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        lead: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    // Log completion activity
+    if (isCompleted && !followUp.isCompleted) {
+      await activityLoggers.leadFollowUpCompleted(
+        {
+          leadId: followUp.lead.id,
+          leadName: `${followUp.lead.firstName} ${followUp.lead.lastName}`,
+          followUpType: followUp.type,
+          subject: followUp.subject,
+        },
+        userId
+      );
+    }
+
+    res.json({
+      success: true,
+      message: "Follow-up updated successfully",
+      data: { followUp },
+    });
+  } catch (error) {
+    console.error("Update lead follow-up error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Lead Communication History
+export const getLeadCommunications = async (req: Request, res: Response) => {
+  try {
+    const { leadId } = req.params;
+    const { page = 1, limit = 10, type } = req.query;
+
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.min(100, Math.max(1, Number(limit)));
+    const offset = (pageNum - 1) * limitNum;
+
+    const whereClause: any = { leadId: parseInt(leadId) };
+    if (type) {
+      whereClause.type = (type as string).toUpperCase();
+    }
+
+    const [communications, totalCount] = await Promise.all([
+      prisma.leadCommunication.findMany({
+        where: whereClause,
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limitNum,
+        skip: offset,
+      }),
+      prisma.leadCommunication.count({ where: whereClause }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        communications,
+        pagination: {
+          currentPage: pageNum,
+          totalPages: Math.ceil(totalCount / limitNum),
+          totalItems: totalCount,
+          itemsPerPage: limitNum,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get lead communications error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const createLeadCommunication = async (req: Request, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
+
+    const { leadId } = req.params;
+    const { type, subject, content, direction, duration, outcome, scheduledAt, completedAt } = req.body;
+    const userId = (req as AuthenticatedRequest).user?.id;
+
+    const communication = await prisma.leadCommunication.create({
+      data: {
+        leadId: parseInt(leadId),
+        userId,
+        type: type?.toUpperCase() || "NOTE",
+        subject,
+        content,
+        direction: direction || "outbound",
+        duration: duration ? parseInt(duration) : null,
+        outcome,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+        completedAt: completedAt ? new Date(completedAt) : null,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // Log activity
+    await activityLoggers.communicationLogged(
+      {
+        leadId: parseInt(leadId),
+        communicationType: communication.type,
+        direction: communication.direction,
+      },
+      userId
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Communication logged successfully",
+      data: { communication },
+    });
+  } catch (error) {
+    console.error("Create lead communication error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// Bulk Import/Export Functions
+export const downloadCSVTemplate = async (req: Request, res: Response) => {
+  try {
+    const bulkImportService = new BulkImportService(prisma);
+    const csvContent = await bulkImportService.generateCSVTemplate();
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="leads_template.csv"');
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Download CSV template error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating CSV template',
+    });
+  }
+};
+
+export const bulkImportLeads = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as AuthenticatedRequest).user?.id;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'CSV file is required',
+      });
+    }
+
+    const bulkImportService = new BulkImportService(prisma);
+    const result = await bulkImportService.processCSVFile(
+      req.file.path,
+      req.file.originalname,
+      userId
+    );
+
+    res.json({
+      success: true,
+      message: `Import completed. ${result.successRows} leads imported successfully, ${result.failedRows} failed.`,
+      data: result,
+    });
+  } catch (error) {
+    console.error('Bulk import leads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing CSV file',
+    });
+  }
+};
+
+export const exportLeads = async (req: Request, res: Response) => {
+  try {
+    const { status, assignedTo, createdAfter, createdBefore } = req.query;
+    
+    const filters: any = {};
+    if (status) filters.status = status as string;
+    if (assignedTo) filters.assignedTo = parseInt(assignedTo as string);
+    if (createdAfter) filters.createdAfter = new Date(createdAfter as string);
+    if (createdBefore) filters.createdBefore = new Date(createdBefore as string);
+
+    const bulkImportService = new BulkImportService(prisma);
+    const csvContent = await bulkImportService.exportLeadsToCSV(filters);
+    
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const filename = `leads_export_${timestamp}.csv`;
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csvContent);
+  } catch (error) {
+    console.error('Export leads error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error exporting leads',
+    });
+  }
+};
+
+export const getImportBatches = async (req: Request, res: Response) => {
+  try {
+    const { limit = 50 } = req.query;
+    const userId = (req as AuthenticatedRequest).user?.id;
+    
+    const bulkImportService = new BulkImportService(prisma);
+    const batches = await bulkImportService.getImportBatches(userId, parseInt(limit as string));
+    
+    res.json({
+      success: true,
+      data: { batches },
+    });
+  } catch (error) {
+    console.error('Get import batches error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching import batches',
+    });
+  }
+};
+
+export const getImportBatchDetails = async (req: Request, res: Response) => {
+  try {
+    const { batchId } = req.params;
+    
+    const bulkImportService = new BulkImportService(prisma);
+    const batchDetails = await bulkImportService.getImportBatchDetails(parseInt(batchId));
+    
+    if (!batchDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'Import batch not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: { batch: batchDetails },
+    });
+  } catch (error) {
+    console.error('Get import batch details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching import batch details',
+    });
+  }
+};
+
+// Integration Functions
+export const syncAllIntegrations = async (req: Request, res: Response) => {
+  try {
+    const integrationManager = new IntegrationManager(prisma);
+    await integrationManager.initializeIntegrations();
+    
+    const result = await integrationManager.syncAllIntegrations();
+    
+    res.json({
+      success: true,
+      message: 'Integration sync completed',
+      data: result,
+    });
+  } catch (error) {
+    console.error('Sync all integrations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error syncing integrations',
+    });
+  }
+};
+
+export const syncIntegration = async (req: Request, res: Response) => {
+  try {
+    const { integrationName } = req.params;
+    
+    const integrationManager = new IntegrationManager(prisma);
+    await integrationManager.initializeIntegrations();
+    
+    const result = await integrationManager.syncIntegration(integrationName);
+    
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error || 'Integration sync failed',
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: `${integrationName} integration synced successfully`,
+      data: { count: result.count },
+    });
+  } catch (error) {
+    console.error('Sync integration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error syncing integration',
+    });
+  }
+};
+
+export const testIntegration = async (req: Request, res: Response) => {
+  try {
+    const { integrationName } = req.params;
+    
+    const integrationManager = new IntegrationManager(prisma);
+    await integrationManager.initializeIntegrations();
+    
+    const result = await integrationManager.testIntegration(integrationName);
+    
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error || 'Integration test failed',
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: `${integrationName} integration test successful`,
+    });
+  } catch (error) {
+    console.error('Test integration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error testing integration',
+    });
+  }
+};
+
+export const getIntegrationLogs = async (req: Request, res: Response) => {
+  try {
+    const { integrationName } = req.query;
+    const { limit = 50 } = req.query;
+    
+    const integrationManager = new IntegrationManager(prisma);
+    const logs = await integrationManager.getIntegrationLogs(
+      integrationName as string,
+      parseInt(limit as string)
+    );
+    
+    res.json({
+      success: true,
+      data: { logs },
+    });
+  } catch (error) {
+    console.error('Get integration logs error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching integration logs',
+    });
+  }
+};
+
+// Convert Lead to Contact, Company, and Deal
+export const convertLead = async (req: Request, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation errors",
+        errors: errors.array(),
+      });
+    }
+
+    const { id } = req.params;
+    const {
+      createContact = true,
+      createCompany = false,
+      createDeal = false,
+      contactData = {},
+      companyData = {},
+      dealData = {}
+    } = req.body;
+
+    const userId = (req as AuthenticatedRequest).user?.id;
+
+    // Check if lead exists and is not already converted
+    const existingLead = await prisma.lead.findUnique({
+      where: { id: parseInt(id), deletedAt: null },
+      include: {
+        assignedUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    if (existingLead.status === "CONVERTED") {
+      return res.status(400).json({
+        success: false,
+        message: "Lead is already converted",
+      });
+    }
+
+    // Start transaction for conversion
+    const result = await prisma.$transaction(async (tx) => {
+      let createdContact = null;
+      let createdCompany = null;
+      let createdDeal = null;
+
+      // 1. Create Contact if requested
+      if (createContact) {
+        const contactEmail = contactData.email || existingLead.email;
+        
+        // Check if contact with email already exists
+        const existingContact = await tx.contact.findFirst({
+          where: { email: contactEmail, deletedAt: null },
+        });
+
+        if (existingContact) {
+          createdContact = existingContact;
+        } else {
+          createdContact = await tx.contact.create({
+            data: {
+              firstName: contactData.firstName || existingLead.firstName,
+              lastName: contactData.lastName || existingLead.lastName,
+              email: contactEmail,
+              phone: contactData.phone || existingLead.phone,
+              company: contactData.company || existingLead.company,
+              position: contactData.position || existingLead.position,
+              address: contactData.address || existingLead.address,
+              website: contactData.website || existingLead.website,
+              notes: contactData.notes || existingLead.notes,
+              assignedTo: existingLead.assignedTo,
+              companyId: existingLead.companyId,
+            },
+            include: {
+              assignedUser: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          });
+        }
+      }
+
+      // 2. Create Company if requested
+      if (createCompany && companyData.name) {
+        // Check if company with name already exists
+        const existingCompanyRecord = await tx.companies.findFirst({
+          where: { name: companyData.name },
+        });
+
+        if (existingCompanyRecord) {
+          createdCompany = existingCompanyRecord;
+        } else {
+          createdCompany = await tx.companies.create({
+            data: {
+              name: companyData.name,
+              domain: companyData.domain,
+              slug: companyData.slug || companyData.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+              industryId: companyData.industryId,
+              updatedAt: new Date(),
+            },
+          });
+        }
+      }
+
+      // 3. Create Deal if requested
+      if (createDeal && dealData.title) {
+        createdDeal = await tx.deal.create({
+          data: {
+            title: dealData.title,
+            description: dealData.description,
+            value: dealData.value ? parseFloat(dealData.value) : null,
+            currency: dealData.currency || "USD",
+            status: dealData.status ? dealData.status.toUpperCase() : "DRAFT",
+            probability: dealData.probability || 0,
+            expectedCloseDate: dealData.expectedCloseDate ? new Date(dealData.expectedCloseDate) : null,
+            assignedTo: existingLead.assignedTo,
+            contactId: createdContact?.id,
+            leadId: existingLead.id,
+            companyId: createdCompany?.id || existingLead.companyId,
+          },
+          include: {
+            assignedUser: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            contact: true,
+            companies: true,
+          },
+        });
+      }
+
+      // 4. Update Lead status to CONVERTED and link to contact
+      const updatedLead = await tx.lead.update({
+        where: { id: parseInt(id) },
+        data: {
+          status: "CONVERTED",
+          convertedToContactId: createdContact?.id,
+          updatedAt: new Date(),
+        },
+        include: {
+          assignedUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          convertedToContact: true,
+          tags: {
+            select: {
+              tag: {
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return {
+        lead: updatedLead,
+        contact: createdContact,
+        company: createdCompany,
+        deal: createdDeal,
+      };
+    });
+
+    // Transform lead tags data
+    const transformedLead = {
+      ...result.lead,
+      tags: result.lead.tags.map((lt) => lt.tag),
+    };
+
+    // Log the conversion activity
+    await activityLoggers.leadUpdated(
+      {
+        id: result.lead.id,
+        firstName: result.lead.firstName,
+        lastName: result.lead.lastName,
+        email: result.lead.email,
+      },
+      userId
+    );
+
+    // Create specific activity log for lead conversion
+    await prisma.activity.create({
+      data: {
+        title: "Lead Converted",
+        description: `Lead ${result.lead.firstName} ${result.lead.lastName} was converted to ${
+          result.contact ? "Contact" : ""
+        }${
+          result.company ? (result.contact ? ", Company" : "Company") : ""
+        }${
+          result.deal ? ((result.contact || result.company) ? ", and Deal" : "Deal") : ""
+        }`,
+        type: "LEAD_CONVERTED",
+        icon: "FiCheckCircle",
+        iconColor: "text-green-600",
+        tags: ["conversion", "lead"],
+        metadata: {
+          leadId: result.lead.id,
+          contactId: result.contact?.id,
+          companyId: result.company?.id,
+          dealId: result.deal?.id,
+        },
+        userId,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: "Lead converted successfully",
+      data: {
+        lead: transformedLead,
+        contact: result.contact,
+        company: result.company,
+        deal: result.deal,
+      },
+    });
+  } catch (error) {
+    console.error("Convert lead error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

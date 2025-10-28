@@ -1,0 +1,10 @@
+
+> vite-react-typescript-starter@0.0.0 dev
+> vite --host
+
+
+  VITE v5.4.8  ready in 360 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.1.13:5173/
+  ➜  press h + enter to show help

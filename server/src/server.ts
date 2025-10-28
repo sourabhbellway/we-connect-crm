@@ -9,6 +9,7 @@ import swaggerDocument from "../swagger.json";
 
 import { prisma } from "./lib/prisma";
 import { seedInitialData } from "./seeders/initialData";
+import { IntegrationScheduler } from "./services/IntegrationScheduler";
 
 // Routes
 import authRoutes from "./routes/authRoutes";
@@ -21,6 +22,19 @@ import leadSourceRoutes from "./routes/leadSourceRoutes";
 import industryRoutes from "./routes/industryRoutes";
 import permissionRoutes from "./routes/permissionRoutes";
 import activityRoutes from "./routes/activityRoutes";
+import businessSettingsRoutes from "./routes/businessSettingsRoutes";
+import taskRoutes from "./routes/taskRoutes";
+import contactRoutes from "./routes/contactRoutes";
+import companyRoutes from "./routes/companyRoutes";
+import dealRoutes from "./routes/dealRoutes";
+import leadAnalyticsRoutes from "./routes/leadAnalyticsRoutes";
+import callLogRoutes from "./routes/callLogRoutes";
+import communicationRoutes from "./routes/communicationRoutes";
+import proposalTemplateRoutes from "./routes/proposalTemplateRoutes";
+import quotationRoutes from "./routes/quotationRoutes";
+import invoiceRoutes from "./routes/invoiceRoutes";
+import productRoutes from "./routes/productRoutes";
+import fileRoutes from "./routes/fileRoutes";
 
 dotenv.config();
 
@@ -39,6 +53,10 @@ app.use(
             "http://localhost:3000",
             "http://localhost:5174",
             "http://localhost:7001",
+            "http://192.168.1.247:5173",
+            "http://192.168.1.247:5174",
+            "http://192.168.1.4:5173",
+            "http://192.168.1.4:5174",
           ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -79,9 +97,16 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// API routes
+// API routes - Specific paths first to avoid conflicts
 app.use("/api/auth", authRoutes);
 app.use("/api/auth", superAdminAuthRoutes); // Super Admin authentication routes
+app.use("/api/files", fileRoutes); // Mount files route early to prevent conflicts
+app.use("/api/call-logs", callLogRoutes);
+app.use("/api/communication", communicationRoutes);
+app.use("/api/proposal-templates", proposalTemplateRoutes);
+app.use("/api/quotations", quotationRoutes);
+app.use("/api/invoices", invoiceRoutes);
+app.use("/api/products", productRoutes);
 app.use("/api", roleRoutes);
 app.use("/api", userRoutes);
 app.use("/api", leadRoutes);
@@ -90,6 +115,12 @@ app.use("/api", leadSourceRoutes);
 app.use("/api", industryRoutes);
 app.use("/api", permissionRoutes);
 app.use("/api", activityRoutes);
+app.use("/api", businessSettingsRoutes);
+app.use("/api", taskRoutes);
+app.use("/api", contactRoutes);
+app.use("/api", companyRoutes);
+app.use("/api", dealRoutes);
+app.use("/api", leadAnalyticsRoutes);
 
 // 404 handler
 app.use("*", (req, res) => {
@@ -119,12 +150,22 @@ app.use(
 // Database connection and server start
 const startServer = async () => {
   try {
+    console.log("Starting server initialization...");
+    console.log("Attempting database connection...");
     // Test database connection
     await prisma.$connect();
     console.log("Database connection established successfully.");
 
     // Seed initial data
-    await seedInitialData();
+    // TEMPORARILY DISABLED - causing startup issues
+    // await seedInitialData();
+    console.log("⏭️  Skipping seed data (already exists)");
+
+    // Initialize Integration Scheduler for automatic lead fetching
+    // TEMPORARILY DISABLED - causing startup issues
+    // const integrationScheduler = new IntegrationScheduler(prisma);
+    // await integrationScheduler.initialize();
+    console.log("🔄 Integration Scheduler temporarily disabled");
 
     // Start server
     app.listen(Number(PORT), "0.0.0.0", () => {

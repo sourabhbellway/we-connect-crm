@@ -1,9 +1,10 @@
 import axios from "axios";
 import { API_BASE_URL } from "../config/config";
+import { STORAGE_KEYS } from "../constants";
 
 // Get auth token from localStorage
 const getAuthToken = () => {
-  return localStorage.getItem("token");
+  return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
 };
 
 // Create axios instance with auth header

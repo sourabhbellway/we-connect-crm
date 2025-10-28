@@ -5,44 +5,67 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { User, AuthState, LoginRequest } from "../types/auth";
-import { authService } from "../services/authService";
+import { 
+  User, 
+  AuthState, 
+  LoginRequest,
+  RegisterRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  PasswordRequirements 
+} from "../types/auth";
+import { authService } from "../services/auth.service";
 import { userService } from "../services/userService";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
-  logout: () => void;
+  register: (userData: RegisterRequest) => Promise<void>;
+  logout: () => Promise<void>;
+  forgotPassword: (data: ForgotPasswordRequest) => Promise<void>;
+  resetPassword: (data: ResetPasswordRequest) => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
   checkAuth: () => Promise<void>;
   updateUser: (user: User) => void;
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string) => boolean;
+  validatePassword: (password: string) => { isValid: boolean; errors: string[] };
+  calculatePasswordStrength: (password: string) => { score: number; message: string; color: string };
+  autoLogin: () => Promise<boolean>;
+  clearError: () => void;
 }
 
 type AuthAction =
   | { type: "LOGIN_START" }
-  | {
-      type: "LOGIN_SUCCESS";
-      payload: { user: User; token: string; tokenExpiry: string };
-    }
+  | { type: "LOGIN_SUCCESS"; payload: { user: User; accessToken: string; refreshToken: string; tokenExpiry: string } }
   | { type: "LOGIN_FAILURE"; payload: string }
+  | { type: "REGISTER_START" }
+  | { type: "REGISTER_SUCCESS" }
+  | { type: "REGISTER_FAILURE"; payload: string }
   | { type: "LOGOUT" }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "CHECK_AUTH_SUCCESS"; payload: User }
   | { type: "CHECK_AUTH_FAILURE" }
   | { type: "TOKEN_EXPIRED" }
-  | { type: "UPDATE_USER"; payload: User };
+  | { type: "TOKEN_REFRESHED"; payload: string }
+  | { type: "UPDATE_USER"; payload: User }
+  | { type: "SET_ERROR"; payload: string }
+  | { type: "CLEAR_ERROR" }
+  | { type: "SET_PASSWORD_REQUIREMENTS"; payload: PasswordRequirements };
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem("token"),
+  accessToken: null,
+  refreshToken: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   error: null,
+  passwordRequirements: null,
 };
 
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
     case "LOGIN_START":
+    case "REGISTER_START":
       return {
         ...state,
         isLoading: true,
@@ -52,8 +75,15 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         user: action.payload.user,
-        token: action.payload.token,
+        accessToken: action.payload.accessToken,
+        refreshToken: action.payload.refreshToken,
         isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      };
+    case "REGISTER_SUCCESS":
+      return {
+        ...state,
         isLoading: false,
         error: null,
       };
@@ -61,16 +91,24 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         user: null,
-        token: null,
+        accessToken: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         error: "Session expired. Please login again.",
       };
+    case "TOKEN_REFRESHED":
+      return {
+        ...state,
+        accessToken: action.payload,
+      };
     case "LOGIN_FAILURE":
+    case "REGISTER_FAILURE":
       return {
         ...state,
         user: null,
-        token: null,
+        accessToken: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         error: action.payload,
@@ -79,7 +117,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         user: null,
-        token: null,
+        accessToken: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -101,7 +140,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         user: null,
-        token: null,
+        accessToken: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -110,6 +150,22 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         user: action.payload,
+      };
+    case "SET_ERROR":
+      return {
+        ...state,
+        error: action.payload,
+        isLoading: false,
+      };
+    case "CLEAR_ERROR":
+      return {
+        ...state,
+        error: null,
+      };
+    case "SET_PASSWORD_REQUIREMENTS":
+      return {
+        ...state,
+        passwordRequirements: action.payload,
       };
     default:
       return state;
@@ -121,16 +177,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    console.warn("useAuth called outside AuthProvider!");
-    return {
-      ...initialState,
-      login: async () => {},
-      logout: () => {},
-      checkAuth: async () => {},
-      updateUser: () => {},
-      hasPermission: () => false,
-      hasRole: () => false,
-    };
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
@@ -141,170 +188,117 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // No global testing helpers
-  React.useEffect(() => {}, []);
+  // Initialize authentication on app start
+  useEffect(() => {
+    const initAuth = async () => {
+      dispatch({ type: "SET_LOADING", payload: true });
+      
+      try {
+        const success = await authService.autoLogin();
+        if (success) {
+          const profileResponse = await authService.getProfile();
+          dispatch({ 
+            type: "CHECK_AUTH_SUCCESS", 
+            payload: profileResponse.data.user 
+          });
+        } else {
+          dispatch({ type: "CHECK_AUTH_FAILURE" });
+        }
+      } catch (error) {
+        console.error('Auto-login failed:', error);
+        dispatch({ type: "CHECK_AUTH_FAILURE" });
+      }
+    };
+
+    initAuth();
+  }, []);
 
   const login = async (credentials: LoginRequest) => {
     try {
       dispatch({ type: "LOGIN_START" });
-
       const response = await authService.login(credentials);
-
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("tokenExpiry", response.data.tokenExpiry);
-      const userid = response.data.user.id?.toString();
-      if (userid) {
-        localStorage.setItem("userId", userid);
-      }
-
-      // Fetch roles from new API and enrich with permissions
-      let rolesFromApi: any[] = [];
-      try {
-        if (userid) {
-          const rolesResp = await userService.getUserRoles(Number(userid));
-          rolesFromApi = (rolesResp as any)?.data?.user?.roles
-            ?? (rolesResp as any)?.roles
-            ?? (rolesResp as any)?.data?.roles
-            ?? (Array.isArray(rolesResp) ? (rolesResp as any) : []);
-        }
-      } catch (e) {
-        console.error("Failed to fetch user roles from API", e);
-        rolesFromApi = [];
-      }
-
-      let enrichedRoles = rolesFromApi;
-      try {
-        const rolesNeedingPermissions = enrichedRoles.filter(
-          (r: any) => !Array.isArray(r?.permissions) || r.permissions.length === 0
-        );
-        if (rolesNeedingPermissions.length > 0) {
-          const permissionsByRoleIdEntries = await Promise.all(
-            rolesNeedingPermissions.map(async (r: any) => {
-              try {
-                const perms = await authService.getPermissionsForRole(String(r.id));
-                return [r.id, perms] as const;
-              } catch (err) {
-                console.error("Failed to fetch permissions for role", r?.id, err);
-                return [r.id, []] as const;
-              }
-            })
-          );
-          const permissionsByRoleId = new Map<number, any[]>(permissionsByRoleIdEntries as any);
-          enrichedRoles = enrichedRoles.map((r: any) => ({
-            ...r,
-            permissions: Array.isArray(r?.permissions) && r.permissions.length > 0
-              ? r.permissions
-              : permissionsByRoleId.get(r.id) || [],
-          }));
-        }
-      } catch (e) {
-        console.error("Failed to enrich roles with permissions", e);
-      }
-
-      const enrichedUser = {
-        ...response.data.user,
-        roles: enrichedRoles,
-      } as any;
+      
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
-          user: enrichedUser,
-          token: response.data.token,
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken,
           tokenExpiry: response.data.tokenExpiry,
         },
       });
     } catch (error: any) {
-      const message =
-        error.response?.data?.message || "An error occurred during login";
+      const message = error.message || "Login failed";
       dispatch({ type: "LOGIN_FAILURE", payload: message });
       throw error;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("tokenExpiry");
-    dispatch({ type: "LOGOUT" });
+  const register = async (userData: RegisterRequest) => {
+    try {
+      dispatch({ type: "REGISTER_START" });
+      const response = await authService.register(userData);
+      dispatch({ type: "REGISTER_SUCCESS" });
+      return response;
+    } catch (error: any) {
+      const message = error.message || "Registration failed";
+      dispatch({ type: "REGISTER_FAILURE", payload: message });
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      dispatch({ type: "LOGOUT" });
+    }
+  };
+
+  const forgotPassword = async (data: ForgotPasswordRequest) => {
+    try {
+      return await authService.forgotPassword(data);
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const resetPassword = async (data: ResetPasswordRequest) => {
+    try {
+      return await authService.resetPassword(data);
+    } catch (error: any) {
+      throw error;
+    }
+  };
+
+  const verifyEmail = async (token: string) => {
+    try {
+      return await authService.verifyEmail(token);
+    } catch (error: any) {
+      throw error;
+    }
   };
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        dispatch({ type: "CHECK_AUTH_FAILURE" });
-        return;
-      }
-      // Try to get regular user profile
-      try {
-        const response = await authService.getProfile();
-        const baseUser = response.data.user;
-
-        // Fetch roles from new API and enrich with permissions
-        let rolesFromApi: any[] = [];
-        try {
-          const uid = baseUser?.id;
-          if (typeof uid === "number") {
-            const rolesResp = await userService.getUserRoles(uid);
-            rolesFromApi = (rolesResp as any)?.data?.user?.roles
-              ?? (rolesResp as any)?.roles
-              ?? (rolesResp as any)?.data?.roles
-              ?? (Array.isArray(rolesResp) ? (rolesResp as any) : []);
-          }
-        } catch (e) {
-          console.error("Failed to fetch user roles during checkAuth", e);
-        }
-
-        let enrichedRoles = rolesFromApi;
-        try {
-          const rolesNeedingPermissions = enrichedRoles.filter(
-            (r: any) => !Array.isArray(r?.permissions) || r.permissions.length === 0
-          );
-          if (rolesNeedingPermissions.length > 0) {
-            const permissionsByRoleIdEntries = await Promise.all(
-              rolesNeedingPermissions.map(async (r: any) => {
-                try {
-                  const perms = await authService.getPermissionsForRole(String(r.id));
-                  return [r.id, perms] as const;
-                } catch (err) {
-                  console.error("Failed to fetch permissions for role", r?.id, err);
-                  return [r.id, []] as const;
-                }
-              })
-            );
-            const permissionsByRoleId = new Map<number, any[]>(permissionsByRoleIdEntries as any);
-            enrichedRoles = enrichedRoles.map((r: any) => ({
-              ...r,
-              permissions: Array.isArray(r?.permissions) && r.permissions.length > 0
-                ? r.permissions
-                : permissionsByRoleId.get(r.id) || [],
-            }));
-          }
-        } catch (e) {
-          console.error("Failed to enrich roles with permissions during checkAuth", e);
-        }
-
-        const enrichedUser = { ...(baseUser as any), roles: enrichedRoles } as any;
-        dispatch({ type: "CHECK_AUTH_SUCCESS", payload: enrichedUser });
-      } catch (profileError: any) {
-        if (profileError.response?.status === 401) {
-          dispatch({ type: "TOKEN_EXPIRED" });
-        } else {
-          dispatch({ type: "CHECK_AUTH_FAILURE" });
-        }
-      }
-    } catch (error: any) {
-      // Handle 401 errors by dispatching TOKEN_EXPIRED
-      if (error.response?.status === 401) {
-        dispatch({ type: "TOKEN_EXPIRED" });
-      } else {
-        dispatch({ type: "CHECK_AUTH_FAILURE" });
-      }
+      const profileResponse = await authService.getProfile();
+      dispatch({ 
+        type: "CHECK_AUTH_SUCCESS", 
+        payload: profileResponse.data.user 
+      });
+    } catch (error) {
+      dispatch({ type: "CHECK_AUTH_FAILURE" });
     }
+  };
+
+  const updateUser = (user: User) => {
+    dispatch({ type: "UPDATE_USER", payload: user });
   };
 
   const hasPermission = (permission: string): boolean => {
     if (!state.user || !state.user.roles) return false;
-
     return state.user.roles.some((role) =>
       role.permissions.some((perm) => perm.key === permission)
     );
@@ -312,86 +306,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const hasRole = (roleName: string): boolean => {
     if (!state.user || !state.user.roles) return false;
-
     return state.user.roles.some((role) => role.name === roleName);
   };
 
-
-  // Set up token expiry timer
-  useEffect(() => {
-    const tokenExpiry = localStorage.getItem("tokenExpiry");
-    if (tokenExpiry) {
-      const expiryTime = new Date(tokenExpiry);
-      const now = new Date();
-      const timeUntilExpiry = expiryTime.getTime() - now.getTime();
-
-      if (timeUntilExpiry > 0) {
-        const timer = setTimeout(() => {
-          dispatch({ type: "TOKEN_EXPIRED" });
-          localStorage.removeItem("token");
-          localStorage.removeItem("tokenExpiry");
-        }, timeUntilExpiry);
-
-        return () => clearTimeout(timer);
-      } else {
-        // Token already expired
-        dispatch({ type: "TOKEN_EXPIRED" });
-        localStorage.removeItem("token");
-        localStorage.removeItem("tokenExpiry");
-      }
-    }
-  }, [state.token]);
-
-  // Check token expiry when page becomes visible (for DevTools testing)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        const tokenExpiry = localStorage.getItem("tokenExpiry");
-        if (tokenExpiry) {
-          const expiryTime = new Date(tokenExpiry);
-          const now = new Date();
-
-          if (now >= expiryTime) {
-            dispatch({ type: "TOKEN_EXPIRED" });
-            localStorage.removeItem("token");
-            localStorage.removeItem("tokenExpiry");
-          }
-        }
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
-
-  useEffect(() => {
-    checkAuth();
-    
-    // Listen for token expiry events from API interceptor
-    const handleTokenExpiry = () => {
-      dispatch({ type: "TOKEN_EXPIRED" });
-    };
-    
-    window.addEventListener('tokenExpired', handleTokenExpiry);
-    
-    return () => {
-      window.removeEventListener('tokenExpired', handleTokenExpiry);
-    };
-  }, []);
-
-  const updateUser = (user: User) => {
-    dispatch({ type: "UPDATE_USER", payload: user });
+  const validatePassword = (password: string) => {
+    return authService.validatePassword(password, state.passwordRequirements || undefined);
   };
+
+  const calculatePasswordStrength = (password: string) => {
+    return authService.calculatePasswordStrength(password);
+  };
+
+  const autoLogin = async (): Promise<boolean> => {
+    return authService.autoLogin();
+  };
+
+  const clearError = () => {
+    dispatch({ type: "CLEAR_ERROR" });
+  };
+
+  // Set up token refresh timer
+  useEffect(() => {
+    if (!state.isAuthenticated || !state.accessToken) return;
+
+    const tokenExpiry = localStorage.getItem('tokenExpiry');
+    if (!tokenExpiry) return;
+
+    const expiryTime = new Date(tokenExpiry);
+    const now = new Date();
+    const timeUntilExpiry = expiryTime.getTime() - now.getTime();
+    const refreshTime = timeUntilExpiry - 5 * 60 * 1000; // Refresh 5 minutes before expiry
+
+    if (refreshTime > 0) {
+      const timer = setTimeout(async () => {
+        try {
+          const refreshResponse = await authService.refreshToken();
+          dispatch({ 
+            type: "TOKEN_REFRESHED", 
+            payload: refreshResponse.data.accessToken 
+          });
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+          dispatch({ type: "TOKEN_EXPIRED" });
+        }
+      }, refreshTime);
+
+      return () => clearTimeout(timer);
+    } else if (timeUntilExpiry <= 0) {
+      // Token already expired
+      dispatch({ type: "TOKEN_EXPIRED" });
+    }
+  }, [state.accessToken, state.isAuthenticated]);
 
   const value: AuthContextType = {
     ...state,
     login,
+    register,
     logout,
+    forgotPassword,
+    resetPassword,
+    verifyEmail,
     checkAuth,
     updateUser,
     hasPermission,
     hasRole,
+    validatePassword,
+    calculatePasswordStrength,
+    autoLogin,
+    clearError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

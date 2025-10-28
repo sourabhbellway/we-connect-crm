@@ -3,9 +3,11 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useCounts } from "../contexts/CountsContext";
+import { useMenu } from "../contexts/MenuContext";
 import { useTranslation } from "react-i18next";
 import LanguageSelector from "./LanguageSelector";
 import ConfirmModal from "./ConfirmModal";
+import DraggableNavigation from "./DraggableNavigation";
 import {
   Menu,
   X,
@@ -23,8 +25,11 @@ import {
   LogOut,
   Settings,
   Trash2,
+  DollarSign,
+  CheckSquare,
+  Zap,
+  MessageSquare,
 } from "lucide-react";
-import SidebarDropdown from "./SidebarDropdown";
 import WeConnectLogo from "../assets/WeConnect_Logo_C2C.svg";
 import { API_BASE_URL } from "../config/config";
 
@@ -41,6 +46,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout, hasPermission } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { counts } = useCounts();
+  const { resetMenuOrder } = useMenu();
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,6 +85,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   const navigation: Array<{
+    id: string;
     name: string;
     href: string;
     icon: any;
@@ -87,20 +94,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     badgeColor?: string;
   }> = [
     {
+      id: "dashboard",
       name: t("navigation.dashboard"),
       href: "/",
       icon: Home,
       permission: "dashboard.read",
     },
     {
-      name: t("navigation.users"),
-      href: "/users",
-      icon: AudienceIcon,
-      permission: "user.read",
-      badge: counts.users.toString(),
-      badgeColor: "bg-blue-500",
-    },
-    {
+      id: "leads",
       name: t("navigation.leads"),
       href: "/leads",
       icon: FileText,
@@ -109,14 +110,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       badgeColor: "bg-green-500",
     },
     {
-      name: t("navigation.roles"),
-      href: "/roles",
-      icon: Calendar,
-      permission: "role.read",
-      badge: counts.roles.toString(),
-      badgeColor: "bg-orange-500",
+      id: "expense-management",
+      name: "Expense Management",
+      href: "/expense-management",
+      icon: DollarSign,
     },
     {
+      id: "task-management",
+      name: "Task Management",
+      href: "/task-management",
+      icon: CheckSquare,
+    },
+    {
+      id: "automation-management",
+      name: "Automation Management",
+      href: "/automation-management",
+      icon: Zap,
+    },
+    {
+      id: "communication-management",
+      name: "Communication Management",
+      href: "/communication-management",
+      icon: MessageSquare,
+    },
+    {
+      id: "business-settings",
+      name: "Business Settings",
+      href: "/business-settings",
+      icon: Settings,
+      permission: "role.read", // Temporary: using existing permission
+    },
+    {
+      id: "trash",
       name: "Trash",
       href: "/trash",
       icon: Trash2,
@@ -124,82 +149,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     },
   ].filter((item) => (item.permission ? hasPermission(item.permission) : true));
 
-  const settingsChildren = [
-    {
-      name: "User Settings",
-      href: "/settings/users",
-      permission: "settings.read",
-    },
-    {
-      name: "Lead Settings",
-      href: "/settings/leads",
-      permission: "settings.read",
-    },
-    {
-      name: "Industry Settings",
-      href: "/settings/industries",
-      permission: "settings.read",
-    },
-  ];
 
   const isActive = (path: string) => {
     return location.pathname === path;
-  };
-
-  const renderNavItem = (item: any) => {
-    const Icon = item.icon;
-    const isItemActive = isActive(item.href);
-    const isHovered = hoveredItem === item.name;
-
-    return (
-      <div key={item.name} className="relative">
-        <div
-          className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium  cursor-pointer ${
-            sidebarCollapsed ? "justify-center px-3 py-2" : "justify-between"
-          } ${
-            isItemActive
-              ? "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-          }`}
-          onMouseEnter={() => setHoveredItem(item.name)}
-          onMouseLeave={() => setHoveredItem(null)}
-          onClick={() => {
-            navigate(item.href);
-            setSidebarOpen(false);
-          }}
-        >
-          <div
-            className={`flex items-center ${
-              sidebarCollapsed ? "justify-center" : ""
-            }`}
-          >
-            <Icon
-              size={20}
-              className={`${sidebarCollapsed ? "mr-0 " : "mr-3"}`}
-            />
-            {!sidebarCollapsed && <span>{item.name}</span>}
-          </div>
-          {!sidebarCollapsed && (
-            <div className="flex items-center">
-              {item.badge && item.badge !== "0" && (
-                <span
-                  className={`ml-2 px-2 py-1 text-xs rounded-full text-white ${item.badgeColor}`}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Hover tooltip for collapsed sidebar */}
-        {sidebarCollapsed && isHovered && (
-          <div className="absolute left-full ml-2 px-3 py-2 bg-gray-800 dark:bg-gray-900 text-white text-sm rounded-lg shadow-lg z-50">
-            {item.name}
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -263,19 +215,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
 
         <nav className="mt-8 px-4">
-          <div className={`${sidebarCollapsed ? "space-y-1" : "space-y-2"}`}>
-            {navigation.map(renderNavItem)}
-            {/* Settings Dropdown */}
-            <SidebarDropdown
-              name={"Settings"}
-              icon={Settings}
-              isCollapsed={sidebarCollapsed}
-              childrenItems={settingsChildren}
-              canShowChild={(perm?: string) =>
-                perm ? hasPermission(perm) : true
-              }
-            />
-          </div>
+          <DraggableNavigation
+            navigationItems={navigation}
+            activeHref={location.pathname}
+            sidebarCollapsed={sidebarCollapsed}
+            hoveredItem={hoveredItem}
+            onHover={setHoveredItem}
+            onNavigate={navigate}
+            setSidebarOpen={setSidebarOpen}
+          />
+          
+          {/* Menu reorder info and reset */}
+          {!sidebarCollapsed && (
+            <div className="mt-6 px-3 py-3 border-t border-gray-200 dark:border-gray-700">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                {t('menu.dragToReorder', 'Drag menu items to reorder')}
+              </div>
+              <button
+                onClick={resetMenuOrder}
+                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                title={t('menu.resetOrder', 'Reset menu order')}
+              >
+                {t('menu.resetToDefault', 'Reset to default')}
+              </button>
+            </div>
+          )}
         </nav>
 
         {/* Profile shortcut removed to avoid duplication; use top-right user menu */}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import WeConnectLogo from "../assets/logo.png";
 import { toast } from "react-toastify";
@@ -17,6 +18,7 @@ const Login: React.FC = () => {
   );
 
   const { login, isLoading, isAuthenticated } = useAuth();
+  const { companySettings } = useBusinessSettings();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,44 +96,60 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#2B2C2B] via-[#1E1F1F] to-black py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* Brand radial glows */}
-      <div className="pointer-events-none absolute -top-28 -left-28 h-[28rem] w-[28rem] rounded-full bg-[#EF444E] opacity-30 blur-3xl"></div>
-      <div className="pointer-events-none absolute -bottom-28 -right-28 h-[30rem] w-[30rem] rounded-full bg-white opacity-[0.08] blur-3xl"></div>
-      <div className="pointer-events-none absolute top-1/3 -right-24 h-72 w-72 rounded-full bg-[#EF444E] opacity-10 blur-2xl"></div>
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Modern background effects */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-40 -left-40 h-80 w-80 rounded-full bg-weconnect-red opacity-20 blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-blue-500 opacity-10 blur-3xl"></div>
+        <div className="absolute top-1/2 -right-20 h-60 w-60 rounded-full bg-purple-500 opacity-15 blur-2xl"></div>
+        <div className="absolute top-1/4 -left-20 h-40 w-40 rounded-full bg-cyan-400 opacity-20 blur-2xl"></div>
+      </div>
 
       <div className="relative max-w-md w-full">
-        {/* Glass card */}
-        <div className="rounded-3xl border border-white/15 bg-white/10 dark:bg-white/5 backdrop-blur-2xl shadow-2xl p-4">
+        {/* Modern glass card */}
+        <div className="relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
+          {/* Subtle inner glow */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-transparent"></div>
+          
           {/* Header */}
-          <div className="text-center">
-            <img
-              src={WeConnectLogo}
-              alt="WeConnect"
-              className="mx-auto w-60  mb-4"
-            />
-            <h2 className="text-xl font-bold text-white tracking-tight">
+          <div className="relative text-center mb-8">
+            <div className="mb-6">
+              {companySettings?.logo ? (
+                <img
+                  src={companySettings.logo}
+                  alt={companySettings.name || "CRM"}
+                  className="mx-auto max-w-[200px] max-h-[80px] w-auto h-auto object-contain"
+                />
+              ) : (
+                <img
+                  src={WeConnectLogo}
+                  alt="WeConnect"
+                  className="mx-auto w-48 h-auto"
+                />
+              )}
+            </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
               Welcome back
-            </h2>
-            <p className="mt-1 text-sm text-white/70">
-              Sign in to your CRM account
+            </h1>
+            <p className="text-base text-white/60">
+              Sign in to {companySettings?.name ? `${companySettings.name} CRM` : 'your CRM dashboard'}
             </p>
           </div>
 
           {/* Error is shown via toast only */}
 
           {/* Form */}
-          <form className="mt-6 space-y-6" onSubmit={handleSubmit} noValidate>
+          <form className="relative space-y-6" onSubmit={handleSubmit} noValidate>
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-white/80 mb-2"
+                className="block text-sm font-semibold text-white/90 mb-3"
               >
                 Email Address
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-white " />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
                 <input
                   id="email"
@@ -140,12 +158,12 @@ const Login: React.FC = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`block w-full pl-10 pr-3 py-3 rounded-xl border bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#EF444E] focus:border-transparent transition-colors ${
+                  className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
                     errors.email
-                      ? "border-red-400/60"
-                      : "border-white/20 hover:border-white/30"
+                      ? "border-red-400/60 ring-red-400/20"
+                      : "border-white/10 hover:border-white/20 hover:bg-white/10"
                   }`}
-                  placeholder="Enter your email"
+                  placeholder="Enter your email address"
                 />
               </div>
               {errors.email && (
@@ -156,13 +174,13 @@ const Login: React.FC = () => {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-white/80 mb-2"
+                className="block text-sm font-semibold text-white/90 mb-3"
               >
                 Password
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-white" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
                 <input
                   id="password"
@@ -171,22 +189,22 @@ const Login: React.FC = () => {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`block w-full pl-10 pr-10 py-3 rounded-xl border bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#EF444E] focus:border-transparent transition-colors ${
+                  className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
                     errors.password
-                      ? "border-red-400/60"
-                      : "border-white/20 hover:border-white/30"
+                      ? "border-red-400/60 ring-red-400/20"
+                      : "border-white/10 hover:border-white/20 hover:bg-white/10"
                   }`}
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-weconnect-red transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-white" />
+                    <EyeOff className="h-5 w-5 text-white/60" />
                   ) : (
-                    <Eye className="h-5 w-5 text-white" />
+                    <Eye className="h-5 w-5 text-white/60" />
                   )}
                 </button>
               </div>
@@ -196,11 +214,11 @@ const Login: React.FC = () => {
             </div>
 
             {/* Options row */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2 text-sm text-white/80 select-none">
+            <div className="flex items-center justify-between pt-2">
+              <label className="flex items-center space-x-3 text-sm text-white/70 select-none cursor-pointer hover:text-white/90 transition-colors">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-white/30 bg-white/10 accent-[#EF444E] focus:ring-0 focus:outline-none"
+                  className="h-4 w-4 rounded border-white/20 bg-white/5 text-weconnect-red focus:ring-weconnect-red focus:ring-offset-0 focus:ring-2 transition-all"
                   checked={rememberMe}
                   onChange={(e) => {
                     const value = e.target.checked;
@@ -214,7 +232,7 @@ const Login: React.FC = () => {
 
               <button
                 type="button"
-                className="text-sm font-medium text-[#EF444E] hover:text-[#ff6972] hover:underline"
+                className="text-sm font-medium text-weconnect-red hover:text-red-400 transition-colors"
                 onClick={() => {
                   const email =
                     formData.email ||
@@ -233,11 +251,11 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 rounded-full text-sm font-semibold text-white bg-[#EF444E] hover:bg-[#e63b46] focus:outline-none focus:ring-2 focus:ring-[#EF444E]/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.01]"
+              className="w-full flex justify-center items-center py-4 px-6 mt-8 rounded-xl text-base font-semibold text-white bg-weconnect-red hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   <span>Signing in...</span>
                 </div>
               ) : (
@@ -246,11 +264,6 @@ const Login: React.FC = () => {
             </button>
           </form>
 
-          {/* Footer */}
-          <div className="mt-6 text-center text-xs text-white/60">
-            <p>Secure CRM Authentication System</p>
-            <p className="mt-1">Built with React, Node.js & JWT</p>
-          </div>
         </div>
       </div>
     </div>

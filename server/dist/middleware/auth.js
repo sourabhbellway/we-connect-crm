@@ -16,7 +16,7 @@ const authenticateToken = async (req, res, next) => {
                 message: "Access token required",
             });
         }
-        const jwtSecret = process.env.JWT_SECRET || "default-secret-change-in-production";
+        const jwtSecret = process.env.JWT_SECRET || "fallback-secret-change-in-production";
         const decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
         // Check if token is expired
         if (decoded.exp < Date.now() / 1000) {

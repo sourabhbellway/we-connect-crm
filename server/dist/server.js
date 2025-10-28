@@ -12,7 +12,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const swagger_json_1 = __importDefault(require("../swagger.json"));
 const prisma_1 = require("./lib/prisma");
-const initialData_1 = require("./seeders/initialData");
 // Routes
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const superAdminAuthRoutes_1 = __importDefault(require("./routes/superAdminAuthRoutes"));
@@ -24,6 +23,19 @@ const leadSourceRoutes_1 = __importDefault(require("./routes/leadSourceRoutes"))
 const industryRoutes_1 = __importDefault(require("./routes/industryRoutes"));
 const permissionRoutes_1 = __importDefault(require("./routes/permissionRoutes"));
 const activityRoutes_1 = __importDefault(require("./routes/activityRoutes"));
+const businessSettingsRoutes_1 = __importDefault(require("./routes/businessSettingsRoutes"));
+const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
+const contactRoutes_1 = __importDefault(require("./routes/contactRoutes"));
+const companyRoutes_1 = __importDefault(require("./routes/companyRoutes"));
+const dealRoutes_1 = __importDefault(require("./routes/dealRoutes"));
+const leadAnalyticsRoutes_1 = __importDefault(require("./routes/leadAnalyticsRoutes"));
+const callLogRoutes_1 = __importDefault(require("./routes/callLogRoutes"));
+const communicationRoutes_1 = __importDefault(require("./routes/communicationRoutes"));
+const proposalTemplateRoutes_1 = __importDefault(require("./routes/proposalTemplateRoutes"));
+const quotationRoutes_1 = __importDefault(require("./routes/quotationRoutes"));
+const invoiceRoutes_1 = __importDefault(require("./routes/invoiceRoutes"));
+const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
+const fileRoutes_1 = __importDefault(require("./routes/fileRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3001;
@@ -37,6 +49,10 @@ app.use((0, cors_1.default)({
             "http://localhost:3000",
             "http://localhost:5174",
             "http://localhost:7001",
+            "http://192.168.1.247:5173",
+            "http://192.168.1.247:5174",
+            "http://192.168.1.4:5173",
+            "http://192.168.1.4:5174",
         ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -72,9 +88,16 @@ app.get("/api/health", (req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
-// API routes
+// API routes - Specific paths first to avoid conflicts
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/auth", superAdminAuthRoutes_1.default); // Super Admin authentication routes
+app.use("/api/files", fileRoutes_1.default); // Mount files route early to prevent conflicts
+app.use("/api/call-logs", callLogRoutes_1.default);
+app.use("/api/communication", communicationRoutes_1.default);
+app.use("/api/proposal-templates", proposalTemplateRoutes_1.default);
+app.use("/api/quotations", quotationRoutes_1.default);
+app.use("/api/invoices", invoiceRoutes_1.default);
+app.use("/api/products", productRoutes_1.default);
 app.use("/api", roleRoutes_1.default);
 app.use("/api", userRoutes_1.default);
 app.use("/api", leadRoutes_1.default);
@@ -83,6 +106,12 @@ app.use("/api", leadSourceRoutes_1.default);
 app.use("/api", industryRoutes_1.default);
 app.use("/api", permissionRoutes_1.default);
 app.use("/api", activityRoutes_1.default);
+app.use("/api", businessSettingsRoutes_1.default);
+app.use("/api", taskRoutes_1.default);
+app.use("/api", contactRoutes_1.default);
+app.use("/api", companyRoutes_1.default);
+app.use("/api", dealRoutes_1.default);
+app.use("/api", leadAnalyticsRoutes_1.default);
 // 404 handler
 app.use("*", (req, res) => {
     res.status(404).json({
@@ -102,11 +131,20 @@ app.use((error, req, res, next) => {
 // Database connection and server start
 const startServer = async () => {
     try {
+        console.log("Starting server initialization...");
+        console.log("Attempting database connection...");
         // Test database connection
         await prisma_1.prisma.$connect();
         console.log("Database connection established successfully.");
         // Seed initial data
-        await (0, initialData_1.seedInitialData)();
+        // TEMPORARILY DISABLED - causing startup issues
+        // await seedInitialData();
+        console.log("⏭️  Skipping seed data (already exists)");
+        // Initialize Integration Scheduler for automatic lead fetching
+        // TEMPORARILY DISABLED - causing startup issues
+        // const integrationScheduler = new IntegrationScheduler(prisma);
+        // await integrationScheduler.initialize();
+        console.log("🔄 Integration Scheduler temporarily disabled");
         // Start server
         app.listen(Number(PORT), "0.0.0.0", () => {
             const apiBaseUrl = process.env.API_BASE_URL || `http://31.97.233.21:3001/api`;

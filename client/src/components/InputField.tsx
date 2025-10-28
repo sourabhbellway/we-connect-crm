@@ -31,7 +31,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   return (
     <div>
       {label && (
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
         </label>
       )}
@@ -48,13 +48,14 @@ export const InputField: React.FC<InputFieldProps> = ({
           {...rest}
           className={[
             "block w-full",
-            leftIcon ? "pl-12" : "pl-3",
-            rightIcon ? "pr-12" : "pr-3",
-            "py-2 rounded-xl border transition-colors",
-            "bg-white dark:bg-gray-700",
+            leftIcon ? "pl-12" : "pl-4",
+            rightIcon ? "pr-12" : "pr-4",
+            "py-3 rounded-lg border transition-all duration-200",
+            "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+            "placeholder:text-gray-500 dark:placeholder:text-gray-400",
             error
-              ? "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none ring-2 ring-rose-500 focus:ring-rose-500"
-              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              ? "border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
             className || "",
           ].join(" ")}
         />
@@ -100,7 +101,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   return (
     <div>
       {label && (
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
         </label>
       )}
@@ -109,11 +110,13 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
         {...rest}
         onChange={handleChange}
         className={[
-          "w-full rounded-xl border p-2 text-sm transition-colors",
-          "bg-white dark:bg-gray-700",
+          "w-full rounded-lg border p-4 text-sm transition-all duration-200",
+          "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+          "placeholder:text-gray-500 dark:placeholder:text-gray-400",
+          "resize-y",
           error
-            ? "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none ring-2 ring-rose-500 focus:ring-rose-500"
-            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+            ? "border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
           className || "",
         ].join(" ")}
       />
@@ -135,7 +138,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   return (
     <div>
       {label && (
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
         </label>
       )}
@@ -152,12 +155,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           {...rest}
           className={[
             "block w-full",
-            leftIcon ? "pl-12 pr-3" : "px-3",
-            "py-2.5 rounded-xl border text-sm transition-colors",
-            "bg-white dark:bg-gray-700",
+            leftIcon ? "pl-12 pr-4" : "px-4",
+            "py-3 rounded-lg border text-sm transition-all duration-200",
+            "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+            "appearance-none cursor-pointer",
             error
-              ? "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none ring-2 ring-rose-500 focus:ring-rose-500"
-              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              ? "border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+              : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
             className || "",
           ].join(" ")}
         >

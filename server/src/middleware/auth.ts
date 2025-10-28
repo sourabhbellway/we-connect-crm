@@ -22,8 +22,7 @@ export const authenticateToken = async (
       });
     }
 
-    const jwtSecret =
-      process.env.JWT_SECRET || "default-secret-change-in-production";
+    const jwtSecret: string = process.env.JWT_SECRET || "fallback-secret-change-in-production";
     const decoded = jwt.verify(token, jwtSecret) as any;
 
     // Check if token is expired
