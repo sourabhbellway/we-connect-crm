@@ -86,7 +86,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
         className="relative"
       >
         <div
-          className={`flex items-center px-3 md:px-2 py-3 md:py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors group justify-center ${
+          className={`flex items-center justify-center h-11 md:h-10 px-3 md:px-2 rounded-lg text-sm font-medium cursor-pointer transition-colors group ${
             isActive
               ? "bg-weconnect-red text-white shadow-md"
               : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
@@ -95,7 +95,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           onMouseLeave={() => onHover(null)}
           onClick={handleClick}
         >
-          <Icon size={20} className="md:w-[18px] md:h-[18px]" />
+          <Icon size={20} className="md:w-[18px] md:h-[18px] block" />
         </div>
       </div>
     );
@@ -108,7 +108,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
       className="relative"
     >
       <div
-        className={`flex items-center rounded-lg text-sm font-medium transition-colors group justify-between ${
+        className={`flex items-center h-12 md:h-11 rounded-lg text-sm font-medium transition-colors group justify-between ${
           isActive
             ? "bg-weconnect-red text-white shadow-md"
             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
@@ -120,7 +120,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center justify-center w-6 h-full cursor-grab active:cursor-grabbing px-1 py-2.5"
+          className="flex items-center justify-center w-6 h-12 md:h-11 cursor-grab active:cursor-grabbing px-1"
           title="Drag to reorder"
         >
           <GripVertical
@@ -131,17 +131,18 @@ const SortableItem: React.FC<SortableItemProps> = ({
         
         {/* Clickable navigation area */}
         <div
-          className="flex items-center cursor-pointer flex-1 justify-between px-3 md:px-2 py-3 md:py-2.5"
+          className="flex items-center cursor-pointer flex-1 justify-between h-12 md:h-11 px-3 md:px-2"
           onClick={handleClick}
         >
           <div className="flex items-center gap-3 md:gap-2.5">
-            <Icon size={20} className="md:w-[18px] md:h-[18px]" />
-            <span className="font-medium text-base md:text-sm">{item.name}</span>
+            <Icon size={20} className="md:w-[18px] md:h-[18px] block" />
+            <span className="font-medium text-base md:text-sm leading-none">{item.name}</span>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center h-12 md:h-11">
             {item.badge && item.badge !== "0" && (
               <span
                 className={`min-w-[20px] h-5 px-2 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white ${item.badgeColor}`}
+                style={{ lineHeight: '1' }}
               >
                 {item.badge}
               </span>

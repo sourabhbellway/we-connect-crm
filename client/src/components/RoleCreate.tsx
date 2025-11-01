@@ -10,6 +10,7 @@ interface RoleFormData {
   name: string;
   description: string;
   permissionIds: number[];
+  accessScope: 'OWN' | 'GLOBAL';
   isActive?: boolean;
 }
 

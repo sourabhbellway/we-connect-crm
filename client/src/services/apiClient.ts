@@ -23,6 +23,7 @@ apiClient.interceptors.request.use(
       API_ENDPOINTS.AUTH.LOGIN,
       API_ENDPOINTS.AUTH.REFRESH,
       API_ENDPOINTS.HEALTH,
+      '/api/auth/refresh-token',
     ];
     
     const isPublicEndpoint = publicEndpoints.some(endpoint => 

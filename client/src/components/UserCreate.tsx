@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import UserForm from "./UserForm";
 import { userService } from "../services/userService";
+import { roleService } from "../services/roleService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import BackButton from "./BackButton";
@@ -32,10 +33,22 @@ const UserCreate: React.FC = () => {
   const handleSubmit = async (data: UserPayload) => {
     try {
       setSubmitting(true);
-      await userService.createUser({
-        ...data,
-        isActive: data.isActive ?? true,
-      });
+      // Only send allowed fields to Nest DTO
+      const createPayload = {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        password: data.password,
+      };
+      const res = await userService.createUser(createPayload);
+      const newUser = res?.data?.user || res?.user || res;
+
+      // Assign roles after creation (if any)
+      const roleIds = data.roleIds || [];
+      if (newUser?.id && roleIds.length > 0) {
+        await roleService.assignRoleToUser(newUser.id, roleIds);
+      }
+
       await refreshUsersCount();
       toast.success("User created successfully!");
       navigate("/users");

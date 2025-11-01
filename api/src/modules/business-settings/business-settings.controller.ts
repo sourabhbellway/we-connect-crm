@@ -50,6 +50,16 @@ export class BusinessSettingsController {
     return this.service.updateTax(body);
   }
 
+  @Get('all')
+  getAll() {
+    return this.service.getAllBusinessSettings();
+  }
+
+  @Get('pipelines')
+  getPipelines() {
+    return this.service.getPipelines();
+  }
+
   // Lead Sources wrapper routes for business-settings path compatibility
   @Get('lead-sources') listLeadSources() {
     return this.service.listLeadSources();

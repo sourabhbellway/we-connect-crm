@@ -128,15 +128,16 @@ model User {
 }
 
 model Role {
-  id          Int              @id @default(autoincrement())
-  name        String           @unique
-  description String?
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  deletedAt   DateTime?
-  permissions RolePermission[]
-  users       UserRole[]
+  id           Int              @id @default(autoincrement())
+  name         String           @unique
+  description  String?
+  isActive     Boolean          @default(true)
+  accessScope  RoleAccessScope  @default(OWN)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deletedAt    DateTime?
+  permissions  RolePermission[]
+  users        UserRole[]
 
   @@map("roles")
 }
@@ -446,6 +447,15 @@ model BusinessSettings {
   tradindiaApiKey           String?
   tradindiaApiSecret        String?
   tradindiaEnabled          Boolean  @default(false)
+
+  // Company settings extensions
+  gstNumber                 String?
+  panNumber                 String?
+  cinNumber                 String?
+  fiscalYearStart           String?
+  industry                  String?
+  employeeCount             String?
+  description               String?
 
   @@map("business_settings")
 }
@@ -1087,6 +1097,11 @@ enum MessageStatus {
   READ
   FAILED
   CANCELLED
+}
+
+enum RoleAccessScope {
+  OWN
+  GLOBAL
 }
 
 enum CompanySize {

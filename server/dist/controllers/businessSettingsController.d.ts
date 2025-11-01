@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 export declare class BusinessSettingsController {
     getAllBusinessSettings(req: Request, res: Response): Promise<void>;
-    getCompanySettings(req: Request, res: Response): Promise<void>;
+    getCompanySettings(req: Request, res: Response): Promise<Response<any, Record<string, any>> | undefined>;
     updateCompanySettings(req: Request, res: Response): Promise<void>;
     getCurrencySettings(req: Request, res: Response): Promise<void>;
     updateCurrencySettings(req: Request, res: Response): Promise<void>;

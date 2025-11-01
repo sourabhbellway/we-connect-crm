@@ -17,7 +17,7 @@ const jwt_config_1 = __importDefault(require("./config/jwt.config"));
 const app_config_1 = __importDefault(require("./config/app.config"));
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const prisma_service_1 = require("./database/prisma.service");
+const database_module_1 = require("./database/database.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const users_module_1 = require("./modules/users/users.module");
 const leads_module_1 = require("./modules/leads/leads.module");
@@ -55,6 +55,7 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 load: [database_config_1.default, jwt_config_1.default, app_config_1.default],
             }),
+            database_module_1.DatabaseModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             leads_module_1.LeadsModule,
@@ -83,7 +84,6 @@ exports.AppModule = AppModule = __decorate([
         controllers: [app_controller_1.AppController],
         providers: [
             app_service_1.AppService,
-            prisma_service_1.PrismaService,
             { provide: core_1.APP_FILTER, useClass: http_exception_filter_1.HttpExceptionFilter },
             { provide: core_1.APP_INTERCEPTOR, useClass: logging_interceptor_1.LoggingInterceptor },
         ],

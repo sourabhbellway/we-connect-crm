@@ -27,16 +27,35 @@ let CommunicationsController = class CommunicationsController {
     constructor(service) {
         this.service = service;
     }
-    listLeadComms(leadId) { return this.service.listLeadComms(Number(leadId)); }
-    listTemplates(type, active, page, limit) {
-        return this.service.listTemplates({ type, active, page: page ? parseInt(page) : 1, limit: limit ? parseInt(limit) : 10 });
+    listLeadComms(leadId) {
+        return this.service.listLeadComms(Number(leadId));
     }
-    createTemplate(dto) { return this.service.createTemplate(dto); }
-    updateTemplate(id, dto) { return this.service.updateTemplate(Number(id), dto); }
-    deleteTemplate(id) { return this.service.deleteTemplate(Number(id)); }
-    sendEmail(dto) { return this.service.sendEmail(dto); }
-    sendWhatsApp(dto) { return this.service.sendWhatsApp(dto); }
-    sendTemplated(dto) { return this.service.sendTemplated(dto); }
+    listTemplates(type, active, page, limit) {
+        return this.service.listTemplates({
+            type,
+            active,
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+        });
+    }
+    createTemplate(dto) {
+        return this.service.createTemplate(dto);
+    }
+    updateTemplate(id, dto) {
+        return this.service.updateTemplate(Number(id), dto);
+    }
+    deleteTemplate(id) {
+        return this.service.deleteTemplate(Number(id));
+    }
+    sendEmail(dto) {
+        return this.service.sendEmail(dto);
+    }
+    sendWhatsApp(dto) {
+        return this.service.sendWhatsApp(dto);
+    }
+    sendTemplated(dto) {
+        return this.service.sendTemplated(dto);
+    }
     listMessages(q) {
         return this.service.listMessages({
             leadId: q.leadId ? parseInt(q.leadId) : undefined,
@@ -46,7 +65,9 @@ let CommunicationsController = class CommunicationsController {
             limit: q.limit ? parseInt(q.limit) : 10,
         });
     }
-    createLeadComm(dto) { return this.service.createLeadComm(dto); }
+    createLeadComm(dto) {
+        return this.service.createLeadComm(dto);
+    }
 };
 exports.CommunicationsController = CommunicationsController;
 __decorate([

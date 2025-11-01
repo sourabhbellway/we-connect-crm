@@ -47,7 +47,7 @@ export declare class CommunicationsService {
             };
         };
     }>;
-    listTemplates({ type, active, page, limit }: {
+    listTemplates({ type, active, page, limit, }: {
         type?: string;
         active?: string;
         page?: number;
@@ -167,7 +167,7 @@ export declare class CommunicationsService {
         success: boolean;
         message: string;
     }>;
-    listMessages({ leadId, type, status, page, limit }: {
+    listMessages({ leadId, type, status, page, limit, }: {
         leadId?: number;
         type?: string;
         status?: string;

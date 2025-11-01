@@ -226,17 +226,20 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
         // Handle different API response structures - normalize to arrays
         const usersData =
-          (usersRes as any)?.data?.users ??
+          (usersRes as any)?.data ??
           (usersRes as any)?.users ??
           usersRes;
         // Lead sources now managed via BusinessSettingsContext (settingsLeadSources)
         const sourcesData = settingsLeadSources;
         const tagsData =
-          (tagsRes as any)?.data?.tags ?? (tagsRes as any)?.tags ?? tagsRes;
+          (tagsRes as any)?.data ?? (tagsRes as any)?.tags ?? tagsRes;
 
         setUsers(Array.isArray(usersData) ? usersData : []);
         // No set needed; using settingsLeadSources
         setAllTags(Array.isArray(tagsData) ? tagsData : []);
+        if (!Array.isArray(tagsData)) {
+          console.warn('Tags payload not array:', tagsRes);
+        }
       } catch (e) {
         console.error("Error loading form data:", e);
         setFormState((prev) => ({
@@ -591,10 +594,12 @@ const LeadForm: React.FC<LeadFormProps> = ({
             />
           </div>
           <div className="md:col-span-2 lg:col-span-2">
-            <PhoneInputField
+            <InputField
               label="Phone"
+              leftIcon={<PhoneIcon className="h-4 w-4 text-gray-400" />}
+              type="tel"
               value={formState.form.phone || ""}
-              onChange={(value) => handleChange("phone", value)}
+              onChange={(e) => handleChange("phone", e.target.value)}
               error={formState.errors.phone}
               placeholder="Enter phone number"
             />

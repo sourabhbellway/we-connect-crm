@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import WeConnectLogo from "../assets/WeConnect_Logo_C2C.svg";
 import { API_BASE_URL } from "../config/config";
+import { PERMISSIONS } from "../constants";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -110,10 +111,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       badgeColor: "bg-green-500",
     },
     {
-      id: "expense-management",
-      name: "Expense Management",
-      href: "/expense-management",
+      id: "trash",
+      name: "Trash",
+      href: "/trash",
+      icon: Trash2,
+      permission: "deleted.read",
+    },
+    {
+      id: "contacts",
+      name: "Contacts",
+      href: "/contacts",
+      icon: AudienceIcon,
+      badge: counts.contacts?.toString(),
+      badgeColor: "bg-blue-500",
+    },
+    {
+      id: "deals",
+      name: "Deals",
+      href: "/deals",
       icon: DollarSign,
+      badge: counts.deals?.toString(),
+      badgeColor: "bg-purple-500",
+    },
+    {
+      id: "quotations",
+      name: "Quotations",
+      href: "/quotations",
+      icon: FileText,
+    },
+    {
+      id: "invoices",
+      name: "Invoices",
+      href: "/invoices",
+      icon: FileText,
     },
     {
       id: "task-management",
@@ -122,30 +152,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: CheckSquare,
     },
     {
-      id: "automation-management",
-      name: "Automation Management",
-      href: "/automation-management",
-      icon: Zap,
+      id: "expense-management",
+      name: "Expense",
+      href: "/expense-management",
+      icon: DollarSign,
     },
     {
-      id: "communication-management",
-      name: "Communication Management",
-      href: "/communication-management",
-      icon: MessageSquare,
+      id: "automation-management",
+      name: "Automation",
+      href: "/automation-management",
+      icon: Zap,
     },
     {
       id: "business-settings",
       name: "Business Settings",
       href: "/business-settings",
       icon: Settings,
-      permission: "role.read", // Temporary: using existing permission
-    },
-    {
-      id: "trash",
-      name: "Trash",
-      href: "/trash",
-      icon: Trash2,
-      permission: "deleted.read",
+      permission: PERMISSIONS.BUSINESS_SETTINGS.READ,
     },
   ].filter((item) => (item.permission ? hasPermission(item.permission) : true));
 

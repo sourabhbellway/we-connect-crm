@@ -3,7 +3,7 @@ import { CreateActivityDto } from './dto/create-activity.dto';
 export declare class ActivitiesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ page, limit, type }: {
+    list({ page, limit, type, }: {
         page?: number;
         limit?: number;
         type?: string;
@@ -15,9 +15,9 @@ export declare class ActivitiesService {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number | null;
-                tags: string[];
-                title: string;
                 description: string;
+                title: string;
+                tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -37,9 +37,9 @@ export declare class ActivitiesService {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number | null;
-                tags: string[];
-                title: string;
                 description: string;
+                title: string;
+                tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;

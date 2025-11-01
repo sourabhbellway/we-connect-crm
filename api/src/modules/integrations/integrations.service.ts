@@ -7,7 +7,9 @@ export class IntegrationsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async list() {
-    const items = await this.prisma.thirdPartyIntegration.findMany({ orderBy: { createdAt: 'desc' } });
+    const items = await this.prisma.thirdPartyIntegration.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
     return { success: true, data: { items } };
   }
 
@@ -43,7 +45,10 @@ export class IntegrationsService {
   }
 
   async logs(integrationId: number) {
-    const items = await this.prisma.integrationLog.findMany({ where: { integrationId }, orderBy: { createdAt: 'desc' } });
+    const items = await this.prisma.integrationLog.findMany({
+      where: { integrationId },
+      orderBy: { createdAt: 'desc' },
+    });
     return { success: true, data: { items } };
   }
 }

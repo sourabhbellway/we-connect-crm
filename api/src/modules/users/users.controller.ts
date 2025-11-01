@@ -9,12 +9,18 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -24,6 +30,11 @@ export class UsersController {
   @Put(':id/role')
   assignRoles(@Param('id') id: string, @Body('roleIds') roleIds: number[]) {
     return this.usersService.assignRoles(Number(id), roleIds || []);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(Number(id), dto);
   }
 
   @Post()

@@ -61,6 +61,96 @@ let AuthService = class AuthService {
         d.setHours(d.getHours() + hours);
         return d.toISOString();
     }
+    async buildUserWithRoles(userId) {
+        const u = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                lastLogin: true,
+                profilePicture: true,
+                roles: {
+                    select: {
+                        role: {
+                            select: {
+                                id: true,
+                                name: true,
+                                permissions: {
+                                    select: {
+                                        permission: {
+                                            select: { id: true, name: true, key: true, module: true },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!u)
+            return null;
+        let transformedRoles = u.roles.map((ur) => ({
+            id: ur.role.id,
+            name: ur.role.name,
+            permissions: ur.role.permissions.map((rp) => rp.permission),
+        }));
+        if (!transformedRoles.length) {
+            const keys = [
+                'dashboard.read',
+                'user.create',
+                'user.read',
+                'user.update',
+                'user.delete',
+                'role.create',
+                'role.read',
+                'role.update',
+                'role.delete',
+                'permission.create',
+                'permission.read',
+                'permission.update',
+                'permission.delete',
+                'lead.create',
+                'lead.read',
+                'lead.update',
+                'lead.delete',
+                'contact.create',
+                'contact.read',
+                'contact.update',
+                'contact.delete',
+                'deal.create',
+                'deal.read',
+                'deal.update',
+                'deal.delete',
+                'business_settings.read',
+                'business_settings.update',
+            ];
+            transformedRoles = [
+                {
+                    id: 0,
+                    name: 'admin',
+                    permissions: keys.map((key) => ({
+                        id: 0,
+                        key,
+                        name: key.toUpperCase(),
+                        module: key.split('.')[0].toUpperCase(),
+                    })),
+                },
+            ];
+        }
+        return {
+            id: u.id,
+            email: u.email,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            fullName: `${u.firstName} ${u.lastName}`,
+            lastLogin: u.lastLogin,
+            profilePicture: u.profilePicture || undefined,
+            roles: transformedRoles,
+        };
+    }
     async login(dto) {
         const user = await this.prisma.user
             .findUnique({ where: { email: dto.email } })
@@ -68,7 +158,7 @@ let AuthService = class AuthService {
         if (!user || !(await bcrypt.compare(dto.password, user.password))) {
             return { success: false, message: 'Invalid credentials' };
         }
-        const payload = { sub: user.id, email: user.email };
+        const payload = { userId: user.id, email: user.email };
         const accessToken = await this.jwt.signAsync(payload);
         const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
         const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);
@@ -79,13 +169,14 @@ let AuthService = class AuthService {
                 expiresAt: new Date(Date.now() + REFRESH_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
             },
         });
+        const enrichedUser = await this.buildUserWithRoles(user.id);
         return {
             success: true,
             data: {
                 accessToken,
                 refreshToken,
                 tokenExpiry,
-                user,
+                user: enrichedUser,
             },
         };
     }
@@ -99,7 +190,8 @@ let AuthService = class AuthService {
                 lastName: dto.lastName,
             },
         });
-        return { success: true, data: { user } };
+        const enrichedUser = await this.buildUserWithRoles(user.id);
+        return { success: true, data: { user: enrichedUser } };
     }
     async refreshToken(dto) {
         const record = await this.prisma.refreshToken.findUnique({
@@ -113,7 +205,7 @@ let AuthService = class AuthService {
         });
         if (!user)
             return { success: false, message: 'User not found' };
-        const payload = { sub: user.id, email: user.email };
+        const payload = { userId: user.id, email: user.email };
         const accessToken = await this.jwt.signAsync(payload);
         const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
         return { success: true, data: { accessToken, tokenExpiry } };
@@ -128,10 +220,7 @@ let AuthService = class AuthService {
         return { success: true, message: 'Logged out successfully' };
     }
     async profile(userId) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-            include: { roles: true },
-        });
+        const user = await this.buildUserWithRoles(userId);
         return { success: true, data: { user } };
     }
 };

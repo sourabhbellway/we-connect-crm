@@ -33,6 +33,7 @@ import {
   FileCheck,
   Receipt,
 } from 'lucide-react';
+import { NAV_EXTRA_ITEMS } from '../config/navigation';
 import WeConnectLogo from '../assets/WeConnect_Logo_C2C.svg';
 
 interface MainLayoutProps {
@@ -71,7 +72,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }, []);
 
   // Navigation items configuration
-  const navigationItems = [
+  const baseItems = [
     {
       id: 'dashboard',
       name: t('navigation.dashboard') || 'Dashboard',
@@ -124,12 +125,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       badge: '',
       badgeColor: 'bg-emerald-500',
     },
+  ];
+
+  const navigationItems = [
+    ...baseItems,
+    ...NAV_EXTRA_ITEMS,
     {
       id: 'business-settings',
       name: 'Business Settings',
       href: '/business-settings',
       icon: Settings,
-      permission: PERMISSIONS.ROLE.READ, // Temporary: using existing permission
+      permission: PERMISSIONS.BUSINESS_SETTINGS.READ,
       badge: '',
       badgeColor: 'bg-purple-500',
     },
@@ -341,7 +347,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
+          {location.pathname === '/' ? (
+            children
+          ) : (
+            <div className="container-grid py-6">
+              {children}
+            </div>
+          )}
+        </main>
       </div>
 
       {/* Logout confirmation modal */}

@@ -14,8 +14,8 @@ export declare class IndustriesService {
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    industryId: number;
                     key: string;
+                    industryId: number;
                     type: import("@prisma/client").$Enums.FieldType;
                     isRequired: boolean;
                 }[];
@@ -67,8 +67,8 @@ export declare class IndustriesService {
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                industryId: number;
                 key: string;
+                industryId: number;
                 type: import("@prisma/client").$Enums.FieldType;
                 isRequired: boolean;
             };
@@ -83,8 +83,8 @@ export declare class IndustriesService {
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                industryId: number;
                 key: string;
+                industryId: number;
                 type: import("@prisma/client").$Enums.FieldType;
                 isRequired: boolean;
             };

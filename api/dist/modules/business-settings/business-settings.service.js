@@ -12,6 +12,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BusinessSettingsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
+function mapToCompanySettings(bs) {
+    return {
+        id: String(bs.id),
+        name: bs.companyName || '',
+        email: bs.companyEmail || '',
+        phone: bs.companyPhone || '',
+        address: bs.companyAddress || '',
+        website: bs.companyWebsite || '',
+        logo: bs.companyLogo || null,
+        timezone: bs.timeZone || 'UTC',
+        fiscalYearStart: bs.fiscalYearStart || '',
+        gstNumber: bs.gstNumber || '',
+        panNumber: bs.panNumber || '',
+        cinNumber: bs.cinNumber || '',
+        industry: bs.industry || '',
+        employeeCount: bs.employeeCount || '',
+        description: bs.description || '',
+        createdAt: bs.createdAt,
+        updatedAt: bs.updatedAt,
+    };
+}
 let BusinessSettingsService = class BusinessSettingsService {
     prisma;
     constructor(prisma) {
@@ -30,14 +51,7 @@ let BusinessSettingsService = class BusinessSettingsService {
         const bs = await this.ensureSettings();
         return {
             success: true,
-            data: {
-                name: bs.companyName,
-                email: bs.companyEmail,
-                phone: bs.companyPhone,
-                address: bs.companyAddress,
-                website: bs.companyWebsite,
-                logo: bs.companyLogo,
-            },
+            data: mapToCompanySettings(bs),
         };
     }
     async updateCompany(body) {
@@ -50,19 +64,31 @@ let BusinessSettingsService = class BusinessSettingsService {
                 companyPhone: body.phone ?? bs.companyPhone,
                 companyAddress: body.address ?? bs.companyAddress,
                 companyWebsite: body.website ?? bs.companyWebsite,
+                companyLogo: body.logo ?? bs.companyLogo,
+                timeZone: body.timezone ?? bs.timeZone,
+                gstNumber: body.gstNumber ?? bs.gstNumber,
+                panNumber: body.panNumber ?? bs.panNumber,
+                cinNumber: body.cinNumber ?? bs.cinNumber,
+                fiscalYearStart: body.fiscalYearStart ?? bs.fiscalYearStart,
+                industry: body.industry ?? bs.industry,
+                employeeCount: body.employeeCount ?? bs.employeeCount,
+                description: body.description ?? bs.description,
             },
         });
-        return { success: true, data: updated };
+        return { success: true, data: mapToCompanySettings(updated) };
     }
     async uploadLogo(file) {
         const bs = await this.ensureSettings();
-        await this.prisma.businessSettings.update({
+        const updated = await this.prisma.businessSettings.update({
             where: { id: bs.id },
             data: { companyLogo: file?.originalname || 'logo.png' },
         });
         return {
             success: true,
-            data: { logoUrl: `/uploads/${file?.filename || 'logo.png'}` },
+            data: {
+                logoUrl: `/uploads/${file?.filename || 'logo.png'}`,
+                ...mapToCompanySettings(updated),
+            },
         };
     }
     async getCurrency() {
@@ -81,7 +107,7 @@ let BusinessSettingsService = class BusinessSettingsService {
         const bs = await this.ensureSettings();
         return {
             success: true,
-            data: { defaultRate: bs.passwordRequireNumber ? 18 : 18 },
+            data: { defaultRate: 18, type: 'GST', inclusive: false },
         };
     }
     async updateTax(body) {
@@ -103,6 +129,39 @@ let BusinessSettingsService = class BusinessSettingsService {
             data: { name: body.name, description: body.description ?? null },
         });
         return { success: true, data: ls };
+    }
+    async getAllBusinessSettings() {
+        const bs = await this.ensureSettings();
+        const company = mapToCompanySettings(bs);
+        const leadSources = await this.prisma.leadSource.findMany({
+            orderBy: { name: 'asc' },
+        });
+        const currency = {
+            id: '1',
+            baseCurrency: bs.currency || 'USD',
+            decimalPlaces: 2,
+            symbolPosition: 'before',
+            thousandSeparator: ',',
+            decimalSeparator: '.',
+            autoUpdateRates: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+        const tax = {
+            id: '1',
+            defaultTaxRate: 0,
+            taxInclusive: false,
+            showTaxNumber: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
+        return {
+            success: true,
+            data: { company, currency, tax, leadSources, pipelines: [] },
+        };
+    }
+    async getPipelines() {
+        return { success: true, data: [] };
     }
 };
 exports.BusinessSettingsService = BusinessSettingsService;

@@ -4,31 +4,61 @@ import { prisma } from "../lib/prisma";
 import { IntegrationManager } from "../services/integrations/IntegrationManager";
 import { IntegrationScheduler } from "../services/IntegrationScheduler";
 
+// Helpers to map DB BusinessSettings -> frontend CompanySettings shape
+function mapDBToCompanySettings(settings: any) {
+  return {
+    id: String(settings.id),
+    name: settings.companyName || "",
+    email: settings.companyEmail || "",
+    phone: settings.companyPhone || "",
+    address: settings.companyAddress || "",
+    website: settings.companyWebsite || "",
+    logo: settings.companyLogo || null,
+    timezone: settings.timeZone || "UTC",
+    fiscalYearStart: settings.fiscalYearStart || "",
+    gstNumber: settings.gstNumber || "",
+    panNumber: settings.panNumber || "",
+    cinNumber: settings.cinNumber || "",
+    industry: settings.industry || "",
+    employeeCount: settings.employeeCount || "",
+    description: settings.description || "",
+    createdAt: settings.createdAt,
+    updatedAt: settings.updatedAt,
+  };
+}
+
 export class BusinessSettingsController {
   // Get all business settings
   async getAllBusinessSettings(req: Request, res: Response) {
     try {
-      // Return mock business settings for now
+      // Load from DB when available
+      const settings = await prisma.businessSettings.findFirst();
+
+      const company = settings
+        ? mapDBToCompanySettings(settings)
+        : {
+            id: "1",
+            name: "WeConnect CRM",
+            email: "",
+            phone: "",
+            address: "",
+            website: "",
+            logo: null,
+            timezone: "UTC",
+            fiscalYearStart: "04-01",
+            gstNumber: "",
+            panNumber: "",
+            cinNumber: "",
+            industry: "",
+            employeeCount: "",
+            description: "",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+      // Keep currency/tax mock for now until full DB support is added
       const businessSettings = {
-        company: {
-          id: "1",
-          name: "WeConnect CRM",
-          email: "admin@crm.com",
-          phone: "+1234567890",
-          address: "123 Business St",
-          city: "Business City",
-          state: "BC",
-          zipCode: "12345",
-          country: "United States",
-          website: "https://weconnect-crm.com",
-          logoUrl: null,
-          timezone: "America/New_York",
-          dateFormat: "MM/DD/YYYY",
-          timeFormat: "12",
-          fiscalYear: "january",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+        company,
         currency: {
           id: "1",
           baseCurrency: "USD",
@@ -47,8 +77,8 @@ export class BusinessSettingsController {
           showTaxNumber: false,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
-      };
+        },
+      } as any;
 
       res.json({
         success: true,
@@ -66,29 +96,36 @@ export class BusinessSettingsController {
   // Company Settings
   async getCompanySettings(req: Request, res: Response) {
     try {
-      const companySettings = {
-        id: "1",
-        name: "WeConnect CRM",
-        email: "admin@crm.com",
-        phone: "+1234567890",
-        address: "123 Business St",
-        city: "Business City",
-        state: "BC",
-        zipCode: "12345",
-        country: "United States",
-        website: "https://weconnect-crm.com",
-        logoUrl: null,
-        timezone: "America/New_York",
-        dateFormat: "MM/DD/YYYY",
-        timeFormat: "12",
-        fiscalYear: "january",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const settings = await prisma.businessSettings.findFirst();
+
+      if (!settings) {
+        return res.json({
+          success: true,
+          data: {
+            id: "1",
+            name: "",
+            email: "",
+            phone: "",
+            address: "",
+            website: "",
+            logo: null,
+            timezone: "UTC",
+            fiscalYearStart: "04-01",
+            gstNumber: "",
+            panNumber: "",
+            cinNumber: "",
+            industry: "",
+            employeeCount: "",
+            description: "",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+      }
 
       res.json({
         success: true,
-        data: companySettings,
+        data: mapDBToCompanySettings(settings),
       });
     } catch (error) {
       console.error("Error fetching company settings:", error);
@@ -101,16 +138,57 @@ export class BusinessSettingsController {
 
   async updateCompanySettings(req: Request, res: Response) {
     try {
-      // For now, just return the updated data
-      const updatedSettings = {
-        id: "1",
-        ...req.body,
-        updatedAt: new Date(),
-      };
+      const {
+        name,
+        email,
+        phone,
+        address,
+        website,
+        logo,
+        timezone,
+        gstNumber,
+        panNumber,
+        cinNumber,
+        fiscalYearStart,
+        industry,
+        employeeCount,
+        description,
+      } = req.body || {};
+
+      const updateData: any = {};
+      if (name !== undefined) updateData.companyName = name;
+      if (email !== undefined) updateData.companyEmail = email;
+      if (phone !== undefined) updateData.companyPhone = phone;
+      if (address !== undefined) updateData.companyAddress = address;
+      if (website !== undefined) updateData.companyWebsite = website;
+      if (logo !== undefined) updateData.companyLogo = logo;
+      if (timezone !== undefined) updateData.timeZone = timezone;
+      if (gstNumber !== undefined) updateData.gstNumber = gstNumber;
+      if (panNumber !== undefined) updateData.panNumber = panNumber;
+      if (cinNumber !== undefined) updateData.cinNumber = cinNumber;
+      if (fiscalYearStart !== undefined) updateData.fiscalYearStart = fiscalYearStart;
+      if (industry !== undefined) updateData.industry = industry;
+      if (employeeCount !== undefined) updateData.employeeCount = employeeCount;
+      if (description !== undefined) updateData.description = description;
+
+      let settings = await prisma.businessSettings.findFirst();
+      if (settings) {
+        settings = await prisma.businessSettings.update({
+          where: { id: settings.id },
+          data: updateData,
+        });
+      } else {
+        settings = await prisma.businessSettings.create({
+          data: {
+            companyName: name || "",
+            ...updateData,
+          },
+        });
+      }
 
       res.json({
         success: true,
-        data: updatedSettings,
+        data: mapDBToCompanySettings(settings),
         message: "Company settings updated successfully",
       });
     } catch (error) {

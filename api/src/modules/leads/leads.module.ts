@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { LeadsService } from './leads.service';
 import { LeadsController } from './leads.controller';
+import { LeadsService } from './leads.service';
 import { PrismaService } from '../../database/prisma.service';
 
 @Module({

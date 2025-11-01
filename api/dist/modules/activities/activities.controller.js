@@ -23,9 +23,15 @@ let ActivitiesController = class ActivitiesController {
         this.service = service;
     }
     list(page, limit, type) {
-        return this.service.list({ page: page ? parseInt(page) : 1, limit: limit ? parseInt(limit) : 10, type });
+        return this.service.list({
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+            type,
+        });
     }
-    create(dto) { return this.service.create(dto); }
+    create(dto) {
+        return this.service.create(dto);
+    }
 };
 exports.ActivitiesController = ActivitiesController;
 __decorate([

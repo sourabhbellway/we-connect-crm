@@ -22,11 +22,18 @@ let BulkImportController = class BulkImportController {
     constructor(service) {
         this.service = service;
     }
-    createBatch(dto) { return this.service.createLeadBatch(dto); }
-    listBatches(page, limit) {
-        return this.service.listBatches({ page: page ? parseInt(page) : 1, limit: limit ? parseInt(limit) : 10 });
+    createBatch(dto) {
+        return this.service.createLeadBatch(dto);
     }
-    listRecords(id) { return this.service.listRecords(Number(id)); }
+    listBatches(page, limit) {
+        return this.service.listBatches({
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+        });
+    }
+    listRecords(id) {
+        return this.service.listRecords(Number(id));
+    }
 };
 exports.BulkImportController = BulkImportController;
 __decorate([

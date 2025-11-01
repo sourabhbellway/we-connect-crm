@@ -22,10 +22,18 @@ let IntegrationsController = class IntegrationsController {
     constructor(service) {
         this.service = service;
     }
-    list() { return this.service.list(); }
-    create(dto) { return this.service.create(dto); }
-    update(id, dto) { return this.service.update(Number(id), dto); }
-    logs(id) { return this.service.logs(Number(id)); }
+    list() {
+        return this.service.list();
+    }
+    create(dto) {
+        return this.service.create(dto);
+    }
+    update(id, dto) {
+        return this.service.update(Number(id), dto);
+    }
+    logs(id) {
+        return this.service.logs(Number(id));
+    }
 };
 exports.IntegrationsController = IntegrationsController;
 __decorate([

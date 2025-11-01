@@ -5,6 +5,20 @@ export declare class FilesController {
     list(entityType?: string, entityId?: string): Promise<{
         success: boolean;
         data: {
+            files: {
+                name: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                entityType: string;
+                entityId: number;
+                fileName: string;
+                filePath: string;
+                fileSize: number;
+                mimeType: string;
+                uploadedBy: number;
+            }[];
             items: {
                 name: string;
                 id: number;
@@ -21,7 +35,7 @@ export declare class FilesController {
             }[];
         };
     }>;
-    upload(file: any, entityType: string, entityId: string, uploadedBy: string, name?: string): Promise<{
+    upload(file: any, entityType: string, entityId: string, req: any, name?: string): Promise<{
         success: boolean;
         data: {
             file: {
@@ -40,6 +54,7 @@ export declare class FilesController {
             };
         };
     }>;
+    download(id: string, res: any, disposition?: 'inline' | 'attachment'): Promise<any>;
     remove(id: string): Promise<{
         success: boolean;
     }>;

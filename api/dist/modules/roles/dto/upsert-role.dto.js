@@ -11,9 +11,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpsertRoleDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+const client_1 = require("@prisma/client");
 class UpsertRoleDto {
     name;
     description;
+    accessScope;
+    permissionIds;
 }
 exports.UpsertRoleDto = UpsertRoleDto;
 __decorate([
@@ -25,4 +29,16 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpsertRoleDto.prototype, "description", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.RoleAccessScope, { message: 'accessScope must be OWN or GLOBAL' }),
+    __metadata("design:type", String)
+], UpsertRoleDto.prototype, "accessScope", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayNotEmpty)({ message: 'permissionIds must contain at least one id' }),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsInt)({ each: true }),
+    (0, class_validator_1.Min)(1, { each: true }),
+    __metadata("design:type", Array)
+], UpsertRoleDto.prototype, "permissionIds", void 0);
 //# sourceMappingURL=upsert-role.dto.js.map

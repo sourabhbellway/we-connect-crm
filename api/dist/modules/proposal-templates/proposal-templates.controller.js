@@ -23,12 +23,24 @@ let ProposalTemplatesController = class ProposalTemplatesController {
         this.service = service;
     }
     list(page, limit, search) {
-        return this.service.list({ page: page ? parseInt(page) : 1, limit: limit ? parseInt(limit) : 10, search });
+        return this.service.list({
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+            search,
+        });
     }
-    get(id) { return this.service.getById(Number(id)); }
-    create(dto) { return this.service.create(dto); }
-    update(id, dto) { return this.service.update(Number(id), dto); }
-    remove(id) { return this.service.remove(Number(id)); }
+    get(id) {
+        return this.service.getById(Number(id));
+    }
+    create(dto) {
+        return this.service.create(dto);
+    }
+    update(id, dto) {
+        return this.service.update(Number(id), dto);
+    }
+    remove(id) {
+        return this.service.remove(Number(id));
+    }
 };
 exports.ProposalTemplatesController = ProposalTemplatesController;
 __decorate([

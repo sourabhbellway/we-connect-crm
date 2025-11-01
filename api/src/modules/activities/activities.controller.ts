@@ -9,10 +9,20 @@ export class ActivitiesController {
   constructor(private readonly service: ActivitiesService) {}
 
   @Get()
-  list(@Query('page') page?: string, @Query('limit') limit?: string, @Query('type') type?: string) {
-    return this.service.list({ page: page ? parseInt(page) : 1, limit: limit ? parseInt(limit) : 10, type });
+  list(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('type') type?: string,
+  ) {
+    return this.service.list({
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      type,
+    });
   }
 
   @Post()
-  create(@Body() dto: CreateActivityDto) { return this.service.create(dto); }
+  create(@Body() dto: CreateActivityDto) {
+    return this.service.create(dto);
+  }
 }

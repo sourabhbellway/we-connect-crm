@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -31,17 +41,27 @@ export class TasksController {
   }
 
   @Get(':id')
-  get(@Param('id') id: string) { return this.service.getById(Number(id)); }
+  get(@Param('id') id: string) {
+    return this.service.getById(Number(id));
+  }
 
   @Post()
-  create(@Body() dto: CreateTaskDto) { return this.service.create(dto); }
+  create(@Body() dto: CreateTaskDto) {
+    return this.service.create(dto);
+  }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateTaskDto) { return this.service.update(Number(id), dto); }
+  update(@Param('id') id: string, @Body() dto: UpdateTaskDto) {
+    return this.service.update(Number(id), dto);
+  }
 
   @Put(':id/complete')
-  complete(@Param('id') id: string) { return this.service.complete(Number(id)); }
+  complete(@Param('id') id: string) {
+    return this.service.complete(Number(id));
+  }
 
   @Delete(':id')
-  remove(@Param('id') id: string) { return this.service.remove(Number(id)); }
+  remove(@Param('id') id: string) {
+    return this.service.remove(Number(id));
+  }
 }

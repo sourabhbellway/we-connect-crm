@@ -18,7 +18,9 @@ let IntegrationsService = class IntegrationsService {
         this.prisma = prisma;
     }
     async list() {
-        const items = await this.prisma.thirdPartyIntegration.findMany({ orderBy: { createdAt: 'desc' } });
+        const items = await this.prisma.thirdPartyIntegration.findMany({
+            orderBy: { createdAt: 'desc' },
+        });
         return { success: true, data: { items } };
     }
     async create(dto) {
@@ -51,7 +53,10 @@ let IntegrationsService = class IntegrationsService {
         return { success: true, data: { integration: item } };
     }
     async logs(integrationId) {
-        const items = await this.prisma.integrationLog.findMany({ where: { integrationId }, orderBy: { createdAt: 'desc' } });
+        const items = await this.prisma.integrationLog.findMany({
+            where: { integrationId },
+            orderBy: { createdAt: 'desc' },
+        });
         return { success: true, data: { items } };
     }
 };

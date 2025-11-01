@@ -24,12 +24,23 @@ let CallLogsController = class CallLogsController {
         this.service = service;
     }
     list(leadId, userId) {
-        return this.service.list({ leadId: leadId ? parseInt(leadId) : undefined, userId: userId ? parseInt(userId) : undefined });
+        return this.service.list({
+            leadId: leadId ? parseInt(leadId) : undefined,
+            userId: userId ? parseInt(userId) : undefined,
+        });
     }
-    get(id) { return this.service.getById(Number(id)); }
-    create(dto) { return this.service.create(dto); }
-    update(id, dto) { return this.service.update(Number(id), dto); }
-    remove(id) { return this.service.remove(Number(id)); }
+    get(id) {
+        return this.service.getById(Number(id));
+    }
+    create(dto) {
+        return this.service.create(dto);
+    }
+    update(id, dto) {
+        return this.service.update(Number(id), dto);
+    }
+    remove(id) {
+        return this.service.remove(Number(id));
+    }
 };
 exports.CallLogsController = CallLogsController;
 __decorate([

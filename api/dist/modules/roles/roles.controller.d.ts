@@ -6,16 +6,25 @@ export declare class RolesController {
     list(search?: string, page?: string, limit?: string): Promise<{
         success: boolean;
         data: {
-            items: {
-                name: string;
+            roles: {
                 id: number;
+                name: string;
+                description: string | null;
                 isActive: boolean;
+                accessScope: import("@prisma/client").$Enums.RoleAccessScope;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                description: string | null;
+                permissions: {
+                    name: string;
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    description: string | null;
+                    key: string;
+                    module: string;
+                }[];
             }[];
-            total: number;
+            totalCount: number;
             page: number;
             limit: number;
         };
@@ -23,25 +32,43 @@ export declare class RolesController {
     create(dto: UpsertRoleDto): Promise<{
         success: boolean;
         data: {
-            name: string;
             id: number;
+            name: string;
+            description: string | null;
             isActive: boolean;
+            accessScope: import("@prisma/client").$Enums.RoleAccessScope;
+            permissions: {
+                name: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                key: string;
+                module: string;
+            }[];
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            description: string | null;
         };
     }>;
     update(id: string, dto: UpsertRoleDto): Promise<{
         success: boolean;
         data: {
-            name: string;
             id: number;
+            name: string;
+            description: string | null;
             isActive: boolean;
+            accessScope: import("@prisma/client").$Enums.RoleAccessScope;
+            permissions: {
+                name: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                description: string | null;
+                key: string;
+                module: string;
+            }[];
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            description: string | null;
         };
     }>;
     remove(id: string): Promise<{

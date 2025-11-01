@@ -2,12 +2,26 @@ import { PrismaService } from '../../database/prisma.service';
 export declare class FilesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ entityType, entityId }: {
+    list({ entityType, entityId, }: {
         entityType?: string;
         entityId?: number;
     }): Promise<{
         success: boolean;
         data: {
+            files: {
+                name: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                entityType: string;
+                entityId: number;
+                fileName: string;
+                filePath: string;
+                fileSize: number;
+                mimeType: string;
+                uploadedBy: number;
+            }[];
             items: {
                 name: string;
                 id: number;
@@ -24,7 +38,21 @@ export declare class FilesService {
             }[];
         };
     }>;
-    upload({ file, entityType, entityId, uploadedBy, name }: {
+    getById(id: number): Promise<{
+        name: string;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        deletedAt: Date | null;
+        entityType: string;
+        entityId: number;
+        fileName: string;
+        filePath: string;
+        fileSize: number;
+        mimeType: string;
+        uploadedBy: number;
+    } | null>;
+    upload({ file, entityType, entityId, uploadedBy, name, }: {
         file: any;
         entityType: string;
         entityId: number;

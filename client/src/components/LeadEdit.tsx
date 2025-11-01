@@ -22,17 +22,50 @@ const LeadEdit: React.FC = () => {
         const data = await leadService.getLeadById(Number(id));
         const lead = (data as any)?.data?.lead ?? data?.lead ?? data;
         setInitial({
+          // Basic
           firstName: lead.firstName,
           lastName: lead.lastName,
           email: lead.email,
           phone: lead.phone,
+
+          // Company
           company: lead.company,
           position: lead.position,
+          industry: lead.industry,
+          website: lead.website,
+          companySize: lead.companySize,
+          annualRevenue: lead.annualRevenue,
+
+          // Location
+          address: lead.address,
+          country: lead.country,
+          state: lead.state,
+          city: lead.city,
+          zipCode: lead.zipCode,
+
+          // Contact & Social
+          linkedinProfile: lead.linkedinProfile,
+          timezone: lead.timezone,
+          preferredContactMethod: lead.preferredContactMethod,
+
+          // Lead Management
           sourceId: lead.sourceId,
           status: (lead.status || "new").toLowerCase(),
-          notes: lead.notes,
+          priority: lead.priority,
           assignedTo: lead.assignedTo,
+
+          // Business
+          budget: lead.budget,
+          currency: lead.currency,
+          leadScore: lead.leadScore,
+
+          // Notes and Tags
+          notes: lead.notes,
           tags: Array.isArray(lead.tags) ? lead.tags.map((t: any) => t.id) : [],
+
+          // Timing
+          lastContactedAt: lead.lastContactedAt,
+          nextFollowUpAt: lead.nextFollowUpAt,
         });
       } catch (e: any) {
         toast.error(e?.message || "Failed to load lead");

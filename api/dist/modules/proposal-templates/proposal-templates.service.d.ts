@@ -3,7 +3,7 @@ import { UpsertProposalTemplateDto } from './dto/upsert-proposal-template.dto';
 export declare class ProposalTemplatesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ page, limit, search }: {
+    list({ page, limit, search, }: {
         page?: number;
         limit?: number;
         search?: string;

@@ -1,181 +1,275 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { BulkAssignDto } from './dto/bulk-assign.dto';
+import { ConvertLeadDto } from './dto/convert-lead.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
-import { ConvertLeadDto } from './dto/convert-lead.dto';
 import { TransferLeadDto } from './dto/transfer-lead.dto';
-import { BulkAssignDto } from './dto/bulk-assign.dto';
+import {
+  PrismaClient,
+  LeadStatus,
+  LeadPriority,
+  DealStatus,
+} from '@prisma/client';
 
-const toEnumStatus = (s?: string | null) =>
-  (s ? s.toUpperCase() : undefined) as any;
+function normalizeLeadStatus(status?: string): LeadStatus {
+  if (!status) return LeadStatus.NEW;
+  const up = status.toUpperCase();
+  return (LeadStatus as any)[up] ?? LeadStatus.NEW;
+}
+
+function normalizeLeadPriority(priority?: string): LeadPriority {
+  if (!priority) return LeadPriority.MEDIUM;
+  const up = priority.toUpperCase();
+  return (LeadPriority as any)[up] ?? LeadPriority.MEDIUM;
+}
+
+// Preserve legacy helper name used by convert() for Deal status mapping
+function toEnumStatus(status?: string): DealStatus {
+  if (!status) return DealStatus.DRAFT;
+  const up = status.toUpperCase();
+  return (DealStatus as any)[up] ?? DealStatus.DRAFT;
+}
 
 @Injectable()
 export class LeadsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getStats() {
-    const [total, byStatus] = await Promise.all([
-      this.prisma.lead.count({ where: { deletedAt: null } }),
-      this.prisma.lead.groupBy({
-        by: ['status'],
-        _count: { _all: true },
-        where: { deletedAt: null },
-      }),
-    ]);
-    const statusMap: Record<string, number> = {};
-    byStatus.forEach((r) => (statusMap[r.status as string] = r._count._all));
-    return { success: true, data: { total, byStatus: statusMap } };
+    const total = await this.prisma.lead.count({ where: { deletedAt: null } });
+    const converted = await this.prisma.lead.count({
+      where: { deletedAt: null, status: 'CONVERTED' },
+    });
+    return {
+      success: true,
+      data: { total, converted, active: total - converted },
+    };
   }
 
   async list({
-    page = 1,
-    limit = 10,
+    page,
+    limit,
     status,
     search,
   }: {
-    page?: number;
-    limit?: number;
+    page: number;
+    limit: number;
     status?: string;
     search?: string;
   }) {
-    const where: Prisma.LeadWhereInput = { deletedAt: null };
-    if (status) where.status = toEnumStatus(status);
-    if (search && search.trim()) {
-      const q = search.trim();
+    const pageNum = Math.max(1, Number(page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
+
+    const where: any = { deletedAt: null };
+    if (status && String(status).trim() !== '') {
+      const up = String(status).toUpperCase();
+      if ((LeadStatus as any)[up]) where.status = (LeadStatus as any)[up];
+    }
+    if (search && String(search).trim() !== '') {
+      const q = String(search).trim();
       where.OR = [
         { firstName: { contains: q, mode: 'insensitive' } },
         { lastName: { contains: q, mode: 'insensitive' } },
         { email: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q, mode: 'insensitive' } },
         { company: { contains: q, mode: 'insensitive' } },
+        { position: { contains: q, mode: 'insensitive' } },
+        { industry: { contains: q, mode: 'insensitive' } },
+        { country: { contains: q, mode: 'insensitive' } },
+        { state: { contains: q, mode: 'insensitive' } },
+        { city: { contains: q, mode: 'insensitive' } },
       ];
     }
-    const [items, total] = await Promise.all([
+
+    const [totalItems, rows] = await Promise.all([
+      this.prisma.lead.count({ where }),
       this.prisma.lead.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
         orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * pageSize,
+        take: pageSize,
         include: {
           assignedUser: {
             select: { id: true, firstName: true, lastName: true, email: true },
           },
-          tags: { select: { tag: true } },
         },
       }),
-      this.prisma.lead.count({ where }),
     ]);
 
+    // Normalize enums to lowercase for frontend compatibility
+    const leads = rows.map((r: any) => ({
+      ...r,
+      status: String(r.status || '').toLowerCase(),
+      priority: r.priority ? String(r.priority).toLowerCase() : undefined,
+    }));
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
     return {
       success: true,
       data: {
-        items: items.map((l) => ({ ...l, tags: l.tags.map((t) => t.tag) })),
-        total,
-        page,
-        limit,
+        leads,
+        pagination: {
+          totalItems,
+          currentPage: pageNum,
+          pageSize,
+          totalPages,
+        },
       },
     };
   }
 
   async getById(id: number) {
-    const lead = await this.prisma.lead.findFirst({
+    const leadRow: any = await this.prisma.lead.findFirst({
       where: { id, deletedAt: null },
       include: {
         assignedUser: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
-        tags: { select: { tag: true } },
-        convertedToContact: true,
+        tags: { include: { tag: true } },
       },
     });
-    if (!lead) return { success: false, message: 'Lead not found' };
-    return {
-      success: true,
-      data: { ...lead, tags: lead.tags.map((t) => t.tag) },
+    if (!leadRow) return { success: false, message: 'Lead not found' };
+
+    const lead = {
+      ...leadRow,
+      status: String(leadRow.status || '').toLowerCase(),
+      priority: leadRow.priority
+        ? String(leadRow.priority).toLowerCase()
+        : undefined,
+      tags: Array.isArray(leadRow.tags)
+        ? leadRow.tags.map((lt: any) => ({
+            id: lt.tag.id,
+            name: lt.tag.name,
+            color: lt.tag.color,
+          }))
+        : [],
     };
+
+    return { success: true, data: { lead } };
   }
 
   async create(dto: CreateLeadDto) {
     const lead = await this.prisma.lead.create({
       data: {
+        // Basic
         firstName: dto.firstName,
         lastName: dto.lastName,
         email: dto.email,
         phone: dto.phone,
+
+        // Company
         company: dto.company,
         position: dto.position,
-        notes: dto.notes,
-        status: toEnumStatus(dto.status) ?? 'NEW',
+        industry: dto.industry,
+        website: dto.website,
+        companySize: dto.companySize,
+        annualRevenue: dto.annualRevenue as any,
+
+        // Location
+        address: dto.address,
+        country: dto.country,
+        state: dto.state,
+        city: dto.city,
+        zipCode: dto.zipCode,
+
+        // Contact & Social
+        linkedinProfile: dto.linkedinProfile,
+        timezone: dto.timezone,
+        preferredContactMethod: dto.preferredContactMethod ?? 'email',
+
+        // Lead Management
+        status: normalizeLeadStatus(dto.status),
+        priority: normalizeLeadPriority(dto.priority),
         sourceId: dto.sourceId,
-        assignedTo: dto.assignedTo ?? null,
+        assignedTo: dto.assignedTo,
+
+        // Business
         budget: dto.budget as any,
         currency: dto.currency ?? 'USD',
+        leadScore: dto.leadScore,
+
+        // Notes
+        notes: dto.notes,
+
+        // Timing
+        lastContactedAt: dto.lastContactedAt
+          ? new Date(dto.lastContactedAt)
+          : null,
+        nextFollowUpAt: dto.nextFollowUpAt
+          ? new Date(dto.nextFollowUpAt)
+          : null,
       },
     });
 
-    if (dto.tags?.length) {
-      await this.prisma.leadTag.createMany({
-        data: dto.tags.map((tagId) => ({ leadId: lead.id, tagId })),
-        skipDuplicates: true,
-      });
-    }
+    // NOTE: Tag relationships can be handled here later if needed (LeadTag createMany)
 
-    return {
-      success: true,
-      message: 'Lead created successfully',
-      data: { lead },
-    };
+    return { success: true, data: lead };
   }
 
   async update(id: number, dto: UpdateLeadDto) {
-    const lead = await this.prisma.lead.update({
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!lead) return { success: false, message: 'Lead not found' };
+
+    // Remove fields that are not directly updatable on Lead model
+    const { tags, ...rest } = dto as any;
+
+    const updateData: any = { ...rest, updatedAt: new Date() };
+    if (rest.status) updateData.status = normalizeLeadStatus(rest.status);
+    if (rest.priority)
+      updateData.priority = normalizeLeadPriority(rest.priority);
+    if (rest.lastContactedAt)
+      updateData.lastContactedAt = new Date(rest.lastContactedAt);
+    if (rest.nextFollowUpAt)
+      updateData.nextFollowUpAt = new Date(rest.nextFollowUpAt);
+
+    const updated = await this.prisma.lead.update({
       where: { id },
-      data: {
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        email: dto.email,
-        phone: dto.phone,
-        company: dto.company,
-        position: dto.position,
-        notes: dto.notes,
-        status: toEnumStatus(dto.status),
-        sourceId: dto.sourceId,
-        assignedTo: dto.assignedTo ?? undefined,
-        budget: dto.budget as any,
-        currency: dto.currency,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
-    if (dto.tags) {
-      await this.prisma.leadTag.deleteMany({ where: { leadId: id } });
-      if (dto.tags.length)
-        await this.prisma.leadTag.createMany({
-          data: dto.tags.map((tagId) => ({ leadId: id, tagId })),
-        });
-    }
+    // TODO: handle tag relation updates if needed
 
-    return {
-      success: true,
-      message: 'Lead updated successfully',
-      data: { lead },
-    };
+    // Return normalized shape
+    const normalized = {
+      ...updated,
+      status: String(updated.status || '').toLowerCase(),
+      priority: updated.priority
+        ? String(updated.priority).toLowerCase()
+        : undefined,
+    } as any;
+
+    return { success: true, data: { lead: normalized } };
   }
 
   async remove(id: number) {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!lead) return { success: false, message: 'Lead not found' };
+
     await this.prisma.lead.update({
       where: { id },
-      data: { deletedAt: new Date(), isActive: false },
+      data: { deletedAt: new Date() },
     });
-    return { success: true, message: 'Lead deleted successfully' };
+    return { success: true, message: 'Lead deleted' };
   }
 
   async transfer(id: number, dto: TransferLeadDto) {
-    const lead = await this.prisma.lead.update({
-      where: { id },
-      data: { assignedTo: dto.newUserId ?? null, updatedAt: new Date() },
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, deletedAt: null },
     });
-    return { success: true, message: 'Lead transferred', data: { lead } };
+    if (!lead) return { success: false, message: 'Lead not found' };
+
+    const updated = await this.prisma.lead.update({
+      where: { id },
+      data: {
+        assignedTo: dto.newUserId ?? null,
+        updatedAt: new Date(),
+      },
+    });
+    return { success: true, message: 'Lead transferred', data: updated };
   }
 
   async bulkAssign(dto: BulkAssignDto) {

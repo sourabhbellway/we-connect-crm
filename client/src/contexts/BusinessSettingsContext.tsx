@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { businessSettingsService } from '../features/business-settings/services/businessSettingsService';
+import { useAuth } from './AuthContext';
 import { BusinessSettings, CompanySettings, CurrencySettings, TaxSettings, LeadSource, Pipeline, DealStage } from '../features/business-settings/types';
 import { DEFAULT_BUSINESS_SETTINGS } from '../constants';
 import { toast } from 'react-toastify';
@@ -67,10 +68,13 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
 
   const defaultPipeline = pipelines.find(p => p.isDefault) || pipelines[0] || null;
 
-  // Initialize business settings on mount
+// Initialize business settings only when authenticated
+  const { isAuthenticated } = useAuth();
   useEffect(() => {
-    initializeBusinessSettings();
-  }, []);
+    if (isAuthenticated) {
+      initializeBusinessSettings();
+    }
+  }, [isAuthenticated]);
 
   const initializeBusinessSettings = async () => {
     try {

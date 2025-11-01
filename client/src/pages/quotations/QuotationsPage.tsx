@@ -60,17 +60,18 @@ const QuotationsPage: React.FC = () => {
         }
       });
       if (response.data.success) {
-        setQuotations(response.data.data);
-        if (response.data.pagination) {
-          setPagination(response.data.pagination);
-        } else {
-          setPagination({
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: response.data.data.length,
-            itemsPerPage: itemsPerPage,
-          });
-        }
+        const data = response.data.data || {};
+        const items = Array.isArray(data) ? data : (data.items || []);
+        const total = data.total || items.length || 0;
+        const page = data.page || currentPage;
+        const limit = data.limit || itemsPerPage;
+        setQuotations(items);
+        setPagination({
+          currentPage: page,
+          totalPages: Math.max(1, Math.ceil(total / limit)),
+          totalItems: total,
+          itemsPerPage: limit,
+        });
       }
     } catch (error: any) {
       console.error('Error fetching quotations:', error);

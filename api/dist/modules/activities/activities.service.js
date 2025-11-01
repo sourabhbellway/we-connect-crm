@@ -17,12 +17,17 @@ let ActivitiesService = class ActivitiesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async list({ page = 1, limit = 10, type }) {
+    async list({ page = 1, limit = 10, type, }) {
         const where = {};
         if (type)
             where.type = type;
         const [items, total] = await Promise.all([
-            this.prisma.activity.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
+            this.prisma.activity.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+            }),
             this.prisma.activity.count({ where }),
         ]);
         return { success: true, data: { items, total, page, limit } };

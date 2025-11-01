@@ -31,7 +31,7 @@ export declare class BulkImportService {
             };
         };
     }>;
-    listBatches({ page, limit }: {
+    listBatches({ page, limit, }: {
         page?: number;
         limit?: number;
     }): Promise<{

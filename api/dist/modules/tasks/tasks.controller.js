@@ -34,11 +34,21 @@ let TasksController = class TasksController {
             contactId: contactId ? parseInt(contactId) : undefined,
         });
     }
-    get(id) { return this.service.getById(Number(id)); }
-    create(dto) { return this.service.create(dto); }
-    update(id, dto) { return this.service.update(Number(id), dto); }
-    complete(id) { return this.service.complete(Number(id)); }
-    remove(id) { return this.service.remove(Number(id)); }
+    get(id) {
+        return this.service.getById(Number(id));
+    }
+    create(dto) {
+        return this.service.create(dto);
+    }
+    update(id, dto) {
+        return this.service.update(Number(id), dto);
+    }
+    complete(id) {
+        return this.service.complete(Number(id));
+    }
+    remove(id) {
+        return this.service.remove(Number(id));
+    }
 };
 exports.TasksController = TasksController;
 __decorate([

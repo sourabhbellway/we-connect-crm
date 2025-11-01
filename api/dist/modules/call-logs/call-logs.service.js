@@ -23,7 +23,10 @@ let CallLogsService = class CallLogsService {
             where.leadId = leadId;
         if (userId)
             where.userId = userId;
-        const items = await this.prisma.callLog.findMany({ where, orderBy: { createdAt: 'desc' } });
+        const items = await this.prisma.callLog.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+        });
         return { success: true, data: { items } };
     }
     async getById(id) {

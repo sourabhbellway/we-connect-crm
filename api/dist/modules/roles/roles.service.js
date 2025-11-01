@@ -18,7 +18,7 @@ let RolesService = class RolesService {
         this.prisma = prisma;
     }
     async list({ search, page = 1, limit = 10, }) {
-        const where = {};
+        const where = { deletedAt: null };
         if (search && search.trim()) {
             const q = search.trim();
             where.OR = [{ name: { contains: q, mode: 'insensitive' } }];
@@ -29,26 +29,87 @@ let RolesService = class RolesService {
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
+                include: {
+                    permissions: { include: { permission: true } },
+                },
             }),
             this.prisma.role.count({ where }),
         ]);
-        return { success: true, data: { items, total, page, limit } };
+        const data = items.map((r) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            isActive: r.isActive,
+            accessScope: r.accessScope,
+            createdAt: r.createdAt,
+            updatedAt: r.updatedAt,
+            permissions: r.permissions.map((rp) => rp.permission),
+        }));
+        return { success: true, data: { roles: data, totalCount: total, page, limit } };
     }
     async create(dto) {
         const role = await this.prisma.role.create({
-            data: { name: dto.name, description: dto.description ?? null },
+            data: {
+                name: dto.name,
+                description: dto.description ?? null,
+                accessScope: dto.accessScope,
+                permissions: {
+                    create: dto.permissionIds.map((pid) => ({
+                        permission: { connect: { id: pid } },
+                    })),
+                },
+            },
+            include: { permissions: { include: { permission: true } } },
         });
-        return { success: true, data: role };
+        return {
+            success: true,
+            data: {
+                id: role.id,
+                name: role.name,
+                description: role.description,
+                isActive: role.isActive,
+                accessScope: role.accessScope,
+                permissions: role.permissions.map((rp) => rp.permission),
+                createdAt: role.createdAt,
+                updatedAt: role.updatedAt,
+            },
+        };
     }
     async update(id, dto) {
         const role = await this.prisma.role.update({
             where: { id },
-            data: { name: dto.name, description: dto.description ?? null },
+            data: {
+                name: dto.name,
+                description: dto.description ?? null,
+                accessScope: dto.accessScope,
+                permissions: {
+                    deleteMany: {},
+                    create: dto.permissionIds.map((pid) => ({
+                        permission: { connect: { id: pid } },
+                    })),
+                },
+            },
+            include: { permissions: { include: { permission: true } } },
         });
-        return { success: true, data: role };
+        return {
+            success: true,
+            data: {
+                id: role.id,
+                name: role.name,
+                description: role.description,
+                isActive: role.isActive,
+                accessScope: role.accessScope,
+                permissions: role.permissions.map((rp) => rp.permission),
+                createdAt: role.createdAt,
+                updatedAt: role.updatedAt,
+            },
+        };
     }
     async remove(id) {
-        await this.prisma.role.delete({ where: { id } });
+        await this.prisma.role.update({
+            where: { id },
+            data: { isActive: false, deletedAt: new Date() },
+        });
         return { success: true };
     }
 };

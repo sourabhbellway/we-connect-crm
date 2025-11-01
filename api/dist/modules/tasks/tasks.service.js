@@ -17,7 +17,7 @@ let TasksService = class TasksService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async list({ page = 1, limit = 10, status, search, leadId, dealId, contactId }) {
+    async list({ page = 1, limit = 10, status, search, leadId, dealId, contactId, }) {
         const where = { deletedAt: null };
         if (status)
             where.status = status.toUpperCase();
@@ -35,13 +35,20 @@ let TasksService = class TasksService {
             ];
         }
         const [items, total] = await Promise.all([
-            this.prisma.task.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
+            this.prisma.task.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+            }),
             this.prisma.task.count({ where }),
         ]);
         return { success: true, data: { items, total, page, limit } };
     }
     async getById(id) {
-        const task = await this.prisma.task.findFirst({ where: { id, deletedAt: null } });
+        const task = await this.prisma.task.findFirst({
+            where: { id, deletedAt: null },
+        });
         if (!task)
             return { success: false, message: 'Task not found' };
         return { success: true, data: { task } };
@@ -82,11 +89,17 @@ let TasksService = class TasksService {
         return { success: true, data: { task } };
     }
     async complete(id) {
-        const task = await this.prisma.task.update({ where: { id }, data: { status: 'COMPLETED', completedAt: new Date() } });
+        const task = await this.prisma.task.update({
+            where: { id },
+            data: { status: 'COMPLETED', completedAt: new Date() },
+        });
         return { success: true, data: { task } };
     }
     async remove(id) {
-        await this.prisma.task.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
+        await this.prisma.task.update({
+            where: { id },
+            data: { deletedAt: new Date(), isActive: false },
+        });
         return { success: true };
     }
 };

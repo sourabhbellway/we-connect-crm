@@ -554,6 +554,43 @@ const LeadProfile: React.FC = () => {
     toast.success('Note updated successfully');
   };
 
+  const handlePreviewFile = async (file: any) => {
+    try {
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const resp = await fetch(`/api/files/${file.id}/download?disposition=inline`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) throw new Error('Failed to preview file');
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (e: any) {
+      toast.error(e.message || 'Unable to preview file');
+    }
+  };
+
+  const handleDownloadFile = async (file: any) => {
+    try {
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const resp = await fetch(`/api/files/${file.id}/download?disposition=attachment`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) throw new Error('Failed to download file');
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name || 'download';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (e: any) {
+      toast.error(e.message || 'Unable to download file');
+    }
+  };
+
   const handleDeleteFile = async (fileId: number | string) => {
     if (!confirm('Are you sure you want to delete this file?')) return;
     
@@ -1228,13 +1265,27 @@ const LeadProfile: React.FC = () => {
                       <div className="space-y-3">
                         {files.map((file) => (
                           <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-3">
                               <FileText className="h-5 w-5 text-blue-500" />
                               <div>
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {(file.fileSize / 1024 / 1024).toFixed(2)} MB • Uploaded {new Date(file.createdAt).toLocaleDateString()}
                                 </p>
+                                <div className="mt-1 flex gap-3">
+                                  <button
+                                    onClick={() => handlePreviewFile(file)}
+                                    className="text-blue-600 dark:text-blue-400 text-xs hover:underline"
+                                  >
+                                    Preview
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownloadFile(file)}
+                                    className="text-green-600 dark:text-green-400 text-xs hover:underline"
+                                  >
+                                    Download
+                                  </button>
+                                </div>
                               </div>
                             </div>
                             <button

@@ -18,6 +18,7 @@ interface RoleFormData {
   name: string;
   description: string;
   permissionIds: number[];
+  accessScope: 'OWN' | 'GLOBAL';
   isActive?: boolean;
 }
 
@@ -37,6 +38,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
     name: "",
     description: "",
     permissionIds: [],
+    accessScope: 'OWN',
     isActive: true,
   });
   const [groupedPermissions, setGroupedPermissions] = useState<
@@ -52,7 +54,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   useEffect(() => {
     if (initial) {
-      setFormData(initial);
+      setFormData({ accessScope: 'OWN', ...initial });
       setErrors({});
     }
   }, [initial]);
@@ -80,13 +82,18 @@ const RoleForm: React.FC<RoleFormProps> = ({
     try {
       const response = await roleService.getPermissions();
 
+      // response shape from API: { success: boolean, data: Permission[] }
+      const list: Permission[] = Array.isArray(response?.data)
+        ? (response.data as Permission[])
+        : (response?.permissions as Permission[]) || (response?.data as Permission[]) || [];
+
       // Group permissions by module on the frontend
-      const grouped = response.data.permissions.reduce(
+      const grouped = (list || []).reduce(
         (acc: Record<string, Permission[]>, permission: Permission) => {
-          if (!acc[permission.module]) {
-            acc[permission.module] = [];
-          }
-          acc[permission.module].push(permission);
+          if (!permission) return acc;
+          const mod = permission.module || 'GENERAL';
+          if (!acc[mod]) acc[mod] = [];
+          acc[mod].push(permission);
           return acc;
         },
         {}
@@ -197,6 +204,23 @@ const RoleForm: React.FC<RoleFormProps> = ({
             </p>
           </div>
         )}
+      </div>
+
+      {/* Access Scope */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Access Scope *</label>
+          <select
+            value={formData.accessScope}
+            onChange={(e) => setFormData({ ...formData, accessScope: e.target.value as 'OWN' | 'GLOBAL' })}
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
+            <option value="OWN">Own</option>
+            <option value="GLOBAL">Global</option>
+          </select>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Choose whether this role grants access only to user's own records or global access.</p>
+        </div>
       </div>
 
       {/* Description */}

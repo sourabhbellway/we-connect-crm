@@ -24,12 +24,25 @@ export const roleService = {
   },
 
   createRole: async (roleData: any) => {
-    const response = await apiClient.post("/roles", roleData);
+    // Whitelist payload to satisfy Nest ValidationPipe (forbidNonWhitelisted)
+    const payload = {
+      name: roleData.name,
+      description: roleData.description ?? "",
+      accessScope: roleData.accessScope,
+      permissionIds: Array.isArray(roleData.permissionIds) ? roleData.permissionIds : [],
+    };
+    const response = await apiClient.post("/roles", payload);
     return response.data;
   },
 
   updateRole: async (id: number, roleData: any) => {
-    const response = await apiClient.put(`/roles/${id}`, roleData);
+    const payload = {
+      name: roleData.name,
+      description: roleData.description ?? "",
+      accessScope: roleData.accessScope,
+      permissionIds: Array.isArray(roleData.permissionIds) ? roleData.permissionIds : [],
+    };
+    const response = await apiClient.put(`/roles/${id}`, payload);
     return response.data;
   },
 

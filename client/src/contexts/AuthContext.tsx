@@ -325,7 +325,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: "CLEAR_ERROR" });
   };
 
-  // Set up token refresh timer
+  // Set up token refresh timer and pre-expiry warning
   useEffect(() => {
     if (!state.isAuthenticated || !state.accessToken) return;
 
@@ -336,9 +336,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const now = new Date();
     const timeUntilExpiry = expiryTime.getTime() - now.getTime();
     const refreshTime = timeUntilExpiry - 5 * 60 * 1000; // Refresh 5 minutes before expiry
+    const warningTime = timeUntilExpiry - 2 * 60 * 1000; // Warn 2 minutes before expiry
+
+    const timers: number[] = [];
 
     if (refreshTime > 0) {
-      const timer = setTimeout(async () => {
+      const t = window.setTimeout(async () => {
         try {
           const refreshResponse = await authService.refreshToken();
           dispatch({ 
@@ -350,12 +353,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           dispatch({ type: "TOKEN_EXPIRED" });
         }
       }, refreshTime);
+      timers.push(t);
+    }
 
-      return () => clearTimeout(timer);
+    if (warningTime > 0) {
+      const w = window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('tokenExpired', {
+          detail: {
+            title: 'Session expiring soon',
+            message: 'Your session will expire in about 2 minutes. Please save your work.',
+          },
+        }));
+      }, warningTime);
+      timers.push(w);
+    } else if (timeUntilExpiry > 0 && timeUntilExpiry <= 2 * 60 * 1000) {
+      // If less than 2 minutes remain, show warning immediately
+      window.dispatchEvent(new CustomEvent('tokenExpired', {
+        detail: {
+          title: 'Session expiring soon',
+          message: 'Your session will expire in about 2 minutes. Please save your work.',
+        },
+      }));
     } else if (timeUntilExpiry <= 0) {
       // Token already expired
       dispatch({ type: "TOKEN_EXPIRED" });
     }
+
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+    };
   }, [state.accessToken, state.isAuthenticated]);
 
   const value: AuthContextType = {

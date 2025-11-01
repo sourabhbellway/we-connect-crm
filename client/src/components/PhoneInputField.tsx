@@ -27,10 +27,23 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [inputColor, setInputColor] = useState<string>('#111827');
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
+
+  // Track theme to ensure text is visible in both light and dark modes
+  useEffect(() => {
+    const update = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      setInputColor(isDark ? '#ffffff' : '#111827');
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Parse initial value to extract country code and phone number
   useEffect(() => {
@@ -274,7 +287,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
               }
               ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : ''}
             `}
-            style={{ WebkitTextFillColor: 'currentColor', color: 'inherit', caretColor: '#111827' }}
+            style={{ color: inputColor, WebkitTextFillColor: inputColor, caretColor: inputColor }}
           />
           
           {/* Clear Button */}

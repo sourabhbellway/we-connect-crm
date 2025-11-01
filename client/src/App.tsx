@@ -45,6 +45,7 @@ import IntegrationSettings from "./components/IntegrationSettings";
 import Profile from "./components/Profile";
 import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
+import SearchResults from "./pages/SearchResults";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -206,6 +207,16 @@ function AppContent() {
           }
         />
         <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SearchResults />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/quotations"
           element={
             <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
@@ -298,7 +309,7 @@ function AppContent() {
         <Route
           path="/business-settings"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <BusinessSettingsPage />
               </MainLayout>
@@ -308,7 +319,7 @@ function AppContent() {
         <Route
           path="/business-settings/company"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <CompanySettingsPage />
               </MainLayout>
@@ -318,7 +329,7 @@ function AppContent() {
         <Route
           path="/business-settings/currency"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <CurrencyTaxSettingsPage />
               </MainLayout>
@@ -328,7 +339,7 @@ function AppContent() {
         <Route
           path="/business-settings/tax"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <CurrencyTaxSettingsPage />
               </MainLayout>
@@ -338,7 +349,7 @@ function AppContent() {
         <Route
           path="/business-settings/lead-sources"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.UPDATE}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <LeadSourcesPage />
               </MainLayout>
@@ -348,7 +359,7 @@ function AppContent() {
         <Route
           path="/business-settings/pipelines"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.UPDATE}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <DealStagesPage />
               </MainLayout>
@@ -358,7 +369,7 @@ function AppContent() {
         <Route
           path="/business-settings/deal-stages"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.UPDATE}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <DealStagesPage />
               </MainLayout>
@@ -368,7 +379,7 @@ function AppContent() {
         <Route
           path="/business-settings/communication"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.USER.UPDATE}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <CommunicationPage />
               </MainLayout>
@@ -378,7 +389,7 @@ function AppContent() {
         <Route
           path="/business-settings/integrations/communication"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.USER.UPDATE}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <CommunicationAPIPage />
               </MainLayout>
@@ -398,7 +409,7 @@ function AppContent() {
         <Route
           path="/business-settings/quotation-templates"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.ROLE.READ}>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <QuotationTemplatesPage />
               </MainLayout>

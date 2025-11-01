@@ -449,6 +449,15 @@ model BusinessSettings {
   tradindiaApiSecret        String?
   tradindiaEnabled          Boolean  @default(false)
 
+  // Company settings extensions
+  gstNumber                 String?
+  panNumber                 String?
+  cinNumber                 String?
+  fiscalYearStart           String? // MM-DD
+  industry                  String?
+  employeeCount             String?
+  description               String?
+
   @@map("business_settings")
 }
 

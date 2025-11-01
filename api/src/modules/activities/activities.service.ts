@@ -6,11 +6,24 @@ import { CreateActivityDto } from './dto/create-activity.dto';
 export class ActivitiesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list({ page = 1, limit = 10, type }: { page?: number; limit?: number; type?: string }) {
+  async list({
+    page = 1,
+    limit = 10,
+    type,
+  }: {
+    page?: number;
+    limit?: number;
+    type?: string;
+  }) {
     const where: any = {};
     if (type) where.type = type as any;
     const [items, total] = await Promise.all([
-      this.prisma.activity.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
+      this.prisma.activity.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
       this.prisma.activity.count({ where }),
     ]);
     return { success: true, data: { items, total, page, limit } };

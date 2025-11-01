@@ -16,28 +16,24 @@ export declare class AuthController {
             refreshToken: string;
             tokenExpiry: string;
             user: {
+                id: number;
                 email: string;
-                password: string;
                 firstName: string;
                 lastName: string;
-                id: number;
-                emailVerificationToken: string | null;
-                passwordResetToken: string | null;
-                isActive: boolean;
+                fullName: string;
                 lastLogin: Date | null;
-                createdAt: Date;
-                updatedAt: Date;
-                profilePicture: string | null;
-                companyId: number | null;
-                deletedAt: Date | null;
-                accountLockedUntil: Date | null;
-                emailVerified: boolean;
-                emailVerifiedAt: Date | null;
-                failedLoginAttempts: number;
-                passwordResetExpires: Date | null;
-                twoFactorEnabled: boolean;
-                twoFactorSecret: string | null;
-            };
+                profilePicture: string | undefined;
+                roles: {
+                    id: number;
+                    name: string;
+                    permissions: {
+                        name: string;
+                        id: number;
+                        key: string;
+                        module: string;
+                    }[];
+                }[];
+            } | null;
         };
         message?: undefined;
     }>;
@@ -45,28 +41,24 @@ export declare class AuthController {
         success: boolean;
         data: {
             user: {
+                id: number;
                 email: string;
-                password: string;
                 firstName: string;
                 lastName: string;
-                id: number;
-                emailVerificationToken: string | null;
-                passwordResetToken: string | null;
-                isActive: boolean;
+                fullName: string;
                 lastLogin: Date | null;
-                createdAt: Date;
-                updatedAt: Date;
-                profilePicture: string | null;
-                companyId: number | null;
-                deletedAt: Date | null;
-                accountLockedUntil: Date | null;
-                emailVerified: boolean;
-                emailVerifiedAt: Date | null;
-                failedLoginAttempts: number;
-                passwordResetExpires: Date | null;
-                twoFactorEnabled: boolean;
-                twoFactorSecret: string | null;
-            };
+                profilePicture: string | undefined;
+                roles: {
+                    id: number;
+                    name: string;
+                    permissions: {
+                        name: string;
+                        id: number;
+                        key: string;
+                        module: string;
+                    }[];
+                }[];
+            } | null;
         };
     }>;
     refresh(dto: RefreshDto): Promise<{
@@ -88,35 +80,25 @@ export declare class AuthController {
     profile(user: any): Promise<{
         success: boolean;
         data: {
-            user: ({
-                roles: {
-                    id: number;
-                    userId: number;
-                    roleId: number;
-                }[];
-            } & {
+            user: {
+                id: number;
                 email: string;
-                password: string;
                 firstName: string;
                 lastName: string;
-                id: number;
-                emailVerificationToken: string | null;
-                passwordResetToken: string | null;
-                isActive: boolean;
+                fullName: string;
                 lastLogin: Date | null;
-                createdAt: Date;
-                updatedAt: Date;
-                profilePicture: string | null;
-                companyId: number | null;
-                deletedAt: Date | null;
-                accountLockedUntil: Date | null;
-                emailVerified: boolean;
-                emailVerifiedAt: Date | null;
-                failedLoginAttempts: number;
-                passwordResetExpires: Date | null;
-                twoFactorEnabled: boolean;
-                twoFactorSecret: string | null;
-            }) | null;
+                profilePicture: string | undefined;
+                roles: {
+                    id: number;
+                    name: string;
+                    permissions: {
+                        name: string;
+                        id: number;
+                        key: string;
+                        module: string;
+                    }[];
+                }[];
+            } | null;
         };
     }>;
 }

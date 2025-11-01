@@ -7,7 +7,23 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 export class TasksService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list({ page = 1, limit = 10, status, search, leadId, dealId, contactId }: { page?: number; limit?: number; status?: string; search?: string; leadId?: number; dealId?: number; contactId?: number; }) {
+  async list({
+    page = 1,
+    limit = 10,
+    status,
+    search,
+    leadId,
+    dealId,
+    contactId,
+  }: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    leadId?: number;
+    dealId?: number;
+    contactId?: number;
+  }) {
     const where: any = { deletedAt: null };
     if (status) where.status = status.toUpperCase();
     if (leadId) where.leadId = leadId;
@@ -21,14 +37,21 @@ export class TasksService {
       ];
     }
     const [items, total] = await Promise.all([
-      this.prisma.task.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
+      this.prisma.task.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
       this.prisma.task.count({ where }),
     ]);
     return { success: true, data: { items, total, page, limit } };
   }
 
   async getById(id: number) {
-    const task = await this.prisma.task.findFirst({ where: { id, deletedAt: null } });
+    const task = await this.prisma.task.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!task) return { success: false, message: 'Task not found' };
     return { success: true, data: { task } };
   }
@@ -71,12 +94,18 @@ export class TasksService {
   }
 
   async complete(id: number) {
-    const task = await this.prisma.task.update({ where: { id }, data: { status: 'COMPLETED', completedAt: new Date() } });
+    const task = await this.prisma.task.update({
+      where: { id },
+      data: { status: 'COMPLETED', completedAt: new Date() },
+    });
     return { success: true, data: { task } };
   }
 
   async remove(id: number) {
-    await this.prisma.task.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
+    await this.prisma.task.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false },
+    });
     return { success: true };
   }
 }

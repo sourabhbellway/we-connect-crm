@@ -13,7 +13,8 @@ export interface Tag {
 export const tagService = {
   getTags: async (): Promise<Tag[]> => {
     const response = await apiClient.get("/tags");
-    return response.data;
+    // Backend returns { success, data: Tag[] }
+    return (response?.data?.data ?? response?.data ?? []) as Tag[];
   },
 
   createTag: async (tagData: Partial<Tag>): Promise<Tag> => {

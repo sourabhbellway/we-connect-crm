@@ -19,8 +19,8 @@ export declare class ProductsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                currency: string;
                 description: string | null;
+                currency: string;
                 type: import("@prisma/client").$Enums.ProductType;
                 sku: string | null;
                 category: string | null;
@@ -53,8 +53,8 @@ export declare class ProductsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                currency: string;
                 description: string | null;
+                currency: string;
                 type: import("@prisma/client").$Enums.ProductType;
                 sku: string | null;
                 category: string | null;
@@ -82,8 +82,8 @@ export declare class ProductsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                currency: string;
                 description: string | null;
+                currency: string;
                 type: import("@prisma/client").$Enums.ProductType;
                 sku: string | null;
                 category: string | null;
@@ -110,8 +110,8 @@ export declare class ProductsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                currency: string;
                 description: string | null;
+                currency: string;
                 type: import("@prisma/client").$Enums.ProductType;
                 sku: string | null;
                 category: string | null;

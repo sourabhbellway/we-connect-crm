@@ -11,9 +11,9 @@ export declare class ActivitiesController {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number | null;
-                tags: string[];
-                title: string;
                 description: string;
+                title: string;
+                tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -33,9 +33,9 @@ export declare class ActivitiesController {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number | null;
-                tags: string[];
-                title: string;
                 description: string;
+                title: string;
+                tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;

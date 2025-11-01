@@ -6,6 +6,7 @@ import appConfig from './config/app.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './database/prisma.service';
+import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { LeadsModule } from './modules/leads/leads.module';
@@ -40,6 +41,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
       isGlobal: true,
       load: [databaseConfig, jwtConfig, appConfig],
     }),
+    DatabaseModule,
     AuthModule,
     UsersModule,
     LeadsModule,
@@ -68,7 +70,6 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],

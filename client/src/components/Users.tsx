@@ -101,15 +101,29 @@ const Users: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await userService.getUsers({
+      const api = await userService.getUsers({
         search: debouncedSearchValue,
         status: filters.status,
         roleId: filters.roleId,
         page: currentPage,
         limit: pageSize,
       });
-      setUsers(response.data.users);
-      setPagination(response.data.pagination);
+      // API shape: { success, data: User[] } or legacy { users, pagination }
+      const list: User[] = Array.isArray(api?.data)
+        ? (api.data as User[])
+        : (api?.users as User[]) || (api as any[] as User[]) || [];
+
+      setUsers(list || []);
+
+      // Build client-side pagination fallback when not provided by API
+      const total = Array.isArray(list) ? list.length : 0;
+      setPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalUsers: total,
+        hasNextPage: false,
+        hasPrevPage: false,
+      });
     } catch (error: any) {
       console.error("Error fetching users:", error);
       const errorMessage = error?.response?.data?.message || "Failed to fetch users";
@@ -123,7 +137,9 @@ const Users: React.FC = () => {
   const fetchRoles = async () => {
     try {
       const response = await roleService.getRoles();
-      setRoles(response.data.roles);
+      // API shape: { success, data: { roles, totalCount } } or legacy { items }
+      const items = response?.data?.roles || response?.data?.items || response?.roles || response?.items || [];
+      setRoles(items);
     } catch (error) {
       console.error("Error fetching roles:", error);
     }

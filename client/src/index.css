@@ -24,6 +24,19 @@ body {
   font-family: inherit;
 }
 
+/* Global button alignment to ensure icons and text align consistently */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* Consistent space between icon and text */
+}
+
+/* Ensure SVG icons don't sit on text baseline */
+button svg {
+  display: block;
+}
+
 /* Optimize for smaller screens */
 @media (max-width: 1440px) {
   body {
@@ -500,7 +513,7 @@ select {
 }
 
 /* Ensure icons inside inputs don't block typing */
-.input-icon, .filters-grid svg { pointer-events: none; }
+.input-icon, .filters-grid svg, .top-header svg { pointer-events: none; }
 
 select::-ms-expand {
   display: none;

@@ -182,8 +182,17 @@ const Leads: React.FC = () => {
         search: debouncedSearchValue,
       });
 
-      setLeads(response.data.leads);
-      setPagination(response.data.pagination);
+      const list = response?.data?.leads ?? response?.data?.items ?? [];
+      setLeads(list);
+      const pag = response?.data?.pagination ?? (response?.data?.total != null
+        ? {
+            totalItems: response.data.total,
+            currentPage: response.data.page ?? 1,
+            pageSize: response.data.limit ?? list.length ?? 0,
+            totalPages: Math.ceil((response.data.total || 0) / (response.data.limit || 1)),
+          }
+        : null);
+      setPagination(pag as any);
       setError(null);
     } catch (err: any) {
       const message = err?.response?.data?.message || t("leads.fetchError");
@@ -663,7 +672,7 @@ const Leads: React.FC = () => {
                 Manage and track your leads
                 {pagination && (
                   <span className="ml-2 text-gray-500">
-                    • Showing {leads.length} of {pagination.totalItems} leads
+                    • Showing {leads?.length ?? 0} of {pagination.totalItems} leads
                     {pagination.totalPages > 1 &&
                       ` • Page ${pagination.currentPage} of ${pagination.totalPages}`}
                   </span>

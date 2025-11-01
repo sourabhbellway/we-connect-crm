@@ -11,6 +11,7 @@ interface RoleFormData {
   name: string;
   description: string;
   permissionIds: number[];
+  accessScope: 'OWN' | 'GLOBAL';
   isActive?: boolean;
 }
 
@@ -35,6 +36,7 @@ const RoleEdit: React.FC = () => {
             name: role.name,
             description: role.description || "",
             permissionIds: role.permissions?.map((p: any) => p.id) || [],
+            accessScope: role.accessScope || 'OWN',
             isActive: role.isActive,
           });
           setLoading(false);
@@ -56,6 +58,7 @@ const RoleEdit: React.FC = () => {
           name: role.name,
           description: role.description || "",
           permissionIds: role.permissions?.map((p: any) => p.id) || [],
+          accessScope: role.accessScope || 'OWN',
           isActive: role.isActive,
         });
       } catch (error: any) {

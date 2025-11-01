@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { Search, Bell, Plus, Share2, CheckSquare, Clock } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Bell, Plus, Share2, CheckSquare, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import GlobalSearch from './GlobalSearch';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { UI_CONFIG } from '../constants';
+import SimpleHeaderSearch from './SimpleHeaderSearch';
 
 interface Notification {
   id: string;
@@ -17,7 +16,6 @@ interface Notification {
 }
 
 const TopHeader: React.FC = () => {
-  const [searchOpen, setSearchOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([
     {
@@ -69,7 +67,8 @@ const TopHeader: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setSearchOpen(true);
+        const el = document.querySelector<HTMLInputElement>('input[data-topsearch-input]');
+        el?.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -92,32 +91,24 @@ const TopHeader: React.FC = () => {
   return (
     <>
       {/* Top Header Bar - Hidden on mobile since we have the mobile header in MainLayout */}
-      <div className="hidden md:flex items-center justify-between px-6 py-3 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+      <div className="hidden md:flex items-center justify-between px-6 py-3 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm top-header">
         {/* Left: Search Button */}
         <div className="flex-1 max-w-xl">
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg transition-colors duration-200 text-left group"
-            aria-label="Open search"
-          >
-            <Search className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
-            <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-              Search...
-            </span>
-            <div className="ml-auto flex items-center gap-1">
-              <kbd className="hidden lg:inline-block px-2 py-1 text-xs font-mono bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded">
-                ⌘K
-              </kbd>
-            </div>
-          </button>
+          <div className="relative">
+            <SimpleHeaderSearch />
+          </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2 ml-4">
-          {/* Create New Button - Using WeConnect brand color */}
+          {/* Create New Button - standardized using shared Button */}
+          <>
+            {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+          </>
+          <span className="sr-only">Create new lead</span>
           <button
             onClick={() => navigate('/leads/new')}
-            className="flex items-center gap-2 px-4 py-2.5 bg-weconnect-red hover:bg-red-600 text-white rounded-lg transition-colors duration-200 text-sm font-medium shadow-sm hover:shadow-md"
+            className="px-4 py-2.5 bg-weconnect-red hover:bg-red-600 text-white rounded-full transition-colors duration-200 text-sm font-semibold shadow-sm hover:shadow-md"
             aria-label="Create new lead"
           >
             <Plus className="w-4 h-4" />
@@ -149,7 +140,7 @@ const TopHeader: React.FC = () => {
           {/* Tasks */}
           <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 relative" title="Tasks">
             <CheckSquare className="w-5 h-5" />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold leading-none" style={{ lineHeight: '1' }}>
               2
             </span>
           </button>
@@ -168,7 +159,7 @@ const TopHeader: React.FC = () => {
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-weconnect-red text-white text-xs rounded-full flex items-center justify-center font-semibold">
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-weconnect-red text-white text-xs rounded-full flex items-center justify-center font-semibold leading-none" style={{ lineHeight: '1' }}>
                   {unreadCount}
                 </span>
               )}
@@ -254,8 +245,6 @@ const TopHeader: React.FC = () => {
         </div>
       </div>
 
-      {/* Global Search Modal */}
-      <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   );
 };

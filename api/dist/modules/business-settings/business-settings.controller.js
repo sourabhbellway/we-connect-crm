@@ -43,6 +43,12 @@ let BusinessSettingsController = class BusinessSettingsController {
     updateTax(body) {
         return this.service.updateTax(body);
     }
+    getAll() {
+        return this.service.getAllBusinessSettings();
+    }
+    getPipelines() {
+        return this.service.getPipelines();
+    }
     listLeadSources() {
         return this.service.listLeadSources();
     }
@@ -101,6 +107,18 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "updateTax", null);
+__decorate([
+    (0, common_1.Get)('all'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "getAll", null);
+__decorate([
+    (0, common_1.Get)('pipelines'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "getPipelines", null);
 __decorate([
     (0, common_1.Get)('lead-sources'),
     __metadata("design:type", Function),
