@@ -101,9 +101,18 @@ const QuotationsPage: React.FC = () => {
     }
   };
 
-  const handlePreviewPDF = (quotationId: string) => {
-    const url = `/quotations/${quotationId}/pdf/preview`;
-    window.open(url, '_blank');
+  const handlePreviewPDF = async (quotationId: string) => {
+    try {
+      const response = await apiClient.get(`/quotations/${quotationId}/pdf/preview`, {
+        responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error: any) {
+      console.error('Error previewing PDF:', error);
+      toast.error(error?.response?.data?.message || t('quotations.preview_error') || 'Failed to preview PDF');
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -145,6 +154,23 @@ const QuotationsPage: React.FC = () => {
 
   const handleEdit = (quotationId: string) => {
     navigate(`/quotations/edit/${quotationId}`);
+  };
+
+  const handleBookOrder = async (quotationId: string) => {
+    try {
+      // Mark accepted then create invoice
+      await apiClient.put(`/quotations/${quotationId}/accept`);
+      const res = await apiClient.post(`/quotations/${quotationId}/generate-invoice`);
+      if (res.data?.success) {
+        toast.success('Sales order booked and invoice created');
+        navigate('/invoices');
+      } else {
+        toast.info('Quotation accepted, but invoice not created');
+      }
+    } catch (error: any) {
+      console.error('Error booking sales order:', error);
+      toast.error(error?.response?.data?.message || 'Failed to book sales order');
+    }
   };
 
   const handleSend = async (quotationId: string) => {
@@ -319,141 +345,165 @@ const QuotationsPage: React.FC = () => {
 
         {/* Main Content Card */}
         <Card className="overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
-          {/* Table Header - like Leads page */}
-          <div className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-              <div className="col-span-3">Quotation</div>
-              <div className="col-span-2">Customer</div>
-              <div className="col-span-2">Amount</div>
-              <div className="col-span-2">Status</div>
-              <div className="col-span-2">Date</div>
-              <div className="col-span-1 text-right">Actions</div>
-            </div>
-          </div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[1100px]">
+              {/* Table Header */}
+              <div className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+<div className="grid grid-cols-12 gap-6 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">
+                  <div className="col-span-3">Quotation</div>
+                  <div className="col-span-2">Customer</div>
+                  <div className="col-span-1">Email</div>
+                  <div className="col-span-1">Related</div>
+                  <div className="col-span-1">Amount</div>
+                  <div className="col-span-1">Status</div>
+<div className="col-span-1 min-w-[140px]">Date</div>
+                  <div className="col-span-2 text-right">Actions</div>
+                </div>
+              </div>
 
-          {/* Table Body */}
-          {filteredQuotations.length === 0 ? (
-            <div className="p-12 text-center">
-              <FileCheck size={64} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No Quotations Found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {searchQuery || statusFilter !== 'ALL' 
-                  ? 'Try adjusting your filters' 
-                  : 'Create your first quotation to get started'}
-              </p>
-              {hasPermission('deal.create') && (
-                <Button 
-                  onClick={() => navigate('/quotations/new')}
-                  className="bg-red-500 hover:bg-red-600 text-white"
-                >
-                  <Plus size={18} className="mr-2" />
-                  Create Quotation
-                </Button>
+              {/* Table Body */}
+              {filteredQuotations.length === 0 ? (
+                <div className="p-12 text-center">
+                  <FileCheck size={64} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    No Quotations Found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {searchQuery || statusFilter !== 'ALL' 
+                      ? 'Try adjusting your filters' 
+                      : 'Create your first quotation to get started'}
+                  </p>
+                  {hasPermission('deal.create') && (
+                    <Button 
+                      onClick={() => navigate('/quotations/new')}
+                      className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                      <Plus size={18} className="mr-2" />
+                      Create Quotation
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredQuotations.map((quotation) => (
+                    <div 
+                      key={quotation.id} 
+className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer items-center"
+                    >
+                      {/* Quotation Number & Title */}
+                      <div className="col-span-3 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+                            <FileCheck className="text-indigo-600 dark:text-indigo-400" size={20} />
+                          </div>
+                          <div className="min-w-0 overflow-hidden">
+                            <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+                              {quotation.quotationNumber}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                              {quotation.title}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Customer */}
+                      <div className="col-span-2 min-w-0">
+                        <div className="text-sm text-gray-900 dark:text-white font-medium truncate">
+                          {quotation.customerName || '-'}
+                        </div>
+                      </div>
+
+                      {/* Email */}
+                      <div className="col-span-1 min-w-0">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          {quotation.customerEmail || '-'}
+                        </div>
+                      </div>
+
+                      {/* Related */}
+                      <div className="col-span-1 min-w-0">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 truncate capitalize">
+                          {quotation.relatedType ? `${quotation.relatedType}${quotation.relatedTo ? `: ${quotation.relatedTo}` : ''}` : '-'}
+                        </div>
+                      </div>
+
+                      {/* Amount */}
+                      <div className="col-span-1 min-w-0">
+                        <div className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                          {quotation.currency} ${quotation.totalAmount.toLocaleString()}
+                        </div>
+                      </div>
+
+                      {/* Status */}
+                      <div className="col-span-1 min-w-0">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(quotation.status)}`}>
+                          {quotation.status}
+                        </span>
+                      </div>
+
+                      {/* Date */}
+<div className="col-span-1 min-w-[140px] pr-12 overflow-hidden">
+                        <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                          {new Date(quotation.createdAt).toLocaleDateString()}
+                        </div>
+                        {quotation.validUntil && (
+                          <div className="text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap">
+                            Valid: {new Date(quotation.validUntil).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+<div className="col-span-2 flex items-center justify-end gap-3 flex-shrink-0 pl-4 md:pl-6 min-w-[160px]">
+                        <button
+                          onClick={() => handlePreviewPDF(quotation.id)}
+                          className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          title="Preview"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        {hasPermission('deal.update') && (
+                          <>
+                            <button
+                              onClick={() => handleEdit(quotation.id)}
+                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleBookOrder(quotation.id)}
+                              className="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                              title="Book Sales Order & Create Invoice"
+                            >
+                              <Send size={16} />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => handleDownloadPDF(quotation.id)}
+                          className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          title="Download"
+                        >
+                          <Download size={16} />
+                        </button>
+                        {hasPermission('deal.delete') && (
+                          <button
+                            onClick={() => handleDelete(quotation.id)}
+                            className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          ) : (
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredQuotations.map((quotation) => (
-                <div 
-                  key={quotation.id} 
-                  className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer items-center"
-                >
-                  {/* Quotation Number & Title */}
-                  <div className="col-span-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
-                        <FileCheck className="text-indigo-600 dark:text-indigo-400" size={20} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-                          {quotation.quotationNumber}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {quotation.title}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Customer */}
-                  <div className="col-span-2">
-                    <div className="text-sm text-gray-900 dark:text-white font-medium truncate">
-                      {quotation.customerName || '-'}
-                    </div>
-                    {quotation.customerEmail && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {quotation.customerEmail}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Amount */}
-                  <div className="col-span-2">
-                    <div className="text-sm font-bold text-gray-900 dark:text-white">
-                      {quotation.currency} ${quotation.totalAmount.toLocaleString()}
-                    </div>
-                  </div>
-
-                  {/* Status */}
-                  <div className="col-span-2">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(quotation.status)}`}>
-                      {quotation.status}
-                    </span>
-                  </div>
-
-                  {/* Date */}
-                  <div className="col-span-2">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(quotation.createdAt).toLocaleDateString()}
-                    </div>
-                    {quotation.validUntil && (
-                      <div className="text-xs text-gray-500 dark:text-gray-500">
-                        Valid: {new Date(quotation.validUntil).toLocaleDateString()}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="col-span-1 flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => handlePreviewPDF(quotation.id)}
-                      className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                      title="Preview"
-                    >
-                      <Eye size={16} />
-                    </button>
-                    {hasPermission('deal.update') && (
-                      <button
-                        onClick={() => handleEdit(quotation.id)}
-                        className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDownloadPDF(quotation.id)}
-                      className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                      title="Download"
-                    >
-                      <Download size={16} />
-                    </button>
-                    {hasPermission('deal.delete') && (
-                      <button
-                        onClick={() => handleDelete(quotation.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          </div>
         </Card>
 
         {/* Pagination */}

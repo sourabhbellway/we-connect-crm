@@ -71,6 +71,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     };
   }, []);
 
+  // Prevent background scroll when the mobile sidebar is open
+  useEffect(() => {
+    const root = document.documentElement;
+    if (sidebarOpen) {
+      root.classList.add('overflow-hidden');
+    } else {
+      root.classList.remove('overflow-hidden');
+    }
+    return () => root.classList.remove('overflow-hidden');
+  }, [sidebarOpen]);
+
   // Navigation items configuration
   const baseItems = [
     {
@@ -304,18 +315,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <div className="py-1">
                   <button
                     onClick={toggleTheme}
-                    className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center gap-2 transition-colors"
+                    className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center justify-center gap-2 transition-colors text-center"
                   >
                     {isDark ? <Sun size={14} /> : <Moon size={14} />}
                     <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
                   </button>
-                  <div className="px-3 py-1.5">
+                  <div className="px-3 py-1.5 flex justify-center">
                     <LanguageSelector />
                   </div>
                   <div className="border-t border-gray-200 dark:border-slate-700 my-1" />
                   <button
                     onClick={handleLogoutClick}
-                    className="w-full px-3 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors"
+                    className="w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center gap-2 transition-colors text-center"
                   >
                     <LogOut size={14} />
                     <span>Logout</span>
