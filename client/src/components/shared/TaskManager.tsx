@@ -4,9 +4,12 @@ import {
   AlertCircle, Flag, Edit, Trash2, MoreVertical, CalendarDays,
   Target, TrendingUp
 } from 'lucide-react';
-import { Button, Card } from '../ui';
+import { Button, Card, Input } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { tasksService, TaskPayload } from '../../services/tasksService';
+import { userService } from '../../services/userService';
+import { STORAGE_KEYS } from '../../constants';
 
 interface Task {
   id: string;
@@ -48,6 +51,49 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>([]);
+  const [newTask, setNewTask] = useState<{ title: string; description: string; dueDate: string; priority: 'LOW'|'MEDIUM'|'HIGH'|'URGENT'; assignedTo?: number | '' }>(
+    { title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' }
+  );
+
+// Load users and tasks
+  useEffect(() => {
+    // Fetch users (assignees)
+    (async () => {
+      try {
+        const resp = await userService.getUsers({ page: 1, limit: 100 });
+        const items = resp?.data?.users || resp?.data || resp?.users || [];
+        setUsers(items.map((u: any) => ({ id: u.id, firstName: u.firstName, lastName: u.lastName })));
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityType, entityId]);
+
+const refresh = async () => {
+    try {
+      setIsLoading(true);
+      const res = await tasksService.list({ entityType: entityType as any, entityId, status: 'PENDING,IN_PROGRESS,COMPLETED' });
+      const list = res?.data?.tasks || res?.data?.items || res?.tasks || [];
+      const mapped = list.map((t: any) => ({
+        ...t,
+        id: String(t.id),
+        assignedTo: t.assignedUser ? { id: String(t.assignedUser.id), firstName: t.assignedUser.firstName, lastName: t.assignedUser.lastName } : undefined,
+        createdBy: t.createdByUser ? { id: String(t.createdByUser.id), firstName: t.createdByUser.firstName, lastName: t.createdByUser.lastName } : undefined,
+      }));
+      setTasks(mapped);
+    } catch (e) {
+      // fall back to initial tasks
+      setTasks(initialTasks || []);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter and sort tasks
   const filteredTasks = tasks
@@ -146,17 +192,23 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     return new Date(dueDate) < new Date();
   };
 
-  const handleToggleStatus = async (taskId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
-    // TODO: API call to update task status
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: newStatus as any, completedAt: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined }
-          : task
-      )
-    );
-    toast.success(`Task marked as ${newStatus.toLowerCase()}`);
+const handleToggleStatus = async (taskId: string, currentStatus: string) => {
+    try {
+      if (currentStatus === 'COMPLETED') {
+        // Reopen task
+        const res = await tasksService.update(Number(taskId), { status: 'PENDING' });
+        const updated = res?.data?.task || res?.task;
+        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: 'PENDING', completedAt: undefined } : t)));
+        toast.success('Task reopened');
+      } else {
+        const res = await tasksService.complete(Number(taskId));
+        const updated = res?.data?.task || res?.task;
+        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: 'COMPLETED', completedAt: new Date().toISOString() } : t)));
+        toast.success('Task marked as completed');
+      }
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Failed to update task');
+    }
   };
 
   // Group tasks by status for better visualization
@@ -171,7 +223,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
   const overdueTasks = tasks.filter(task => task.dueDate && isOverdue(task.dueDate) && task.status !== 'COMPLETED').length;
 
-  return (
+return (
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="flex items-center justify-between">
@@ -198,6 +250,77 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           </Button>
         )}
       </div>
+
+      {/* New Task Modal */}
+      {showNewTask && (
+        <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400">Title</label>
+              <Input value={newTask.title} onChange={(e: any) => setNewTask({ ...newTask, title: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400">Due Date</label>
+              <input type="date" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-sm text-gray-600 dark:text-gray-400">Description</label>
+              <textarea value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700" rows={3} />
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400">Priority</label>
+              <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700">
+                <option value="URGENT">Urgent</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm text-gray-600 dark:text-gray-400">Assign To</label>
+              <select value={newTask.assignedTo ?? ''} onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value ? Number(e.target.value) : '' })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700">
+                <option value="">Unassigned</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="OUTLINE" onClick={() => setShowNewTask(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (!newTask.title.trim()) { toast.error('Title is required'); return; }
+              try {
+const payload: TaskPayload = {
+                  title: newTask.title,
+                  description: newTask.description || undefined,
+                  priority: newTask.priority,
+                  dueDate: newTask.dueDate || undefined,
+                  assignedTo: newTask.assignedTo === '' ? undefined : (newTask.assignedTo as number),
+                  createdBy: Number(localStorage.getItem('userId') || '1'),
+                  ...(entityType === 'lead' ? { leadId: Number(entityId) } : {}),
+                  ...(entityType === 'deal' ? { dealId: Number(entityId) } : {}),
+                  ...(entityType === 'contact' ? { contactId: Number(entityId) } : {}),
+                };
+const res = await tasksService.create(payload);
+                const task = res?.data?.task || res?.task;
+                const mapped = {
+                  ...task,
+                  id: String(task.id),
+                  assignedTo: task.assignedUser ? { id: String(task.assignedUser.id), firstName: task.assignedUser.firstName, lastName: task.assignedUser.lastName } : undefined,
+                  createdBy: task.createdByUser ? { id: String(task.createdByUser.id), firstName: task.createdByUser.firstName, lastName: task.createdByUser.lastName } : undefined,
+                } as any;
+                setTasks(prev => [mapped, ...prev]);
+                setShowNewTask(false);
+                setNewTask({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
+                toast.success('Task created');
+              } catch (e: any) {
+                toast.error(e?.response?.data?.message || 'Failed to create task');
+              }
+            }}>Create Task</Button>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -257,7 +380,12 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
       {/* Task List */}
       <div className="space-y-4">
-        {filteredTasks.length === 0 ? (
+{isLoading ? (
+          <Card className="p-8 text-center">
+            <div className="animate-spin h-8 w-8 border-2 border-weconnect-red border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
+          </Card>
+        ) : filteredTasks.length === 0 ? (
           <Card className="p-8 text-center">
             <CheckCircle size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -350,11 +478,30 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                 {/* Actions */}
                 {hasPermission(`${entityType}.update`) && (
                   <div className="flex items-center space-x-2 ml-4">
-                    <Button size="SM" variant="GHOST">
+<Button size="SM" variant="GHOST" onClick={async () => {
+                      // Quick assign to self
+                      try {
+                        const uid = Number(localStorage.getItem('userId'));
+                        const res = await tasksService.update(Number(task.id), { assignedTo: uid });
+                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, assignedTo: { id: String(uid), firstName: user?.firstName || 'You', lastName: user?.lastName || '' } as any } : t));
+                        toast.success('Assigned to you');
+                      } catch (e: any) {
+                        toast.error('Failed to assign');
+                      }
+                    }}>
                       <Edit size={14} />
                     </Button>
-                    <Button size="SM" variant="GHOST">
-                      <MoreVertical size={14} />
+                    <Button size="SM" variant="GHOST" onClick={async () => {
+                      if (!confirm('Delete this task?')) return;
+                      try {
+                        await tasksService.remove(Number(task.id));
+                        setTasks(prev => prev.filter(t => t.id !== task.id));
+                        toast.success('Task deleted');
+                      } catch (e: any) {
+                        toast.error('Failed to delete task');
+                      }
+                    }}>
+                      <Trash2 size={14} />
                     </Button>
                   </div>
                 )}

@@ -42,7 +42,7 @@ interface Contact {
   tags?: string[];
   assignedTo?: string;
   assignedToName?: string;
-  companyId?: string;
+  companyId?: string | number;
   companyName?: string;
   leadScore?: number;
   lastContactedAt?: string;
@@ -66,6 +66,9 @@ interface Contact {
   callLogs?: any[];
   notifications?: any[];
   deals?: any[];
+  // Extended account view
+  relatedContacts?: any[];
+  companyDetails?: any;
 }
 
 const ContactProfile: React.FC = () => {
@@ -116,11 +119,71 @@ const ContactProfile: React.FC = () => {
     }
   }, [id]);
 
-  const fetchContact = async () => {
+const fetchContact = async () => {
     try {
       setIsLoading(true);
-      const response = await contactService.getContact(parseInt(id!));
-      setContact(response.data);
+      const res = await contactService.getContactById(parseInt(id!));
+      const payload: any = (res as any)?.data ?? res;
+      // Detect extended payload shape from API
+      const isExtended = payload && (payload.contact || payload.company || payload.quotations || payload.deals);
+      if (isExtended) {
+        const c = payload.contact || {};
+        const merged: Contact = {
+          // Basic fields
+          id: String(c.id ?? id),
+          firstName: c.firstName || '',
+          lastName: c.lastName || '',
+          email: c.email || '',
+          phone: c.phone || c.mobile || '',
+          alternatePhone: c.alternatePhone || c.altPhone || '',
+          company: (c.company || payload.company?.name) || undefined,
+          position: c.position || undefined,
+          department: c.department || undefined,
+          address: c.address || '',
+          city: c.city || '',
+          state: c.state || '',
+          country: c.country || '',
+          zipCode: c.zipCode || c.zip || '',
+          website: c.website || '',
+          linkedinProfile: c.linkedinProfile || '',
+          twitterHandle: c.twitterHandle || '',
+          notes: c.notes || '',
+          tags: c.tags || [],
+          assignedTo: c.assignedTo ? String(c.assignedTo) : undefined,
+          assignedToName: c.assignedUser ? `${c.assignedUser.firstName || ''} ${c.assignedUser.lastName || ''}`.trim() : undefined,
+          companyId: c.companyId ?? payload.company?.id,
+          companyName: payload.company?.name || c.company || undefined,
+          leadScore: c.leadScore ?? 0,
+          lastContactedAt: c.lastContactedAt || undefined,
+          preferredContactMethod: c.preferredContactMethod || undefined,
+          timezone: c.timezone || undefined,
+          birthday: c.birthday || undefined,
+          industry: c.industry || undefined,
+          isActive: Boolean(c.isActive ?? true),
+          isBlacklisted: Boolean(c.isBlacklisted ?? false),
+          blacklistReason: c.blacklistReason || undefined,
+          createdAt: c.createdAt || new Date().toISOString(),
+          updatedAt: c.updatedAt || new Date().toISOString(),
+          // Extended arrays
+          activities: payload.activities || c.activities || [],
+          communications: payload.communications || c.communications || [],
+          followUps: payload.followUps || c.followUps || [],
+          tasks: payload.tasks || c.tasks || [],
+          quotations: payload.quotations || c.quotations || [],
+          invoices: payload.invoices || c.invoices || [],
+          payments: payload.payments || c.payments || [],
+          callLogs: c.callLogs || [],
+          notifications: c.notifications || [],
+          deals: payload.deals || c.deals || [],
+          // Extended account view
+          relatedContacts: payload.relatedContacts || [],
+          companyDetails: payload.company || c.companyRelation || null,
+        } as Contact;
+        setContact(merged);
+      } else {
+        // Fallback: old shape where payload is the contact itself
+        setContact(payload as Contact);
+      }
     } catch (error: any) {
       console.error('Failed to fetch contact:', error);
       if (error.response?.status === 404) {
@@ -436,7 +499,7 @@ const ContactProfile: React.FC = () => {
 
         {/* Tab Content */}
         <div className="min-h-96">
-        {activeTab === 'overview' && (
+{activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Contact Information */}
             <Card className="p-6">
@@ -626,6 +689,77 @@ const ContactProfile: React.FC = () => {
                 </div>
               )}
             </Card>
+
+            {/* Company & Account Overview */}
+            {(contact as any).companyDetails && (
+              <Card className="p-6 lg:col-span-2">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Company</h3>
+                    <p className="text-gray-900 dark:text-white text-base font-medium">{(contact as any).companyDetails?.name || contact.company}</p>
+                    {(contact as any).companyDetails?.address && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {(contact as any).companyDetails?.address}
+                        {(contact as any).companyDetails?.city && `, ${(contact as any).companyDetails?.city}`}
+                        {(contact as any).companyDetails?.state && `, ${(contact as any).companyDetails?.state}`}
+                        {(contact as any).companyDetails?.zipCode && ` ${(contact as any).companyDetails?.zipCode}`}
+                        {(contact as any).companyDetails?.country && `, ${(contact as any).companyDetails?.country}`}
+                      </p>
+                    )}
+                    <div className="flex gap-3 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      {(contact as any).companyDetails?.phone && (
+                        <span className="flex items-center">
+                          <Phone className="h-4 w-4 mr-1 text-purple-500" /> {(contact as any).companyDetails?.phone}
+                        </span>
+                      )}
+                      {(contact as any).companyDetails?.website && (
+                        <a className="flex items-center text-weconnect-red hover:underline" href={(contact as any).companyDetails?.website} target="_blank" rel="noreferrer">
+                          <LinkIcon className="h-4 w-4 mr-1" /> {(contact as any).companyDetails?.website}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-2 md:mt-0">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Account quick glance</div>
+                    <div className="mt-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div className="text-xs text-gray-500">Deals</div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{contact.deals?.length || 0}</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div className="text-xs text-gray-500">Quotations</div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{contact.quotations?.length || 0}</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div className="text-xs text-gray-500">Invoices</div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{contact.invoices?.length || 0}</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
+                        <div className="text-xs text-gray-500">Tasks</div>
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{contact.tasks?.length || 0}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {(contact as any).relatedContacts && (contact as any).relatedContacts.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Other contacts at this company</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {(contact as any).relatedContacts.map((rc: any) => (
+                        <Link key={rc.id} to={`/contacts/${rc.id}`} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{`${rc.firstName || ''} ${rc.lastName || ''}`.trim() || rc.email || `Contact #${rc.id}`}</div>
+                            <div className="text-xs text-gray-500">{rc.email || rc.phone || ''}</div>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-gray-400" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
           </div>
         )}
 

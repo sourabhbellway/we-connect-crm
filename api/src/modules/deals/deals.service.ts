@@ -16,30 +16,71 @@ export class DealsService {
     limit?: number;
     search?: string;
   }) {
-    const where: any = {};
+    const pageNum = Math.max(1, Number(page) || 1);
+    const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
+
+    const where: any = { deletedAt: null, isActive: true };
     if (search && search.trim()) {
       const q = search.trim();
       where.OR = [
         { title: { contains: q, mode: 'insensitive' } },
         { description: { contains: q, mode: 'insensitive' } },
+        { companies: { name: { contains: q, mode: 'insensitive' } } },
+        { contact: { firstName: { contains: q, mode: 'insensitive' } } },
+        { contact: { lastName: { contains: q, mode: 'insensitive' } } },
+        { contact: { email: { contains: q, mode: 'insensitive' } } },
       ];
     }
-    const [items, total] = await Promise.all([
+
+    const [rows, total] = await Promise.all([
       this.prisma.deal.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
+        skip: (pageNum - 1) * pageSize,
+        take: pageSize,
+        orderBy: [{ value: 'desc' }, { createdAt: 'desc' }],
+        include: {
+          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+          contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+          lead: { select: { id: true, firstName: true, lastName: true, email: true } },
+          companies: { select: { id: true, name: true } },
+        },
       }),
       this.prisma.deal.count({ where }),
     ]);
-    return { success: true, data: { items, total, page, limit } };
+
+    const normalized = rows.map((d: any) => ({
+      ...d,
+      value: Number(d.value ?? 0),
+    }));
+
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    return {
+      success: true,
+      data: {
+        deals: normalized,
+        pagination: {
+          page: pageNum,
+          limit: pageSize,
+          total,
+          pages,
+        },
+      },
+    };
   }
 
   async getById(id: number) {
-    const deal = await this.prisma.deal.findUnique({ where: { id } });
+    const deal = await this.prisma.deal.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+        lead: { select: { id: true, firstName: true, lastName: true, email: true } },
+        companies: { select: { id: true, name: true } },
+      },
+    });
     if (!deal) return { success: false, message: 'Deal not found' };
-    return { success: true, data: { deal } };
+    const normalized: any = { ...deal, value: Number((deal as any).value ?? 0) };
+    return { success: true, data: normalized };
   }
 
   async create(dto: CreateDealDto) {
@@ -47,7 +88,7 @@ export class DealsService {
       data: {
         title: dto.title,
         description: dto.description,
-        value: dto.value as any,
+        value: (dto.value ?? 0) as any,
         currency: dto.currency ?? 'USD',
         status: (dto.status as any) ?? 'DRAFT',
         probability: dto.probability ?? 0,

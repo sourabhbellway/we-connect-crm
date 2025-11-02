@@ -18,6 +18,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 14px;
+  overflow-x: hidden; /* avoid horizontal scrollbars on small screens */
+  font-variant-numeric: tabular-nums; /* align numbers in columns like analytics/cards */
+  font-feature-settings: "tnum" 1, "lnum" 1;
 }
 
 * {
@@ -35,6 +38,49 @@ button {
 /* Ensure SVG icons don't sit on text baseline */
 button svg {
   display: block;
+}
+
+/* Ensure lucide-react icons align perfectly with text */
+.lucide {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Universal icon + text row utility */
+.ui-row,
+.icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Normalize typography line-heights for consistent vertical rhythm */
+html,
+body,
+button,
+input,
+select,
+textarea {
+  line-height: 1.4;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.25;
+}
+
+/* Keep table content vertically centered */
+table th,
+table td {
+  vertical-align: middle;
+}
+
+/* Badges/pills alignment */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 /* Optimize for smaller screens */
@@ -378,6 +424,7 @@ button svg {
 
 /* Container max-widths aligned with grid system */
 .container-grid {
+  width: 100%;
   max-width: 1200px; /* 40 x 30px columns */
   margin: 0 auto;
   padding: 0 15px;
@@ -513,7 +560,7 @@ select {
 }
 
 /* Ensure icons inside inputs don't block typing */
-.input-icon, .filters-grid svg, .top-header svg { pointer-events: none; }
+.input-icon { pointer-events: none; }
 
 select::-ms-expand {
   display: none;

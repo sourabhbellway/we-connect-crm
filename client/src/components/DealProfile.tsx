@@ -107,8 +107,33 @@ const DealProfile: React.FC = () => {
   const fetchDeal = async () => {
     try {
       setIsLoading(true);
-      const response = await dealService.getDeal(parseInt(id!));
-      setDeal(response.data);
+      const res = await dealService.getDeal(parseInt(id!));
+      const d: any = res.data;
+      const mappedDeal: Deal = {
+        ...d,
+        id: String(d.id ?? id),
+        value: Number(d.value ?? 0),
+        contactName: d.contact ? `${d.contact.firstName || ''} ${d.contact.lastName || ''}`.trim() : undefined,
+        contactId: d.contact?.id ? String(d.contact.id) : undefined,
+        contactEmail: d.contact?.email,
+        contactPhone: d.contact?.phone,
+        companyName: d.companies?.name,
+        assignedToName: d.assignedUser ? `${d.assignedUser.firstName || ''} ${d.assignedUser.lastName || ''}`.trim() : undefined,
+        assignedToId: d.assignedUser?.id ? String(d.assignedUser.id) : undefined,
+        // lead linkage
+        leadId: d.lead?.id ? String(d.lead.id) : d.leadId ? String(d.leadId) : undefined,
+        // Preserve existing optional arrays if present
+        activities: d.activities || [],
+        communications: d.communications || [],
+        followUps: d.followUps || [],
+        tasks: d.tasks || [],
+        quotations: d.quotations || [],
+        invoices: d.invoices || [],
+        payments: d.payments || [],
+        callLogs: d.callLogs || [],
+        notifications: d.notifications || [],
+      } as Deal;
+      setDeal(mappedDeal);
     } catch (error: any) {
       console.error('Failed to fetch deal:', error);
       if (error.response?.status === 404) {

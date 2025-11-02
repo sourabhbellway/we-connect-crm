@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Plus, Eye, Download } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
+import apiClient from '../../services/apiClient';
 
 interface Quotation {
   id: string;
@@ -187,11 +188,37 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <Button size="SM" variant="GHOST">
+                      <Button size="SM" variant="GHOST" onClick={async () => {
+                        try {
+                          const res = await apiClient.get(`/quotations/${quotation.id}/pdf/preview`, { responseType: 'blob' });
+                          const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                          window.open(url, '_blank');
+                        } catch (e) { /* noop */ }
+                      }}>
                         <Eye size={14} />
                       </Button>
-                      <Button size="SM" variant="GHOST">
+                      <Button size="SM" variant="GHOST" onClick={async () => {
+                        try {
+                          const res = await apiClient.get(`/quotations/${quotation.id}/pdf/download`, { responseType: 'blob' });
+                          const url = URL.createObjectURL(new Blob([res.data]));
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${quotation.quotationNumber || 'quotation'}.pdf`;
+                          a.click();
+                        } catch (e) { /* noop */ }
+                      }}>
                         <Download size={14} />
+                      </Button>
+                      <Button size="SM" variant="OUTLINE" onClick={async () => {
+                        try {
+                          await apiClient.put(`/quotations/${quotation.id}/accept`);
+                          const res = await apiClient.post(`/quotations/${quotation.id}/generate-invoice`);
+                          if (res.data?.success) {
+                            onRefresh?.();
+                          }
+                        } catch (e) { /* noop */ }
+                      }}>
+                        Create Invoice
                       </Button>
                     </div>
                   </div>
@@ -250,10 +277,25 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <Button size="SM" variant="GHOST">
+                      <Button size="SM" variant="GHOST" onClick={async () => {
+                        try {
+                          const res = await apiClient.get(`/invoices/${invoice.id}/pdf/preview`, { responseType: 'blob' });
+                          const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                          window.open(url, '_blank');
+                        } catch (e) { /* noop */ }
+                      }}>
                         <Eye size={14} />
                       </Button>
-                      <Button size="SM" variant="GHOST">
+                      <Button size="SM" variant="GHOST" onClick={async () => {
+                        try {
+                          const res = await apiClient.get(`/invoices/${invoice.id}/pdf/download`, { responseType: 'blob' });
+                          const url = URL.createObjectURL(new Blob([res.data]));
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+                          a.click();
+                        } catch (e) { /* noop */ }
+                      }}>
                         <Download size={14} />
                       </Button>
                     </div>

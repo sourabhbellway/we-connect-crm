@@ -55,6 +55,16 @@ export class BusinessSettingsController {
     return this.service.getAllBusinessSettings();
   }
 
+  @Get('numbering')
+  getNumbering() {
+    return this.service.getNumbering();
+  }
+
+  @Put('numbering')
+  updateNumbering(@Body() body: any) {
+    return this.service.updateNumbering(body);
+  }
+
   @Get('pipelines')
   getPipelines() {
     return this.service.getPipelines();

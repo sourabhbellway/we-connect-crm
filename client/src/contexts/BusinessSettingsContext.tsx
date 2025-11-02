@@ -357,19 +357,18 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
   };
 
   // Utility Methods
-  const formatCurrency = (amount: number | undefined | null, currency?: string): string => {
-    // Handle undefined/null amounts
-    if (amount === undefined || amount === null || isNaN(amount)) {
-      amount = 0;
-    }
+  const formatCurrency = (amount: number | string | undefined | null, currency?: string): string => {
+    // Normalize to number first
+    let num = Number(amount);
+    if (!isFinite(num)) num = 0;
     
-    if (!currencySettings) return amount.toString();
+    if (!currencySettings) return String(num);
     
     const curr = currency || currencySettings.primary;
     const symbol = currencySettings.symbol || '$';
     const decimals = currencySettings.decimalPlaces || 2;
     
-    const formatted = amount.toFixed(decimals);
+    const formatted = num.toFixed(decimals);
     
     return currencySettings.position === 'before' 
       ? `${symbol}${formatted}`

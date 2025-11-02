@@ -87,6 +87,7 @@ function Dashboard() {
   // Dashboard KPI state
   const [dashboardKPIs, setDashboardKPIs] = useState<DashboardKPIs | null>(null);
   const [isKPILoading, setIsKPILoading] = useState(true);
+  const [scope, setScope] = useState<'all'|'me'>('all');
 
   // Activity Calendar / To-Do state
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -213,7 +214,7 @@ function Dashboard() {
     const fetchKPIs = async () => {
       try {
         if (hasPermission("lead.read")) {
-          const response = await leadService.getDashboardKPIs();
+          const response = await leadService.getDashboardKPIs(undefined, undefined, scope === 'me' ? (user?.id as any) : undefined);
           setDashboardKPIs(response.data);
         }
       } catch (error) {
@@ -224,25 +225,42 @@ function Dashboard() {
     };
     
     fetchKPIs();
-  }, [hasPermission]);
+  }, [hasPermission, scope, user?.id]);
 
   // Fetch Leads and Roles stats for slides
   useEffect(() => {
     const fetchLeadStats = async () => {
       try {
         if (hasPermission("lead.read")) {
-          const response = await leadService.getLeadStats();
-          const ls = response?.data || response;
-          setLeadStats({
-            totalLeads: ls.totalLeads ?? 0,
-            newLeads: ls.newLeads ?? 0,
-            contactedLeads: ls.contactedLeads ?? 0,
-            qualifiedLeads: ls.qualifiedLeads ?? 0,
-            proposalLeads: ls.proposalLeads ?? 0,
-            negotiationLeads: ls.negotiationLeads ?? 0,
-            closedLeads: ls.closedLeads ?? 0,
-            lostLeads: ls.lostLeads ?? 0,
-          });
+          // If scope is 'me', compute stats from my assigned leads
+          if (scope === 'me' && user?.id) {
+            const res: any = await leadService.getLeads({ page: 1, limit: 100, assignedTo: Number(user.id) });
+            const items = res?.data?.leads || res?.data?.items || [];
+            const counts = items.reduce((acc: any, l: any) => { acc.total++; acc[`${l.status}Leads`] = (acc[`${l.status}Leads`]||0)+1; return acc; }, { total:0 });
+            setLeadStats({
+              totalLeads: counts.total || 0,
+              newLeads: counts.newLeads || 0,
+              contactedLeads: counts.contactedLeads || 0,
+              qualifiedLeads: counts.qualifiedLeads || 0,
+              proposalLeads: counts.proposalLeads || 0,
+              negotiationLeads: counts.negotiationLeads || 0,
+              closedLeads: counts.closedLeads || 0,
+              lostLeads: counts.lostLeads || 0,
+            });
+          } else {
+            const response = await leadService.getLeadStats();
+            const ls = response?.data || response;
+            setLeadStats({
+              totalLeads: ls.totalLeads ?? 0,
+              newLeads: ls.newLeads ?? 0,
+              contactedLeads: ls.contactedLeads ?? 0,
+              qualifiedLeads: ls.qualifiedLeads ?? 0,
+              proposalLeads: ls.proposalLeads ?? 0,
+              negotiationLeads: ls.negotiationLeads ?? 0,
+              closedLeads: ls.closedLeads ?? 0,
+              lostLeads: ls.lostLeads ?? 0,
+            });
+          }
         }
       } catch (error) {
         console.error("Error fetching lead stats:", error);
@@ -348,8 +366,8 @@ function Dashboard() {
         <div className="relative z-10 px-6 py-12 lg:py-16">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-              <div className="flex-1">
-                <div className="mb-4">
+                <div className="flex-1">
+                  <div className="mb-4">
                   <p className="text-lg text-white/80 font-light">
                     Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'},
                   </p>
@@ -364,8 +382,12 @@ function Dashboard() {
                 <p className="text-white/70 text-lg max-w-lg leading-relaxed">
                   Here's what's happening with your CRM today. You have{' '}
                   <span className="text-white font-semibold">{userStats.totalUsers} users</span> and{' '}
-                  <span className="text-white font-semibold">{leadStats.totalLeads} leads</span> in your system.
+                  <span className="text-white font-semibold">{leadStats.totalLeads} leads</span> in your {scope === 'me' ? 'pipeline' : 'system'}.
                 </p>
+              </div>
+              <div className="flex items-center bg-white/10 border border-white/20 rounded-full p-1 self-start">
+                <button className={`px-4 py-2 rounded-full text-sm ${scope==='all' ? 'bg-white text-black' : 'text-white'}`} onClick={()=>setScope('all')}>All</button>
+                <button className={`px-4 py-2 rounded-full text-sm ${scope==='me' ? 'bg-white text-black' : 'text-white'}`} onClick={()=>setScope('me')}>My data</button>
               </div>
         {/* Mobile stats: same UX as desktop (prev/next buttons, no tabs) */}
         {/* <div className="lg:hidden w-full relative z-10 mt-6">

@@ -88,14 +88,18 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
           company: lead.company || "",
           position: lead.position || "",
           notes: lead.notes || "",
+          website: (lead as any)?.website || "",
         },
         companyData: {
           name: lead.company || "",
+          domain: (lead as any)?.website || "",
         },
         dealData: {
           ...prev.dealData,
           title: `Deal with ${lead.firstName} ${lead.lastName}`,
           description: `Deal opportunity from lead conversion`,
+          value: (lead as any)?.budget ?? (lead as any)?.value ?? undefined,
+          currency: (lead as any)?.currency || prev.dealData.currency,
         },
       }));
     }

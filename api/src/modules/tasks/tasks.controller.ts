@@ -25,18 +25,35 @@ export class TasksController {
     @Query('limit') limit?: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
+    // Direct filters
     @Query('leadId') leadId?: string,
     @Query('dealId') dealId?: string,
     @Query('contactId') contactId?: string,
+    // Back-compat params used by client
+    @Query('entityType') entityType?: 'lead' | 'deal' | 'contact' | 'company',
+    @Query('entityId') entityId?: string,
+    @Query('assignedTo') assignedTo?: string,
   ) {
+    // Map entityType/entityId to specific relation IDs
+    let lead = leadId ? parseInt(leadId) : undefined;
+    let deal = dealId ? parseInt(dealId) : undefined;
+    let contact = contactId ? parseInt(contactId) : undefined;
+    if (!lead && !deal && !contact && entityType && entityId) {
+      const idNum = parseInt(entityId);
+      if (entityType === 'lead') lead = idNum;
+      if (entityType === 'deal') deal = idNum;
+      if (entityType === 'contact') contact = idNum;
+    }
+
     return this.service.list({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
       status,
       search,
-      leadId: leadId ? parseInt(leadId) : undefined,
-      dealId: dealId ? parseInt(dealId) : undefined,
-      contactId: contactId ? parseInt(contactId) : undefined,
+      leadId: lead,
+      dealId: deal,
+      contactId: contact,
+      assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
     });
   }
 
@@ -47,7 +64,18 @@ export class TasksController {
 
   @Post()
   create(@Body() dto: CreateTaskDto) {
-    return this.service.create(dto);
+    // Back-compat: allow { entityType, entityId } in body and map to specific IDs
+    const mapped: any = { ...dto } as any;
+    const et = (mapped.entityType as string | undefined)?.toLowerCase();
+    if (mapped.entityId && et) {
+      const idNum = Number(mapped.entityId);
+      if (et === 'lead') mapped.leadId = idNum;
+      if (et === 'deal') mapped.dealId = idNum;
+      if (et === 'contact') mapped.contactId = idNum;
+      delete mapped.entityType;
+      delete mapped.entityId;
+    }
+    return this.service.create(mapped);
   }
 
   @Put(':id')

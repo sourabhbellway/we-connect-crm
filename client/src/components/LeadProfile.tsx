@@ -21,6 +21,7 @@ import LeadTransferModal from './LeadTransferModal';
 import LeadCommunication from './LeadCommunication';
 import LeadConversionModal from './LeadConversionModal';
 import QuotationManager from './shared/QuotationManager';
+import TaskManager from './shared/TaskManager';
 
 // Call log interfaces
 interface CallLog {
@@ -841,6 +842,7 @@ const LeadProfile: React.FC = () => {
     { id: 'files', label: 'Files', icon: LinkIcon },
     { id: 'proposals', label: 'Proposals', icon: FileText },
     { id: 'call-logs', label: 'Call Logs', icon: PhoneCall },
+    { id: 'tasks', label: 'Tasks', icon: CheckCircle },
     { id: 'communication', label: 'Communication', icon: MessageSquare },
   ];
 
@@ -1008,6 +1010,12 @@ const LeadProfile: React.FC = () => {
                   <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${lead.leadScore || 0}%` }}></div>
                 </div>
               </div>
+
+              {activeTab === 'tasks' && (
+                <Card className="p-6">
+                  <TaskManager entityType="lead" entityId={String(lead.id)} tasks={tasks} />
+                </Card>
+              )}
             </div>
           </div>
         </div>
