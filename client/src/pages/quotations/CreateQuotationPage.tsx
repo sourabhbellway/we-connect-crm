@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Plus, Trash2, Search, X } from 'lucide-react';
+import { Button, Card } from '../../components/ui';
 import apiClient from '../../services/apiClient';
+import { leadService } from '../../services/leadService';
+import { contactService } from '../../services/contactService';
+import { dealService } from '../../services/dealService';
 import { toast } from 'react-toastify';
 
 interface QuotationItem {
@@ -18,6 +22,8 @@ interface QuotationItem {
 const CreateQuotationPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { id: editId } = useParams();
+  const isEdit = Boolean(editId);
   
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
@@ -33,6 +39,7 @@ const CreateQuotationPage: React.FC = () => {
   const [relatedId, setRelatedId] = useState('');
   const [status, setStatus] = useState('Draft');
   const [assignedTo, setAssignedTo] = useState('');
+  const [dealId, setDealId] = useState<string>('');
   const [toField, setToField] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
@@ -69,6 +76,128 @@ const CreateQuotationPage: React.FC = () => {
   useEffect(() => {
     fetchInitialData();
   }, []);
+
+  // Load existing quotation in edit mode
+  useEffect(() => {
+    if (!isEdit) return;
+    (async () => {
+      try {
+        const res = await apiClient.get(`/quotations/${editId}`);
+        const q = res?.data?.data?.quotation || res?.data?.quotation || res?.data;
+        if (!q) return;
+        setSubject(q.title || '');
+        setStatus(q.status ? q.status.charAt(0) + q.status.slice(1).toLowerCase() : 'Draft');
+        setCurrency(q.currency || 'USD');
+        setOpenTill(q.validUntil ? String(q.validUntil).slice(0, 10) : '');
+        setDate(q.createdAt ? String(q.createdAt).slice(0, 10) : date);
+        setAddress('');
+        setEmail(q.contact?.email || q.lead?.email || email);
+        if (q.contact) {
+          setRelatedType('contact');
+          setRelatedId(String(q.contactId));
+          const full = `${q.contact.firstName || ''} ${q.contact.lastName || ''}`.trim();
+          setToField(full); setSearchQuery(full);
+        } else if (q.lead) {
+          setRelatedType('lead');
+          setRelatedId(String(q.leadId));
+          const full = `${q.lead.firstName || ''} ${q.lead.lastName || ''}`.trim();
+          setToField(full); setSearchQuery(full);
+        }
+        // Map items for UI
+        if (Array.isArray(q.items)) {
+          setItems(q.items.map((it: any) => ({
+            description: it.name || it.description || '',
+            longDescription: it.description || '',
+            quantity: Number(it.quantity || 1),
+            unit: it.unit || 'Unit',
+            rate: Number(it.unitPrice || 0),
+            taxRate: Number(it.taxRate || 0),
+            amount: Number(it.totalAmount || 0),
+            isOptional: false,
+          })));
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, [isEdit, editId]);
+
+  // Prefill when opened from an entity context (?entityType=lead|contact|deal&entityId=123)
+  useEffect(() => {
+    const entityType = (searchParams.get('entityType') as 'lead' | 'contact' | 'deal' | null) || null;
+    const entityIdParam = searchParams.get('entityId');
+    if (!entityType || !entityIdParam) return;
+    const id = parseInt(entityIdParam);
+    (async () => {
+      try {
+        if (entityType === 'lead') {
+          const res = await leadService.getLeadById(id);
+          const lead = res?.data?.lead || res?.data || res;
+          if (lead) {
+            setRelatedType('lead');
+            setRelatedId(String(lead.id));
+            setSubject(`Proposal for ${lead.firstName} ${lead.lastName}`);
+            const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
+            setToField(fullName);
+            setSearchQuery(fullName);
+            setEmail(lead.email || '');
+            setPhone(lead.phone || '');
+            setAddress(lead.address || '');
+            setCity(lead.city || '');
+            setState(lead.state || '');
+            setCountry(lead.country || '');
+            setZipCode(lead.zipCode || '');
+            if ((lead as any)?.currency) setCurrency((lead as any).currency);
+          }
+        } else if (entityType === 'contact') {
+          const res = await contactService.getContactById(id);
+          const contact = res?.data || res;
+          if (contact) {
+            setRelatedType('contact');
+            setRelatedId(String(contact.id));
+            const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
+            setSubject(`Proposal for ${fullName}`);
+            setToField(fullName);
+            setSearchQuery(fullName);
+            setEmail(contact.email || '');
+            setPhone(contact.phone || '');
+            setAddress(contact.address || '');
+          }
+        } else if (entityType === 'deal') {
+          const res = await dealService.getDealById(id);
+          const deal = (res as any)?.data || res;
+          if (deal) {
+            setDealId(String(deal.id));
+            // Prefer contact if present, else lead
+            if (deal.contact) {
+              setRelatedType('contact');
+              setRelatedId(String(deal.contact.id));
+              const fullName = `${deal.contact.firstName || ''} ${deal.contact.lastName || ''}`.trim();
+              setSubject(deal.title ? `${deal.title}` : `Proposal for ${fullName || 'Contact'}`);
+              setToField(fullName);
+              setSearchQuery(fullName);
+              setEmail(deal.contact.email || '');
+              setPhone(deal.contact.phone || '');
+            } else if (deal.lead) {
+              setRelatedType('lead');
+              setRelatedId(String(deal.lead.id));
+              const fullName = `${deal.lead.firstName || ''} ${deal.lead.lastName || ''}`.trim();
+              setSubject(deal.title ? `${deal.title}` : `Proposal for ${fullName || 'Lead'}`);
+              setToField(fullName);
+              setSearchQuery(fullName);
+              setEmail(deal.lead.email || '');
+              setPhone('');
+            } else {
+              setSubject(deal.title || 'Proposal');
+            }
+            if (deal.currency) setCurrency(deal.currency);
+          }
+        }
+      } catch (e) {
+        // Fail silently to keep form usable
+      }
+    })();
+  }, [searchParams]);
 
   // Close search dropdown when clicking outside
   useEffect(() => {
@@ -110,49 +239,24 @@ const CreateQuotationPage: React.FC = () => {
       toast.info('Please select Lead or Contact first');
       return;
     }
-    
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
-    
     try {
       setSearchLoading(true);
-      const endpoint = relatedType === 'lead' 
-        ? `/leads?search=${encodeURIComponent(query)}&limit=10`
-        : `/contacts?search=${encodeURIComponent(query)}&limit=10`;
-      
-      console.log('Searching:', endpoint);
-      const response = await apiClient.get(endpoint);
-      console.log('Search response:', response.data);
-      
-      if (response.data.success) {
-        const results = response.data.data?.leads || response.data.data?.contacts || response.data.data || [];
-        console.log('Search results:', results);
-        setSearchResults(Array.isArray(results) ? results : []);
-        setShowSearchDropdown(true);
+      if (relatedType === 'lead') {
+        const res: any = await leadService.getLeads({ page: 1, limit: 10, search: query });
+        const results = res?.data?.leads || res?.data?.items || res?.leads || [];
+        setSearchResults(results);
       } else {
-        setSearchResults([]);
-        toast.warning('No results found');
+        const res = await contactService.getContacts(1, 10, query);
+        const results = (res as any)?.data?.contacts || [];
+        setSearchResults(results);
       }
+      setShowSearchDropdown(true);
     } catch (error: any) {
-      console.error('Error searching entities:', error);
-      console.error('Error details:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message
-      });
-      
-      if (error.response?.status === 404) {
-        toast.error('Search endpoint not found. Please check server configuration.');
-      } else if (error.response?.status === 401) {
-        toast.error('Unauthorized. Please log in again.');
-      } else if (error.response?.status === 403) {
-        toast.error('You do not have permission to search.');
-      } else {
-        toast.error(error.response?.data?.message || 'Failed to search. Please try again.');
-      }
+      toast.error(error?.response?.data?.message || 'Failed to search.');
       setSearchResults([]);
     } finally {
       setSearchLoading(false);
@@ -252,6 +356,7 @@ const CreateQuotationPage: React.FC = () => {
         subject,
         relatedType,
         relatedId: parseInt(relatedId),
+        ...(dealId ? { dealId: parseInt(dealId) } : {}),
         status: sendImmediately ? 'Sent' : status,
         assignedTo: assignedTo ? parseInt(assignedTo) : null,
         to: toField,
@@ -273,7 +378,16 @@ const CreateQuotationPage: React.FC = () => {
         items,
       };
 
-      const response = await apiClient.post('/quotations', payload);
+      const response = isEdit
+        ? await apiClient.put(`/quotations/${editId}`, {
+            title: subject,
+            status: status.toUpperCase(),
+            currency,
+            validUntil: openTill || null,
+            notes: undefined,
+            terms: undefined,
+          })
+        : await apiClient.post('/quotations', payload);
 
       if (response.data.success) {
         toast.success(`Quotation ${sendImmediately ? 'created and sent' : 'saved'} successfully!`);
@@ -292,216 +406,124 @@ const CreateQuotationPage: React.FC = () => {
   const total = calculateTotal();
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-3">
-      <div className="max-w-[1400px] mx-auto">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+      <div className="container-grid py-6">
         {/* Header */}
-        <div className="mb-3">
-          <h1 className="text-lg font-bold text-gray-800 dark:text-white">
-            New Proposal
-          </h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Create Quotation</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="SECONDARY" onClick={() => handleSubmit(false)} disabled={loading}>Save as draft</Button>
+            <Button variant="PRIMARY" onClick={() => handleSubmit(true)} loading={loading} loadingText="Saving...">Save & Send</Button>
+          </div>
         </div>
 
-        {/* Main Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-5">
-          {/* Form Grid */}
-          <div className="grid grid-cols-12 gap-x-4 gap-y-3.5">
-            {/* Subject - Full width */}
-            <div className="col-span-12">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                <span className="text-red-500">*</span> Subject
-              </label>
-              <input
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                required
-              />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: form sections */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card padding="lg">
+              <div className="grid grid-cols-12 gap-4">
+                {/* Subject */}
+                <div className="col-span-12">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    <span className="text-red-500">*</span> Subject
+                  </label>
+                  <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="input-base" required />
+                </div>
 
-            {/* Related */}
-            <div className="col-span-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                <span className="text-red-500">*</span> Related
-              </label>
-              <select
-                value={relatedType}
-                onChange={(e) => {
-                  const newType = e.target.value as 'lead' | 'contact' | '';
-                  setRelatedType(newType);
-                  clearSelection();
-                  if (newType) {
-                    setShowSearchDropdown(true);
-                  }
-                }}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white appearance-none"
-              >
-                <option value="">---- Select ----</option>
-                <option value="lead">Lead</option>
-                <option value="contact">Contact</option>
-              </select>
-            </div>
-
-            {/* Status */}
-            <div className="col-span-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white appearance-none"
-              >
-                <option value="Draft">Draft</option>
-                <option value="Sent">Sent</option>
-                <option value="Viewed">Viewed</option>
-                <option value="Accepted">Accepted</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
-
-            {/* Assigned */}
-            <div className="col-span-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Assigned
-              </label>
-              <select
-                value={assignedTo}
-                onChange={(e) => setAssignedTo(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white appearance-none"
-              >
-                <option value="">Select User</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.firstName} {user.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* To - Search Box */}
-            <div className="col-span-9" ref={searchRef}>
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                <span className="text-red-500">*</span> To
-              </label>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchDropdown(true);
-                  }}
-                  onFocus={() => {
-                    if (relatedType && searchQuery.length >= 2) {
-                      setShowSearchDropdown(true);
-                    }
-                  }}
-                  placeholder={relatedType ? `Type to search ${relatedType}s... (min 2 characters)` : 'Select Related type first'}
-                  disabled={!relatedType}
-                  className="w-full pl-8 pr-10 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
-                  required
-                />
-                
-                {/* Search hint */}
-                {relatedType && !searchQuery && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-xs text-blue-600 dark:text-blue-400 z-40">
-                    💡 Start typing to search for {relatedType}s (name, email, company)
-                  </div>
-                )}
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={clearSelection}
-                    className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                {/* Related */}
+                <div className="col-span-12 sm:col-span-4">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"><span className="text-red-500">*</span> Related</label>
+                  <select
+                    value={relatedType}
+                    onChange={(e) => {
+                      const newType = e.target.value as 'lead' | 'contact' | '';
+                      setRelatedType(newType);
+                      clearSelection();
+                      if (newType) setShowSearchDropdown(true);
+                    }}
+                    className="input-base appearance-none"
                   >
-                    <X size={16} />
-                  </button>
-                )}
-                {searchLoading && (
-                  <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                  </div>
-                )}
-                
-                {/* Search Results Dropdown */}
-                {showSearchDropdown && relatedType && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
-                    <div className="p-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                        {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
-                      </p>
-                    </div>
-                    {searchResults.map((entity) => (
-                      <button
-                        key={entity.id}
-                        type="button"
-                        onClick={() => selectEntity(entity)}
-                        className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-blue-600 dark:text-blue-300 font-semibold text-xs">
-                              {entity.firstName?.[0]}{entity.lastName?.[0]}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm text-gray-900 dark:text-white">
-                              {entity.firstName} {entity.lastName}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {entity.email}
-                            </div>
-                            {entity.company && (
-                              <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                                {entity.company}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </button>
+                    <option value="">Select</option>
+                    <option value="lead">Lead</option>
+                    <option value="contact">Contact</option>
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div className="col-span-12 sm:col-span-4">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Status</label>
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="input-base appearance-none">
+                    <option value="Draft">Draft</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Viewed">Viewed</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
+
+                {/* Assigned */}
+                <div className="col-span-12 sm:col-span-4">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Assigned</label>
+                  <select value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} className="input-base appearance-none">
+                    <option value="">Select User</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>{user.firstName} {user.lastName}</option>
                     ))}
+                  </select>
+                </div>
+
+                {/* To - search */}
+                <div className="col-span-12" ref={searchRef}>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"><span className="text-red-500">*</span> To</label>
+                  <div className="relative input-divided">
+                    <div className="input-icon-left"><Search size={16} /></div>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setShowSearchDropdown(true); }}
+                      onFocus={() => { if (relatedType && searchQuery.length >= 2) setShowSearchDropdown(true); }}
+                      placeholder={relatedType ? `Search ${relatedType}s...` : 'Select Related type first'}
+                      disabled={!relatedType}
+                      required
+                    />
+                    {searchQuery && (
+                      <button type="button" onClick={clearSelection} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><X size={16} /></button>
+                    )}
+                    {searchLoading && (
+                      <div className="absolute right-8 top-1/2 -translate-y-1/2"><div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
+                    )}
+
+                    {/* Dropdown */}
+                    {showSearchDropdown && relatedType && searchResults.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50">
+                        {searchResults.map((entity) => (
+                          <button key={entity.id} type="button" onClick={() => selectEntity(entity)} className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-800">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold flex items-center justify-center text-xs">{entity.firstName?.[0]}{entity.lastName?.[0]}</div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium text-gray-900 dark:text-white truncate">{entity.firstName} {entity.lastName}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{entity.email}</div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-                
-                {/* No Results */}
-                {showSearchDropdown && relatedType && searchQuery.length >= 2 && !searchLoading && searchResults.length === 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-6 text-center z-50">
-                    <Search className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">No {relatedType}s found</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Try a different search term</p>
-                  </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            {/* Address */}
-            <div className="col-span-12">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                Address
-              </label>
-              <textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                rows={2}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white resize-none"
-              />
-            </div>
+                {/* Address */}
+                <div className="col-span-12">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Address</label>
+                  <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} className="input-base" />
+                </div>
 
-            {/* City */}
-            <div className="col-span-6">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                City
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-
+                {/* City/State */}
+                <div className="col-span-12 sm:col-span-6">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">City</label>
+                  <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="input-base" />
+                </div>
+            
             {/* State */}
             <div className="col-span-6">
               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -830,95 +852,51 @@ const CreateQuotationPage: React.FC = () => {
             )}
           </div>
 
-          {/* Totals */}
-          <div className="mt-6 flex justify-end">
-            <div className="w-80 space-y-2">
-              <div className="flex justify-between items-center py-1.5 text-sm border-b border-gray-200 dark:border-gray-700">
-                <span className="text-gray-600 dark:text-gray-400">Sub Total :</span>
-                <span className="font-semibold text-gray-900 dark:text-white">${subTotal.toFixed(2)}</span>
-              </div>
-              
-              <div className="flex justify-between items-center py-1.5 text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Discount</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={discountValue}
-                    onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
-                    min="0"
-                    step="0.01"
-                    className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                  />
-                  <select
-                    value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value)}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="%">%</option>
-                    <option value="fixed">$</option>
-                  </select>
-                  <span className="text-red-600 dark:text-red-400 font-medium w-20 text-right">
-                    -${discount.toFixed(2)}
-                  </span>
+          {/* end left */}
+          </Card>
+          </div>
+
+          {/* Right: sticky summary */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card padding="lg" className="sticky top-20">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Sub total</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">${subTotal.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Discount</span>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={discountValue} onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)} min="0" step="0.01" className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white" />
+                    <select value={discountType} onChange={(e) => setDiscountType(e.target.value)} className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white">
+                      <option value="%">%</option>
+                      <option value="fixed">$</option>
+                    </select>
+                    <span className="text-red-600 dark:text-red-400 font-medium">-${discount.toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Adjustment</span>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={adjustmentValue} onChange={(e) => setAdjustmentValue(parseFloat(e.target.value) || 0)} step="0.01" className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white" />
+                    <span className="font-medium text-gray-900 dark:text-white">${adjustmentValue.toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="pt-3 mt-1 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <span className="font-semibold text-gray-900 dark:text-white">Total</span>
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button variant="SECONDARY" fullWidth onClick={() => handleSubmit(false)} disabled={loading}>Save</Button>
+                  <Button variant="PRIMARY" fullWidth onClick={() => handleSubmit(true)} loading={loading}>Save & Send</Button>
                 </div>
               </div>
-
-              <div className="flex justify-between items-center py-1.5 text-sm border-b border-gray-200 dark:border-gray-700">
-                <span className="text-gray-600 dark:text-gray-400">Adjustment</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={adjustmentValue}
-                    onChange={(e) => setAdjustmentValue(parseFloat(e.target.value) || 0)}
-                    step="0.01"
-                    className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
-                  />
-                  <span className="font-medium text-gray-900 dark:text-white w-20 text-right">
-                    ${adjustmentValue.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center py-2 bg-gray-50 dark:bg-gray-700 rounded px-3">
-                <span className="font-bold text-gray-900 dark:text-white">Total :</span>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  ${total.toFixed(2)}
-                </span>
-              </div>
-            </div>
+            </Card>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="mt-4 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSubmit(true)}
-            disabled={loading}
-            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
-          >
-            Save & Send
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSubmit(false)}
-            disabled={loading}
-            className="px-5 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded transition-colors"
-          >
-            {loading ? 'Saving...' : 'Save'}
-          </button>
-        </div>
-
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
-          Include proposal items with merge field anywhere in proposal content as {'{proposal_items}'}
-        </p>
+        {/* Footer spacer */}
+        <div className="h-8" />
       </div>
     </div>
   );

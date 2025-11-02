@@ -9,4 +9,13 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('health')
+  health() {
+    return {
+      success: true,
+      message: 'CRM API is running',
+      timestamp: new Date().toISOString(),
+    };
+  }
 }

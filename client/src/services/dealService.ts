@@ -84,7 +84,9 @@ class DealService {
   async getDealById(id: number): Promise<DealResponse> {
     try {
       const response = await apiClient.get(`${API_ENDPOINTS.DEALS.BASE}/${id}`);
-      return response.data;
+      const raw = response.data;
+      const deal = raw?.data?.deal || raw?.data || raw;
+      return { success: raw?.success ?? true, data: deal, message: raw?.message } as DealResponse;
     } catch (error) {
       console.error('Error fetching deal:', error);
       throw error;

@@ -29,7 +29,7 @@ import LeadProfile from "./components/LeadProfile";
 import Contacts from "./components/Contacts";
 import Deals from "./components/Deals";
 import ContactProfile from "./components/ContactProfile";
-import DealProfile from "./components/DealProfile";
+import DealProfile from "./components/deal/DealProfileEnhanced";
 import DealCreate from "./components/DealCreate";
 import Users from "./components/Users";
 import UserCreate from "./components/UserCreate";
@@ -46,6 +46,7 @@ import Profile from "./components/Profile";
 import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SearchResults from "./pages/SearchResults";
+import TasksPage from "./pages/tasks/TasksPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -237,11 +238,31 @@ function AppContent() {
           }
         />
         <Route
+          path="/quotations/edit/:id"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.UPDATE}>
+              <MainLayout>
+                <CreateQuotationPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/invoices"
           element={
             <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
               <MainLayout>
                 <InvoicesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/task-management"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TasksPage />
               </MainLayout>
             </ProtectedRoute>
           }

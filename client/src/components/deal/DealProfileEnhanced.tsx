@@ -145,6 +145,7 @@ const DealProfileEnhanced: React.FC = () => {
       const mappedDeal = {
         ...dealData,
         id: dealData.id?.toString() || id!,
+        value: Number(dealData.value ?? 0),
         contactName: dealData.contact ? `${dealData.contact.firstName} ${dealData.contact.lastName}` : undefined,
         contactId: dealData.contact?.id?.toString(),
         companyName: dealData.companies?.name,
@@ -506,29 +507,6 @@ const DealProfileEnhanced: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-3">
-          <Button size="SM" variant="OUTLINE" className="flex items-center gap-2">
-            <Phone size={14} />
-            Call Contact
-          </Button>
-          <Button size="SM" variant="OUTLINE" className="flex items-center gap-2">
-            <Mail size={14} />
-            Send Proposal
-          </Button>
-          <Button size="SM" variant="OUTLINE" className="flex items-center gap-2">
-            <FileText size={14} />
-            Create Quote
-          </Button>
-          <Button size="SM" variant="OUTLINE" className="flex items-center gap-2">
-            <Calendar size={14} />
-            Schedule Demo
-          </Button>
-          <Button size="SM" variant="OUTLINE" className="flex items-center gap-2">
-            <TrendingUp size={14} />
-            Move Stage
-          </Button>
-        </div>
       </Card>
 
       {/* Navigation Tabs */}

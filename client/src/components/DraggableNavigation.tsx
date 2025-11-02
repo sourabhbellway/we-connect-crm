@@ -95,7 +95,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           onMouseLeave={() => onHover(null)}
           onClick={handleClick}
         >
-          <Icon size={20} className="md:w-[18px] md:h-[18px] block" />
+          <Icon size={20} className="md:w-[18px] md:h-[18px]" />
         </div>
       </div>
     );
@@ -135,7 +135,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           onClick={handleClick}
         >
           <div className="flex items-center gap-3 md:gap-2.5">
-            <Icon size={20} className="md:w-[18px] md:h-[18px] block" />
+            <Icon size={20} className="md:w-[18px] md:h-[18px]" />
             <span className="font-medium text-base md:text-sm leading-none">{item.name}</span>
           </div>
           <div className="flex items-center h-12 md:h-11">

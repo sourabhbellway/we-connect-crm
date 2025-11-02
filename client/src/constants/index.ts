@@ -23,9 +23,9 @@ export const API_ENDPOINTS = {
     SEARCH: '/api/roles/search',
   },
   LEADS: {
-    BASE: '/api/leads',
-    STATS: '/api/leads/stats',
-    SEARCH: '/api/leads/search',
+    BASE: '/leads',
+    STATS: '/leads/stats',
+    SEARCH: '/leads/search',
   },
   CONTACTS: {
     BASE: '/contacts',

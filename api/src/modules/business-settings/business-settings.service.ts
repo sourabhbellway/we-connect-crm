@@ -28,6 +28,41 @@ function mapToCompanySettings(bs: any) {
 export class BusinessSettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private parseExtended(bs: any) {
+    try {
+      const ext = bs?.description ? JSON.parse(bs.description) : {};
+      return {
+        quotePrefix: ext.quotePrefix ?? 'Q-',
+        quotePad: Number(ext.quotePad ?? 6),
+        invoicePrefix: ext.invoicePrefix ?? 'INV-',
+        invoicePad: Number(ext.invoicePad ?? 6),
+        defaultTerms: ext.defaultTerms ?? '',
+        paymentTerms: ext.paymentTerms ?? '',
+        shippingTerms: ext.shippingTerms ?? '',
+      };
+    } catch {
+      return {
+        quotePrefix: 'Q-',
+        quotePad: 6,
+        invoicePrefix: 'INV-',
+        invoicePad: 6,
+        defaultTerms: '',
+        paymentTerms: '',
+        shippingTerms: '',
+      };
+    }
+  }
+
+  private async saveExtended(bs: any, patch: Partial<{ quotePrefix: string; quotePad: number; invoicePrefix: string; invoicePad: number; defaultTerms: string; paymentTerms: string; shippingTerms: string }>) {
+    const current = this.parseExtended(bs);
+    const next = { ...current, ...patch };
+    await this.prisma.businessSettings.update({
+      where: { id: bs.id },
+      data: { description: JSON.stringify(next) },
+    });
+    return next;
+  }
+
   async ensureSettings() {
     let bs = await this.prisma.businessSettings.findFirst();
     if (!bs) {
@@ -135,6 +170,7 @@ export class BusinessSettingsService {
   async getAllBusinessSettings() {
     const bs = await this.ensureSettings();
     const company = mapToCompanySettings(bs);
+    const numbering = this.parseExtended(bs);
     const leadSources = await this.prisma.leadSource.findMany({
       orderBy: { name: 'asc' },
     });
@@ -159,8 +195,27 @@ export class BusinessSettingsService {
     } as any;
     return {
       success: true,
-      data: { company, currency, tax, leadSources, pipelines: [] },
+      data: { company, currency, tax, leadSources, pipelines: [], numbering },
     };
+  }
+
+  async getNumbering() {
+    const bs = await this.ensureSettings();
+    return { success: true, data: this.parseExtended(bs) };
+  }
+
+  async updateNumbering(body: any) {
+    const bs = await this.ensureSettings();
+    const updated = await this.saveExtended(bs, {
+      quotePrefix: body.quotePrefix,
+      quotePad: body.quotePad != null ? Number(body.quotePad) : undefined,
+      invoicePrefix: body.invoicePrefix,
+      invoicePad: body.invoicePad != null ? Number(body.invoicePad) : undefined,
+      defaultTerms: body.defaultTerms,
+      paymentTerms: body.paymentTerms,
+      shippingTerms: body.shippingTerms,
+    });
+    return { success: true, data: updated };
   }
 
   async getPipelines() {

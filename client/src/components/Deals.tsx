@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCounts } from '../contexts/CountsContext';
 import { Button } from './ui';
@@ -7,56 +7,61 @@ import { PERMISSIONS } from '../constants';
 import { dealService, Deal } from '../services/dealService';
 import {
   Plus,
-  Filter,
   DollarSign,
   Calendar,
   User,
-  Building,
-  TrendingUp,
   Edit,
   Trash2,
   Eye,
+  LayoutList,
+  LayoutGrid,
 } from 'lucide-react';
 import SearchInput from './SearchInput';
 import NoResults from './NoResults';
 import DropdownFilter from './DropdownFilter';
 import Pagination from './Pagination';
 import { useDebouncedSearch } from '../hooks/useDebounce';
+import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
+import type { DealStage } from '../features/business-settings/types';
+import DealsKanban from './deal/DealsKanban';
+import { toast } from 'react-toastify';
+import MetaBar from './list/MetaBar';
+import ListToolbar from './list/ListToolbar';
+import TableSortHeader, { SortOrder as TblSortOrder } from './list/TableSortHeader';
 
-const statusColors = {
-  DRAFT: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-  PROPOSAL: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  NEGOTIATION: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  WON: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  LOST: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-};
+// Helper to get stage pill class from its color
+const stagePillStyle = (color: string) => `text-xs px-2 py-1 rounded-full text-white`;
 
 const Deals: React.FC = () => {
+  const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   
   const { hasPermission } = useAuth();
   const { refreshDealsCount } = useCounts();
+  const { getDealStages } = useBusinessSettings();
 
   // Debounced search and local sort/filter/pagination
   const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch('', 500);
-  type SortBy = 'createdAt' | 'title' | 'value' | 'status' | 'expectedCloseDate';
+  type SortBy = 'createdAt' | 'title' | 'value' | 'stage' | 'expectedCloseDate';
   type SortOrder = 'asc' | 'desc';
-  type StatusFilter = 'ALL' | 'DRAFT' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST';
   const [sortBy, setSortBy] = useState<SortBy>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
+  const [stageFilter, setStageFilter] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const stages = useMemo<DealStage[]>(() => getDealStages(), [getDealStages]);
 
   useEffect(() => {
     fetchDeals();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchValue, sortBy, sortOrder, statusFilter, itemsPerPage]);
+  }, [debouncedSearchValue, sortBy, sortOrder, stageFilter, itemsPerPage]);
 
   const fetchDeals = async () => {
     try {
@@ -80,7 +85,7 @@ const Deals: React.FC = () => {
     }
   };
 
-  // Filter
+// Filter
   const filtered = deals.filter((deal) => {
     const term = debouncedSearchValue.toLowerCase();
     const matchesSearch = !term ||
@@ -90,8 +95,8 @@ const Deals: React.FC = () => {
       (deal.contact?.lastName.toLowerCase().includes(term) ?? false) ||
       (deal.companies?.name.toLowerCase().includes(term) ?? false);
 
-    const matchesStatus = statusFilter === 'ALL' || deal.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesStage = stageFilter === 'ALL' || (deal.stage || '') === stageFilter;
+    return matchesSearch && matchesStage;
   });
 
   // Sort
@@ -101,7 +106,7 @@ const Deals: React.FC = () => {
       switch (sortBy) {
         case 'title': return d.title || '';
         case 'value': return d.value || 0;
-        case 'status': return d.status || '';
+        case 'stage': return d.stage || '';
         case 'expectedCloseDate': return d.expectedCloseDate || '';
         case 'createdAt': default: return d.createdAt || '';
       }
@@ -120,6 +125,18 @@ const Deals: React.FC = () => {
     return String(va).localeCompare(String(vb)) * dir;
   });
 
+  // Sort header toggle
+  const onHeaderSort = (col: SortBy) => {
+    setSortBy((prev) => {
+      if (prev === col) {
+        setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+        return prev;
+      }
+      setSortOrder('asc');
+      return col;
+    });
+  };
+
   // Paginate
   const totalItems = sorted.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
@@ -127,11 +144,10 @@ const Deals: React.FC = () => {
   const end = start + itemsPerPage;
   const pageItems = sorted.slice(start, end);
 
-  const formatCurrency = (value: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(value);
+const getStageColor = (stageName?: string) => {
+    if (!stageName) return '#6B7280';
+    const s = stages.find(s => s.name === stageName);
+    return s?.color || '#6B7280';
   };
 
   if (loading) {
@@ -145,26 +161,18 @@ const Deals: React.FC = () => {
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Deals</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Track and manage your sales opportunities
-          </p>
-        </div>
-        {hasPermission(PERMISSIONS.DEAL.CREATE) && (
-          <Link to="/deals/new">
-            <Button variant="PRIMARY" size="MD">
-              <Plus size={20} className="mr-2" />
-              New Deal
-            </Button>
-          </Link>
-        )}
+      <div className="space-y-4">
+        <ListToolbar
+          title="Deals"
+          subtitle="Track and manage your sales opportunities"
+          addLabel="Add Deal"
+          onAdd={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/deals/new') : undefined}
+        />
       </div>
 
       {/* Search, Sort, Filter */}
       <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-end gap-4">
-<div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 gap-3 md:gap-4 flex-1 min-w-0">
+        <div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 gap-3 md:gap-4 flex-1 min-w-0">
           {/* Search */}
           <div className="w-full">
             <SearchInput
@@ -177,20 +185,13 @@ const Deals: React.FC = () => {
             )}
           </div>
 
-          {/* Status Filter */}
+          {/* Stage Filter */}
           <div className="w-full sm:w-56 sm:min-w-[220px]">
             <DropdownFilter
-              label="Status"
-              value={statusFilter}
-              onChange={(v) => setStatusFilter((v as string) as any)}
-              options={[
-                { value: 'ALL', label: 'All statuses' },
-                { value: 'DRAFT', label: 'Draft' },
-                { value: 'PROPOSAL', label: 'Proposal' },
-                { value: 'NEGOTIATION', label: 'Negotiation' },
-                { value: 'WON', label: 'Won' },
-                { value: 'LOST', label: 'Lost' },
-              ]}
+              label="Stage"
+              value={stageFilter}
+              onChange={(v) => setStageFilter((v as string))}
+              options={[{ value: 'ALL', label: 'All stages' }, ...stages.map(s => ({ value: s.name, label: s.name }))]}
             />
           </div>
 
@@ -204,7 +205,7 @@ const Deals: React.FC = () => {
                 { value: 'createdAt', label: 'Created date' },
                 { value: 'title', label: 'Title' },
                 { value: 'value', label: 'Value' },
-                { value: 'status', label: 'Status' },
+                { value: 'stage', label: 'Stage' },
                 { value: 'expectedCloseDate', label: 'Expected close' },
               ]}
             />
@@ -238,11 +239,20 @@ const Deals: React.FC = () => {
             />
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button variant="SECONDARY">
-            <Filter size={20} className="mr-2" />
-            Filter
-          </Button>
+        {/* View toggle */}
+        <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 self-start">
+          <button
+            className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
+            onClick={() => setViewMode('list')}
+          >
+            <LayoutList className="w-4 h-4" /> List
+          </button>
+          <button
+            className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm ${viewMode === 'kanban' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
+            onClick={() => setViewMode('kanban')}
+          >
+            <LayoutGrid className="w-4 h-4" /> Kanban
+          </button>
         </div>
       </div>
 
@@ -253,121 +263,236 @@ const Deals: React.FC = () => {
         </div>
       )}
 
-      {/* Deals List (table view) */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300">
-        <div className="p-6">
-          <div className="overflow-hidden relative">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-900">
-                  <tr>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Value
-                    </th>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Company
-                    </th>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Expected Close
-                    </th>
-                    <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {pageItems.map((deal) => (
-                    <tr key={deal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{deal.title}</div>
-                        {deal.description && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{deal.description}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
-                          <DollarSign className="h-4 w-4 mr-1" />
-                          {formatCurrency(deal.value, deal.currency)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">{deal.companies?.name || '-'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white flex items-center">
-                          <User className="h-3 w-3 mr-1" />
-                          {deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName}` : '-'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-xs rounded-full ${statusColors[deal.status]}`}>
-                          {deal.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toLocaleDateString() : '-'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
-                          {hasPermission(PERMISSIONS.DEAL.READ) && (
-                            <Link
-                              to={`/deals/${deal.id}`}
-                              className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                              title="View Deal"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          )}
-                          {hasPermission(PERMISSIONS.DEAL.UPDATE) && (
-                            <Link
-                              to={`/deals/${deal.id}/edit`}
-                              className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                              title="Edit Deal"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Link>
-                          )}
-                          {hasPermission(PERMISSIONS.DEAL.DELETE) && (
-                            <button
-                              className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                              title="Delete Deal"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pagination */}
-          {totalItems > 0 && (
-            <Pagination
+{/* List or Kanban */}
+      {viewMode === 'kanban' ? (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300 p-4">
+          <div className="mb-4">
+            <MetaBar
               currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalItems}
               itemsPerPage={itemsPerPage}
-              onPageChange={(p) => setCurrentPage(p)}
+              totalItems={totalItems}
+              onItemsPerPageChange={(n) => setItemsPerPage(n)}
             />
-          )}
+          </div>
+          <DealsKanban
+            deals={sorted}
+            stages={stages}
+            onUpdateStage={async (dealId, newStage) => {
+              try {
+                setDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: newStage } : d));
+                await dealService.updateDeal(dealId, { stage: newStage });
+                toast.success('Deal moved to ' + newStage);
+              } catch (e) {
+                toast.error('Failed to move deal');
+                await fetchDeals();
+              }
+            }}
+            onCreateDeal={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/deals/new') : undefined}
+          />
         </div>
-      </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300">
+          <div className="p-6">
+            <div className="mb-4">
+              <MetaBar
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={totalItems}
+                onItemsPerPageChange={(n) => setItemsPerPage(n)}
+              />
+            </div>
+            {/* Bulk actions bar */}
+            {selectedIds.length > 0 && (
+              <div className="mb-4 flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <div className="text-sm text-blue-800 dark:text-blue-200">{selectedIds.length} selected</div>
+                <div className="flex items-center gap-2">
+                  <DropdownFilter
+                    label="Move to stage"
+                    value={''}
+                    onChange={async (v) => {
+                      const target = v as string;
+                      if (!target) return;
+                      try {
+                        setDeals(prev => prev.map(d => selectedIds.includes(d.id) ? { ...d, stage: target } : d));
+                        await Promise.all(selectedIds.map(id => dealService.updateDeal(id, { stage: target })));
+                        toast.success('Updated selected deals');
+                        setSelectedIds([]);
+                      } catch (e) {
+                        toast.error('Failed to update selected deals');
+                      }
+                    }}
+                    options={stages.map(s => ({ value: s.name, label: s.name }))}
+                  />
+                  {hasPermission(PERMISSIONS.DEAL.DELETE) && (
+                    <Button
+                      variant="DESTRUCTIVE"
+                      size="SM"
+                      onClick={async () => {
+                        if (!confirm('Delete selected deals?')) return;
+                        try {
+                          await Promise.all(selectedIds.map(id => dealService.deleteDeal(id)));
+                          setDeals(prev => prev.filter(d => !selectedIds.includes(d.id)));
+                          setSelectedIds([]);
+                          toast.success('Deleted selected deals');
+                        } catch (e) {
+                          toast.error('Failed to delete selected deals');
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="overflow-hidden relative">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 mobile-card-view table-fixed">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
+                    <tr>
+                      <th className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={pageItems.length > 0 && pageItems.every(d => selectedIds.includes(d.id))}
+                          onChange={(e) => {
+                            const allIds = pageItems.map(d => d.id);
+                            setSelectedIds(e.target.checked ? Array.from(new Set([...selectedIds, ...allIds])) : selectedIds.filter(id => !allIds.includes(id)));
+                          }}
+                        />
+                      </th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <TableSortHeader label="Title" column={'title'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c:any)=>onHeaderSort(c)} />
+                      </th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <TableSortHeader label="Value" column={'value'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c:any)=>onHeaderSort(c)} />
+                      </th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Company</th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <TableSortHeader label="Stage" column={'stage'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c:any)=>onHeaderSort(c)} />
+                      </th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <TableSortHeader label="Expected Close" column={'expectedCloseDate'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c:any)=>onHeaderSort(c)} />
+                      </th>
+                      <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {pageItems.map((deal) => (
+                      <tr key={deal.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td className="px-4 py-4" data-label="Select">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(deal.id)}
+                            onChange={(e) => {
+                              setSelectedIds(prev => e.target.checked ? [...prev, deal.id] : prev.filter(id => id !== deal.id));
+                            }}
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Title">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
+                                <span className="text-white font-medium text-sm">
+                                  {(deal.contact?.firstName?.[0] || deal.companies?.name?.[0] || 'D').toUpperCase()}
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">{deal.title}</div>
+                              {deal.description && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{deal.description}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Value">
+                          <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: deal.currency }).format(deal.value)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Company">
+                          <div className="text-sm text-gray-900 dark:text-white">{deal.companies?.name || '-'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Contact">
+                          <div className="text-sm text-gray-900 dark:text-white flex items-center">
+                            <User className="h-3 w-3 mr-1" />
+                            {deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName}` : '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Stage">
+                          <span className={`px-2 py-1 text-xs rounded-full text-white`} style={{ backgroundColor: getStageColor(deal.stage) }}>
+                            {deal.stage || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-label="Expected Close">
+                          <div className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toLocaleDateString() : '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
+                          <div className="flex items-center justify-end space-x-2">
+                            {hasPermission(PERMISSIONS.DEAL.READ) && (
+                              <Link
+                                to={`/deals/${deal.id}`}
+                                className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                title="View Deal"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Link>
+                            )}
+                            {hasPermission(PERMISSIONS.DEAL.UPDATE) && (
+                              <Link
+                                to={`/deals/${deal.id}/edit`}
+                                className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                title="Edit Deal"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            )}
+                            {hasPermission(PERMISSIONS.DEAL.DELETE) && (
+                              <button
+                                className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                title="Delete Deal"
+                                onClick={async () => {
+                                  if (!confirm('Delete this deal?')) return;
+                                  try {
+                                    await dealService.deleteDeal(deal.id);
+                                    setDeals(prev => prev.filter(d => d.id !== deal.id));
+                                    toast.success('Deal deleted');
+                                  } catch (e) {
+                                    toast.error('Failed to delete');
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Pagination */}
+            {totalItems > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(p) => setCurrentPage(p)}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Empty state */}
       {totalItems === 0 && !loading && (

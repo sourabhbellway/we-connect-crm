@@ -95,6 +95,11 @@ const DealStagesPage: React.FC = () => {
 
   const handleSubmitPipeline = async (e: React.FormEvent) => {
     e.preventDefault();
+    const name = pipelineFormData.name.trim();
+    if (!name) {
+      toast.error('Pipeline name is required');
+      return;
+    }
     setIsSaving(true);
     
     try {
@@ -122,6 +127,10 @@ const DealStagesPage: React.FC = () => {
     e.preventDefault();
     if (!selectedPipelineId) {
       toast.error('Please select a pipeline first');
+      return;
+    }
+    if (!stageFormData.name.trim()) {
+      toast.error('Stage name is required');
       return;
     }
 
@@ -200,7 +209,7 @@ const DealStagesPage: React.FC = () => {
       <div className="flex items-center gap-4">
         <Button
           variant="GHOST"
-          size="sm"
+size="SM"
           onClick={() => navigate('/business-settings')}
           className="p-2"
         >

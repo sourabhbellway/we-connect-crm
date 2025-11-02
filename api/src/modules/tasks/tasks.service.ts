@@ -15,6 +15,7 @@ export class TasksService {
     leadId,
     dealId,
     contactId,
+    assignedTo,
   }: {
     page?: number;
     limit?: number;
@@ -23,12 +24,17 @@ export class TasksService {
     leadId?: number;
     dealId?: number;
     contactId?: number;
+    assignedTo?: number;
   }) {
     const where: any = { deletedAt: null };
-    if (status) where.status = status.toUpperCase();
+    if (status) {
+      const values = status.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+      where.status = values.length > 1 ? { in: values as any } : values[0];
+    }
     if (leadId) where.leadId = leadId;
     if (dealId) where.dealId = dealId;
     if (contactId) where.contactId = contactId;
+    if (assignedTo) where.assignedTo = assignedTo;
     if (search && search.trim()) {
       const q = search.trim();
       where.OR = [
@@ -42,15 +48,23 @@ export class TasksService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          assignedUser: { select: { id: true, firstName: true, lastName: true } },
+          createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        },
       }),
       this.prisma.task.count({ where }),
     ]);
-    return { success: true, data: { items, total, page, limit } };
+    return { success: true, data: { items, tasks: items, total, page, limit } };
   }
 
   async getById(id: number) {
     const task = await this.prisma.task.findFirst({
       where: { id, deletedAt: null },
+      include: {
+        assignedUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
     if (!task) return { success: false, message: 'Task not found' };
     return { success: true, data: { task } };
@@ -70,7 +84,33 @@ export class TasksService {
         dealId: dto.dealId ?? null,
         contactId: dto.contactId ?? null,
       },
+      include: {
+        assignedUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
+
+    // Log activity
+    await this.prisma.activity.create({
+      data: {
+        title: 'Task created',
+        description: `Task "${task.title}" created${task.assignedTo ? ' and assigned' : ''}.`,
+        type: 'TASK_CREATED' as any,
+        icon: 'CheckCircle',
+        iconColor: 'text-orange-600',
+        metadata: {
+          taskId: task.id,
+          leadId: task.leadId,
+          dealId: task.dealId,
+          contactId: task.contactId,
+          assignedTo: task.assignedTo,
+          priority: task.priority,
+          dueDate: task.dueDate,
+        } as any,
+        userId: dto.createdBy,
+      },
+    });
+
     return { success: true, data: { task } };
   }
 
@@ -89,7 +129,31 @@ export class TasksService {
         contactId: dto.contactId ?? undefined,
         updatedAt: new Date(),
       },
+      include: {
+        assignedUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
+
+    // Log activity
+    await this.prisma.activity.create({
+      data: {
+        title: 'Task updated',
+        description: `Task "${task.title}" updated.`,
+        type: 'TASK_UPDATED' as any,
+        icon: 'Edit',
+        iconColor: 'text-blue-600',
+        metadata: {
+          taskId: task.id,
+          status: task.status,
+          priority: task.priority,
+          dueDate: task.dueDate,
+          assignedTo: task.assignedTo,
+        } as any,
+        userId: task.createdBy,
+      },
+    });
+
     return { success: true, data: { task } };
   }
 
@@ -97,7 +161,25 @@ export class TasksService {
     const task = await this.prisma.task.update({
       where: { id },
       data: { status: 'COMPLETED', completedAt: new Date() },
+      include: {
+        assignedUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+      },
     });
+
+    // Log activity
+    await this.prisma.activity.create({
+      data: {
+        title: 'Task completed',
+        description: `Task "${task.title}" marked completed.`,
+        type: 'TASK_COMPLETED' as any,
+        icon: 'CheckCircle',
+        iconColor: 'text-green-600',
+        metadata: { taskId: task.id } as any,
+        userId: task.createdBy,
+      },
+    });
+
     return { success: true, data: { task } };
   }
 

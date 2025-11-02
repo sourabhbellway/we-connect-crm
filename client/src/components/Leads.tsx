@@ -17,6 +17,7 @@ import {
   FileDown,
   RefreshCw,
   ArrowRightLeft,
+  ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { leadService, Lead, LeadFilters, ConversionData } from "../services/leadService";
@@ -30,6 +31,9 @@ import Pagination from "./Pagination";
 import NoResults from "./NoResults";
 import TableLoader from "./TableLoader";
 import { STORAGE_KEYS } from "../constants";
+import MetaBar from "./list/MetaBar";
+import ListToolbar from "./list/ListToolbar";
+import TableSortHeader from "./list/TableSortHeader";
 
 // Add getStatusColor function that was missing
 const getStatusColor = (status: string) => {
@@ -117,7 +121,6 @@ const Leads: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isSyncingIntegrations, setIsSyncingIntegrations] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
-  const [showBulkMenu, setShowBulkMenu] = useState(false);
 
   // Debounced search with 500ms delay for better UX
   const { searchValue, debouncedSearchValue, setSearch, isSearching } =
@@ -168,6 +171,33 @@ const Leads: React.FC = () => {
 
   const isSearchActive = !!debouncedSearchValue;
   const isStatusActive = !!filters.status;
+
+  // Simple client-side sorting for current list view
+  type LeadSortBy = 'name' | 'email' | 'phone' | 'company' | 'status' | 'createdAt';
+  const [sortBy, setSortBy] = useState<LeadSortBy>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const onHeaderSort = (col: LeadSortBy) => {
+    setSortBy(prev => {
+      if (prev === col) { setSortOrder(o => o === 'asc' ? 'desc' : 'asc'); return prev; }
+      setSortOrder('asc');
+      return col;
+    });
+  };
+  const sortedLeads = React.useMemo(() => {
+    const arr = [...leads];
+    const dir = sortOrder === 'asc' ? 1 : -1;
+    const val = (l: Lead) => {
+      switch (sortBy) {
+        case 'name': return `${l.firstName} ${l.lastName}`.toLowerCase();
+        case 'email': return l.email?.toLowerCase() || '';
+        case 'phone': return l.phone || '';
+        case 'company': return l.company?.toLowerCase() || '';
+        case 'status': return l.status || '';
+        case 'createdAt': default: return l.createdAt || '';
+      }
+    };
+    return arr.sort((a,b) => String(val(a)).localeCompare(String(val(b))) * dir);
+  }, [leads, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchLeads();
@@ -519,9 +549,21 @@ const Leads: React.FC = () => {
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header Section */}
       <div className="space-y-4">
+        <ListToolbar
+          title="Leads"
+          subtitle="Capture and manage your incoming opportunities"
+          addLabel="Add Lead"
+          onAdd={handleCreateLead}
+          bulkActions={[
+            { label: 'Download Template', onClick: handleDownloadTemplate, icon: <FileDown className="w-4 h-4" /> },
+            { label: 'Import Leads', onClick: () => setShowImportModal(true), icon: <Upload className="w-4 h-4" /> },
+            { label: 'Export Leads', onClick: handleExportLeads, icon: <FileDown className="w-4 h-4" />, disabled: isExporting },
+            { label: 'Sync Integrations', onClick: handleSyncIntegrations, icon: <RefreshCw className="w-4 h-4" />, disabled: isSyncingIntegrations },
+          ]}
+        />
         {/* Mobile-first responsive layout */}
-        <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-end gap-4">
-          {/* Filters - Responsive grid to avoid overflow on 13" screens */}
+          <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-end gap-4">
+            {/* Filters - Responsive grid to avoid overflow on 13" screens */}
 <div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4 flex-1 min-w-0">
             {/* Search */}
             <div className="w-full">
@@ -578,85 +620,6 @@ const Leads: React.FC = () => {
             </div>
           </div>
 
-          {/* Action buttons - Full width on mobile, row on desktop */}
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            {/* Bulk operations dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowBulkMenu(!showBulkMenu)}
-                className="w-full sm:w-auto flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                Bulk Actions
-              </button>
-              {showBulkMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-10">
-                  <div className="py-1">
-                  <button
-                    onClick={() => {
-                      handleDownloadTemplate();
-                      setShowBulkMenu(false);
-                    }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowImportModal(true);
-                      setShowBulkMenu(false);
-                    }}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import Leads
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleExportLeads();
-                      setShowBulkMenu(false);
-                    }}
-                    disabled={isExporting}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isExporting ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <FileDown className="h-4 w-4 mr-2" />
-                    )}
-                    Export Leads
-                  </button>
-                  <hr className="my-1 border-gray-200 dark:border-gray-600" />
-                  <button
-                    onClick={() => {
-                      handleSyncIntegrations();
-                      setShowBulkMenu(false);
-                    }}
-                    disabled={isSyncingIntegrations}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSyncingIntegrations ? (
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    Sync Integrations
-                  </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Add Lead button */}
-            <button
-              onClick={handleCreateLead}
-              className="w-full sm:w-auto flex items-center justify-center px-4 py-3 bg-[#ef444e] text-white rounded-lg hover:bg-[#f26971] transition-colors text-sm font-semibold"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t("leads.addLead")}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -682,28 +645,39 @@ const Leads: React.FC = () => {
             <div className="text-sm text-gray-500 dark:text-gray-400"></div>
           </div>
 
+          <div className="mb-4">
+            <MetaBar
+              currentPage={pagination.currentPage}
+              itemsPerPage={pagination.itemsPerPage || filters.limit || 10}
+              totalItems={pagination.totalItems || leads.length}
+              onItemsPerPageChange={(n) => handleFilterChange('limit', n)}
+            />
+          </div>
           <div className="overflow-hidden relative">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 mobile-card-view table-fixed">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {t("leads.table.lead")}
+                      <TableSortHeader label={t("leads.table.lead") as string} column={'name'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                     </th>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {t("leads.form.email")}
+                      <TableSortHeader label={t("leads.form.email") as string} column={'email'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                     </th>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {t("leads.table.company")}
+                      <TableSortHeader label="Phone" column={'phone'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                     </th>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {t("leads.table.status")}
+                      <TableSortHeader label={t("leads.table.company") as string} column={'company'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
+                    </th>
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <TableSortHeader label={t("leads.table.status") as string} column={'status'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                     </th>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {t("leads.table.assignedTo")}
                     </th>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      {t("leads.table.created")}
+                      <TableSortHeader label={t("leads.table.created") as string} column={'createdAt'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                     </th>
                     <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {t("leads.table.actions")}
@@ -728,12 +702,12 @@ const Leads: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    leads.map((lead) => (
+                    sortedLeads.map((lead) => (
                       <tr
                         key={lead.id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Lead">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
@@ -745,24 +719,29 @@ const Leads: React.FC = () => {
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {lead.firstName} {lead.lastName}
+                                <button
+                                  onClick={() => handleViewLead(lead)}
+                                  className="hover:underline hover:text-[#ef444e] text-left"
+                                >
+                                  {lead.firstName} {lead.lastName}
+                                </button>
                               </div>
-                              {lead.phone && (
-                                <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                                  <Phone className="h-3 w-3 mr-1" />
-                                  {lead.phone}
-                                </div>
-                              )}
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Email">
                           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
                             <Mail className="h-3 w-3 mr-1" />
                             {lead.email}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Phone">
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                            <Phone className="h-3 w-3 mr-1" />
+                            {lead.phone || '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Company">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {lead.company || "-"}
                           </div>
@@ -773,13 +752,14 @@ const Leads: React.FC = () => {
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Status">
                           <div className="relative">
                             <select
                               value={lead.status}
                               onChange={(e) => handleStatusChange(lead.id, e.target.value)}
                               disabled={updatingStatus[lead.id]}
-                              className={`text-xs font-semibold rounded-full px-2 py-1 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${
+                              style={{ WebkitAppearance: 'none', backgroundImage: 'none' }}
+                              className={`pr-5 text-xs font-semibold rounded-full px-2 py-1 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${
                                 getStatusColor(lead.status)
                               }`}
                             >
@@ -789,6 +769,7 @@ const Leads: React.FC = () => {
                                 </option>
                               ))}
                             </select>
+                            <ChevronDown className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-white/80" />
                             {updatingStatus[lead.id] && (
                               <div className="absolute right-1 top-1 w-3 h-3">
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
@@ -796,18 +777,18 @@ const Leads: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-label="Assigned to">
                           {lead.assignedUser
                             ? `${lead.assignedUser.firstName} ${lead.assignedUser.lastName}`
                             : "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-label="Created">
                           <div className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(lead.createdAt).toLocaleDateString()}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
                           <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleViewLead(lead)}

@@ -21,6 +21,9 @@ import NoResults from './NoResults';
 import { useDebouncedSearch } from '../hooks/useDebounce';
 import DropdownFilter from './DropdownFilter';
 import Pagination from './Pagination';
+import MetaBar from './list/MetaBar';
+import ListToolbar from './list/ListToolbar';
+import TableSortHeader from './list/TableSortHeader';
 
 const Contacts: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -75,8 +78,26 @@ const Contacts: React.FC = () => {
     }
   };
 
-  // No client-side sort; we rely on API (createdAt desc). We only keep phone filter applied above.
-  const pageItems = contacts;
+  // Client-side sorting for minimal table UX
+  type ContactSortBy = 'name' | 'email' | 'company' | 'createdAt';
+  const [sortBy, setSortBy] = useState<ContactSortBy>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const onHeaderSort = (col: ContactSortBy) => {
+    setSortBy(prev => { if (prev === col) { setSortOrder(o=> o==='asc'?'desc':'asc'); return prev;} setSortOrder('asc'); return col; });
+  };
+  const pageItems = React.useMemo(() => {
+    const arr = [...contacts];
+    const dir = sortOrder === 'asc' ? 1 : -1;
+    const val = (c: Contact) => {
+      switch (sortBy) {
+        case 'name': return `${c.firstName} ${c.lastName}`.toLowerCase();
+        case 'email': return c.email?.toLowerCase() || '';
+        case 'company': return c.company?.toLowerCase() || '';
+        case 'createdAt': default: return c.createdAt || '';
+      }
+    };
+    return arr.sort((a,b) => String(val(a)).localeCompare(String(val(b))) * dir);
+  }, [contacts, sortBy, sortOrder]);
   const totalItems = pagination.totalItems;
 
   const handleDelete = async (id: number) => {
@@ -105,22 +126,12 @@ const Contacts: React.FC = () => {
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header + Actions (match Leads) */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Contacts</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Manage your converted leads and customer contacts
-            </p>
-          </div>
-          {hasPermission(PERMISSIONS.CONTACT.CREATE) && (
-            <Link to="/contacts/new">
-              <Button variant="PRIMARY" size="MD">
-                <Plus size={20} className="mr-2" />
-                New Contact
-              </Button>
-            </Link>
-          )}
-        </div>
+        <ListToolbar
+          title="Contacts"
+          subtitle="Manage your converted leads and customer contacts"
+          addLabel="Add Contact"
+          onAdd={hasPermission(PERMISSIONS.CONTACT.CREATE) ? () => window.location.assign('/contacts/new') : undefined}
+        />
 
         {/* Filters (match Leads layout) */}
         <div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4 flex-1 min-w-0">
@@ -176,22 +187,30 @@ const Contacts: React.FC = () => {
       {!error && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300">
           <div className="p-6">
+            <div className="mb-4">
+              <MetaBar
+                currentPage={pagination.currentPage}
+                itemsPerPage={pagination.itemsPerPage || itemsPerPage}
+                totalItems={pagination.totalItems}
+                onItemsPerPageChange={(n) => setItemsPerPage(n)}
+              />
+            </div>
             <div className="overflow-hidden relative">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 mobile-card-view table-fixed">
                   <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Contact
+                        <TableSortHeader label="Contact" column={'name'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                       </th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Email
+                        <TableSortHeader label="Email" column={'email'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                       </th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Company
+                        <TableSortHeader label="Company" column={'company'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                       </th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Created
+                        <TableSortHeader label="Created" column={'createdAt'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                       </th>
                       <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Actions
@@ -201,7 +220,7 @@ const Contacts: React.FC = () => {
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {pageItems.map((contact) => (
                       <tr key={contact.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Contact">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
@@ -224,24 +243,24 @@ const Contacts: React.FC = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Email">
                           <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
                             <Mail className="h-3 w-3 mr-1" />
                             {contact.email}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Company">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {contact.company || '-'}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-label="Created">
                           <div className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(contact.createdAt).toLocaleDateString()}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
                           <div className="flex items-center justify-end space-x-2">
                             {hasPermission(PERMISSIONS.CONTACT.READ) && (
                               <Link

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import SimpleHeaderSearch from './SimpleHeaderSearch';
+import { Button } from './ui';
 
 interface Notification {
   id: string;
@@ -106,14 +107,16 @@ const TopHeader: React.FC = () => {
             {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
           </>
           <span className="sr-only">Create new lead</span>
-          <button
+          <Button
             onClick={() => navigate('/leads/new')}
-            className="px-4 py-2.5 bg-weconnect-red hover:bg-red-600 text-white rounded-full transition-colors duration-200 text-sm font-semibold shadow-sm hover:shadow-md"
+            variant="PRIMARY"
+            size="SM"
+            icon={<Plus className="w-4 h-4" />}
             aria-label="Create new lead"
+            className="shadow-sm"
           >
-            <Plus className="w-4 h-4" />
             <span className="hidden lg:inline">{t('header.new', 'New')}</span>
-          </button>
+          </Button>
 
           {/* Customers Area */}
           <button className="hidden xl:flex items-center gap-2 px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 text-sm text-gray-700 dark:text-gray-300">

@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import { API_ENDPOINTS } from "../constants";
 
 // Helper function for exponential backoff retry
 const retryWithBackoff = async (
@@ -156,6 +157,7 @@ export interface LeadFilters {
   limit?: number;
   status?: string;
   search?: string;
+  assignedTo?: number;
 }
 
 export interface ConversionData {
@@ -196,16 +198,17 @@ export const leadService = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
     if (filters.status) params.append("status", filters.status);
+    if (typeof filters.assignedTo === 'number') params.append('assignedTo', String(filters.assignedTo));
     if (filters.search && filters.search.toString().trim() !== "") {
       params.append("search", filters.search.toString().trim());
     }
 
-    const response = await apiClient.get(`/leads?${params.toString()}`);
+    const response = await apiClient.get(`${API_ENDPOINTS.LEADS.BASE}?${params.toString()}`);
     return response.data;
   },
 
   getLeadById: async (id: number) => {
-    const response = await apiClient.get(`/leads/${id}`);
+    const response = await apiClient.get(`${API_ENDPOINTS.LEADS.BASE}/${id}`);
     return response.data;
   },
 
@@ -304,10 +307,11 @@ export const leadService = {
     return response.data;
   },
 
-  getDashboardKPIs: async (startDate?: string, endDate?: string) => {
+  getDashboardKPIs: async (startDate?: string, endDate?: string, userId?: number) => {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
+    if (typeof userId === 'number') params.append('userId', String(userId));
     
     const response = await apiClient.get(`/analytics/dashboard/kpis?${params.toString()}`);
     return response.data;
