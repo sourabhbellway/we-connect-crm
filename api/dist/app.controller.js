@@ -12,19 +12,36 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppController = void 0;
 const common_1 = require("@nestjs/common");
 const app_service_1 = require("./app.service");
+const prisma_service_1 = require("./database/prisma.service");
 let AppController = class AppController {
     appService;
-    constructor(appService) {
+    prismaService;
+    constructor(appService, prismaService) {
         this.appService = appService;
+        this.prismaService = prismaService;
     }
     getHello() {
         return this.appService.getHello();
     }
-    health() {
+    async health() {
+        let dbConnected = false;
+        let dbError = null;
+        try {
+            await this.prismaService.$queryRaw `SELECT 1`;
+            dbConnected = true;
+        }
+        catch (error) {
+            dbConnected = false;
+            dbError = error instanceof Error ? error.message : 'Unknown error';
+        }
         return {
-            success: true,
-            message: 'CRM API is running',
+            success: dbConnected,
+            message: dbConnected ? 'CRM API is running and database is connected' : 'CRM API is running but database is not connected',
             timestamp: new Date().toISOString(),
+            database: {
+                connected: dbConnected,
+                error: dbError,
+            },
         };
     }
 };
@@ -39,10 +56,11 @@ __decorate([
     (0, common_1.Get)('health'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], AppController.prototype, "health", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [app_service_1.AppService])
+    __metadata("design:paramtypes", [app_service_1.AppService,
+        prisma_service_1.PrismaService])
 ], AppController);
 //# sourceMappingURL=app.controller.js.map
