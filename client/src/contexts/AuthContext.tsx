@@ -218,6 +218,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       dispatch({ type: "LOGIN_START" });
       const response = await authService.login(credentials);
       
+      // Check if response is successful
+      if (!response.success) {
+        const errorMessage = response.message || 'Invalid credentials';
+        dispatch({ type: "LOGIN_FAILURE", payload: errorMessage });
+        throw new Error(errorMessage);
+      }
+      
+      // Check if data exists
+      if (!response.data || !response.data.user || !response.data.accessToken) {
+        const errorMessage = 'Invalid response from server';
+        dispatch({ type: "LOGIN_FAILURE", payload: errorMessage });
+        throw new Error(errorMessage);
+      }
+      
+      // Store tokens in localStorage
+      localStorage.setItem('token', response.data.accessToken);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      localStorage.setItem('tokenExpiry', response.data.tokenExpiry);
+      localStorage.setItem('userId', response.data.user.id.toString());
+      
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -228,7 +248,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
       });
     } catch (error: any) {
-      const message = error.message || "Login failed";
+      const message = error.message || error.response?.data?.message || "Login failed";
+      console.error('Login error:', error);
       dispatch({ type: "LOGIN_FAILURE", payload: message });
       throw error;
     }

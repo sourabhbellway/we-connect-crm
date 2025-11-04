@@ -80,11 +80,32 @@ apiClient.interceptors.response.use(
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post("/auth/login", credentials);
-    console.log("Login Response:", response.data);
-    return response.data;
-
+    try {
+      const response = await apiClient.post("/auth/login", credentials);
+      console.log("Login Response:", response.data);
+      
+      // Check if login was successful
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Invalid credentials');
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      
+      // Handle axios error response
+      if (error.response?.data) {
+        const errorMessage = error.response.data.message || error.response.data.error || 'Login failed';
+        throw new Error(errorMessage);
+      }
+      
+      // Handle network or other errors
+      throw new Error(error.message || 'Login failed. Please check your connection.');
+    }
   },
+
+  
+  
 
   getProfile: async () => {
     const response = await apiClient.get("/auth/profile");

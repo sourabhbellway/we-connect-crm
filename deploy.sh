@@ -17,14 +17,22 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}Checking environment files...${NC}"
 
 if [ ! -f "api/.env" ]; then
-    echo -e "${RED}❌ api/.env file not found!${NC}"
-    echo "Please create api/.env file with required environment variables"
-    echo "See DEPLOYMENT.md for details"
-    exit 1
+    echo -e "${YELLOW}⚠️  api/.env not found, creating from template...${NC}"
+    if [ -f "api/env.template" ]; then
+        cp api/env.template api/.env
+        echo -e "${YELLOW}⚠️  Please update api/.env with your actual database credentials!${NC}"
+    else
+        echo -e "${RED}❌ api/.env file not found!${NC}"
+        echo "Please create api/.env file with database credentials"
+        exit 1
+    fi
 fi
 
 if [ ! -f "client/.env" ]; then
-    echo -e "${YELLOW}⚠️  client/.env file not found (optional for production)${NC}"
+    echo -e "${YELLOW}⚠️  client/.env not found, creating from template...${NC}"
+    if [ -f "client/env.template" ]; then
+        cp client/env.template client/.env
+    fi
 fi
 
 # Install dependencies
@@ -77,8 +85,7 @@ echo ""
 echo "Next steps:"
 echo "1. Check PM2 status: pm2 status"
 echo "2. Check logs: pm2 logs weconnect-api"
-echo "3. Test health endpoint: curl http://localhost:3001/api/health"
-echo "4. Configure Nginx (see DEPLOYMENT.md)"
+echo "3. Test health endpoint: curl http://localhost:3010/api/health"
 echo ""
 echo -e "${GREEN}🎉 Your application is now running!${NC}"
 

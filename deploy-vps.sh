@@ -15,12 +15,24 @@ NC='\033[0m'
 echo -e "${BLUE}🚀 Starting VPS Deployment...${NC}"
 echo ""
 
-# Check if .env files exist
+# Setup .env files if they don't exist
 if [ ! -f "api/.env" ]; then
-    echo -e "${RED}❌ api/.env file not found!${NC}"
-    echo "Please create api/.env file first"
-    echo "See VPS_DEPLOYMENT_WORKFLOW.md for details"
-    exit 1
+    echo -e "${YELLOW}⚠️  api/.env not found, creating from template...${NC}"
+    if [ -f "api/.env.production" ]; then
+        cp api/.env.production api/.env
+        echo -e "${YELLOW}⚠️  Please update api/.env with your actual database credentials!${NC}"
+    else
+        echo -e "${RED}❌ api/.env file not found!${NC}"
+        echo "Please create api/.env file with database credentials"
+        exit 1
+    fi
+fi
+
+if [ ! -f "client/.env" ]; then
+    echo -e "${YELLOW}⚠️  client/.env not found, creating from template...${NC}"
+    if [ -f "client/.env.production" ]; then
+        cp client/.env.production client/.env
+    fi
 fi
 
 # Git pull
@@ -81,7 +93,7 @@ sleep 2
 # Health check
 echo ""
 echo -e "${YELLOW}🏥 Checking application health...${NC}"
-HEALTH_CHECK=$(curl -s http://localhost:3001/api/health || echo "failed")
+HEALTH_CHECK=$(curl -s http://localhost:3010/api/health || echo "failed")
 
 if echo "$HEALTH_CHECK" | grep -q "success"; then
     echo -e "${GREEN}✅ Application is healthy!${NC}"
@@ -98,7 +110,7 @@ pm2 status
 echo ""
 echo -e "${BLUE}📋 Next steps:${NC}"
 echo "  1. Check logs: pm2 logs weconnect-api"
-echo "  2. Check health: curl http://localhost:3001/api/health"
+echo "  2. Check health: curl http://localhost:3010/api/health"
 echo "  3. Test frontend in browser"
 echo ""
 

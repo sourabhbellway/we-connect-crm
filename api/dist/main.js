@@ -14,6 +14,9 @@ async function bootstrap() {
     app.enableCors({
         origin: process.env.NODE_ENV === 'production'
             ? [
+                'http://147.93.27.62',
+                'http://147.93.27.62:4176',
+                'http://147.93.27.62:3010',
                 'http://31.97.233.21',
                 'http://31.97.233.21:8081',
                 'http://31.97.233.21:7001',
@@ -33,7 +36,7 @@ async function bootstrap() {
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     });
-    await app.listen(process.env.PORT ? Number(process.env.PORT) : 3001, '0.0.0.0');
+    await app.listen(process.env.PORT ? Number(process.env.PORT) : 3010, '0.0.0.0');
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

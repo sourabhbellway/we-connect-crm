@@ -17,7 +17,10 @@ async function bootstrap() {
     origin:
       process.env.NODE_ENV === 'production'
         ? [
-            'http://31.97.233.21',
+            'http://147.93.27.62',           // Base IP
+            'http://147.93.27.62:4176',      // Frontend port
+            'http://147.93.27.62:3010',      // API port
+            'http://31.97.233.21',           // Old IP (if still using)
             'http://31.97.233.21:8081',
             'http://31.97.233.21:7001',
             'http://31.97.233.21:3001',
@@ -38,7 +41,7 @@ async function bootstrap() {
   });
 
   await app.listen(
-    process.env.PORT ? Number(process.env.PORT) : 3001,
+    process.env.PORT ? Number(process.env.PORT) : 3010,
     '0.0.0.0',
   );
 }
