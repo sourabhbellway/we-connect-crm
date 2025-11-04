@@ -17,6 +17,44 @@ let ActivitiesService = class ActivitiesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async getRecent(limit = 5) {
+        const items = await this.prisma.activity.findMany({
+            take: limit,
+            orderBy: { createdAt: 'desc' },
+        });
+        return { success: true, data: { items } };
+    }
+    async getStats() {
+        const total = await this.prisma.activity.count();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayCount = await this.prisma.activity.count({
+            where: {
+                createdAt: {
+                    gte: today,
+                },
+            },
+        });
+        return { success: true, data: { total, today: todayCount } };
+    }
+    async getDeletedData({ page = 1, limit = 10, }) {
+        const [users, leads] = await Promise.all([
+            this.prisma.user.findMany({
+                where: { deletedAt: { not: null } },
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { deletedAt: 'desc' },
+            }),
+            this.prisma.lead.findMany({
+                where: { deletedAt: { not: null } },
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { deletedAt: 'desc' },
+            }),
+        ]);
+        const total = users.length + leads.length;
+        return { success: true, data: { users, leads, total, page, limit } };
+    }
     async list({ page = 1, limit = 10, type, }) {
         const where = {};
         if (type)

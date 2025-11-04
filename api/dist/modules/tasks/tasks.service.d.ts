@@ -4,7 +4,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 export declare class TasksService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ page, limit, status, search, leadId, dealId, contactId, }: {
+    list({ page, limit, status, search, leadId, dealId, contactId, assignedTo, }: {
         page?: number;
         limit?: number;
         status?: string;
@@ -12,10 +12,22 @@ export declare class TasksService {
         leadId?: number;
         dealId?: number;
         contactId?: number;
+        assignedTo?: number;
     }): Promise<{
         success: boolean;
         data: {
-            items: {
+            items: ({
+                assignedUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                createdByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -28,11 +40,40 @@ export declare class TasksService {
                 assignedTo: number | null;
                 contactId: number | null;
                 leadId: number | null;
-                dealId: number | null;
-                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-            }[];
+                createdBy: number;
+                dealId: number | null;
+            })[];
+            tasks: ({
+                assignedUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                createdByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                description: string | null;
+                title: string;
+                status: import("@prisma/client").$Enums.TaskStatus;
+                priority: import("@prisma/client").$Enums.TaskPriority;
+                assignedTo: number | null;
+                contactId: number | null;
+                leadId: number | null;
+                dueDate: Date | null;
+                completedAt: Date | null;
+                createdBy: number;
+                dealId: number | null;
+            })[];
             total: number;
             page: number;
             limit: number;
@@ -46,6 +87,17 @@ export declare class TasksService {
         success: boolean;
         data: {
             task: {
+                assignedUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                createdByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -58,10 +110,10 @@ export declare class TasksService {
                 assignedTo: number | null;
                 contactId: number | null;
                 leadId: number | null;
-                dealId: number | null;
-                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
+                createdBy: number;
+                dealId: number | null;
             };
         };
         message?: undefined;
@@ -70,6 +122,17 @@ export declare class TasksService {
         success: boolean;
         data: {
             task: {
+                assignedUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                createdByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -82,10 +145,10 @@ export declare class TasksService {
                 assignedTo: number | null;
                 contactId: number | null;
                 leadId: number | null;
-                dealId: number | null;
-                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
+                createdBy: number;
+                dealId: number | null;
             };
         };
     }>;
@@ -93,6 +156,17 @@ export declare class TasksService {
         success: boolean;
         data: {
             task: {
+                assignedUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                createdByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -105,10 +179,10 @@ export declare class TasksService {
                 assignedTo: number | null;
                 contactId: number | null;
                 leadId: number | null;
-                dealId: number | null;
-                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
+                createdBy: number;
+                dealId: number | null;
             };
         };
     }>;
@@ -116,6 +190,17 @@ export declare class TasksService {
         success: boolean;
         data: {
             task: {
+                assignedUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                createdByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -128,10 +213,10 @@ export declare class TasksService {
                 assignedTo: number | null;
                 contactId: number | null;
                 leadId: number | null;
-                dealId: number | null;
-                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
+                createdBy: number;
+                dealId: number | null;
             };
         };
     }>;

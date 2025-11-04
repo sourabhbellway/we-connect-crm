@@ -11,28 +11,13 @@ export declare class DealsService {
     }): Promise<{
         success: boolean;
         data: {
-            items: {
-                id: number;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                companyId: number | null;
-                deletedAt: Date | null;
-                description: string | null;
-                title: string;
-                value: import("@prisma/client/runtime/library").Decimal;
-                currency: string;
-                status: import("@prisma/client").$Enums.DealStatus;
-                probability: number;
-                expectedCloseDate: Date | null;
-                assignedTo: number | null;
-                contactId: number | null;
-                leadId: number | null;
-                actualCloseDate: Date | null;
-            }[];
-            total: number;
-            page: number;
-            limit: number;
+            deals: any[];
+            pagination: {
+                page: number;
+                limit: number;
+                total: number;
+                pages: number;
+            };
         };
     }>;
     getById(id: number): Promise<{
@@ -41,27 +26,7 @@ export declare class DealsService {
         data?: undefined;
     } | {
         success: boolean;
-        data: {
-            deal: {
-                id: number;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                companyId: number | null;
-                deletedAt: Date | null;
-                description: string | null;
-                title: string;
-                value: import("@prisma/client/runtime/library").Decimal;
-                currency: string;
-                status: import("@prisma/client").$Enums.DealStatus;
-                probability: number;
-                expectedCloseDate: Date | null;
-                assignedTo: number | null;
-                contactId: number | null;
-                leadId: number | null;
-                actualCloseDate: Date | null;
-            };
-        };
+        data: any;
         message?: undefined;
     }>;
     create(dto: CreateDealDto): Promise<{
@@ -83,9 +48,9 @@ export declare class DealsService {
                 probability: number;
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
+                actualCloseDate: Date | null;
                 contactId: number | null;
                 leadId: number | null;
-                actualCloseDate: Date | null;
             };
         };
     }>;
@@ -108,9 +73,9 @@ export declare class DealsService {
                 probability: number;
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
+                actualCloseDate: Date | null;
                 contactId: number | null;
                 leadId: number | null;
-                actualCloseDate: Date | null;
             };
         };
     }>;

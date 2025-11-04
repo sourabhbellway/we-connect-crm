@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 import { Card, CardHeader, CardContent, PageLoader } from '../../components/ui';
-import { BUSINESS_SETTINGS, PERMISSIONS } from '../../constants';
+import { BUSINESS_SETTINGS } from '../../constants';
 import {
   Building2,
   CreditCard,
@@ -25,7 +24,6 @@ interface SettingsCategory {
   name: string;
   description: string;
   icon: React.ReactNode;
-  permission: string;
   color: string;
   items: Array<{
     name: string;
@@ -36,7 +34,6 @@ interface SettingsCategory {
 
 const BusinessSettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
   const { companySettings, isLoading } = useBusinessSettings();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -46,7 +43,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'User Management',
       description: 'Manage users, roles, and permissions for your CRM system',
       icon: <Users className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.READ,
       color: 'bg-emerald-500',
       items: [
         { name: 'Users', description: 'Create, edit, and manage user accounts', path: '/users' },
@@ -59,7 +55,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Company Information',
       description: 'Basic company details, logo, and contact information',
       icon: <Building2 className="w-6 h-6" />,
-      permission: PERMISSIONS.ROLE.READ, // Temporary: using existing permission
       color: 'bg-blue-500',
       items: [
         { name: 'Company Profile', description: 'Name, address, logo, GST details', path: '/business-settings/company' },
@@ -71,7 +66,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Currency & Tax',
       description: 'Currency settings, tax rates, and financial configuration',
       icon: <CreditCard className="w-6 h-6" />,
-      permission: PERMISSIONS.ROLE.READ,
       color: 'bg-green-500',
       items: [
         { name: 'Currency Settings', description: 'Primary currency, exchange rates', path: '/business-settings/currency' },
@@ -83,7 +77,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Lead Sources',
       description: 'Configurable dropdown options for lead sources',
       icon: <Users className="w-6 h-6" />,
-      permission: PERMISSIONS.LEAD.UPDATE,
       color: 'bg-purple-500',
       items: [
         { name: 'Lead Sources', description: 'Manage lead source options', path: '/business-settings/lead-sources' },
@@ -95,7 +88,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Deal Stages & Pipelines',
       description: 'Customizable sales pipelines and deal stages',
       icon: <Workflow className="w-6 h-6" />,
-      permission: PERMISSIONS.LEAD.UPDATE,
       color: 'bg-orange-500',
       items: [
         { name: 'Sales Pipelines', description: 'Create and manage pipelines', path: '/business-settings/pipelines' },
@@ -107,7 +99,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Product Management',
       description: 'Product categories and price lists',
       icon: <Package className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.UPDATE, // Product permission (to be added)
       color: 'bg-indigo-500',
       items: [
         { name: 'Product Categories', description: 'Organize products by categories', path: '/business-settings/product-categories' },
@@ -119,7 +110,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Document Templates',
       description: 'Quotation, invoice, and email templates',
       icon: <FileText className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.UPDATE,
       color: 'bg-red-500',
       items: [
         { name: 'Quotation Templates', description: 'Professional quote layouts', path: '/business-settings/quotation-templates' },
@@ -132,7 +122,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Notification Settings',
       description: 'Email, SMS, and notification preferences',
       icon: <Bell className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.UPDATE,
       color: 'bg-yellow-500',
       items: [
         { name: 'Channel Settings', description: 'Email, SMS, WhatsApp preferences', path: '/business-settings/notifications' },
@@ -144,7 +133,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Automation Rules',
       description: 'Workflow automation and triggers',
       icon: <Zap className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.UPDATE,
       color: 'bg-pink-500',
       items: [
         { name: 'Workflow Rules', description: 'Automate repetitive tasks', path: '/business-settings/automation' },
@@ -156,7 +144,6 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'API & Integrations',
       description: 'WhatsApp, SMS, email gateway, and third-party integrations',
       icon: <Link className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.UPDATE,
       color: 'bg-teal-500',
       items: [
         { name: 'Communication Settings', description: 'Templates, automation, and providers', path: '/business-settings/communication' },
@@ -170,14 +157,13 @@ const BusinessSettingsPage: React.FC = () => {
       name: 'Payment Gateways',
       description: 'Payment gateway configuration and settings',
       icon: <Wallet className="w-6 h-6" />,
-      permission: PERMISSIONS.USER.UPDATE,
       color: 'bg-cyan-500',
       items: [
         { name: 'Gateway Settings', description: 'Stripe, PayPal, Razorpay setup', path: '/business-settings/payment-gateways' },
         { name: 'Transaction Rules', description: 'Payment processing rules', path: '/business-settings/payment-gateways/rules' },
       ],
     },
-  ].filter(category => hasPermission(category.permission));
+  ];
 
   if (isLoading) {
     return <PageLoader message="Loading business settings..." />;

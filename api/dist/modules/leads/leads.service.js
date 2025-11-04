@@ -291,16 +291,18 @@ let LeadsService = class LeadsService {
                     });
                 }
             }
-            if (dto.createDeal && dto.dealData?.title) {
+            if (dto.createDeal) {
+                const fallbackTitleBase = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || `Lead #${lead.id}`;
+                const title = dto.dealData?.title || `${fallbackTitleBase} - Deal`;
                 createdDeal = await tx.deal.create({
                     data: {
-                        title: dto.dealData.title,
-                        description: dto.dealData.description,
-                        value: dto.dealData.value,
-                        currency: dto.dealData.currency || 'USD',
-                        status: toEnumStatus(dto.dealData.status) || 'DRAFT',
-                        probability: dto.dealData.probability || 0,
-                        expectedCloseDate: dto.dealData.expectedCloseDate
+                        title,
+                        description: dto.dealData?.description,
+                        value: (dto.dealData?.value ?? lead.budget ?? 0),
+                        currency: dto.dealData?.currency || lead.currency || 'USD',
+                        status: toEnumStatus(dto.dealData?.status) || 'DRAFT',
+                        probability: dto.dealData?.probability || 0,
+                        expectedCloseDate: dto.dealData?.expectedCloseDate
                             ? new Date(dto.dealData.expectedCloseDate)
                             : null,
                         assignedTo: lead.assignedTo,

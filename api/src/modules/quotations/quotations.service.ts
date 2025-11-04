@@ -12,6 +12,19 @@ const pad = (num: number, size: number) => String(num).padStart(size, '0');
 export class QuotationsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getTemplate() {
+    const users = await this.prisma.user.findMany({
+      where: { deletedAt: null },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+    });
+    return { success: true, data: { users } };
+  }
+
   async list({
     page = 1,
     limit = 10,

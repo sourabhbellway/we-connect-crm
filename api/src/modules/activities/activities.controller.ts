@@ -8,6 +8,29 @@ import { CreateActivityDto } from './dto/create-activity.dto';
 export class ActivitiesController {
   constructor(private readonly service: ActivitiesService) {}
 
+  @Get('recent')
+  getRecent(@Query('limit') limit?: string) {
+    return this.service.getRecent(
+      limit ? parseInt(limit) : 5,
+    );
+  }
+
+  @Get('stats')
+  getStats() {
+    return this.service.getStats();
+  }
+
+  @Get('deleted-data')
+  getDeletedData(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.getDeletedData({
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+    });
+  }
+
   @Get()
   list(
     @Query('page') page?: string,

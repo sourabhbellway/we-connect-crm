@@ -17,6 +17,17 @@ export declare class UsersController {
             updatedAt: any;
         } | null)[];
     }>;
+    getStats(): Promise<{
+        success: boolean;
+        data: {
+            stats: {
+                totalUsers: number;
+                activeUsers: number;
+                inactiveUsers: number;
+                newUsers: number;
+            };
+        };
+    }>;
     findOne(id: string): Promise<{
         success: boolean;
         data: {

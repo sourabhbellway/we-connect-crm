@@ -23,6 +23,11 @@ import { CreateQuotationItemDto } from './dto/create-quotation.dto';
 export class QuotationsController {
   constructor(private readonly service: QuotationsService) {}
 
+  @Get('template')
+  getTemplate() {
+    return this.service.getTemplate();
+  }
+
   @Get()
   list(
     @Query('page') page?: string,

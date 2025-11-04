@@ -91,6 +91,22 @@ let UsersService = class UsersService {
         const users = await Promise.all(rows.map((u) => this.mapUser(u)));
         return { success: true, data: users };
     }
+    async getStats() {
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const [totalUsers, activeUsers, newUsers] = await Promise.all([
+            this.prisma.user.count({ where: { deletedAt: null } }),
+            this.prisma.user.count({ where: { deletedAt: null, isActive: true } }),
+            this.prisma.user.count({ where: { deletedAt: null, createdAt: { gte: thirtyDaysAgo } } }),
+        ]);
+        const inactiveUsers = Math.max(0, totalUsers - activeUsers);
+        return {
+            success: true,
+            data: {
+                stats: { totalUsers, activeUsers, inactiveUsers, newUsers },
+            },
+        };
+    }
     async findOne(id) {
         const u = await this.prisma.user.findUnique({
             where: { id },

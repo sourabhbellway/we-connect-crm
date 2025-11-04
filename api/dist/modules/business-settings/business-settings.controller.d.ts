@@ -165,6 +165,39 @@ export declare class BusinessSettingsController {
                 description: string | null;
             }[];
             pipelines: never[];
+            numbering: {
+                quotePrefix: any;
+                quotePad: number;
+                invoicePrefix: any;
+                invoicePad: number;
+                defaultTerms: any;
+                paymentTerms: any;
+                shippingTerms: any;
+            };
+        };
+    }>;
+    getNumbering(): Promise<{
+        success: boolean;
+        data: {
+            quotePrefix: any;
+            quotePad: number;
+            invoicePrefix: any;
+            invoicePad: number;
+            defaultTerms: any;
+            paymentTerms: any;
+            shippingTerms: any;
+        };
+    }>;
+    updateNumbering(body: any): Promise<{
+        success: boolean;
+        data: {
+            quotePrefix: any;
+            quotePad: number;
+            invoicePrefix: any;
+            invoicePad: number;
+            defaultTerms: any;
+            paymentTerms: any;
+            shippingTerms: any;
         };
     }>;
     getPipelines(): Promise<{

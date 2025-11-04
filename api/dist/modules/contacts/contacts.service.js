@@ -18,6 +18,8 @@ let ContactsService = class ContactsService {
         this.prisma = prisma;
     }
     async list({ page = 1, limit = 10, search, }) {
+        const pageNum = Math.max(1, Number(page) || 1);
+        const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
         const where = { deletedAt: null };
         if (search && search.trim()) {
             const q = search.trim();
@@ -25,27 +27,70 @@ let ContactsService = class ContactsService {
                 { firstName: { contains: q, mode: 'insensitive' } },
                 { lastName: { contains: q, mode: 'insensitive' } },
                 { email: { contains: q, mode: 'insensitive' } },
+                { phone: { contains: q, mode: 'insensitive' } },
                 { company: { contains: q, mode: 'insensitive' } },
+                { position: { contains: q, mode: 'insensitive' } },
             ];
         }
-        const [items, total] = await Promise.all([
+        const [rows, total] = await Promise.all([
             this.prisma.contact.findMany({
                 where,
-                skip: (page - 1) * limit,
-                take: limit,
+                skip: (pageNum - 1) * pageSize,
+                take: pageSize,
                 orderBy: { createdAt: 'desc' },
             }),
             this.prisma.contact.count({ where }),
         ]);
-        return { success: true, data: { items, total, page, limit } };
+        const pages = Math.max(1, Math.ceil(total / pageSize));
+        return {
+            success: true,
+            data: {
+                contacts: rows,
+                pagination: {
+                    page: pageNum,
+                    limit: pageSize,
+                    total,
+                    pages,
+                },
+            },
+        };
     }
     async getById(id) {
         const contact = await this.prisma.contact.findFirst({
             where: { id, deletedAt: null },
+            include: {
+                companyRelation: true,
+                deals: true,
+                tasks: true,
+                quotations: true,
+                invoices: { include: { payments: true } },
+                followUps: true,
+            },
         });
         if (!contact)
             return { success: false, message: 'Contact not found' };
-        return { success: true, data: { contact } };
+        const [communications, activities, relatedContacts] = await Promise.all([
+            this.prisma.contactCommunication.findMany({ where: { contactId: id }, orderBy: { createdAt: 'desc' } }).catch(() => []),
+            this.prisma.contactActivity.findMany({ where: { contactId: id }, orderBy: { createdAt: 'desc' } }).catch(() => []),
+            contact.companyId
+                ? this.prisma.contact.findMany({ where: { companyId: contact.companyId, id: { not: id }, deletedAt: null }, orderBy: { firstName: 'asc' } })
+                : Promise.resolve([]),
+        ]);
+        return {
+            success: true,
+            data: {
+                contact,
+                company: contact.companyRelation,
+                deals: contact.deals,
+                tasks: contact.tasks,
+                quotations: contact.quotations,
+                invoices: contact.invoices,
+                followUps: contact.followUps,
+                communications,
+                activities,
+                relatedContacts,
+            },
+        };
     }
     async create(dto) {
         const contact = await this.prisma.contact.create({

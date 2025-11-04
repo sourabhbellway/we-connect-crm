@@ -79,6 +79,10 @@ export declare class AuthController {
     }>;
     profile(user: any): Promise<{
         success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
         data: {
             user: {
                 id: number;
@@ -98,7 +102,8 @@ export declare class AuthController {
                         module: string;
                     }[];
                 }[];
-            } | null;
+            };
         };
+        message?: undefined;
     }>;
 }

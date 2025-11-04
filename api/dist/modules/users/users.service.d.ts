@@ -18,6 +18,17 @@ export declare class UsersService {
             updatedAt: any;
         } | null)[];
     }>;
+    getStats(): Promise<{
+        success: boolean;
+        data: {
+            stats: {
+                totalUsers: number;
+                activeUsers: number;
+                inactiveUsers: number;
+                newUsers: number;
+            };
+        };
+    }>;
     findOne(id: number): Promise<{
         success: boolean;
         data: {

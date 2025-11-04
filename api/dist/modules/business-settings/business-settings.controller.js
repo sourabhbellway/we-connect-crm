@@ -46,6 +46,12 @@ let BusinessSettingsController = class BusinessSettingsController {
     getAll() {
         return this.service.getAllBusinessSettings();
     }
+    getNumbering() {
+        return this.service.getNumbering();
+    }
+    updateNumbering(body) {
+        return this.service.updateNumbering(body);
+    }
     getPipelines() {
         return this.service.getPipelines();
     }
@@ -113,6 +119,19 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getAll", null);
+__decorate([
+    (0, common_1.Get)('numbering'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "getNumbering", null);
+__decorate([
+    (0, common_1.Put)('numbering'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "updateNumbering", null);
 __decorate([
     (0, common_1.Get)('pipelines'),
     __metadata("design:type", Function),

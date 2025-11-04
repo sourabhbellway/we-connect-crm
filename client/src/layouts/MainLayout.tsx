@@ -146,7 +146,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       name: 'Business Settings',
       href: '/business-settings',
       icon: Settings,
-      permission: PERMISSIONS.BUSINESS_SETTINGS.READ,
       badge: '',
       badgeColor: 'bg-purple-500',
     },

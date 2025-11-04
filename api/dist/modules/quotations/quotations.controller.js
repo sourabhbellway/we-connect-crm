@@ -16,14 +16,17 @@ exports.QuotationsController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const quotations_service_1 = require("./quotations.service");
-const create_quotation_dto_1 = require("./dto/create-quotation.dto");
+const common_2 = require("@nestjs/common");
 const update_quotation_dto_1 = require("./dto/update-quotation.dto");
 const upsert_quotation_item_dto_1 = require("./dto/upsert-quotation-item.dto");
-const create_quotation_dto_2 = require("./dto/create-quotation.dto");
+const create_quotation_dto_1 = require("./dto/create-quotation.dto");
 let QuotationsController = class QuotationsController {
     service;
     constructor(service) {
         this.service = service;
+    }
+    getTemplate() {
+        return this.service.getTemplate();
     }
     list(page, limit, search, status) {
         return this.service.list({
@@ -36,8 +39,44 @@ let QuotationsController = class QuotationsController {
     get(id) {
         return this.service.getById(Number(id));
     }
-    create(dto) {
-        return this.service.create(dto);
+    create(body) {
+        const normalizeStatus = (s) => (s ? String(s).toUpperCase() : undefined);
+        const items = Array.isArray(body.items)
+            ? body.items.map((it) => ({
+                productId: it.productId ?? undefined,
+                name: it.name ?? it.description ?? 'Item',
+                description: it.longDescription ?? it.description ?? undefined,
+                quantity: Number(it.quantity ?? 1),
+                unit: it.unit ?? 'pcs',
+                unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
+                taxRate: it.taxRate !== undefined ? Number(it.taxRate) : undefined,
+                discountRate: it.discountRate !== undefined
+                    ? Number(it.discountRate)
+                    : body.discountType === '%'
+                        ? Number(body.discountValue || 0)
+                        : undefined,
+            }))
+            : [];
+        const payload = {
+            quotationNumber: body.quotationNumber,
+            title: body.title ?? body.subject,
+            description: body.description ?? undefined,
+            status: normalizeStatus(body.status),
+            discountAmount: body.discountType && body.discountType !== '%'
+                ? Number(body.discountValue || 0)
+                : undefined,
+            currency: body.currency,
+            validUntil: body.validUntil ?? body.openTill,
+            notes: body.notes,
+            terms: body.terms,
+            companyId: body.companyId,
+            leadId: body.relatedType === 'lead' ? Number(body.relatedId) : body.leadId,
+            dealId: body.dealId,
+            contactId: body.relatedType === 'contact' ? Number(body.relatedId) : body.contactId,
+            createdBy: body.createdBy,
+            items,
+        };
+        return this.service.create(payload);
     }
     update(id, dto) {
         return this.service.update(Number(id), dto);
@@ -66,8 +105,26 @@ let QuotationsController = class QuotationsController {
     generateInvoice(id) {
         return this.service.generateInvoice(Number(id));
     }
+    async previewPdf(id, res) {
+        const { buffer, filename } = await this.service.buildPdf(Number(id));
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+        res.send(buffer);
+    }
+    async downloadPdf(id, res) {
+        const { buffer, filename } = await this.service.buildPdf(Number(id));
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(buffer);
+    }
 };
 exports.QuotationsController = QuotationsController;
+__decorate([
+    (0, common_1.Get)('template'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], QuotationsController.prototype, "getTemplate", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('page')),
@@ -89,7 +146,7 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_quotation_dto_1.CreateQuotationDto]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], QuotationsController.prototype, "create", null);
 __decorate([
@@ -112,7 +169,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, create_quotation_dto_2.CreateQuotationItemDto]),
+    __metadata("design:paramtypes", [String, create_quotation_dto_1.CreateQuotationItemDto]),
     __metadata("design:returntype", void 0)
 ], QuotationsController.prototype, "addItem", null);
 __decorate([
@@ -158,6 +215,22 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], QuotationsController.prototype, "generateInvoice", null);
+__decorate([
+    (0, common_1.Get)(':id/pdf/preview'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_2.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], QuotationsController.prototype, "previewPdf", null);
+__decorate([
+    (0, common_1.Get)(':id/pdf/download'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_2.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], QuotationsController.prototype, "downloadPdf", null);
 exports.QuotationsController = QuotationsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('quotations'),

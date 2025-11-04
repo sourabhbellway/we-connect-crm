@@ -2,6 +2,8 @@ import { PrismaService } from '../../database/prisma.service';
 export declare class BusinessSettingsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
+    private parseExtended;
+    private saveExtended;
     ensureSettings(): Promise<{
         industry: string | null;
         id: number;
@@ -243,6 +245,39 @@ export declare class BusinessSettingsService {
                 description: string | null;
             }[];
             pipelines: never[];
+            numbering: {
+                quotePrefix: any;
+                quotePad: number;
+                invoicePrefix: any;
+                invoicePad: number;
+                defaultTerms: any;
+                paymentTerms: any;
+                shippingTerms: any;
+            };
+        };
+    }>;
+    getNumbering(): Promise<{
+        success: boolean;
+        data: {
+            quotePrefix: any;
+            quotePad: number;
+            invoicePrefix: any;
+            invoicePad: number;
+            defaultTerms: any;
+            paymentTerms: any;
+            shippingTerms: any;
+        };
+    }>;
+    updateNumbering(body: any): Promise<{
+        success: boolean;
+        data: {
+            quotePrefix: any;
+            quotePad: number;
+            invoicePrefix: any;
+            invoicePad: number;
+            defaultTerms: any;
+            paymentTerms: any;
+            shippingTerms: any;
         };
     }>;
     getPipelines(): Promise<{

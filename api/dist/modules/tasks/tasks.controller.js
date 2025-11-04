@@ -23,22 +23,48 @@ let TasksController = class TasksController {
     constructor(service) {
         this.service = service;
     }
-    list(page, limit, status, search, leadId, dealId, contactId) {
+    list(page, limit, status, search, leadId, dealId, contactId, entityType, entityId, assignedTo) {
+        let lead = leadId ? parseInt(leadId) : undefined;
+        let deal = dealId ? parseInt(dealId) : undefined;
+        let contact = contactId ? parseInt(contactId) : undefined;
+        if (!lead && !deal && !contact && entityType && entityId) {
+            const idNum = parseInt(entityId);
+            if (entityType === 'lead')
+                lead = idNum;
+            if (entityType === 'deal')
+                deal = idNum;
+            if (entityType === 'contact')
+                contact = idNum;
+        }
         return this.service.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             status,
             search,
-            leadId: leadId ? parseInt(leadId) : undefined,
-            dealId: dealId ? parseInt(dealId) : undefined,
-            contactId: contactId ? parseInt(contactId) : undefined,
+            leadId: lead,
+            dealId: deal,
+            contactId: contact,
+            assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
         });
     }
     get(id) {
         return this.service.getById(Number(id));
     }
     create(dto) {
-        return this.service.create(dto);
+        const mapped = { ...dto };
+        const et = mapped.entityType?.toLowerCase();
+        if (mapped.entityId && et) {
+            const idNum = Number(mapped.entityId);
+            if (et === 'lead')
+                mapped.leadId = idNum;
+            if (et === 'deal')
+                mapped.dealId = idNum;
+            if (et === 'contact')
+                mapped.contactId = idNum;
+            delete mapped.entityType;
+            delete mapped.entityId;
+        }
+        return this.service.create(mapped);
     }
     update(id, dto) {
         return this.service.update(Number(id), dto);
@@ -60,8 +86,11 @@ __decorate([
     __param(4, (0, common_1.Query)('leadId')),
     __param(5, (0, common_1.Query)('dealId')),
     __param(6, (0, common_1.Query)('contactId')),
+    __param(7, (0, common_1.Query)('entityType')),
+    __param(8, (0, common_1.Query)('entityId')),
+    __param(9, (0, common_1.Query)('assignedTo')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], TasksController.prototype, "list", null);
 __decorate([

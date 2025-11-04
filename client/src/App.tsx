@@ -330,7 +330,7 @@ function AppContent() {
         <Route
           path="/business-settings"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <BusinessSettingsPage />
               </MainLayout>
@@ -340,7 +340,7 @@ function AppContent() {
         <Route
           path="/business-settings/company"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <CompanySettingsPage />
               </MainLayout>
@@ -350,7 +350,7 @@ function AppContent() {
         <Route
           path="/business-settings/currency"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <CurrencyTaxSettingsPage />
               </MainLayout>
@@ -360,7 +360,7 @@ function AppContent() {
         <Route
           path="/business-settings/tax"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <CurrencyTaxSettingsPage />
               </MainLayout>
@@ -370,7 +370,7 @@ function AppContent() {
         <Route
           path="/business-settings/lead-sources"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <LeadSourcesPage />
               </MainLayout>
@@ -380,7 +380,7 @@ function AppContent() {
         <Route
           path="/business-settings/pipelines"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <DealStagesPage />
               </MainLayout>
@@ -390,7 +390,7 @@ function AppContent() {
         <Route
           path="/business-settings/deal-stages"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <DealStagesPage />
               </MainLayout>
@@ -400,7 +400,7 @@ function AppContent() {
         <Route
           path="/business-settings/communication"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <CommunicationPage />
               </MainLayout>
@@ -410,7 +410,7 @@ function AppContent() {
         <Route
           path="/business-settings/integrations/communication"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <CommunicationAPIPage />
               </MainLayout>
@@ -430,7 +430,7 @@ function AppContent() {
         <Route
           path="/business-settings/quotation-templates"
           element={
-            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+            <ProtectedRoute>
               <MainLayout>
                 <QuotationTemplatesPage />
               </MainLayout>

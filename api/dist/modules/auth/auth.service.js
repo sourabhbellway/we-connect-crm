@@ -220,8 +220,16 @@ let AuthService = class AuthService {
         return { success: true, message: 'Logged out successfully' };
     }
     async profile(userId) {
-        const user = await this.buildUserWithRoles(userId);
-        return { success: true, data: { user } };
+        try {
+            const user = await this.buildUserWithRoles(userId);
+            if (!user) {
+                return { success: false, message: 'User not found' };
+            }
+            return { success: true, data: { user } };
+        }
+        catch (err) {
+            return { success: false, message: 'Failed to load profile' };
+        }
     }
 };
 exports.AuthService = AuthService;

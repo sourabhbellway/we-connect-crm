@@ -83,6 +83,10 @@ export declare class AuthService {
     }>;
     profile(userId: number): Promise<{
         success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
         data: {
             user: {
                 id: number;
@@ -102,7 +106,8 @@ export declare class AuthService {
                         module: string;
                     }[];
                 }[];
-            } | null;
+            };
         };
+        message?: undefined;
     }>;
 }
