@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   X, 
-  UserPlus, 
   Building, 
   DollarSign, 
   CheckCircle,
@@ -63,7 +62,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
   const { t } = useTranslation();
   
   const [conversionData, setConversionData] = useState<ConversionData>({
-    createContact: true,
+    createContact: false, // Always false - contact creation removed
     createCompany: false,
     createDeal: false,
     contactData: {},
@@ -110,11 +109,14 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
     field: string,
     value: any
   ) => {
-    if (section === 'createContact' || section === 'createCompany' || section === 'createDeal') {
+    if (section === 'createCompany' || section === 'createDeal') {
       setConversionData(prev => ({
         ...prev,
         [section]: value,
       }));
+    } else if (section === 'createContact') {
+      // Ignore createContact changes - always keep it false
+      return;
     } else {
       setConversionData(prev => ({
         ...prev,
@@ -130,8 +132,8 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
     e.preventDefault();
     
     // Validation
-    if (!conversionData.createContact && !conversionData.createCompany && !conversionData.createDeal) {
-      toast.error("Please select at least one item to create");
+    if (!conversionData.createCompany && !conversionData.createDeal) {
+      toast.error("Please select at least one item to create (Company or Deal)");
       return;
     }
     
@@ -147,8 +149,10 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
 
     try {
       // Clean up empty string values before sending
+      // Always set createContact to false
       const cleanedData = {
         ...conversionData,
+        createContact: false, // Always false - contact creation removed
         contactData: Object.fromEntries(
           Object.entries(conversionData.contactData).filter(([_, value]) => value !== "" && value !== null && value !== undefined)
         ),
@@ -168,7 +172,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
 
   const resetForm = () => {
     setConversionData({
-      createContact: true,
+      createContact: false, // Always false - contact creation removed
       createCompany: false,
       createDeal: false,
       contactData: {},
@@ -184,8 +188,8 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
   if (!isOpen || !lead) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-4 mx-auto p-5 border max-w-4xl shadow-lg rounded-md bg-white dark:bg-gray-800">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+      <div className="relative mx-auto p-5 border max-w-4xl w-full shadow-lg rounded-md bg-white dark:bg-gray-800">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -217,79 +221,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
           </div>
 
           {/* Conversion Options */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Create Contact */}
-            <div className={`border rounded-lg p-4 ${conversionData.createContact ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-              <div className="flex items-center space-x-3 mb-4">
-                <input
-                  type="checkbox"
-                  checked={conversionData.createContact}
-                  onChange={(e) => handleInputChange('createContact', '', e.target.checked)}
-                  disabled={isConverting}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <div className="flex items-center space-x-2">
-                  <UserPlus className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium text-gray-900 dark:text-white">Create Contact</span>
-                </div>
-              </div>
-              
-              {conversionData.createContact && (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        First Name
-                      </label>
-                      <input
-                        type="text"
-                        value={conversionData.contactData.firstName || ""}
-                        onChange={(e) => handleInputChange('contactData', 'firstName', e.target.value)}
-                        disabled={isConverting}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Last Name
-                      </label>
-                      <input
-                        type="text"
-                        value={conversionData.contactData.lastName || ""}
-                        onChange={(e) => handleInputChange('contactData', 'lastName', e.target.value)}
-                        disabled={isConverting}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={conversionData.contactData.email || ""}
-                      onChange={(e) => handleInputChange('contactData', 'email', e.target.value)}
-                      disabled={isConverting}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Phone
-                    </label>
-                    <input
-                      type="tel"
-                      value={conversionData.contactData.phone || ""}
-                      onChange={(e) => handleInputChange('contactData', 'phone', e.target.value)}
-                      disabled={isConverting}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Create Company */}
             <div className={`border rounded-lg p-4 ${conversionData.createCompany ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
               <div className="flex items-center space-x-3 mb-4">
@@ -426,7 +358,6 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                 <p className="text-blue-800 dark:text-blue-200 font-medium">Conversion Summary</p>
                 <ul className="text-blue-700 dark:text-blue-300 mt-1 space-y-1">
                   <li>• The lead status will be changed to "Converted"</li>
-                  {conversionData.createContact && <li>• A new contact will be created with the lead's information</li>}
                   {conversionData.createCompany && <li>• A new company record will be created (or linked if exists)</li>}
                   {conversionData.createDeal && <li>• A new deal/opportunity will be created and linked</li>}
                 </ul>
@@ -446,7 +377,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={isConverting || (!conversionData.createContact && !conversionData.createCompany && !conversionData.createDeal)}
+              disabled={isConverting || (!conversionData.createCompany && !conversionData.createDeal)}
               className="px-6 py-2 bg-[#ef444e] text-white text-sm font-medium rounded-lg hover:bg-[#f26971] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {isConverting ? (

@@ -84,40 +84,40 @@ const Trash: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="px-6 py-4">
         <div className="max-w-full mx-auto">
 
           {/* Trash Categories */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {trashItems.map((item) => (
               <button
                 key={item.title}
                 onClick={() => navigate(item.path)}
-                className={`group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow border ${item.borderColor} hover:shadow-lg transition-all duration-300`}
+                className={`group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow border ${item.borderColor} hover:shadow-lg transition-all duration-300 w-full text-left`}
               >
                 {/* Background Gradient */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
                 
-                <div className="relative p-4">
+                <div className="relative px-4 py-3 w-full">
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-br ${item.color} shadow-lg`}>
-                      <item.icon className="h-5 w-5 text-white" />
+                  <div className="flex items-start justify-between mb-3 w-full">
+                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${item.color} shadow-lg flex-shrink-0`}>
+                      <item.icon className="h-4 w-4 text-white" />
                     </div>
-                    <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                    <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors flex-shrink-0" />
                   </div>
 
                   {/* Content */}
-                  <div className="text-left">
-                    <h3 className=" font-bold text-gray-900 dark:text-white mb-2 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                  <div className="text-left w-full">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1.5 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-400 text-xs leading-relaxed mb-0">
                       {item.description}
                     </p>
 
                     {/* Footer Info */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 dark:border-gray-700 w-full">
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                         <Clock className="h-3 w-3" />
                         <span>{item.retention}</span>

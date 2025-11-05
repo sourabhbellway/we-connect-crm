@@ -26,9 +26,9 @@ import Leads from "./components/Leads";
 import LeadCreate from "./components/LeadCreate";
 import LeadEdit from "./components/LeadEdit";
 import LeadProfile from "./components/LeadProfile";
-import Contacts from "./components/Contacts";
+// import Contacts from "./components/Contacts";
 import Deals from "./components/Deals";
-import ContactProfile from "./components/ContactProfile";
+// import ContactProfile from "./components/ContactProfile";
 import DealProfile from "./components/deal/DealProfileEnhanced";
 import DealCreate from "./components/DealCreate";
 import Users from "./components/Users";
@@ -157,7 +157,8 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* Contact routes disabled */}
+        {/* <Route
           path="/contacts"
           element={
             <ProtectedRoute requiredPermission={PERMISSIONS.CONTACT.READ}>
@@ -176,7 +177,7 @@ function AppContent() {
               </MainLayout>
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/deals"
           element={

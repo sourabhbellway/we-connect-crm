@@ -235,7 +235,7 @@ return (
             <span>{totalTasks} total</span>
             <span>{completedTasks} completed</span>
             {overdueTasks > 0 && (
-              <span className="text-red-600 font-medium">{overdueTasks} overdue</span>
+              <span className="text-red-600 dark:text-red-400 font-medium">{overdueTasks} overdue</span>
             )}
           </div>
         </div>
@@ -362,7 +362,7 @@ const res = await tasksService.create(payload);
         </div>
 
         {/* Quick Stats */}
-        <div className="flex items-center space-x-4 text-sm">
+        <div className="flex items-center space-x-4 text-sm text-gray-700 dark:text-gray-300">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             <span>{groupedTasks.completed.length} Completed</span>
@@ -387,11 +387,11 @@ const res = await tasksService.create(payload);
           </Card>
         ) : filteredTasks.length === 0 ? (
           <Card className="p-8 text-center">
-            <CheckCircle size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+            <CheckCircle size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No Tasks Found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
               {searchTerm || filterStatus !== 'all' || filterPriority !== 'all'
                 ? 'Try adjusting your search or filter criteria.'
                 : 'Create your first task to start organizing your work.'
@@ -446,7 +446,7 @@ const res = await tasksService.create(payload);
                     <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                       {task.dueDate && (
                         <div className={`flex items-center ${isOverdue(task.dueDate) && task.status !== 'COMPLETED' 
-                          ? 'text-red-600 font-medium' 
+                          ? 'text-red-600 dark:text-red-400 font-medium' 
                           : ''
                         }`}>
                           <CalendarDays size={14} className="mr-1" />
@@ -455,20 +455,20 @@ const res = await tasksService.create(payload);
                       )}
                       
                       {task.assignedTo && (
-                        <div className="flex items-center">
+                        <div className="flex items-center text-gray-500 dark:text-gray-400">
                           <User size={14} className="mr-1" />
                           {task.assignedTo.firstName} {task.assignedTo.lastName}
                         </div>
                       )}
 
-                      <div className="flex items-center">
+                      <div className="flex items-center text-gray-500 dark:text-gray-400">
                         <Clock size={14} className="mr-1" />
                         Created {new Date(task.createdAt).toLocaleDateString()}
                       </div>
                     </div>
 
                     {task.completedAt && (
-                      <div className="mt-2 text-sm text-green-600 dark:text-green-400">
+                      <div className="mt-2 text-sm text-green-600 dark:text-green-400 font-medium">
                         ✓ Completed on {new Date(task.completedAt).toLocaleDateString()}
                       </div>
                     )}
@@ -518,7 +518,7 @@ const res = await tasksService.create(payload);
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Overall Progress
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {completedTasks} of {totalTasks} completed ({Math.round((completedTasks / totalTasks) * 100)}%)
             </span>
           </div>

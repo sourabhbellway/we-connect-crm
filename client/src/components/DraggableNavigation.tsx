@@ -18,7 +18,6 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useNavigate } from 'react-router-dom';
 import { useMenu } from '../contexts/MenuContext';
 import { GripVertical } from 'lucide-react';
 
@@ -69,7 +68,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
   const Icon = item.icon;
   const isHovered = hoveredItem === item.name;
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     // Only navigate if we're not dragging
     if (!isDragging) {
       onNavigate(item.href);
@@ -141,8 +140,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           <div className="flex items-center h-12 md:h-11">
             {item.badge && item.badge !== "0" && (
               <span
-                className={`min-w-[20px] h-5 px-2 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white ${item.badgeColor}`}
-                style={{ lineHeight: '1' }}
+                className={`min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white leading-none ${item.badgeColor}`}
               >
                 {item.badge}
               </span>
@@ -157,7 +155,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
           <div className="flex items-center gap-2">
             <span className="font-medium">{item.name}</span>
             {item.badge && item.badge !== "0" && (
-              <span className={`min-w-[20px] h-5 px-2 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white ${item.badgeColor}`}>
+              <span className={`min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white leading-none ${item.badgeColor}`}>
                 {item.badge}
               </span>
             )}

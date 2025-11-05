@@ -15,6 +15,10 @@ import {
   Eye,
   LayoutList,
   LayoutGrid,
+  Building,
+  MessageSquare,
+  Paperclip,
+  MoreVertical,
 } from 'lucide-react';
 import SearchInput from './SearchInput';
 import NoResults from './NoResults';
@@ -150,6 +154,39 @@ const getStageColor = (stageName?: string) => {
     return s?.color || '#6B7280';
   };
 
+  const getPriorityColor = (priority?: string) => {
+    switch (priority?.toLowerCase()) {
+      case 'high':
+      case 'urgent':
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+      case 'medium':
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+      case 'low':
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
+      default:
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+    }
+  };
+
+  const getPriorityCardBg = (priority?: string) => {
+    switch (priority?.toLowerCase()) {
+      case 'high':
+      case 'urgent':
+        return 'bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-950/40 dark:to-orange-950/30 border-red-300 dark:border-red-800/30';
+      case 'medium':
+        return 'bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-amber-950/40 dark:to-yellow-950/30 border-amber-300 dark:border-amber-800/30';
+      case 'low':
+        return 'bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-950/40 dark:to-cyan-950/30 border-blue-300 dark:border-blue-800/30';
+      default:
+        return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700';
+    }
+  };
+
+  const getPriorityLabel = (priority?: string) => {
+    if (!priority) return 'Medium';
+    return priority.charAt(0).toUpperCase() + priority.slice(1).toLowerCase();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -171,22 +208,30 @@ const getStageColor = (stageName?: string) => {
       </div>
 
       {/* Search, Sort, Filter */}
-      <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-end gap-4">
-        <div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 gap-3 md:gap-4 flex-1 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 flex-1">
           {/* Search */}
-          <div className="w-full">
+          <div className="">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div className="flex items-center gap-2">
+                Search
+                {isSearching && (
+                  <span className="text-xs text-blue-500 flex items-center gap-1">
+                    Searching...
+                  </span>
+                )}
+              </div>
+            </label>
             <SearchInput
               value={searchValue}
               onChange={setSearch}
               placeholder="Search deals..."
+              className="max-w-full"
             />
-            {isSearching && (
-              <div className="mt-1 text-xs text-blue-500">Searching...</div>
-            )}
           </div>
 
           {/* Stage Filter */}
-          <div className="w-full sm:w-56 sm:min-w-[220px]">
+          <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
               label="Stage"
               value={stageFilter}
@@ -196,7 +241,7 @@ const getStageColor = (stageName?: string) => {
           </div>
 
           {/* Sort By */}
-          <div className="w-full sm:w-56 sm:min-w-[220px]">
+          <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
               label="Sort by"
               value={sortBy}
@@ -212,7 +257,7 @@ const getStageColor = (stageName?: string) => {
           </div>
 
           {/* Sort Order */}
-          <div className="w-full sm:w-40 sm:min-w-[200px]">
+          <div className="w-full sm:w-48 sm:min-w-[200px]">
             <DropdownFilter
               label="Order"
               value={sortOrder}
@@ -225,7 +270,7 @@ const getStageColor = (stageName?: string) => {
           </div>
 
           {/* Items per page */}
-          <div className="w-full sm:w-40 sm:min-w-[200px]">
+          <div className="w-full sm:w-48 sm:min-w-[200px]">
             <DropdownFilter
               label="Items per page"
               value={String(itemsPerPage)}
@@ -239,19 +284,22 @@ const getStageColor = (stageName?: string) => {
             />
           </div>
         </div>
-        {/* View toggle */}
-        <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 self-start">
+
+        {/* View toggle - Right aligned */}
+        <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 ml-auto">
           <button
-            className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
             onClick={() => setViewMode('list')}
+            title="List view"
           >
-            <LayoutList className="w-4 h-4" /> List
+            <LayoutList className="w-4 h-4" />
           </button>
           <button
-            className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm ${viewMode === 'kanban' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
             onClick={() => setViewMode('kanban')}
+            title="Kanban view"
           >
-            <LayoutGrid className="w-4 h-4" /> Kanban
+            <LayoutGrid className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -265,30 +313,192 @@ const getStageColor = (stageName?: string) => {
 
 {/* List or Kanban */}
       {viewMode === 'kanban' ? (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300 p-4">
-          <div className="mb-4">
-            <MetaBar
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              totalItems={totalItems}
-              onItemsPerPageChange={(n) => setItemsPerPage(n)}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300 p-6">
+          {pageItems.length === 0 ? (
+            <NoResults
+              title="No deals found"
+              description={searchValue ? 'No deals match your search criteria.' : 'Get started by creating your first deal.'}
+              icon={<DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+              showClearButton={!!searchValue}
+              onClear={() => setSearch('')}
             />
-          </div>
-          <DealsKanban
-            deals={sorted}
-            stages={stages}
-            onUpdateStage={async (dealId, newStage) => {
-              try {
-                setDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage: newStage } : d));
-                await dealService.updateDeal(dealId, { stage: newStage });
-                toast.success('Deal moved to ' + newStage);
-              } catch (e) {
-                toast.error('Failed to move deal');
-                await fetchDeals();
-              }
-            }}
-            onCreateDeal={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/deals/new') : undefined}
-          />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {pageItems.map((deal) => {
+                // Calculate progress percentage (mock - you can add actual progress field)
+                const progress = deal.probability || 0;
+                const priority = (deal as any).priority || 'medium';
+                
+                return (
+                  <div
+                    key={deal.id}
+                    className={`rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 flex flex-col ${getPriorityCardBg(priority)}`}
+                    style={{ minHeight: '320px' }}
+                  >
+                    {/* Partition 1: Priority Badge */}
+                    <div className="px-4 pt-4 pb-2">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${getPriorityColor(priority)}`}>
+                        {getPriorityLabel(priority)}
+                      </span>
+                    </div>
+
+                    {/* Partition 2: Title & Description */}
+                    <div className="px-4 pb-3 flex-1">
+                      <h3 
+                        className="text-sm font-semibold text-gray-900 dark:text-white mb-2  cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        onClick={() => hasPermission(PERMISSIONS.DEAL.READ) && navigate(`/deals/${deal.id}`)}
+                      >
+                        {deal.title}
+                      </h3>
+                      {deal.description && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400  mb-3">
+                          {deal.description}
+                        </p>
+                      )}
+                      
+                      {/* Deal Value */}
+                      <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400 mb-3">
+                        <DollarSign className="h-4 w-4 mr-1 flex-shrink-0" />
+                        <span className="truncate">
+                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: deal.currency || 'USD' }).format(deal.value || 0)}
+                        </span>
+                      </div>
+
+                      {/* Company & Contact Info */}
+                      <div className="space-y-1.5">
+                        {deal.companies?.name && (
+                          <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
+                            <Building className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                            <span className="truncate">{deal.companies.name}</span>
+                          </div>
+                        )}
+                        {deal.contact && (
+                          <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
+                            <User className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                            <span className="truncate">{deal.contact.firstName} {deal.contact.lastName}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Partition 3: Progress Bar */}
+                    <div className="px-4 pb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Progress</span>
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Partition 4: Actions & Details */}
+                    <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        {/* Left: Assigned Users & Stats */}
+                        <div className="flex items-center gap-3">
+                          {/* Assigned User Avatar */}
+                          {deal.assignedUser ? (
+                            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
+                              <span className="text-white text-xs font-medium">
+                                {deal.assignedUser.firstName?.[0] || ''}{deal.assignedUser.lastName?.[0] || ''}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="h-6 w-6 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                              <User className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                            </div>
+                          )}
+                          
+                          {/* Mock stats - you can add real data later */}
+                          <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" />
+                              <span>0</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Paperclip className="h-3 w-3" />
+                              <span>0</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Action Buttons */}
+                        <div className="flex items-center gap-1">
+                          {hasPermission(PERMISSIONS.DEAL.READ) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/deals/${deal.id}`);
+                              }}
+                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                              title="View Deal"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          )}
+                          {hasPermission(PERMISSIONS.DEAL.UPDATE) && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/deals/${deal.id}/edit`);
+                              }}
+                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                              title="Edit Deal"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                          )}
+                          {hasPermission(PERMISSIONS.DEAL.DELETE) && (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!confirm('Delete this deal?')) return;
+                                try {
+                                  await dealService.deleteDeal(deal.id);
+                                  setDeals(prev => prev.filter(d => d.id !== deal.id));
+                                  toast.success('Deal deleted');
+                                } catch (e) {
+                                  toast.error('Failed to delete');
+                                }
+                              }}
+                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                              title="Delete Deal"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            title="More options"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination for Kanban */}
+          {totalItems > 0 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(p) => setCurrentPage(p)}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300">

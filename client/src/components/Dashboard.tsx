@@ -1,5 +1,4 @@
 import backgroundImage from "../assets/backgroundImage.jpg";
-import StatsCard from "./StatsCard";
 import {
   HiOutlineUserGroup,
   HiOutlineChevronLeft,
@@ -363,8 +362,8 @@ function Dashboard() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40"></div>
         
         {/* Hero Section */}
-        <div className="relative z-10 px-6 py-12 lg:py-16">
-          <div className="max-w-7xl mx-auto">
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+          <div className=" mx-auto">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
                 <div className="flex-1">
                   <div className="mb-4">
@@ -389,310 +388,12 @@ function Dashboard() {
                 <button className={`px-4 py-2 rounded-full text-sm ${scope==='all' ? 'bg-white text-black' : 'text-white'}`} onClick={()=>setScope('all')}>All</button>
                 <button className={`px-4 py-2 rounded-full text-sm ${scope==='me' ? 'bg-white text-black' : 'text-white'}`} onClick={()=>setScope('me')}>My data</button>
               </div>
-        {/* Mobile stats: same UX as desktop (prev/next buttons, no tabs) */}
-        {/* <div className="lg:hidden w-full relative z-10 mt-6">
-          {(() => {
-            const slides = [
-              "users",
-              ...(hasPermission("lead.read") ? ["leads"] : []),
-              ...(hasPermission("role.read") ? ["roles"] : []),
-            ];
-            const activeKey =
-              slides[
-                ((currentSlide % slides.length) + slides.length) % slides.length
-              ] || "users";
 
-            return (
-              <div className="space-y-3">
-              
-
-                {activeKey === "leads" ? (
-                  <div className="grid grid-cols-2 gap-2 w-full">
-                    <Stats
-                      icon={<HiOutlineUserGroup />}
-                      count={isLeadLoading ? "..." : leadStats.totalLeads}
-                      title="Total Leads"
-                      activity="All active leads"
-                      colorType="normal"
-                    />
-                    <Stats
-                      icon={<HiOutlineUserPlus />}
-                      count={isLeadLoading ? "..." : leadStats.newLeads}
-                      title="New Leads"
-                      activity="Recently created"
-                      colorType="sky"
-                    />
-                    <Stats
-                      icon={<HiOutlineUser />}
-                      count={isLeadLoading ? "..." : leadStats.qualifiedLeads}
-                      title="Qualified"
-                      activity="Marked qualified"
-                      colorType="green"
-                    />
-                    <Stats
-                      icon={<HiOutlineCheck />}
-                      count={isLeadLoading ? "..." : leadStats.closedLeads}
-                      title="Closed"
-                      activity="Won deals"
-                      colorType="green"
-                    />
-                  </div>
-                ) : activeKey === "roles" ? (
-                  (() => {
-                    const activePercent = roleStats.totalRoles
-                      ? Math.round(
-                          (roleStats.activeRoles / roleStats.totalRoles) * 100
-                        )
-                      : 0;
-                    return (
-                      <div className="grid grid-cols-2 gap-2 w-full">
-                        <Stats
-                          icon={<HiOutlineUserGroup />}
-                          count={isRoleLoading ? "..." : roleStats.totalRoles}
-                          title="Total Roles"
-                          activity="All roles"
-                          colorType="normal"
-                        />
-                        <Stats
-                          icon={<HiOutlineUserPlus />}
-                          count={isRoleLoading ? "..." : roleStats.activeRoles}
-                          title="Active Roles"
-                          activity="Enabled roles"
-                          colorType="green"
-                        />
-                        <Stats
-                          icon={<HiOutlineUserMinus />}
-                          count={isRoleLoading ? "..." : roleStats.inactiveRoles}
-                          title="Inactive Roles"
-                          activity="Disabled roles"
-                          colorType="red"
-                        />
-                        <Stats
-                          icon={<HiOutlineCheck />}
-                          count={isRoleLoading ? "..." : `${activePercent}%`}
-                          title="Active %"
-                          activity="Role health"
-                          colorType="sky"
-                        />
-                      </div>
-                    );
-                  })()
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 w-full">
-                    <Stats
-                      icon={<HiOutlineUser />}
-                      count={isLoading ? "..." : userStats.totalUsers}
-                      title="Total Users"
-                      activity="All registered users"
-                      colorType="normal"
-                    />
-                    <Stats
-                      icon={<HiOutlineUserGroup />}
-                      count={isLoading ? "..." : userStats.activeUsers}
-                      title="Active Users"
-                      activity="Currently active"
-                      colorType="green"
-                    />
-                    <Stats
-                      icon={<HiOutlineUserMinus />}
-                      count={isLoading ? "..." : userStats.inactiveUsers}
-                      title="Inactive Users"
-                      activity="Deactivated accounts"
-                      colorType="red"
-                    />
-                    <Stats
-                      icon={<HiOutlineUserPlus />}
-                      count={isLoading ? "..." : userStats.newUsers}
-                      title="New Users"
-                      activity="Last 30 days"
-                      colorType="sky"
-                    />
-                  </div>
-                )}
-                  <div className="flex items-center justify-center gap-2">
-                  <button
-                    className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30"
-                    onClick={() =>
-                      setCurrentSlide(
-                        (prev) => (prev - 1 + slides.length) % slides.length
-                      )
-                    }
-                    aria-label="Previous slide"
-                  >
-                    <HiOutlineChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30"
-                    onClick={() =>
-                      setCurrentSlide((prev) => (prev + 1) % slides.length)
-                    }
-                    aria-label="Next slide"
-                  >
-                    <HiOutlineChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-        <div className="hidden lg:flex gap-2 lg:w-[70%] items-center relative z-10 mt-10">
-          <button
-            className="hidden lg:flex items-center justify-center p-2 rounded-full bg-white/20 hover:bg-white/30 text-white mr-2"
-            onClick={() => {
-              const slides = [
-                "users",
-                ...(hasPermission("lead.read") ? ["leads"] : []),
-                ...(hasPermission("role.read") ? ["roles"] : []),
-              ];
-              setCurrentSlide(
-                (prev) => (prev - 1 + slides.length) % slides.length
-              );
-            }}
-            aria-label="Previous slide"
-          >
-            <HiOutlineChevronLeft className="w-4 h-4" />
-          </button>
-
-          {(() => {
-            const slides = [
-              "users",
-              ...(hasPermission("lead.read") ? ["leads"] : []),
-              ...(hasPermission("role.read") ? ["roles"] : []),
-            ];
-            const activeKey =
-              slides[
-                ((currentSlide % slides.length) + slides.length) % slides.length
-              ] || "users";
-
-            if (activeKey === "leads") {
-              return (
-                <div className="grid md:grid-cols-4 gap-2 w-full">
-                  <Stats
-                    icon={<HiOutlineUserGroup />}
-                    count={isLeadLoading ? "..." : leadStats.totalLeads}
-                    title="Total Leads"
-                    activity="All active leads"
-                    colorType="normal"
-                  />
-                  <Stats
-                    icon={<HiOutlineUserPlus />}
-                    count={isLeadLoading ? "..." : leadStats.newLeads}
-                    title="New Leads"
-                    activity="Recently created"
-                    colorType="sky"
-                  />
-                  <Stats
-                    icon={<HiOutlineUser />}
-                    count={isLeadLoading ? "..." : leadStats.qualifiedLeads}
-                    title="Qualified"
-                    activity="Marked qualified"
-                    colorType="green"
-                  />
-                  <Stats
-                    icon={<HiOutlineCheck />}
-                    count={isLeadLoading ? "..." : leadStats.closedLeads}
-                    title="Closed"
-                    activity="Won deals"
-                    colorType="green"
-                  />
-                </div>
-              );
-            }
-
-            if (activeKey === "roles") {
-              const activePercent = roleStats.totalRoles
-                ? Math.round(
-                    (roleStats.activeRoles / roleStats.totalRoles) * 100
-                  )
-                : 0;
-              return (
-                <div className="grid grid-cols-4 gap-2 w-full">
-                  <Stats
-                    icon={<HiOutlineUserGroup />}
-                    count={isRoleLoading ? "..." : roleStats.totalRoles}
-                    title="Total Roles"
-                    activity="All roles"
-                    colorType="normal"
-                  />
-                  <Stats
-                    icon={<HiOutlineUserPlus />}
-                    count={isRoleLoading ? "..." : roleStats.activeRoles}
-                    title="Active Roles"
-                    activity="Enabled roles"
-                    colorType="green"
-                  />
-                  <Stats
-                    icon={<HiOutlineUserMinus />}
-                    count={isRoleLoading ? "..." : roleStats.inactiveRoles}
-                    title="Inactive Roles"
-                    activity="Disabled roles"
-                    colorType="red"
-                  />
-                  <Stats
-                    icon={<HiOutlineCheck />}
-                    count={isRoleLoading ? "..." : `${activePercent}%`}
-                    title="Active %"
-                    activity="Role health"
-                    colorType="sky"
-                  />
-                </div>
-              );
-            }
-
-            return (
-              <div className="grid grid-cols-4 gap-2 w-full">
-                <Stats
-                  icon={<HiOutlineUser />}
-                  count={isLoading ? "..." : userStats.totalUsers}
-                  title="Total Users"
-                  activity="All registered users"
-                  colorType="normal"
-                />
-                <Stats
-                  icon={<HiOutlineUserGroup />}
-                  count={isLoading ? "..." : userStats.activeUsers}
-                  title="Active Users"
-                  activity="Currently active"
-                  colorType="green"
-                />
-                <Stats
-                  icon={<HiOutlineUserMinus />}
-                  count={isLoading ? "..." : userStats.inactiveUsers}
-                  title="Inactive Users"
-                  activity="Deactivated accounts"
-                  colorType="red"
-                />
-                <Stats
-                  icon={<HiOutlineUserPlus />}
-                  count={isLoading ? "..." : userStats.newUsers}
-                  title="New Users"
-                  activity="Last 30 days"
-                  colorType="sky"
-                />
-              </div>
-            );
-          })()}
-
-          <button
-            className="hidden lg:flex items-center justify-center p-2 rounded-full bg-white/20 hover:bg-white/30 text-white ml-2"
-            onClick={() => {
-              const slides = [
-                "users",
-                ...(hasPermission("lead.read") ? ["leads"] : []),
-                ...(hasPermission("role.read") ? ["roles"] : []),
-              ];
-              setCurrentSlide((prev) => (prev + 1) % slides.length);
-            }}
-            aria-label="Next slide"
-          >
-            <HiOutlineChevronRight className="w-4 h-4" />
-          </button>
-        </div> */}
               {/* Stats Cards */}
-              <div className="flex-1 max-w-4xl">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex-1 w-full ">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                   {/* Total Users Card */}
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                       <div className="p-3 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
                         <HiOutlineUsers className="w-6 h-6 text-blue-300" />
@@ -713,7 +414,7 @@ function Dashboard() {
                   </div>
 
                   {/* Total Roles Card */}
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                       <div className="p-3 bg-green-500/20 rounded-xl group-hover:bg-green-500/30 transition-colors">
                         <HiOutlineUserGroup className="w-6 h-6 text-green-300" />
@@ -738,7 +439,7 @@ function Dashboard() {
                   </div>
 
                   {/* Total Leads Card */}
-                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group">
+                  <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-6 hover:bg-white/15 transition-all duration-300 group">
                     <div className="flex items-center justify-between mb-4">
                       <div className="p-3 bg-purple-500/20 rounded-xl group-hover:bg-purple-500/30 transition-colors">
                         <HiOutlineClipboard className="w-6 h-6 text-purple-300" />
@@ -769,10 +470,10 @@ function Dashboard() {
       </div>
 
       {/* Main Dashboard Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="space-y-8 mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
           {/* System Status Card */}
-          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 dark:border-gray-700">
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">System Status</h3>
               <button className="text-weconnect-red hover:text-red-600 text-sm font-semibold transition-colors">
@@ -909,7 +610,7 @@ function Dashboard() {
         </div>
 
           {/* System Activity Card */}
-          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 dark:border-gray-700">
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">System Activity</h3>
               <button className="text-weconnect-red hover:text-red-600 text-sm font-semibold transition-colors">
@@ -965,7 +666,7 @@ function Dashboard() {
         </div>
 
           {/* Activity Calendar */}
-          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 dark:border-gray-700 xl:col-span-1">
+          <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700 xl:col-span-1">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity Calendar</h3>
             <div className="flex items-center gap-2">
@@ -997,7 +698,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
             {/* Calendar grid */}
             <div className="lg:col-span-2 overflow-x-auto">
               <div className="grid grid-cols-7 text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-300 mb-2 min-w-[420px] sm:min-w-0">
@@ -1009,7 +710,7 @@ function Dashboard() {
                 <div className="text-center">Sat</div>
                 <div className="text-center">Sun</div>
               </div>
-              <div className="grid grid-cols-7 gap-1 sm:gap-2 min-w-[420px] sm:min-w-0">
+              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 min-w-[420px] sm:min-w-0">
                 {getMonthMatrix(currentMonth).map((cell, idx) => {
                   if (!cell)
                     return (
@@ -1026,16 +727,16 @@ function Dashboard() {
                     <button
                       key={idx}
                       onClick={() => setSelectedDate(cell)}
-                      className={`relative h-10 w-10 sm:h-7 sm:w-7 rounded border p-0 flex items-center justify-center overflow-hidden transition-colors ${
+                      className={`relative aspect-square h-10 w-10 sm:h-8 sm:w-8 rounded border p-0 flex items-center justify-center overflow-hidden transition-colors ${
                         isSelected
                           ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                       }`}
                     >
                       <span
-                        className={`text-[10px] sm:text-xs ${
+                        className={`text-[10px] sm:text-xs leading-none ${
                           isToday
-                            ? "font-semibold text-blue-600"
+                            ? "font-semibold text-blue-600 dark:text-blue-400"
                             : "text-gray-700 dark:text-gray-200"
                         }`}
                       >
@@ -1154,7 +855,7 @@ function Dashboard() {
         {hasPermission("lead.read") && (
           <>
             {/* Revenue Metrics */}
-            <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 dark:border-gray-700">
+            <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700 mt-6 lg:mt-0">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <HiOutlineCurrencyDollar className="text-green-500" />
@@ -1226,7 +927,7 @@ function Dashboard() {
             </div>
 
             {/* Conversion & Performance Metrics */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700 mt-6 lg:mt-0">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <HiOutlineTrophy className="text-yellow-500" />
@@ -1280,7 +981,7 @@ function Dashboard() {
             </div>
 
             {/* Activity Metrics */}
-            <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 dark:border-gray-700">
+            <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700 mt-6 lg:mt-0">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <HiOutlinePhone className="text-blue-500" />

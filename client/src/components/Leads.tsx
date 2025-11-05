@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useCounts } from "../contexts/CountsContext";
 import {
-  Plus,
   Edit,
   Trash2,
   User,
@@ -12,7 +11,6 @@ import {
   Calendar,
   Eye,
   Search,
-  Download,
   Upload,
   FileDown,
   RefreshCw,
@@ -41,49 +39,49 @@ const getStatusColor = (status: string) => {
     {
       value: "new",
       label: "New",
-      color: "bg-blue-100 text-blue-800",
+      color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
     },
     {
       value: "contacted",
       label: "Contacted",
-      color: "bg-yellow-100 text-yellow-800",
+      color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
     },
     {
       value: "qualified",
       label: "Qualified",
-      color: "bg-green-100 text-green-800",
+      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
     },
     {
       value: "proposal",
       label: "Proposal",
-      color: "bg-purple-100 text-purple-800",
+      color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
     },
     {
       value: "negotiation",
       label: "Negotiation",
-      color: "bg-orange-100 text-orange-800",
+      color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
     },
     {
       value: "closed",
       label: "Closed",
-      color: "bg-green-100 text-green-800",
+      color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
     },
     {
       value: "lost",
       label: "Lost",
-      color: "bg-red-100 text-red-800",
+      color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     },
     {
       value: "converted",
       label: "Converted",
-      color: "bg-emerald-100 text-emerald-800",
+      color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
     },
   ];
   
   const statusOption = statusOptions.find(
     (option) => option.value === status
   );
-  return statusOption?.color || "bg-gray-100 text-gray-800";
+  return statusOption?.color || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
 };
 
 const Leads: React.FC = () => {
@@ -311,7 +309,7 @@ const Leads: React.FC = () => {
       
       // Update the leads array locally
       setLeads(prev => prev.map(lead => 
-        lead.id === leadId ? { ...lead, status: newStatus } : lead
+        lead.id === leadId ? { ...lead, status: newStatus as Lead['status'] } : lead
       ));
       
       await refreshLeadsCount();
@@ -478,7 +476,15 @@ const Leads: React.FC = () => {
     
     setIsConverting(true);
     try {
-      const response = await leadService.convertLead(leadToConvert.id, conversionData);
+      // Ensure dealData.status is properly typed
+      const typedConversionData: ConversionData = {
+        ...conversionData,
+        dealData: {
+          ...conversionData.dealData,
+          status: conversionData.dealData?.status as "DRAFT" | "PROPOSAL" | "NEGOTIATION" | "WON" | "LOST" | undefined,
+        },
+      };
+      await leadService.convertLead(leadToConvert.id, typedConversionData);
       
       toast.success('Lead converted successfully!');
       setShowConversionModal(false);
@@ -497,7 +503,14 @@ const Leads: React.FC = () => {
       if (alreadyConverted && leadToConvert) {
         try {
           // Try force conversion
-          const forceRes = await leadService.convertLeadForce(leadToConvert.id, conversionData);
+          const typedConversionData: ConversionData = {
+            ...conversionData,
+            dealData: {
+              ...conversionData.dealData,
+              status: conversionData.dealData?.status as "DRAFT" | "PROPOSAL" | "NEGOTIATION" | "WON" | "LOST" | undefined,
+            },
+          };
+          await leadService.convertLeadForce(leadToConvert.id, typedConversionData);
           toast.success('Lead converted successfully!');
           setShowConversionModal(false);
           setLeadToConvert(null);
@@ -512,7 +525,14 @@ const Leads: React.FC = () => {
           // Reset status then retry once
           try {
             await leadService.updateLeadStatus(leadToConvert.id, 'qualified');
-            const retryRes = await leadService.convertLead(leadToConvert.id, conversionData);
+            const typedConversionData: ConversionData = {
+              ...conversionData,
+              dealData: {
+                ...conversionData.dealData,
+                status: conversionData.dealData?.status as "DRAFT" | "PROPOSAL" | "NEGOTIATION" | "WON" | "LOST" | undefined,
+              },
+            };
+            await leadService.convertLead(leadToConvert.id, typedConversionData);
             toast.success('Lead converted successfully!');
             setShowConversionModal(false);
             setLeadToConvert(null);
@@ -562,64 +582,60 @@ const Leads: React.FC = () => {
           ]}
         />
         {/* Mobile-first responsive layout */}
-          <div className="flex flex-col lg:flex-row lg:flex-wrap lg:items-end gap-4">
-            {/* Filters - Responsive grid to avoid overflow on 13" screens */}
-<div className="filters-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4 flex-1 min-w-0">
-            {/* Search */}
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <div className="flex items-center gap-2">
-                  {t("common.search")}
-                  {isSearching && (
-                    <span className="text-xs text-blue-500 flex items-center gap-1">
-                      <Search className="h-3 w-3" />
-                      Searching...
-                    </span>
-                  )}
-                </div>
-              </label>
-              <SearchInput
-                value={searchValue}
-                onChange={handleSearch}
-                placeholder={t("leads.searchLeads")}
-                className="max-w-full"
-              />
-            </div>
-
-            {/* Status */}
-            <div className="w-full sm:w-48 sm:min-w-[220px]">
-              <DropdownFilter
-                label={t("leads.form.status")}
-                value={filters.status || ""}
-                onChange={(value) =>
-                  handleFilterChange("status", value as string)
-                }
-                options={[
-                  { value: "", label: t("leads.form.allStatuses") },
-                  ...statusOptions.map((option) => ({
-                    value: option.value,
-                    label: option.label,
-                  })),
-                ]}
-              />
-            </div>
-
-            {/* Items Per Page */}
-            <div className="w-full sm:w-48 sm:min-w-[200px]">
-              <DropdownFilter
-                label={t("leads.form.itemsPerPage")}
-                value={String(filters.limit || 10)}
-                onChange={(value) => handleFilterChange("limit", Number(value))}
-                options={[
-                  { value: "5", label: "5" },
-                  { value: "10", label: "10" },
-                  { value: "20", label: "20" },
-                  { value: "50", label: "50" },
-                ]}
-              />
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          {/* Search */}
+          <div className="">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div className="flex items-center gap-2">
+                {t("common.search")}
+                {isSearching && (
+                  <span className="text-xs text-blue-500 flex items-center gap-1">
+                    <Search className="h-3 w-3" />
+                    Searching...
+                  </span>
+                )}
+              </div>
+            </label>
+            <SearchInput
+              value={searchValue}
+              onChange={handleSearch}
+              placeholder={t("leads.searchLeads")}
+              className="max-w-full"
+            />
           </div>
 
+          {/* Status */}
+          <div className="w-full sm:w-48 sm:min-w-[220px]">
+            <DropdownFilter
+              label={t("leads.form.status")}
+              value={filters.status || ""}
+              onChange={(value) =>
+                handleFilterChange("status", value as string)
+              }
+              options={[
+                { value: "", label: t("leads.form.allStatuses") },
+                ...statusOptions.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                })),
+              ]}
+            />
+          </div>
+
+          {/* Items Per Page */}
+          <div className="w-full sm:w-48 sm:min-w-[200px]">
+            <DropdownFilter
+              label={t("leads.form.itemsPerPage")}
+              value={String(filters.limit || 10)}
+              onChange={(value) => handleFilterChange("limit", Number(value))}
+              options={[
+                { value: "5", label: "5" },
+                { value: "10", label: "10" },
+                { value: "20", label: "20" },
+                { value: "50", label: "50" },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
@@ -634,7 +650,7 @@ const Leads: React.FC = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Manage and track your leads
                 {pagination && (
-                  <span className="ml-2 text-gray-500">
+                  <span className="ml-2 text-gray-500 dark:text-gray-400">
                     • Showing {leads?.length ?? 0} of {pagination.totalItems} leads
                     {pagination.totalPages > 1 &&
                       ` • Page ${pagination.currentPage} of ${pagination.totalPages}`}
@@ -642,7 +658,6 @@ const Leads: React.FC = () => {
                 )}
               </p>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400"></div>
           </div>
 
           <div className="mb-4">
@@ -670,8 +685,10 @@ const Leads: React.FC = () => {
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       <TableSortHeader label={t("leads.table.company") as string} column={'company'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
                     </th>
-                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <TableSortHeader label={t("leads.table.status") as string} column={'status'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      <div className="flex items-center justify-center">
+                        <TableSortHeader label={t("leads.table.status") as string} column={'status'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c:any)=>onHeaderSort(c)} />
+                      </div>
                     </th>
                     <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       {t("leads.table.assignedTo")}
@@ -685,12 +702,12 @@ const Leads: React.FC = () => {
                   </tr>
                 </thead>
                 {loading ? (
-                  <TableLoader rows={8} columns={7} />
+                  <TableLoader rows={8} columns={8} />
                 ) : (
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {leads.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center">
+                      <td colSpan={8} className="px-6 py-12 text-center">
                         <NoResults
                           title={error ? "Network or server error" : "No leads found"}
                           description={error ? (typeof error === 'string' ? error : String(error)) : noResultsDescription}
@@ -708,20 +725,20 @@ const Leads: React.FC = () => {
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Lead">
-                          <div className="flex items-center">
+                          <div className="flex items-center gap-3">
                             <div className="flex-shrink-0 h-10 w-10">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
-                                <span className="text-white font-medium text-sm">
-                                  {lead.firstName[0]}
-                                  {lead.lastName[0]}
+                                <span className="text-white font-medium text-sm leading-none">
+                                  {lead.firstName?.[0] || ''}
+                                  {lead.lastName?.[0] || ''}
                                 </span>
                               </div>
                             </div>
-                            <div className="ml-4">
+                            <div className="min-w-0 flex-1">
                               <div className="text-sm font-medium text-gray-900 dark:text-white">
                                 <button
                                   onClick={() => handleViewLead(lead)}
-                                  className="hover:underline hover:text-[#ef444e] text-left"
+                                  className="hover:underline hover:text-[#ef444e] text-left truncate"
                                 >
                                   {lead.firstName} {lead.lastName}
                                 </button>
@@ -730,15 +747,15 @@ const Leads: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Email">
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {lead.email}
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                            <Mail className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{lead.email}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Phone">
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                            <Phone className="h-3 w-3 mr-1" />
-                            {lead.phone || '-'}
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                            <Phone className="h-3 w-3 flex-shrink-0" />
+                            <span>{lead.phone || '-'}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Company">
@@ -746,20 +763,20 @@ const Leads: React.FC = () => {
                             {lead.company || "-"}
                           </div>
                           {lead.position && (
-                            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                              <Briefcase className="h-3 w-3 mr-1" />
-                              {lead.position}
+                            <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1">
+                              <Briefcase className="h-3 w-3 flex-shrink-0" />
+                              <span>{lead.position}</span>
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap" data-label="Status">
-                          <div className="relative">
+                        <td className="px-6 py-4 whitespace-nowrap text-center" data-label="Status">
+                          <div className="relative inline-flex items-center justify-center">
                             <select
                               value={lead.status}
                               onChange={(e) => handleStatusChange(lead.id, e.target.value)}
                               disabled={updatingStatus[lead.id]}
-                              style={{ WebkitAppearance: 'none', backgroundImage: 'none' }}
-                              className={`pr-5 text-xs font-semibold rounded-full px-2 py-1 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${
+                              style={{ WebkitAppearance: 'none', backgroundImage: 'none', lineHeight: '1.5', textAlign: 'center', textAlignLast: 'center' }}
+                              className={`pr-5 pl-3 text-xs font-semibold rounded-full py-1 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-center leading-tight ${
                                 getStatusColor(lead.status)
                               }`}
                             >
@@ -769,7 +786,7 @@ const Leads: React.FC = () => {
                                 </option>
                               ))}
                             </select>
-                            <ChevronDown className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-white/80" />
+                            <ChevronDown className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-800/80 dark:text-blue-300/80" />
                             {updatingStatus[lead.id] && (
                               <div className="absolute right-1 top-1 w-3 h-3">
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
@@ -783,13 +800,13 @@ const Leads: React.FC = () => {
                             : "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-label="Created">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {new Date(lead.createdAt).toLocaleDateString()}
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-3 w-3 flex-shrink-0" />
+                            <span>{new Date(lead.createdAt).toLocaleDateString()}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
-                          <div className="flex items-center justify-end space-x-2">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleViewLead(lead)}
                               className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
@@ -895,7 +912,7 @@ const Leads: React.FC = () => {
                       setImportFile(null);
                     }
                   }}
-                  className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50"
                   disabled={isImporting}
                 >
                   ✕
@@ -974,7 +991,9 @@ const Leads: React.FC = () => {
           setShowConversionModal(false);
           setLeadToConvert(null);
         }}
-        onConvert={handleConvertLead}
+        onConvert={async (data) => {
+          await handleConvertLead(data as ConversionData);
+        }}
         lead={leadToConvert}
         isConverting={isConverting}
       />

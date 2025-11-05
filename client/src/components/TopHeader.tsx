@@ -92,9 +92,9 @@ const TopHeader: React.FC = () => {
   return (
     <>
       {/* Top Header Bar - Hidden on mobile since we have the mobile header in MainLayout */}
-      <div className="hidden md:flex items-center justify-between px-6 py-3 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm top-header">
+      <div className="hidden md:flex items-center justify-between px-6 h-14 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm top-header">
         {/* Left: Search Button */}
-        <div className="flex-1 max-w-xl">
+        <div className="flex-1 max-w-sm">
           <div className="relative">
             <SimpleHeaderSearch />
           </div>
@@ -119,7 +119,15 @@ const TopHeader: React.FC = () => {
           </Button>
 
           {/* Customers Area */}
-          <button className="hidden xl:flex items-center gap-2 px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 text-sm text-gray-700 dark:text-gray-300">
+          <button 
+            className="hidden xl:flex items-center gap-2 px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 text-sm text-gray-700 dark:text-gray-300" 
+            style={{ 
+              lineHeight: 1,
+              display: 'flex',
+              alignItems: 'center',
+              verticalAlign: 'middle'
+            }}
+          >
             {t('header.customersArea', 'Customers area')}
           </button>
 
@@ -143,7 +151,7 @@ const TopHeader: React.FC = () => {
           {/* Tasks */}
           <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400 relative" title="Tasks">
             <CheckSquare className="w-5 h-5" />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold leading-none" style={{ lineHeight: '1' }}>
+            <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-orange-500 text-white text-[10px] rounded-full flex items-center justify-center font-semibold leading-none">
               2
             </span>
           </button>
@@ -162,7 +170,7 @@ const TopHeader: React.FC = () => {
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-weconnect-red text-white text-xs rounded-full flex items-center justify-center font-semibold leading-none" style={{ lineHeight: '1' }}>
+                <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-weconnect-red text-white text-[10px] rounded-full flex items-center justify-center font-semibold leading-none">
                   {unreadCount}
                 </span>
               )}

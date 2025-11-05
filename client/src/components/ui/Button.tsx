@@ -36,7 +36,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // Map styles by the UPPERCASE keys (PRIMARY, SECONDARY, ...)
     const variantStyles: Record<keyof typeof BUTTON_VARIANTS, string> = {
-PRIMARY: 'bg-weconnect-red text-white hover:bg-red-500 focus:ring-red-400 shadow-md',
+PRIMARY: 'bg-weconnect-red text-white hover:bg-red-500 focus:ring-red-400 shadow-md ',
 SECONDARY: 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-slate-700 focus:ring-gray-300 shadow border border-gray-200 dark:border-slate-600',
 OUTLINE: 'border border-weconnect-red text-weconnect-red hover:bg-weconnect-red hover:text-white focus:ring-red-400 shadow-sm',
       GHOST: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 focus:ring-gray-300',
@@ -82,16 +82,54 @@ SM: 'text-xs px-3 h-9',
     return (
       <button
         ref={ref}
-        className={combinedStyles}
+        className={`${combinedStyles} gap-2`}
         disabled={isDisabled}
+        style={{ 
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          verticalAlign: 'middle'
+        }}
         {...props}
       >
         {iconElement && iconPosition === 'left' && (
-          <span className={contentText ? 'mr-2' : ''}>{iconElement}</span>
+          <span 
+            className="inline-flex items-center justify-center shrink-0" 
+            style={{ 
+              lineHeight: 1,
+              display: 'inline-flex',
+              alignItems: 'center',
+              verticalAlign: 'middle'
+            }}
+          >
+            {iconElement}
+          </span>
         )}
-        {contentText}
+        {contentText && (
+          <span 
+            className="inline-flex items-center" 
+            style={{ 
+              lineHeight: 1,
+              display: 'inline-flex',
+              alignItems: 'center',
+              verticalAlign: 'middle'
+            }}
+          >
+            {contentText}
+          </span>
+        )}
         {iconElement && iconPosition === 'right' && (
-          <span className={contentText ? 'ml-2' : ''}>{iconElement}</span>
+          <span 
+            className="inline-flex items-center justify-center shrink-0" 
+            style={{ 
+              lineHeight: 1,
+              display: 'inline-flex',
+              alignItems: 'center',
+              verticalAlign: 'middle'
+            }}
+          >
+            {iconElement}
+          </span>
         )}
       </button>
     );

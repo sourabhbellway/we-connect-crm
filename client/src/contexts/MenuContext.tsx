@@ -12,7 +12,6 @@ const DEFAULT_MENU_ORDER = [
   'dashboard',
   'leads',
   'trash',
-  'contacts',
   'deals',
   'quotations',
   'invoices',

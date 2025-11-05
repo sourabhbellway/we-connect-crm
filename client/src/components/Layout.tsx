@@ -117,14 +117,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: Trash2,
       permission: "deleted.read",
     },
-    {
-      id: "contacts",
-      name: "Contacts",
-      href: "/contacts",
-      icon: AudienceIcon,
-      badge: counts.contacts?.toString(),
-      badgeColor: "bg-blue-500",
-    },
+    // Contacts removed
+    // {
+    //   id: "contacts",
+    //   name: "Contacts",
+    //   href: "/contacts",
+    //   icon: AudienceIcon,
+    //   badge: counts.contacts?.toString(),
+    //   badgeColor: "bg-blue-500",
+    // },
     {
       id: "deals",
       name: "Deals",
@@ -314,7 +315,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <img
                       src={`${
                         API_BASE_URL ||
-                        "http://31.97.233.21:8081"
+                        "http://147.93.27.62:4176/"
                       }/uploads/${user.profilePicture}`}
                       alt="Profile"
                       className="h-8 w-8 rounded-full object-cover"

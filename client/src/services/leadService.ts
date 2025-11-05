@@ -354,4 +354,32 @@ export const leadService = {
       }
     });
   },
+
+  // Get deleted leads
+  getDeletedLeads: async (page: number = 1, limit: number = 10) => {
+    const params = new URLSearchParams();
+    params.append("isDeleted", "true");
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+
+    const response = await apiClient.get(`${API_ENDPOINTS.LEADS.BASE}?${params.toString()}`);
+    return response.data;
+  },
+
+  // Restore a deleted lead
+  restoreLead: async (id: number) => {
+    return retryWithBackoff(async () => {
+      try {
+        const response = await apiClient.put(`/leads/${id}/restore`);
+        return response.data;
+      } catch (error: any) {
+        console.error("Lead restore error:", {
+          id,
+          status: error.response?.status,
+          message: error.response?.data?.message,
+        });
+        throw error;
+      }
+    });
+  },
 };

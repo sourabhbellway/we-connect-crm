@@ -101,15 +101,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       badgeColor: 'bg-green-500',
     },
     {
-      id: 'contacts',
-      name: 'Contacts',
-      href: '/contacts',
-      icon: User,
-      permission: PERMISSIONS.CONTACT.READ,
-      badge: counts.contacts.toString(),
-      badgeColor: 'bg-blue-500',
-    },
-    {
       id: 'deals',
       name: 'Deals',
       href: '/deals',
@@ -197,7 +188,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         } bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 shadow-lg transition-all duration-300`}
       >
         {/* Sidebar header */}
-        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6 md:px-4'} py-5 md:py-4 border-b border-gray-200 dark:border-slate-800`}>
+        <div className={`flex items-center ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6 md:px-4'} h-16 md:h-14 border-b border-gray-200 dark:border-slate-800`}>
           {!sidebarCollapsed && (
             <Link to="/" className="flex items-center">
               {companySettings?.logo ? (
@@ -358,13 +349,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
-          {location.pathname === '/' ? (
-            children
-          ) : (
-            <div className="container-grid py-6">
-              {children}
-            </div>
-          )}
+          {children}
         </main>
       </div>
 

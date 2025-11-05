@@ -3,16 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { STORAGE_KEYS } from '../constants';
 import {
-  ArrowLeft, ArrowRight, User, Mail, Phone, Building, Calendar, MapPin, Globe,
+  ArrowLeft, ArrowRight, User, Mail, Phone, Building, Calendar,
   Edit, Tag, Star, Clock, Activity, Phone as PhoneCallIcon, 
-  MessageSquare, FileText, Link as LinkIcon, DollarSign,
+  MessageSquare, FileText, Link as LinkIcon,
   Users, TrendingUp, Award, AlertCircle, CheckCircle, XCircle,
-  MoreVertical, Trash2, Share, Eye, EyeOff, Settings, Plus, PhoneCall
+  MoreVertical, Trash2, Share, Eye, Plus, PhoneCall, RefreshCw
 } from 'lucide-react';
 import { leadService, Lead } from '../services/leadService';
 import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { userService } from '../services/userService';
 import TableLoader from './TableLoader';
 import BackButton from './BackButton';
 import { Button, Grid, GridItem, Container, Card } from './ui';
@@ -132,6 +133,15 @@ const LeadProfile: React.FC = () => {
     location: '',
     notes: ''
   });
+  const [showCreateTask, setShowCreateTask] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+    assignedTo: ''
+  });
+  const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>([]);
 
   useEffect(() => {
     if (id) {
@@ -146,6 +156,17 @@ const LeadProfile: React.FC = () => {
         fetchQuotations(parseInt(id));
       }
     }
+    
+    // Fetch users for task assignment
+    (async () => {
+      try {
+        const resp = await userService.getUsers({ page: 1, limit: 100 });
+        const items = resp?.data?.users || resp?.data || resp?.users || [];
+        setUsers(items.map((u: any) => ({ id: u.id, firstName: u.firstName, lastName: u.lastName })));
+      } catch (e) {
+        // ignore
+      }
+    })();
   }, [id, activeTab]);
 
   // Fetch activities for the lead
@@ -850,7 +871,7 @@ const LeadProfile: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className=" mx-auto px-6">
           <div className="py-6">
             <div className="flex items-center justify-between mb-6">
               <BackButton to="/leads" />
@@ -1011,32 +1032,27 @@ const LeadProfile: React.FC = () => {
                 </div>
               </div>
 
-              {activeTab === 'tasks' && (
-                <Card className="p-6">
-                  <TaskManager entityType="lead" entityId={String(lead.id)} tasks={tasks} />
-                </Card>
-              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6">
+      <div className=" mx-auto px-6">
         <div className="py-6 space-y-6">
           {/* Tabs */}
           <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex space-x-8 overflow-x-auto">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                       activeTab === tab.id
-                        ? 'border-weconnect-red text-weconnect-red'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? 'border-weconnect-red text-weconnect-red dark:text-weconnect-red'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                   >
                     <Icon className="h-4 w-4 mr-2" />
@@ -1167,31 +1183,41 @@ const LeadProfile: React.FC = () => {
                       Recent Activity
                     </h3>
                     
-                    <div className="space-y-4">
-                      {dynamicActivities.map((activity) => (
-                        <div key={activity.id} className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 mt-1">
-                            {getActivityIcon(activity.type)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                {activity.title}
-                              </p>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {new Date(activity.timestamp).toLocaleDateString()}
-                              </span>
+                    {dynamicActivities.length > 0 ? (
+                      <div className="space-y-4">
+                        {dynamicActivities.map((activity) => (
+                          <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <div className="flex-shrink-0 mt-1">
+                              {getActivityIcon(activity.type)}
                             </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {activity.description}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              by {activity.author.firstName} {activity.author.lastName}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {activity.title}
+                                </p>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(activity.timestamp).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                {activity.description}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                by {activity.author.firstName} {activity.author.lastName}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Activity className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">No activity found</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Activity will appear here as you interact with this lead
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1209,44 +1235,54 @@ const LeadProfile: React.FC = () => {
                       </button>
                     </div>
                     
-                    <div className="space-y-4">
-                      {dynamicNotes.map((note) => (
-                        <div key={note.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium text-gray-900 dark:text-white">
-                              {note.title}
-                            </h4>
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleTogglePinNote(note.id)}
-                                className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
-                                  note.isPinned ? 'text-yellow-500' : 'text-gray-400'
-                                }`}
-                              >
-                                <Star className="h-4 w-4" fill={note.isPinned ? 'currentColor' : 'none'} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteNote(note.id)}
-                                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-400 hover:text-red-500"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                    {dynamicNotes.length > 0 ? (
+                      <div className="space-y-4">
+                        {dynamicNotes.map((note) => (
+                          <div key={note.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {note.title}
+                              </h4>
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleTogglePinNote(note.id)}
+                                  className={`p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 ${
+                                    note.isPinned ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'
+                                  }`}
+                                >
+                                  <Star className="h-4 w-4" fill={note.isPinned ? 'currentColor' : 'none'} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteNote(note.id)}
+                                  className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500 hover:text-red-500"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                              {note.content}
+                            </p>
+                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                              <span>
+                                by {note.author.firstName} {note.author.lastName}
+                              </span>
+                              <span>
+                                {new Date(note.createdAt).toLocaleDateString()}
+                              </span>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                            {note.content}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>
-                              by {note.author.firstName} {note.author.lastName}
-                            </span>
-                            <span>
-                              {new Date(note.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <FileText className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">No notes yet</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Add notes to track important information about this lead
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1307,9 +1343,9 @@ const LeadProfile: React.FC = () => {
                       </div>
                     ) : (
                       <div className="text-center py-12">
-                        <LinkIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <LinkIcon className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                         <p className="text-gray-600 dark:text-gray-400 mb-2">No files uploaded yet</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           Upload documents, images, or other files related to this lead
                         </p>
                       </div>
@@ -1421,9 +1457,9 @@ const LeadProfile: React.FC = () => {
                       </div>
                     ) : (
                       <div className="text-center py-12">
-                        <PhoneCall className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <PhoneCall className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                         <p className="text-gray-600 dark:text-gray-400 mb-2">No call logs found</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           Start making calls to track your communication history
                         </p>
                       </div>
@@ -1511,6 +1547,14 @@ const LeadProfile: React.FC = () => {
                       <TrendingUp className="h-4 w-4 mr-3" />
                       Convert Lead
                     </button>
+
+                    <button 
+                      onClick={() => setShowCreateTask(true)}
+                      className="w-full flex items-center px-4 py-3 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-3" />
+                      Create Task
+                    </button>
                 </div>
               </div>
 
@@ -1553,86 +1597,6 @@ const LeadProfile: React.FC = () => {
                     <span className="text-green-600 dark:text-green-400">+25</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Next Steps */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Next Steps
-                </h3>
-                
-                {tasksLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin h-6 w-6 border-2 border-weconnect-red border-t-transparent rounded-full mx-auto" />
-                  </div>
-                ) : tasks.length > 0 ? (
-                  <>
-                    <div className="space-y-3">
-                      {tasks.slice(0, 3).map((task) => {
-                        const isOverdue = task.dueDate && new Date(task.dueDate) < new Date();
-                        const dueDate = task.dueDate ? new Date(task.dueDate) : null;
-                        const isPriority = task.priority === 'HIGH' || task.priority === 'URGENT';
-                        
-                        return (
-                          <div key={task.id} className="flex items-start space-x-3">
-                            {task.status === 'COMPLETED' ? (
-                              <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                            ) : isPriority ? (
-                              <AlertCircle className={`h-4 w-4 mt-0.5 ${isOverdue ? 'text-red-500' : 'text-orange-500'}`} />
-                            ) : (
-                              <Clock className={`h-4 w-4 mt-0.5 ${isOverdue ? 'text-red-500' : 'text-blue-500'}`} />
-                            )}
-                            <div className="flex-1">
-                              <p className={`text-sm font-medium ${
-                                task.status === 'COMPLETED' 
-                                  ? 'text-gray-500 dark:text-gray-400 line-through' 
-                                  : 'text-gray-900 dark:text-white'
-                              }`}>
-                                {task.title}
-                              </p>
-                              {dueDate && (
-                                <p className={`text-xs mt-0.5 ${
-                                  isOverdue && task.status !== 'COMPLETED'
-                                    ? 'text-red-600 dark:text-red-400 font-medium' 
-                                    : 'text-gray-600 dark:text-gray-400'
-                                }`}>
-                                  {isOverdue && task.status !== 'COMPLETED'
-                                    ? `Overdue - ${dueDate.toLocaleDateString()}`
-                                    : dueDate.toDateString() === new Date().toDateString()
-                                    ? 'Due today'
-                                    : dueDate.toDateString() === new Date(Date.now() + 86400000).toDateString()
-                                    ? 'Due tomorrow'
-                                    : `Due ${dueDate.toLocaleDateString()}`
-                                  }
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    
-                    {tasks.length > 3 && (
-                      <button 
-                        onClick={() => navigate(`/tasks?lead=${lead.id}`)}
-                        className="w-full mt-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm"
-                      >
-                        View All Tasks ({tasks.length})
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <Clock className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">No upcoming tasks</p>
-                    <button 
-                      onClick={() => navigate(`/tasks/new?lead=${lead.id}`)}
-                      className="mt-3 text-sm text-weconnect-red hover:text-red-600 font-medium"
-                    >
-                      Create a task
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1901,6 +1865,157 @@ const LeadProfile: React.FC = () => {
         lead={lead}
         isConverting={isConverting}
       />
+      
+      {/* Create Task Modal */}
+      {showCreateTask && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateTask(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Task</h3>
+              <button 
+                onClick={() => setShowCreateTask(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <XCircle className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Task Title *
+                </label>
+                <input
+                  type="text"
+                  value={taskForm.title}
+                  onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter task title"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={taskForm.description}
+                  onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter task description"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    value={taskForm.dueDate}
+                    onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={taskForm.priority}
+                    onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                    <option value="URGENT">Urgent</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Assign To
+                </label>
+                <select
+                  value={taskForm.assignedTo}
+                  onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">Unassigned</option>
+                  {users.map(u => (
+                    <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowCreateTask(false);
+                  setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!taskForm.title.trim()) {
+                    toast.error('Task title is required');
+                    return;
+                  }
+                  
+                  try {
+                    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+                    const response = await fetch('/api/tasks', {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        title: taskForm.title,
+                        description: taskForm.description || undefined,
+                        dueDate: taskForm.dueDate || undefined,
+                        priority: taskForm.priority,
+                        assignedTo: taskForm.assignedTo ? Number(taskForm.assignedTo) : undefined,
+                        entityType: 'lead',
+                        entityId: lead?.id,
+                        status: 'PENDING',
+                      }),
+                    });
+                    
+                    if (!response.ok) {
+                      throw new Error('Failed to create task');
+                    }
+                    
+                    toast.success('Task created successfully!');
+                    setShowCreateTask(false);
+                    setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
+                    
+                    // Refresh tasks
+                    if (lead?.id) {
+                      fetchTasks(lead.id);
+                    }
+                  } catch (error: any) {
+                    console.error('Error creating task:', error);
+                    toast.error('Failed to create task. Please try again.');
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Create Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Add Call Log Modal */}
       {showAddCallLog && (

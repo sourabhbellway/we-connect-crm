@@ -212,8 +212,8 @@ const LeadCommunication: React.FC<LeadCommunicationProps> = ({ lead }) => {
             onClick={() => setActiveTab('compose')}
             className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'compose'
-                ? 'border-weconnect-red text-weconnect-red'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-weconnect-red text-weconnect-red dark:text-weconnect-red'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
           >
             <Plus className="h-4 w-4 inline mr-2" />
@@ -223,8 +223,8 @@ const LeadCommunication: React.FC<LeadCommunicationProps> = ({ lead }) => {
             onClick={() => setActiveTab('history')}
             className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'history'
-                ? 'border-weconnect-red text-weconnect-red'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-weconnect-red text-weconnect-red dark:text-weconnect-red'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
           >
             <Clock className="h-4 w-4 inline mr-2" />
@@ -452,9 +452,9 @@ const LeadCommunication: React.FC<LeadCommunicationProps> = ({ lead }) => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <MessageSquare className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                 <p className="text-gray-600 dark:text-gray-400 mb-2">No communications yet</p>
-                <p className="text-sm text-gray-500 dark:text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Start a conversation by sending an email or WhatsApp message
                 </p>
                 <button

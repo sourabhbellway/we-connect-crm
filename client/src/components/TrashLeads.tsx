@@ -1,16 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { FileText, Phone, Calendar, User, Trash2 } from "lucide-react";
+import { FileText, Phone, Calendar, User, RotateCcw } from "lucide-react";
 import BackButton from "./BackButton";
-import { activityService } from "../services/activityService";
+import { leadService, Lead } from "../services/leadService";
 import Pagination from "./Pagination";
 import TableLoader from "./TableLoader";
 import NoResults from "./NoResults";
 import { toast } from "react-toastify";
 
-interface DeletedLeadRecord {
-  id: number;
-  email: string | null;
-  phone: string | null;
+interface DeletedLeadRecord extends Lead {
   deletedAt: string;
 }
 
@@ -28,11 +25,11 @@ const TrashLeads: React.FC = () => {
       try {
         setLoading(true);
         setError("");
-        const res = await activityService.getDeletedData(currentPage, limit);
-        const records: DeletedLeadRecord[] = res?.data?.leads?.records ?? [];
+        const res = await leadService.getDeletedLeads(currentPage, limit);
+        const records: DeletedLeadRecord[] = res?.data?.leads ?? [];
         setLeads(records);
-        setTotal(res?.data?.leads?.total ?? 0);
-        setPages(res?.data?.leads?.pages ?? 0);
+        setTotal(res?.data?.pagination?.totalItems ?? 0);
+        setPages(res?.data?.pagination?.totalPages ?? 0);
       } catch (e: any) {
         const message = e?.response?.data?.message || "Failed to load deleted leads";
         setError(message);
@@ -43,6 +40,22 @@ const TrashLeads: React.FC = () => {
     },
     [limit]
   );
+
+  const handleRestore = async (leadId: number) => {
+    if (!window.confirm("Are you sure you want to restore this lead?")) {
+      return;
+    }
+
+    try {
+      await leadService.restoreLead(leadId);
+      toast.success("Lead restored successfully!");
+      // Refresh the list
+      fetchData(page);
+    } catch (e: any) {
+      const message = e?.response?.data?.message || "Failed to restore lead";
+      toast.error(message, { toastId: "trash_leads_restore_error" });
+    }
+  };
 
   useEffect(() => {
     fetchData(page);
@@ -79,16 +92,18 @@ const TrashLeads: React.FC = () => {
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lead</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Company</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Deleted</th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             {loading ? (
-              <TableLoader rows={8} columns={5} />
+              <TableLoader rows={8} columns={6} />
             ) : (
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {error ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <NoResults
                       title="Network or server error"
                       description={error}
@@ -103,37 +118,52 @@ const TrashLeads: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">{String(lead.id).slice(-2)}</span>
+                          <span className="text-white font-medium text-sm">
+                            {lead.firstName?.[0]}{lead.lastName?.[0]}
+                          </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">Lead #{lead.id}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center md:hidden">
-                            <Phone className="h-3 w-3 mr-1" /> {lead.phone ?? "—"}
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {lead.firstName} {lead.lastName}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                            {lead.company || "—"}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{lead.email ?? "—"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                      {lead.email ?? "—"}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
                       <div className="flex items-center">
                         <Phone className="h-3 w-3 mr-1" /> {lead.phone ?? "—"}
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                      {lead.company ?? "—"}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" /> {new Date(lead.deletedAt).toLocaleString()}
+                        <Calendar className="h-3 w-3 mr-1" /> 
+                        {lead.deletedAt ? new Date(lead.deletedAt).toLocaleString() : "—"}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Auto-delete after 30 days
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleRestore(lead.id)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                        title="Restore lead"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Restore
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <NoResults
                       icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
                       description="No deleted leads found."
