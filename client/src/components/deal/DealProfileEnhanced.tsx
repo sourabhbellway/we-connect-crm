@@ -377,7 +377,7 @@ const DealProfileEnhanced: React.FC = () => {
 
   if (!deal) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="mx-auto p-6">
         <div className="text-center py-12">
           <DollarSign size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -393,7 +393,7 @@ const DealProfileEnhanced: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center">
