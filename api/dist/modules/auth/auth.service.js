@@ -159,7 +159,7 @@ let AuthService = class AuthService {
             return { success: false, message: 'Invalid credentials' };
         }
         const payload = { userId: user.id, email: user.email };
-        const accessToken = await this.jwt.signAsync(payload);
+        const accessToken = await this.jwt.signAsync(payload, { expiresIn: `${ACCESS_LIFETIME_HOURS}h` });
         const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
         const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);
         await this.prisma.refreshToken.create({

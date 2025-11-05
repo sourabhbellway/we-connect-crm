@@ -1,6 +1,5 @@
 import apiClient from './apiClient';
 import { API_ENDPOINTS } from '../constants';
-
 export interface Contact {
   id: number;
   firstName: string;
@@ -105,7 +104,7 @@ class ContactService {
     return this.getContactById(id);
   }
 
-  async getContactStats(): Promise<any> {
+  async getContactStats(): Promise<any>{
     try {
       const response = await apiClient.get(API_ENDPOINTS.CONTACTS.STATS);
       return response.data;

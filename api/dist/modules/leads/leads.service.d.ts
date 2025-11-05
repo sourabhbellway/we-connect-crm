@@ -15,11 +15,12 @@ export declare class LeadsService {
             active: number;
         };
     }>;
-    list({ page, limit, status, search, }: {
+    list({ page, limit, status, search, isDeleted, }: {
         page: number;
         limit: number;
         status?: string;
         search?: string;
+        isDeleted?: boolean;
     }): Promise<{
         success: boolean;
         data: {
@@ -80,7 +81,8 @@ export declare class LeadsService {
             leadScore: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
-            convertedToContactId: number | null;
+            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            convertedToDealId: number | null;
         };
     }>;
     update(id: number, dto: UpdateLeadDto): Promise<{
@@ -140,7 +142,8 @@ export declare class LeadsService {
             leadScore: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
-            convertedToContactId: number | null;
+            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            convertedToDealId: number | null;
         };
     }>;
     bulkAssign(dto: BulkAssignDto): Promise<{
@@ -155,10 +158,61 @@ export declare class LeadsService {
         success: boolean;
         data: {
             lead: any;
-            contact: any;
             company: any;
             deal: any;
         };
         message?: undefined;
+    }>;
+    undoLeadConversion(id: number): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        data: {
+            lead: {
+                industry: string | null;
+                email: string;
+                firstName: string;
+                lastName: string;
+                id: number;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                phone: string | null;
+                company: string | null;
+                position: string | null;
+                address: string | null;
+                website: string | null;
+                notes: string | null;
+                currency: string | null;
+                status: import("@prisma/client").$Enums.LeadStatus;
+                companySize: number | null;
+                annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                country: string | null;
+                state: string | null;
+                city: string | null;
+                zipCode: string | null;
+                linkedinProfile: string | null;
+                timezone: string | null;
+                preferredContactMethod: string | null;
+                sourceId: number | null;
+                priority: import("@prisma/client").$Enums.LeadPriority;
+                assignedTo: number | null;
+                budget: import("@prisma/client/runtime/library").Decimal | null;
+                leadScore: number | null;
+                lastContactedAt: Date | null;
+                nextFollowUpAt: Date | null;
+                previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                convertedToDealId: number | null;
+            };
+        };
+    }>;
+    restore(id: number): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

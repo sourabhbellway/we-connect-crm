@@ -10,7 +10,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { LeadsModule } from './modules/leads/leads.module';
-import { ContactsModule } from './modules/contacts/contacts.module';
+// import { ContactsModule } from './modules/contacts/contacts.module';
 import { CompaniesModule } from './modules/companies/companies.module';
 import { DealsModule } from './modules/deals/deals.module';
 import { LeadSourcesModule } from './modules/lead-sources/lead-sources.module';
@@ -45,7 +45,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     AuthModule,
     UsersModule,
     LeadsModule,
-    ContactsModule,
+    // ContactsModule,
     CompaniesModule,
     DealsModule,
     LeadSourcesModule,

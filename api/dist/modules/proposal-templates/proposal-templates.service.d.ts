@@ -18,8 +18,8 @@ export declare class ProposalTemplatesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 description: string | null;
-                content: string;
                 category: string | null;
+                content: string;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 isDefault: boolean;
                 headerHtml: string | null;
@@ -47,8 +47,8 @@ export declare class ProposalTemplatesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 description: string | null;
-                content: string;
                 category: string | null;
+                content: string;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 isDefault: boolean;
                 headerHtml: string | null;
@@ -70,8 +70,8 @@ export declare class ProposalTemplatesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 description: string | null;
-                content: string;
                 category: string | null;
+                content: string;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 isDefault: boolean;
                 headerHtml: string | null;
@@ -92,8 +92,8 @@ export declare class ProposalTemplatesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 description: string | null;
-                content: string;
                 category: string | null;
+                content: string;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 isDefault: boolean;
                 headerHtml: string | null;

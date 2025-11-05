@@ -15,9 +15,9 @@ export declare class ActivitiesController {
                 title: string;
                 tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 icon: string;
                 iconColor: string;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 superAdminId: number | null;
             }[];
         };
@@ -90,7 +90,8 @@ export declare class ActivitiesController {
                 leadScore: number | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
-                convertedToContactId: number | null;
+                previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                convertedToDealId: number | null;
             }[];
             total: number;
             page: number;
@@ -109,9 +110,9 @@ export declare class ActivitiesController {
                 title: string;
                 tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 icon: string;
                 iconColor: string;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 superAdminId: number | null;
             }[];
             total: number;
@@ -131,9 +132,9 @@ export declare class ActivitiesController {
                 title: string;
                 tags: string[];
                 type: import("@prisma/client").$Enums.ActivityType;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 icon: string;
                 iconColor: string;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 superAdminId: number | null;
             };
         };

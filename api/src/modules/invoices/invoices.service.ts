@@ -105,7 +105,7 @@ export class InvoicesService {
         terms: dto.terms ?? null,
         leadId: dto.leadId ?? null,
         dealId: dto.dealId ?? null,
-        contactId: dto.contactId ?? null,
+     
         createdBy: dto.createdBy ?? 1,
         items: {
           create: (dto.items || []).map((it, idx) => ({
@@ -144,7 +144,7 @@ export class InvoicesService {
         terms: dto.terms,
         leadId: dto.leadId ?? undefined,
         dealId: dto.dealId ?? undefined,
-        contactId: dto.contactId ?? undefined,
+  
         updatedAt: new Date(),
       },
       include: { items: true },

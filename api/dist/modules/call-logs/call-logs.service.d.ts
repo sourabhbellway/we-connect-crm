@@ -17,9 +17,9 @@ export declare class CallLogsService {
                 userId: number;
                 notes: string | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
                 callStatus: import("@prisma/client").$Enums.CallStatus;
@@ -44,9 +44,9 @@ export declare class CallLogsService {
                 userId: number;
                 notes: string | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
                 callStatus: import("@prisma/client").$Enums.CallStatus;
@@ -68,9 +68,9 @@ export declare class CallLogsService {
                 userId: number;
                 notes: string | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
                 callStatus: import("@prisma/client").$Enums.CallStatus;
@@ -91,9 +91,9 @@ export declare class CallLogsService {
                 userId: number;
                 notes: string | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
                 callStatus: import("@prisma/client").$Enums.CallStatus;

@@ -61,7 +61,7 @@ export class QuotationsService {
   async getById(id: number) {
     const quotation = await this.prisma.quotation.findFirst({
       where: { id, deletedAt: null },
-      include: { items: true, contact: true, lead: true, deal: true },
+      include: { items: true, lead: true, deal: true, companies: true },
     });
     if (!quotation) return { success: false, message: 'Quotation not found' };
     return { success: true, data: { quotation } };
@@ -119,7 +119,7 @@ export class QuotationsService {
         terms: dto.terms ?? null,
         leadId: dto.leadId ?? null,
         dealId: dto.dealId ?? null,
-        contactId: dto.contactId ?? null,
+        companyId: dto.companyId ?? null,
         createdBy: dto.createdBy ?? 1,
         items: {
           create: (dto.items || []).map((it, idx) => ({
@@ -174,7 +174,7 @@ export class QuotationsService {
         terms: dto.terms,
         leadId: dto.leadId ?? undefined,
         dealId: dto.dealId ?? undefined,
-        contactId: dto.contactId ?? undefined,
+        companyId: dto.companyId ?? undefined,
         updatedAt: new Date(),
       },
       include: { items: true },
@@ -303,12 +303,21 @@ export class QuotationsService {
       where: { id, deletedAt: null },
       include: {
         items: true,
-        contact: true,
         lead: true,
         deal: true,
+        companies: true,
       },
     });
     if (!quotation) throw new Error('Quotation not found');
+
+    // Define customerName and customerEmail based on lead or companies
+    const customerName = quotation.lead
+      ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
+      : quotation.companies
+      ? quotation.companies.name
+      : 'N/A';
+
+    const customerEmail = quotation.lead?.email || quotation.companies?.email || '';
 
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     const chunks: Buffer[] = [];
@@ -351,13 +360,7 @@ export class QuotationsService {
       .moveDown();
 
     // Bill To
-    const customerName = quotation.contact
-      ? `${quotation.contact.firstName || ''} ${quotation.contact.lastName || ''}`.trim()
-      : quotation.lead
-      ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
-      : '';
-    const customerEmail = quotation.contact?.email || quotation.lead?.email || '';
-
+  
     // Helpers
     const primary = '#EF444E';
     const light = '#F3F4F6';
@@ -506,7 +509,6 @@ export class QuotationsService {
         companyId: quotation.companyId,
         leadId: quotation.leadId,
         dealId: quotation.dealId,
-        contactId: quotation.contactId,
         quotationId: quotation.id,
         createdBy: quotation.createdBy,
         items: {

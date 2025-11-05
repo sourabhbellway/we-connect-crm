@@ -28,21 +28,21 @@ export class TasksController {
     // Direct filters
     @Query('leadId') leadId?: string,
     @Query('dealId') dealId?: string,
-    @Query('contactId') contactId?: string,
+   
     // Back-compat params used by client
-    @Query('entityType') entityType?: 'lead' | 'deal' | 'contact' | 'company',
+    @Query('entityType') entityType?: 'lead' | 'deal' | 'company',
     @Query('entityId') entityId?: string,
     @Query('assignedTo') assignedTo?: string,
   ) {
     // Map entityType/entityId to specific relation IDs
     let lead = leadId ? parseInt(leadId) : undefined;
     let deal = dealId ? parseInt(dealId) : undefined;
-    let contact = contactId ? parseInt(contactId) : undefined;
-    if (!lead && !deal && !contact && entityType && entityId) {
+   
+    if (!lead && !deal && entityType && entityId) {
       const idNum = parseInt(entityId);
       if (entityType === 'lead') lead = idNum;
       if (entityType === 'deal') deal = idNum;
-      if (entityType === 'contact') contact = idNum;
+     
     }
 
     return this.service.list({
@@ -52,7 +52,7 @@ export class TasksController {
       search,
       leadId: lead,
       dealId: deal,
-      contactId: contact,
+
       assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
     });
   }
@@ -71,7 +71,7 @@ export class TasksController {
       const idNum = Number(mapped.entityId);
       if (et === 'lead') mapped.leadId = idNum;
       if (et === 'deal') mapped.dealId = idNum;
-      if (et === 'contact') mapped.contactId = idNum;
+   
       delete mapped.entityType;
       delete mapped.entityId;
     }

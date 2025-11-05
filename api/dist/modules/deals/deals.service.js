@@ -27,9 +27,6 @@ let DealsService = class DealsService {
                 { title: { contains: q, mode: 'insensitive' } },
                 { description: { contains: q, mode: 'insensitive' } },
                 { companies: { name: { contains: q, mode: 'insensitive' } } },
-                { contact: { firstName: { contains: q, mode: 'insensitive' } } },
-                { contact: { lastName: { contains: q, mode: 'insensitive' } } },
-                { contact: { email: { contains: q, mode: 'insensitive' } } },
             ];
         }
         const [rows, total] = await Promise.all([
@@ -40,7 +37,6 @@ let DealsService = class DealsService {
                 orderBy: [{ value: 'desc' }, { createdAt: 'desc' }],
                 include: {
                     assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
-                    contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
                     lead: { select: { id: true, firstName: true, lastName: true, email: true } },
                     companies: { select: { id: true, name: true } },
                 },
@@ -70,7 +66,6 @@ let DealsService = class DealsService {
             where: { id, deletedAt: null },
             include: {
                 assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
-                contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
                 lead: { select: { id: true, firstName: true, lastName: true, email: true } },
                 companies: { select: { id: true, name: true } },
             },
@@ -93,7 +88,6 @@ let DealsService = class DealsService {
                     ? new Date(dto.expectedCloseDate)
                     : null,
                 assignedTo: dto.assignedTo ?? null,
-                contactId: dto.contactId ?? null,
                 leadId: dto.leadId ?? null,
                 companyId: dto.companyId ?? null,
             },
@@ -118,7 +112,6 @@ let DealsService = class DealsService {
                     ? new Date(dto.expectedCloseDate)
                     : undefined,
                 assignedTo: dto.assignedTo ?? undefined,
-                contactId: dto.contactId ?? undefined,
                 leadId: dto.leadId ?? undefined,
                 companyId: dto.companyId ?? undefined,
                 updatedAt: new Date(),

@@ -57,7 +57,7 @@ let QuotationsService = class QuotationsService {
     async getById(id) {
         const quotation = await this.prisma.quotation.findFirst({
             where: { id, deletedAt: null },
-            include: { items: true, contact: true, lead: true, deal: true },
+            include: { items: true, lead: true, deal: true, companies: true },
         });
         if (!quotation)
             return { success: false, message: 'Quotation not found' };
@@ -94,7 +94,7 @@ let QuotationsService = class QuotationsService {
                 terms: dto.terms ?? null,
                 leadId: dto.leadId ?? null,
                 dealId: dto.dealId ?? null,
-                contactId: dto.contactId ?? null,
+                companyId: dto.companyId ?? null,
                 createdBy: dto.createdBy ?? 1,
                 items: {
                     create: (dto.items || []).map((it, idx) => ({
@@ -147,7 +147,7 @@ let QuotationsService = class QuotationsService {
                 terms: dto.terms,
                 leadId: dto.leadId ?? undefined,
                 dealId: dto.dealId ?? undefined,
-                contactId: dto.contactId ?? undefined,
+                companyId: dto.companyId ?? undefined,
                 updatedAt: new Date(),
             },
             include: { items: true },
@@ -263,13 +263,19 @@ let QuotationsService = class QuotationsService {
             where: { id, deletedAt: null },
             include: {
                 items: true,
-                contact: true,
                 lead: true,
                 deal: true,
+                companies: true,
             },
         });
         if (!quotation)
             throw new Error('Quotation not found');
+        const customerName = quotation.lead
+            ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
+            : quotation.companies
+                ? quotation.companies.name
+                : 'N/A';
+        const customerEmail = quotation.lead?.email || quotation.companies?.email || '';
         const doc = new PDFDocument({ size: 'A4', margin: 50 });
         const chunks = [];
         doc.on('data', (c) => chunks.push(c));
@@ -304,12 +310,6 @@ let QuotationsService = class QuotationsService {
             .text(`Date: ${new Date(quotation.createdAt).toLocaleDateString()}`, { align: 'right' })
             .text(`Status: ${quotation.status}`, { align: 'right' })
             .moveDown();
-        const customerName = quotation.contact
-            ? `${quotation.contact.firstName || ''} ${quotation.contact.lastName || ''}`.trim()
-            : quotation.lead
-                ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
-                : '';
-        const customerEmail = quotation.contact?.email || quotation.lead?.email || '';
         const primary = '#EF444E';
         const light = '#F3F4F6';
         const textDark = '#111827';
@@ -442,7 +442,6 @@ let QuotationsService = class QuotationsService {
                 companyId: quotation.companyId,
                 leadId: quotation.leadId,
                 dealId: quotation.dealId,
-                contactId: quotation.contactId,
                 quotationId: quotation.id,
                 createdBy: quotation.createdBy,
                 items: {

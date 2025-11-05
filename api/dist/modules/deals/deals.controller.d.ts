@@ -45,7 +45,6 @@ export declare class DealsController {
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
                 actualCloseDate: Date | null;
-                contactId: number | null;
                 leadId: number | null;
             };
         };
@@ -70,7 +69,6 @@ export declare class DealsController {
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
                 actualCloseDate: Date | null;
-                contactId: number | null;
                 leadId: number | null;
             };
         };

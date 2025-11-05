@@ -14,7 +14,6 @@ export class TasksService {
     search,
     leadId,
     dealId,
-    contactId,
     assignedTo,
   }: {
     page?: number;
@@ -23,7 +22,6 @@ export class TasksService {
     search?: string;
     leadId?: number;
     dealId?: number;
-    contactId?: number;
     assignedTo?: number;
   }) {
     const where: any = { deletedAt: null };
@@ -33,7 +31,6 @@ export class TasksService {
     }
     if (leadId) where.leadId = leadId;
     if (dealId) where.dealId = dealId;
-    if (contactId) where.contactId = contactId;
     if (assignedTo) where.assignedTo = assignedTo;
     if (search && search.trim()) {
       const q = search.trim();
@@ -48,9 +45,34 @@ export class TasksService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        
+        // --- UPDATED INCLUDE CLAUSE ---
         include: {
-          assignedUser: { select: { id: true, firstName: true, lastName: true } },
-          createdByUser: { select: { id: true, firstName: true, lastName: true } },
+          assignedUser: { 
+            select: { 
+              id: true, 
+              firstName: true, 
+              lastName: true 
+            } 
+          },
+          createdByUser: { 
+            select: { 
+              id: true, 
+              firstName: true, 
+              lastName: true 
+            } 
+          },
+          // --- NEW: Lead की पूरी information लाने के लिए ---
+          lead: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              company: true,
+            },
+          },
         },
       }),
       this.prisma.task.count({ where }),
@@ -61,9 +83,22 @@ export class TasksService {
   async getById(id: number) {
     const task = await this.prisma.task.findFirst({
       where: { id, deletedAt: null },
+      
+      // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
         createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        // --- NEW: Lead की पूरी information लाने के लिए ---
+        lead: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              company: true,
+            },
+          },
       },
     });
     if (!task) return { success: false, message: 'Task not found' };
@@ -82,11 +117,22 @@ export class TasksService {
         createdBy: dto.createdBy,
         leadId: dto.leadId ?? null,
         dealId: dto.dealId ?? null,
-        contactId: dto.contactId ?? null,
       },
+      // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
         createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        // --- NEW: Lead की पूरी information लाने के लिए ---
+        lead: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              company: true,
+            },
+          },
       },
     });
 
@@ -94,7 +140,7 @@ export class TasksService {
     await this.prisma.activity.create({
       data: {
         title: 'Task created',
-        description: `Task "${task.title}" created${task.assignedTo ? ' and assigned' : ''}.`,
+        description: `Task "${task.title}" created${task.assignedUser ? ' and assigned' : ''}.`,
         type: 'TASK_CREATED' as any,
         icon: 'CheckCircle',
         iconColor: 'text-orange-600',
@@ -102,7 +148,6 @@ export class TasksService {
           taskId: task.id,
           leadId: task.leadId,
           dealId: task.dealId,
-          contactId: task.contactId,
           assignedTo: task.assignedTo,
           priority: task.priority,
           dueDate: task.dueDate,
@@ -126,12 +171,23 @@ export class TasksService {
         assignedTo: dto.assignedTo ?? undefined,
         leadId: dto.leadId ?? undefined,
         dealId: dto.dealId ?? undefined,
-        contactId: dto.contactId ?? undefined,
         updatedAt: new Date(),
       },
+      // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
         createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        // --- NEW: Lead की पूरी information लाने के लिए ---
+        lead: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              company: true,
+            },
+          },
       },
     });
 
@@ -161,9 +217,21 @@ export class TasksService {
     const task = await this.prisma.task.update({
       where: { id },
       data: { status: 'COMPLETED', completedAt: new Date() },
+      // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
         createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        // --- NEW: Lead की पूरी information लाने के लिए ---
+        lead: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              company: true,
+            },
+          },
       },
     });
 
