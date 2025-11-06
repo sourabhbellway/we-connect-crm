@@ -8,4 +8,5 @@ export declare class CreateActivityDto {
     metadata?: Record<string, unknown>;
     userId?: number;
     superAdminId?: number;
+    leadId?: number;
 }

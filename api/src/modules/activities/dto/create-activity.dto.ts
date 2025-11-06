@@ -10,4 +10,7 @@ export class CreateActivityDto {
   @IsOptional() metadata?: Record<string, unknown>;
   @IsOptional() @IsNumber() userId?: number;
   @IsOptional() @IsNumber() superAdminId?: number;
+  
+  // YE LINE ADD KAREIN
+  @IsOptional() @IsNumber() leadId?: number;
 }

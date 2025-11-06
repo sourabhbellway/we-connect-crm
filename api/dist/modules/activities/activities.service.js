@@ -82,9 +82,23 @@ let ActivitiesService = class ActivitiesService {
                 metadata: dto.metadata ?? undefined,
                 userId: dto.userId ?? undefined,
                 superAdminId: dto.superAdminId ?? undefined,
+                leadId: dto.leadId ?? undefined,
             },
         });
         return { success: true, data: { activity } };
+    }
+    async getActivitiesByLeadId(leadId, { page = 1, limit = 10 } = {}) {
+        const where = { leadId };
+        const [items, total] = await Promise.all([
+            this.prisma.activity.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+            }),
+            this.prisma.activity.count({ where }),
+        ]);
+        return { success: true, data: { items, total, page, limit } };
     }
 };
 exports.ActivitiesService = ActivitiesService;

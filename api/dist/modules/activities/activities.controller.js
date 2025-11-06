@@ -44,6 +44,12 @@ let ActivitiesController = class ActivitiesController {
     create(dto) {
         return this.service.create(dto);
     }
+    getActivitiesByLeadId(leadId, page, limit) {
+        return this.service.getActivitiesByLeadId(parseInt(leadId), {
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+        });
+    }
 };
 exports.ActivitiesController = ActivitiesController;
 __decorate([
@@ -83,6 +89,15 @@ __decorate([
     __metadata("design:paramtypes", [create_activity_dto_1.CreateActivityDto]),
     __metadata("design:returntype", void 0)
 ], ActivitiesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('lead/:leadId'),
+    __param(0, (0, common_1.Param)('leadId')),
+    __param(1, (0, common_1.Query)('page')),
+    __param(2, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], ActivitiesController.prototype, "getActivitiesByLeadId", null);
 exports.ActivitiesController = ActivitiesController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('activities'),
