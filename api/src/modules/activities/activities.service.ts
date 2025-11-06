@@ -76,6 +76,8 @@ export class ActivitiesService {
     return { success: true, data: { items, total, page, limit } };
   }
 
+  // --- UPDATED create METHOD ---
+  // Ab ye method leadId ko bhi handle kar sakta hai
   async create(dto: CreateActivityDto) {
     const activity = await this.prisma.activity.create({
       data: {
@@ -88,8 +90,31 @@ export class ActivitiesService {
         metadata: (dto.metadata as any) ?? undefined,
         userId: dto.userId ?? undefined,
         superAdminId: dto.superAdminId ?? undefined,
+        // YE LINE UPDATE KI GAYI HAI - leadId ko bhi save karta hai
+        leadId: dto.leadId ?? undefined,
       },
     });
     return { success: true, data: { activity } };
+  }
+
+  // --- NEW METHOD ---
+  // Ye method kisi specific lead ki saari activities ko page-wise deta hai
+  async getActivitiesByLeadId(
+    leadId: number,
+    { page = 1, limit = 10 }: { page?: number; limit?: number } = {},
+  ) {
+    const where = { leadId }; // Sirf is leadId wali activities filter karta hai
+    
+    const [items, total] = await Promise.all([
+      this.prisma.activity.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' }, // Sabse pehle sabse recent activity
+      }),
+      this.prisma.activity.count({ where }),
+    ]);
+
+    return { success: true, data: { items, total, page, limit } };
   }
 }

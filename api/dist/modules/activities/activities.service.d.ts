@@ -14,6 +14,7 @@ export declare class ActivitiesService {
                 description: string;
                 title: string;
                 tags: string[];
+                leadId: number | null;
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -116,6 +117,7 @@ export declare class ActivitiesService {
                 description: string;
                 title: string;
                 tags: string[];
+                leadId: number | null;
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -138,12 +140,39 @@ export declare class ActivitiesService {
                 description: string;
                 title: string;
                 tags: string[];
+                leadId: number | null;
                 type: import("@prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 superAdminId: number | null;
             };
+        };
+    }>;
+    getActivitiesByLeadId(leadId: number, { page, limit }?: {
+        page?: number;
+        limit?: number;
+    }): Promise<{
+        success: boolean;
+        data: {
+            items: {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number | null;
+                description: string;
+                title: string;
+                tags: string[];
+                leadId: number | null;
+                type: import("@prisma/client").$Enums.ActivityType;
+                icon: string;
+                iconColor: string;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                superAdminId: number | null;
+            }[];
+            total: number;
+            page: number;
+            limit: number;
         };
     }>;
 }

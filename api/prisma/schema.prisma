@@ -231,6 +231,7 @@ model Lead {
   quotations             Quotation[]            @relation("LeadQuotations")
   invoices               Invoice[]              @relation("LeadInvoices")
   previousStatus     LeadStatus? // यह store करेगा कि convert होने से पहले status क्या था
+  activities  Activity[] @relation("LeadActivities")
   convertedToDealId  Int?       
 
   @@map("leads")
@@ -269,6 +270,8 @@ model LeadTag {
   @@map("lead_tags")
 }
 
+// prisma/schema.prisma
+
 model Activity {
   id           Int          @id @default(autoincrement())
   title        String
@@ -282,8 +285,15 @@ model Activity {
   updatedAt    DateTime     @updatedAt
   userId       Int?
   superAdminId Int?
+
+  // NAYA LINE: Yeh field kis lead se related hai, uski ID store karega
+  leadId       Int?
+
   superAdmin   SuperAdmin?  @relation("SuperAdminActivities", fields: [superAdminId], references: [id])
   user         User?        @relation("UserActivities", fields: [userId], references: [id])
+  
+  // NAYA RELATION: Is activity ka lead kya hai
+  lead         Lead?        @relation("LeadActivities", fields: [leadId], references: [id])
 
   @@map("activities")
 }
@@ -372,7 +382,7 @@ model companies {
   tagsRelation    Tag[]
   users           User[]
   
-  // यह नई line add की गई है
+
   companyQuotations Quotation[]             @relation("CompanyQuotations")
 }
 

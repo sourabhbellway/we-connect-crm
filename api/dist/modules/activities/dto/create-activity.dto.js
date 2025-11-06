@@ -21,6 +21,7 @@ class CreateActivityDto {
     metadata;
     userId;
     superAdminId;
+    leadId;
 }
 exports.CreateActivityDto = CreateActivityDto;
 __decorate([
@@ -64,4 +65,9 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateActivityDto.prototype, "superAdminId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateActivityDto.prototype, "leadId", void 0);
 //# sourceMappingURL=create-activity.dto.js.map
