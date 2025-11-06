@@ -27,6 +27,15 @@ let CommunicationsController = class CommunicationsController {
     constructor(service) {
         this.service = service;
     }
+    listMeetings(leadId) {
+        try {
+            return this.service.listMeetings(Number(leadId));
+        }
+        catch (error) {
+            console.error('Error in listMeetings:', error);
+            throw error;
+        }
+    }
     listLeadComms(leadId) {
         return this.service.listLeadComms(Number(leadId));
     }
@@ -70,6 +79,13 @@ let CommunicationsController = class CommunicationsController {
     }
 };
 exports.CommunicationsController = CommunicationsController;
+__decorate([
+    (0, common_1.Get)('leads/:leadId/meetings'),
+    __param(0, (0, common_1.Param)('leadId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "listMeetings", null);
 __decorate([
     (0, common_1.Get)('leads'),
     __param(0, (0, common_1.Query)('leadId')),

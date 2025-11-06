@@ -83,6 +83,7 @@ const LeadEdit: React.FC = () => {
         ...data,
         sourceId: data.sourceId ? Number(data.sourceId) : undefined,
         assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
+        tags: Array.isArray(data.tags) ? data.tags.filter(Boolean) : [],
       });
       await refreshLeadsCount();
       toast.success("Lead updated");

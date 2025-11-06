@@ -16,8 +16,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 userId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -43,8 +43,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 userId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -67,8 +67,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 userId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -90,8 +90,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 userId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 leadId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;

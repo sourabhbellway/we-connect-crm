@@ -7,15 +7,28 @@ import { RecordPaymentDto } from './dto/record-payment.dto';
 export declare class InvoicesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ page, limit, search, status, }: {
+    list({ page, limit, search, status, entityType, entityId, }: {
         page?: number;
         limit?: number;
         search?: string;
         status?: string;
+        entityType?: string;
+        entityId?: string;
     }): Promise<{
         success: boolean;
         data: {
             items: ({
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    company: string | null;
+                } | null;
+                deal: {
+                    id: number;
+                    title: string;
+                } | null;
                 items: {
                     name: string;
                     id: number;
@@ -352,5 +365,9 @@ export declare class InvoicesService {
             };
         };
         message?: undefined;
+    }>;
+    buildPdf(id: number): Promise<{
+        buffer: Buffer;
+        filename: string;
     }>;
 }

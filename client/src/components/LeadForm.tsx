@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import InputField, { TextAreaField, SelectField } from "./InputField";
+import InputField, { TextAreaField } from "./InputField";
 import { EnhancedSelectField } from "./EnhancedSelectField";
-import { PhoneInputField } from "./PhoneInputField";
 import { LeadPayload } from "../services/leadService";
 import { userService } from "../services/userService";
 // Lead sources now come from BusinessSettingsContext
 import { tagService, Tag } from "../services/tagService";
+import { industryService, Industry } from "../services/industryService";
 import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 import {
   Mail,
@@ -86,7 +86,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
   submitting,
   skipInternalLoadingUI = false,
 }) => {
-  const { currencySettings, isLoading: businessSettingsLoading } = useBusinessSettings();
+  const { currencySettings } = useBusinessSettings();
   const [formState, setFormState] = useState<FormState>({
     form: {
       ...defaultState,
@@ -103,7 +103,155 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const { leadSources: settingsLeadSources } = useBusinessSettings();
   const [selectedLeadSourceId, setSelectedLeadSourceId] = useState<string | number>("");
   const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [showOtherIndustryInput, setShowOtherIndustryInput] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Country to Currency mapping
+  const countryToCurrency: { [key: string]: string } = {
+    "Afghanistan": "AFN",
+    "Albania": "EUR",
+    "Algeria": "DZD",
+    "Argentina": "ARS",
+    "Australia": "AUD",
+    "Austria": "EUR",
+    "Bahrain": "BHD",
+    "Bangladesh": "BDT",
+    "Belgium": "EUR",
+    "Benin": "XOF",
+    "Bhutan": "BTN",
+    "Botswana": "BWP",
+    "Brazil": "BRL",
+    "Bulgaria": "BGN",
+    "Burkina Faso": "XOF",
+    "Burundi": "BIF",
+    "Cambodia": "KHR",
+    "Cameroon": "XAF",
+    "Canada": "CAD",
+    "Cape Verde": "CVE",
+    "Central African Republic": "XAF",
+    "Chad": "XAF",
+    "Chile": "CLP",
+    "China": "CNY",
+    "Colombia": "COP",
+    "Comoros": "KMF",
+    "Congo": "XAF",
+    "Croatia": "HRK",
+    "Czech Republic": "CZK",
+    "Democratic Republic of the Congo": "CDF",
+    "Denmark": "DKK",
+    "Djibouti": "DJF",
+    "Egypt": "EGP",
+    "Equatorial Guinea": "XAF",
+    "Eritrea": "ERN",
+    "Estonia": "EUR",
+    "Ethiopia": "ETB",
+    "Eswatini": "SZL",
+    "Finland": "EUR",
+    "France": "EUR",
+    "Gabon": "XAF",
+    "Gambia": "GMD",
+    "Germany": "EUR",
+    "Ghana": "GHS",
+    "Greece": "EUR",
+    "Guinea": "GNF",
+    "Guinea-Bissau": "XOF",
+    "Hong Kong": "HKD",
+    "Hungary": "HUF",
+    "Iceland": "ISK",
+    "India": "INR",
+    "Indonesia": "IDR",
+    "Iran": "IRR",
+    "Iraq": "IQD",
+    "Ireland": "EUR",
+    "Israel": "ILS",
+    "Italy": "EUR",
+    "Ivory Coast": "XOF",
+    "Japan": "JPY",
+    "Jordan": "JOD",
+    "Kazakhstan": "KZT",
+    "Kenya": "KES",
+    "Kuwait": "KWD",
+    "Kyrgyzstan": "KGS",
+    "Laos": "LAK",
+    "Latvia": "EUR",
+    "Lebanon": "LBP",
+    "Lesotho": "LSL",
+    "Liberia": "LRD",
+    "Libya": "LYD",
+    "Lithuania": "EUR",
+    "Luxembourg": "EUR",
+    "Madagascar": "MGA",
+    "Malawi": "MWK",
+    "Malaysia": "MYR",
+    "Maldives": "MVR",
+    "Mali": "XOF",
+    "Mauritania": "MRU",
+    "Mauritius": "MUR",
+    "Mexico": "MXN",
+    "Mongolia": "MNT",
+    "Morocco": "MAD",
+    "Mozambique": "MZN",
+    "Myanmar": "MMK",
+    "Namibia": "NAD",
+    "Nepal": "NPR",
+    "Netherlands": "EUR",
+    "New Zealand": "NZD",
+    "Niger": "XOF",
+    "Nigeria": "NGN",
+    "North Korea": "KPW",
+    "Norway": "NOK",
+    "Oman": "OMR",
+    "Pakistan": "PKR",
+    "Peru": "PEN",
+    "Philippines": "PHP",
+    "Poland": "PLN",
+    "Portugal": "EUR",
+    "Qatar": "QAR",
+    "Republic of the Congo": "XAF",
+    "Romania": "RON",
+    "Russia": "RUB",
+    "Rwanda": "RWF",
+    "São Tomé and Príncipe": "STN",
+    "Saudi Arabia": "SAR",
+    "Senegal": "XOF",
+    "Serbia": "RSD",
+    "Seychelles": "SCR",
+    "Sierra Leone": "SLL",
+    "Singapore": "SGD",
+    "Slovakia": "EUR",
+    "Slovenia": "EUR",
+    "Somalia": "SOS",
+    "South Africa": "ZAR",
+    "South Korea": "KRW",
+    "Spain": "EUR",
+    "Sri Lanka": "LKR",
+    "Sudan": "SDG",
+    "Sweden": "SEK",
+    "Switzerland": "CHF",
+    "Syria": "SYP",
+    "Tanzania": "TZS",
+    "Thailand": "THB",
+    "Togo": "XOF",
+    "Tunisia": "TND",
+    "Turkey": "TRY",
+    "Uganda": "UGX",
+    "Ukraine": "UAH",
+    "United Arab Emirates": "AED",
+    "United Kingdom": "GBP",
+    "United States": "USD",
+    "Uruguay": "UYU",
+    "Uzbekistan": "UZS",
+    "Vietnam": "VND",
+    "Yemen": "YER",
+    "Zambia": "ZMW",
+    "Zimbabwe": "ZWL",
+  };
+
+  // All countries list
+  const getAllCountries = () => {
+    return Object.keys(countryToCurrency).sort();
+  };
 
   // Currency options with symbols and descriptions
   const getCurrencyOptions = () => {
@@ -138,7 +286,84 @@ const LeadForm: React.FC<LeadFormProps> = ({
       { value: "MYR", label: "MYR (RM)", description: "Malaysian Ringgit", symbol: "RM" },
       { value: "IDR", label: "IDR (Rp)", description: "Indonesian Rupiah", symbol: "Rp" },
       { value: "PHP", label: "PHP (₱)", description: "Philippine Peso", symbol: "₱" },
-      { value: "VND", label: "VND (₫)", description: "Vietnamese Dong", symbol: "₫" }
+      { value: "VND", label: "VND (₫)", description: "Vietnamese Dong", symbol: "₫" },
+      { value: "NZD", label: "NZD ($)", description: "New Zealand Dollar", symbol: "$" },
+      { value: "ARS", label: "ARS ($)", description: "Argentine Peso", symbol: "$" },
+      { value: "CLP", label: "CLP ($)", description: "Chilean Peso", symbol: "$" },
+      { value: "COP", label: "COP ($)", description: "Colombian Peso", symbol: "$" },
+      { value: "PEN", label: "PEN (S/)", description: "Peruvian Sol", symbol: "S/" },
+      { value: "EGP", label: "EGP (E£)", description: "Egyptian Pound", symbol: "E£" },
+      { value: "NGN", label: "NGN (₦)", description: "Nigerian Naira", symbol: "₦" },
+      { value: "KES", label: "KES (KSh)", description: "Kenyan Shilling", symbol: "KSh" },
+      { value: "PKR", label: "PKR (₨)", description: "Pakistani Rupee", symbol: "₨" },
+      { value: "BDT", label: "BDT (৳)", description: "Bangladeshi Taka", symbol: "৳" },
+      { value: "LKR", label: "LKR (Rs)", description: "Sri Lankan Rupee", symbol: "Rs" },
+      { value: "NPR", label: "NPR (Rs)", description: "Nepalese Rupee", symbol: "Rs" },
+      { value: "MMK", label: "MMK (K)", description: "Myanmar Kyat", symbol: "K" },
+      { value: "KHR", label: "KHR (៛)", description: "Cambodian Riel", symbol: "៛" },
+      { value: "LAK", label: "LAK (₭)", description: "Lao Kip", symbol: "₭" },
+      { value: "MNT", label: "MNT (₮)", description: "Mongolian Tugrik", symbol: "₮" },
+      { value: "KZT", label: "KZT (₸)", description: "Kazakhstani Tenge", symbol: "₸" },
+      { value: "UZS", label: "UZS (so'm)", description: "Uzbekistani Som", symbol: "so'm" },
+      { value: "UAH", label: "UAH (₴)", description: "Ukrainian Hryvnia", symbol: "₴" },
+      { value: "RON", label: "RON (lei)", description: "Romanian Leu", symbol: "lei" },
+      { value: "BGN", label: "BGN (лв)", description: "Bulgarian Lev", symbol: "лв" },
+      { value: "HRK", label: "HRK (kn)", description: "Croatian Kuna", symbol: "kn" },
+      { value: "RSD", label: "RSD (дин)", description: "Serbian Dinar", symbol: "дин" },
+      { value: "ISK", label: "ISK (kr)", description: "Icelandic Króna", symbol: "kr" },
+      { value: "QAR", label: "QAR (﷼)", description: "Qatari Riyal", symbol: "﷼" },
+      { value: "KWD", label: "KWD (د.ك)", description: "Kuwaiti Dinar", symbol: "د.ك" },
+      { value: "BHD", label: "BHD (.د.ب)", description: "Bahraini Dinar", symbol: ".د.ب" },
+      { value: "OMR", label: "OMR (﷼)", description: "Omani Rial", symbol: "﷼" },
+      { value: "JOD", label: "JOD (د.ا)", description: "Jordanian Dinar", symbol: "د.ا" },
+      { value: "LBP", label: "LBP (ل.ل)", description: "Lebanese Pound", symbol: "ل.ل" },
+      { value: "IRR", label: "IRR (﷼)", description: "Iranian Rial", symbol: "﷼" },
+      { value: "IQD", label: "IQD (ع.د)", description: "Iraqi Dinar", symbol: "ع.د" },
+      { value: "AFN", label: "AFN (؋)", description: "Afghan Afghani", symbol: "؋" },
+      { value: "BTN", label: "BTN (Nu.)", description: "Bhutanese Ngultrum", symbol: "Nu." },
+      { value: "MVR", label: "MVR (Rf)", description: "Maldivian Rufiyaa", symbol: "Rf" },
+      { value: "MUR", label: "MUR (₨)", description: "Mauritian Rupee", symbol: "₨" },
+      { value: "SCR", label: "SCR (₨)", description: "Seychellois Rupee", symbol: "₨" },
+      { value: "TZS", label: "TZS (TSh)", description: "Tanzanian Shilling", symbol: "TSh" },
+      { value: "UGX", label: "UGX (USh)", description: "Ugandan Shilling", symbol: "USh" },
+      { value: "GHS", label: "GHS (₵)", description: "Ghanaian Cedi", symbol: "₵" },
+      { value: "ETB", label: "ETB (Br)", description: "Ethiopian Birr", symbol: "Br" },
+      { value: "MAD", label: "MAD (د.م.)", description: "Moroccan Dirham", symbol: "د.م." },
+      { value: "TND", label: "TND (د.ت)", description: "Tunisian Dinar", symbol: "د.ت" },
+      { value: "DZD", label: "DZD (د.ج)", description: "Algerian Dinar", symbol: "د.ج" },
+      { value: "LYD", label: "LYD (ل.د)", description: "Libyan Dinar", symbol: "ل.د" },
+      { value: "SDG", label: "SDG (ج.س.)", description: "Sudanese Pound", symbol: "ج.س." },
+      { value: "AOA", label: "AOA (Kz)", description: "Angolan Kwanza", symbol: "Kz" },
+      { value: "ZMW", label: "ZMW (ZK)", description: "Zambian Kwacha", symbol: "ZK" },
+      { value: "ZWL", label: "ZWL (Z$)", description: "Zimbabwean Dollar", symbol: "Z$" },
+      { value: "BWP", label: "BWP (P)", description: "Botswana Pula", symbol: "P" },
+      { value: "NAD", label: "NAD (N$)", description: "Namibian Dollar", symbol: "N$" },
+      { value: "MZN", label: "MZN (MT)", description: "Mozambican Metical", symbol: "MT" },
+      { value: "MGA", label: "MGA (Ar)", description: "Malagasy Ariary", symbol: "Ar" },
+      { value: "RWF", label: "RWF (RF)", description: "Rwandan Franc", symbol: "RF" },
+      { value: "BIF", label: "BIF (FBu)", description: "Burundian Franc", symbol: "FBu" },
+      { value: "MWK", label: "MWK (MK)", description: "Malawian Kwacha", symbol: "MK" },
+      { value: "LSL", label: "LSL (L)", description: "Lesotho Loti", symbol: "L" },
+      { value: "SZL", label: "SZL (E)", description: "Swazi Lilangeni", symbol: "E" },
+      { value: "DJF", label: "DJF (Fdj)", description: "Djiboutian Franc", symbol: "Fdj" },
+      { value: "ERN", label: "ERN (Nfk)", description: "Eritrean Nakfa", symbol: "Nfk" },
+      { value: "SOS", label: "SOS (Sh)", description: "Somali Shilling", symbol: "Sh" },
+      { value: "KMF", label: "KMF (CF)", description: "Comorian Franc", symbol: "CF" },
+      { value: "CVE", label: "CVE ($)", description: "Cape Verdean Escudo", symbol: "$" },
+      { value: "STN", label: "STN (Db)", description: "São Tomé and Príncipe Dobra", symbol: "Db" },
+      { value: "XOF", label: "XOF (CFA)", description: "West African CFA Franc", symbol: "CFA" },
+      { value: "GNF", label: "GNF (FG)", description: "Guinean Franc", symbol: "FG" },
+      { value: "SLL", label: "SLL (Le)", description: "Sierra Leonean Leone", symbol: "Le" },
+      { value: "LRD", label: "LRD (L$)", description: "Liberian Dollar", symbol: "L$" },
+      { value: "XAF", label: "XAF (FCFA)", description: "Central African CFA Franc", symbol: "FCFA" },
+      { value: "CDF", label: "CDF (FC)", description: "Congolese Franc", symbol: "FC" },
+      { value: "MRU", label: "MRU (UM)", description: "Mauritanian Ouguiya", symbol: "UM" },
+      { value: "GMD", label: "GMD (D)", description: "Gambian Dalasi", symbol: "D" },
+      { value: "KGS", label: "KGS (сом)", description: "Kyrgystani Som", symbol: "сом" },
+      { value: "KPW", label: "KPW (₩)", description: "North Korean Won", symbol: "₩" },
+      { value: "SYP", label: "SYP (£)", description: "Syrian Pound", symbol: "£" },
+      { value: "UYU", label: "UYU ($U)", description: "Uruguayan Peso", symbol: "$U" },
+      { value: "YER", label: "YER (﷼)", description: "Yemeni Rial", symbol: "﷼" },
     ];
 
     // Sort currencies with default currency first, then alphabetically
@@ -183,7 +408,12 @@ const LeadForm: React.FC<LeadFormProps> = ({
       "MYR": "RM",
       "IDR": "Rp",
       "PHP": "₱",
-      "VND": "₫"
+      "VND": "₫",
+      "KGS": "сом",
+      "KPW": "₩",
+      "SYP": "£",
+      "UYU": "$U",
+      "YER": "﷼"
     };
     
     return currencyMap[currencyCode] || currencyCode;
@@ -191,14 +421,27 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   useEffect(() => {
     if (initial) {
+      // Convert tags from objects to IDs if needed
+      const tagsArray = initial.tags 
+        ? Array.isArray(initial.tags) 
+          ? initial.tags.map((t: any) => typeof t === 'object' ? t.id : t).filter(Boolean)
+          : []
+        : [];
+      
       setFormState((prev) => ({
         ...prev,
         form: { 
           ...defaultState, 
           currency: currencySettings?.primary || "USD",
-          ...initial 
+          ...initial,
+          tags: tagsArray,
         },
       }));
+      
+      // Initialize selectedLeadSourceId from initial sourceId
+      if (initial.sourceId) {
+        setSelectedLeadSourceId(initial.sourceId);
+      }
     }
   }, [initial, currencySettings]);
 
@@ -215,13 +458,31 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }
   }, [currencySettings, initial]);
 
+  // Auto-select currency when country changes
+  useEffect(() => {
+    if (formState.form.country && countryToCurrency[formState.form.country]) {
+      const defaultCurrency = countryToCurrency[formState.form.country];
+      // Only auto-select if currency is not already set or if it's the default
+      if (!formState.form.currency || formState.form.currency === currencySettings?.primary || formState.form.currency === "USD") {
+        setFormState((prev) => ({
+          ...prev,
+          form: {
+            ...prev.form,
+            currency: defaultCurrency,
+          },
+        }));
+      }
+    }
+  }, [formState.form.country]);
+
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-        const [usersRes, tagsRes] = await Promise.all([
+        const [usersRes, tagsRes, industriesRes] = await Promise.all([
           userService.getUsers(),
           tagService.getTags(),
+          industryService.getIndustries().catch(() => []), // Handle errors gracefully
         ]);
 
         // Handle different API response structures - normalize to arrays
@@ -230,13 +491,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
           (usersRes as any)?.users ??
           usersRes;
         // Lead sources now managed via BusinessSettingsContext (settingsLeadSources)
-        const sourcesData = settingsLeadSources;
         const tagsData =
           (tagsRes as any)?.data ?? (tagsRes as any)?.tags ?? tagsRes;
 
         setUsers(Array.isArray(usersData) ? usersData : []);
         // No set needed; using settingsLeadSources
         setAllTags(Array.isArray(tagsData) ? tagsData : []);
+        setIndustries(Array.isArray(industriesRes) ? industriesRes : []);
+        
         if (!Array.isArray(tagsData)) {
           console.warn('Tags payload not array:', tagsRes);
         }
@@ -251,19 +513,34 @@ const LeadForm: React.FC<LeadFormProps> = ({
         }));
         // Set empty arrays as fallback, or sample data for testing
         setUsers([]);
-        setLeadSources([]);
         setAllTags([]);
+        setIndustries([]);
 
         // Add some sample data for testing if APIs fail
         console.log("Setting fallback empty arrays due to API error");
         // Initialize the lead source select from existing value
-        setSelectedLeadSourceId(prev => formState.form.sourceId ?? "");
+        if (formState.form.sourceId) {
+          setSelectedLeadSourceId(formState.form.sourceId);
+        }
       } finally {
         setLoading(false);
       }
     };
     load();
   }, []);
+
+  // Check if current industry is in the list or needs "Other" input
+  useEffect(() => {
+    if (formState.form.industry) {
+      const industryExists = industries.some(
+        (ind) => ind.isActive && ind.name.toLowerCase() === formState.form.industry?.toLowerCase()
+      );
+      // If industry doesn't exist in the list, show "Other" input
+      setShowOtherIndustryInput(!industryExists);
+    } else {
+      setShowOtherIndustryInput(false);
+    }
+  }, [formState.form.industry, industries]);
 
   // Validation functions
   const validateEmail = (email: string): string | null => {
@@ -482,7 +759,12 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }));
 
     try {
-      await onSubmit(formState.form);
+      // Ensure tags are included in the payload
+      const payload = {
+        ...formState.form,
+        tags: Array.isArray(formState.form.tags) ? formState.form.tags.filter(Boolean) : [],
+      };
+      await onSubmit(payload);
     } catch (error) {
       console.error("Error submitting form:", error);
       // Map server-side validation errors to field errors where possible
@@ -629,13 +911,43 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange("position", e.target.value)}
             error={formState.errors.position}
           />
-          <InputField
-            label="Industry"
-            leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
-            value={formState.form.industry || ""}
-            onChange={(e) => handleChange("industry", e.target.value)}
-            placeholder="e.g. Technology, Healthcare"
-          />
+          <div>
+            <EnhancedSelectField
+              label="Industry"
+              leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
+              value={showOtherIndustryInput ? "Other" : (formState.form.industry || "")}
+              onChange={(value) => {
+                if (value === "Other") {
+                  setShowOtherIndustryInput(true);
+                  handleChange("industry", "");
+                } else {
+                  setShowOtherIndustryInput(false);
+                  handleChange("industry", value);
+                }
+              }}
+              options={[
+                ...industries
+                  .filter((ind) => ind.isActive)
+                  .map((ind) => ({
+                    value: ind.name,
+                    label: ind.name,
+                  })),
+                { value: "Other", label: "Other" },
+              ]}
+              placeholder="Select industry"
+            />
+            {showOtherIndustryInput && (
+              <div className="mt-2">
+                <InputField
+                  label="Specify Industry"
+                  leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
+                  value={formState.form.industry || ""}
+                  onChange={(e) => handleChange("industry", e.target.value)}
+                  placeholder="e.g. Technology, Healthcare"
+                />
+              </div>
+            )}
+          </div>
           <InputField
             label="Company Website"
             leftIcon={<Globe className="h-4 w-4 text-gray-400" />}
@@ -670,11 +982,23 @@ const LeadForm: React.FC<LeadFormProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Location & Contact</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <InputField
+          <EnhancedSelectField
             label="Country"
             leftIcon={<Flag className="h-4 w-4 text-gray-400" />}
             value={formState.form.country || ""}
-            onChange={(e) => handleChange("country", e.target.value)}
+            placeholder="Select country"
+            options={[
+              { value: "", label: "Select country" },
+              ...getAllCountries().map((country) => ({
+                value: country,
+                label: country,
+                icon: <Flag className="h-4 w-4 text-blue-500" />,
+                description: countryToCurrency[country] ? `Currency: ${countryToCurrency[country]}` : undefined
+              }))
+            ]}
+            onChange={(value) => handleChange("country", value || "")}
+            searchable={true}
+            clearable={true}
           />
           <InputField
             label="State/Province"

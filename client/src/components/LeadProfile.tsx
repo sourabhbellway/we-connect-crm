@@ -16,6 +16,8 @@ import { toast } from 'react-toastify';
 import { userService } from '../services/userService';
 import { activityService } from '../services/activityService';
 import { notesService, Note } from '../services/notesService';
+import { tasksService } from '../services/tasksService';
+import { communicationService, Meeting } from '../services/communicationService';
 import TableLoader from './TableLoader';
 import BackButton from './BackButton';
 import { Button, Grid, GridItem, Container, Card } from './ui';
@@ -94,10 +96,19 @@ const LeadProfile: React.FC = () => {
   // Tasks/Next Steps states
   const [tasks, setTasks] = useState<any[]>([]);
   const [tasksLoading, setTasksLoading] = useState(false);
+  const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
   
   // Quotations/Proposals states
   const [quotations, setQuotations] = useState<any[]>([]);
   const [quotationsLoading, setQuotationsLoading] = useState(false);
+  
+  // Invoices states
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  
+  // Meetings states
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetingsLoading, setMeetingsLoading] = useState(false);
   
   // Form states
   const [noteForm, setNoteForm] = useState({ title: '', content: '', isPinned: false });
@@ -114,6 +125,7 @@ const LeadProfile: React.FC = () => {
     time: '',
     duration: '30',
     location: '',
+    link: '',
     notes: ''
   });
   const [showCreateTask, setShowCreateTask] = useState(false);
@@ -138,6 +150,10 @@ const LeadProfile: React.FC = () => {
       }
       if (activeTab === 'proposals') {
         fetchQuotations(parseInt(id));
+        fetchInvoices(parseInt(id));
+      }
+      if (activeTab === 'meetings') {
+        fetchMeetings(parseInt(id));
       }
     }
     
@@ -160,12 +176,41 @@ const LeadProfile: React.FC = () => {
       const response = await activityService.getActivitiesByLeadId(leadId, 1, 100);
       const activities = response?.data?.items || [];
       
-      // Transform activities to match ActivityTimeline format
-      const transformedActivities = activities.map((activity: any) => ({
+      // Transform activities to match ActivityTimeline format with detailed messages
+      const transformedActivities = activities.map((activity: any) => {
+        // Enhance description with metadata changes if available
+        let enhancedDescription = activity.description || '';
+        
+        if (activity.metadata && activity.metadata.changes && Array.isArray(activity.metadata.changes)) {
+          // If metadata has changes array, use it for detailed description
+          enhancedDescription = activity.metadata.changes.join(', ');
+        } else if (activity.metadata) {
+          // Build detailed description from metadata
+          const metaParts: string[] = [];
+          
+          if (activity.metadata.oldStatus && activity.metadata.newStatus) {
+            metaParts.push(`Status: ${String(activity.metadata.oldStatus).toLowerCase()} → ${String(activity.metadata.newStatus).toLowerCase()}`);
+          }
+          if (activity.metadata.oldPriority && activity.metadata.newPriority) {
+            metaParts.push(`Priority: ${String(activity.metadata.oldPriority).toLowerCase()} → ${String(activity.metadata.newPriority).toLowerCase()}`);
+          }
+          if (activity.metadata.newAssignedTo && activity.metadata.oldAssignedTo !== activity.metadata.newAssignedTo) {
+            metaParts.push('Assignment changed');
+          }
+          if (activity.metadata.scheduledAt) {
+            metaParts.push(`Scheduled for ${new Date(activity.metadata.scheduledAt).toLocaleString()}`);
+          }
+          
+          if (metaParts.length > 0) {
+            enhancedDescription = metaParts.join(', ');
+          }
+        }
+        
+        return {
         id: String(activity.id),
         type: mapActivityType(activity.type),
         title: activity.title,
-        description: activity.description,
+          description: enhancedDescription || activity.description,
         createdAt: activity.createdAt,
         isCompleted: true,
         user: activity.user ? {
@@ -173,7 +218,8 @@ const LeadProfile: React.FC = () => {
           firstName: activity.user.firstName || '',
           lastName: activity.user.lastName || '',
         } : undefined,
-      }));
+        };
+      });
       
       setDynamicActivities(transformedActivities);
       setActivities(transformedActivities);
@@ -196,7 +242,7 @@ const LeadProfile: React.FC = () => {
       'LEAD_STATUS_CHANGED': 'STAGE_CHANGED',
       'LEAD_ASSIGNED': 'NOTE',
       'LEAD_CONVERTED': 'STAGE_CHANGED',
-      'COMMUNICATION_LOGGED': 'NOTE',
+      'COMMUNICATION_LOGGED': 'MEETING',
       'FILE_UPLOADED': 'NOTE',
       'FILE_DELETED': 'NOTE',
       'QUOTATION_CREATED': 'QUOTE_SENT',
@@ -205,6 +251,24 @@ const LeadProfile: React.FC = () => {
       'INVOICE_UPDATED': 'PAYMENT_RECEIVED',
     };
     return typeMap[type] || 'OTHER';
+  };
+
+  // Fetch meetings for the lead
+  const fetchMeetings = async (leadId: number) => {
+    try {
+      setMeetingsLoading(true);
+      const response = await communicationService.getMeetings(leadId);
+      console.log('Meetings response:', response);
+      const meetings = response?.data?.items || [];
+      setMeetings(meetings);
+    } catch (err: any) {
+      console.error('Error fetching meetings:', err);
+      console.error('Error details:', err?.response?.data || err?.message);
+      toast.error(err?.response?.data?.message || 'Failed to fetch meetings');
+      setMeetings([]);
+    } finally {
+      setMeetingsLoading(false);
+    }
   };
 
   // Fetch notes for the lead
@@ -253,21 +317,15 @@ const LeadProfile: React.FC = () => {
   const fetchTasks = async (leadId: number) => {
     try {
       setTasksLoading(true);
-      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const response = await fetch(`/api/tasks?entityType=lead&entityId=${leadId}&status=PENDING,IN_PROGRESS&limit=3`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await tasksService.list({
+        entityType: 'lead',
+        entityId: leadId.toString(),
+        status: 'PENDING,IN_PROGRESS,COMPLETED',
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch tasks');
-      }
-      
-      const data = await response.json();
+      const list = response?.data?.tasks || response?.data?.items || response?.tasks || [];
       // Sort by due date and priority
-      const sortedTasks = (data.data?.tasks || data.tasks || []).sort((a: any, b: any) => {
+      const sortedTasks = list.sort((a: any, b: any) => {
         if (a.dueDate && b.dueDate) {
           return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
         }
@@ -300,12 +358,38 @@ const LeadProfile: React.FC = () => {
       }
       
       const data = await response.json();
-      setQuotations(data.data?.quotations || data.quotations || []);
+      setQuotations(data.data?.items || data.data?.quotations || data.quotations || []);
     } catch (err: any) {
       console.error('Error fetching quotations:', err);
       setQuotations([]);
     } finally {
       setQuotationsLoading(false);
+    }
+  };
+
+  // Fetch invoices for the lead
+  const fetchInvoices = async (leadId: number) => {
+    try {
+      setInvoicesLoading(true);
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const response = await fetch(`/api/invoices?entityType=lead&entityId=${leadId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch invoices');
+      }
+      
+      const data = await response.json();
+      setInvoices(data.data?.items || data.data?.invoices || data.invoices || []);
+    } catch (err: any) {
+      console.error('Error fetching invoices:', err);
+      setInvoices([]);
+    } finally {
+      setInvoicesLoading(false);
     }
   };
 
@@ -350,6 +434,66 @@ const LeadProfile: React.FC = () => {
   };
 
   // Dynamic functionality methods
+  const handleScheduleMeeting = async () => {
+    if (!meetingForm.title.trim() || !meetingForm.date || !meetingForm.time) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (!lead || !user) {
+      toast.error('Lead or user information missing');
+      return;
+    }
+
+    try {
+      const scheduledDateTime = new Date(`${meetingForm.date}T${meetingForm.time}`);
+      let content = `Meeting scheduled with ${lead.firstName} ${lead.lastName}`;
+      if (meetingForm.location) {
+        content += `\nLocation: ${meetingForm.location}`;
+      }
+      if (meetingForm.link) {
+        content += `\nMeeting Link: ${meetingForm.link}`;
+      }
+      if (meetingForm.notes) {
+        content += `\n\nNotes: ${meetingForm.notes}`;
+      }
+      
+      const response = await communicationService.createMeeting({
+        leadId: lead.id,
+        userId: user.id,
+        type: 'MEETING',
+        subject: meetingForm.title,
+        content: content,
+        direction: 'outbound',
+        duration: meetingForm.duration ? parseInt(meetingForm.duration) : undefined,
+        scheduledAt: scheduledDateTime.toISOString(),
+      });
+
+      if (response.success) {
+        toast.success('Meeting scheduled successfully');
+        setShowScheduleMeeting(false);
+        setMeetingForm({
+          title: '',
+          date: '',
+          time: '',
+          duration: '30',
+          location: '',
+          link: '',
+          notes: ''
+        });
+        
+        // Refresh meetings and activities
+        if (id) {
+          fetchMeetings(parseInt(id));
+          fetchLeadActivities(parseInt(id));
+        }
+      }
+    } catch (error: any) {
+      console.error('Error scheduling meeting:', error);
+      toast.error(error?.response?.data?.message || 'Failed to schedule meeting');
+    }
+  };
+
   const handleAddNote = async () => {
     if (!noteForm.title.trim() || !noteForm.content.trim()) {
       toast.error('Please fill in all fields');
@@ -929,7 +1073,8 @@ const LeadProfile: React.FC = () => {
     );
   }
 
-  const leadSource = getLeadSourceById(lead.sourceId?.toString() || '');
+  // Use source from API if available, otherwise fallback to context
+  const leadSource = lead?.source || getLeadSourceById(lead?.sourceId?.toString() || '');
   const dealStages = getDealStages();
 
   const tabs = [
@@ -939,6 +1084,7 @@ const LeadProfile: React.FC = () => {
     { id: 'files', label: 'Files', icon: LinkIcon },
     { id: 'proposals', label: 'Proposals', icon: FileText },
     { id: 'call-logs', label: 'Call Logs', icon: PhoneCall },
+    { id: 'meetings', label: 'Meetings', icon: Calendar },
     { id: 'tasks', label: 'Tasks', icon: CheckCircle },
     { id: 'communication', label: 'Communication', icon: MessageSquare },
   ];
@@ -1093,18 +1239,44 @@ const LeadProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="text-center bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200 min-w-[200px]">
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Lead Score</div>
-                <div className="text-4xl font-bold text-green-600 mb-2">{lead.leadScore || 0}</div>
-                <div className="flex items-center justify-center mb-3">
-                  <Award className="h-5 w-5 text-yellow-500 mr-2" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {(lead.leadScore || 0) >= 80 ? 'Hot Lead' : (lead.leadScore || 0) >= 60 ? 'Warm Lead' : (lead.leadScore || 0) >= 40 ? 'Cold Lead' : 'New Lead'}
-                  </span>
+              {/* Lead Score - Detailed */}
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800 min-w-[280px]">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Lead Score
+                </h3>
+                
+                <div className="text-center mb-4">
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                    {lead.leadScore || 0}/100
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
                   <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${lead.leadScore || 0}%` }}></div>
+                </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {(lead.leadScore || 0) >= 80 ? 'Hot Lead - High conversion probability' : 
+                     (lead.leadScore || 0) >= 60 ? 'Warm Lead - Good potential' : 
+                     (lead.leadScore || 0) >= 40 ? 'Cold Lead - Needs nurturing' : 
+                     'New Lead - Just started'}
+                  </p>
+              </div>
+
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Email engagement</span>
+                    <span className="text-green-600 dark:text-green-400">+25</span>
+            </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Company size</span>
+                    <span className="text-green-600 dark:text-green-400">+20</span>
+          </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Budget confirmed</span>
+                    <span className="text-green-600 dark:text-green-400">+15</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Multiple touchpoints</span>
+                    <span className="text-green-600 dark:text-green-400">+25</span>
+                  </div>
                 </div>
               </div>
 
@@ -1183,6 +1355,98 @@ const LeadProfile: React.FC = () => {
                           </label>
                           <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.position || 'N/A'}</p>
                         </div>
+
+                        {lead.website && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Website
+                            </label>
+                            <p className="mt-1 text-sm">
+                              <a 
+                                href={lead.website.startsWith('http://') || lead.website.startsWith('https://') ? lead.website : `https://${lead.website}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const url = lead.website?.startsWith('http://') || lead.website?.startsWith('https://') 
+                                    ? lead.website 
+                                    : `https://${lead.website}`;
+                                  window.open(url, '_blank', 'noopener,noreferrer');
+                                }}
+                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium inline-block"
+                              >
+                                {lead.website}
+                              </a>
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.industry && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Industry
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.industry}</p>
+                          </div>
+                        )}
+
+                        {lead.address && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Address
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.address}</p>
+                          </div>
+                        )}
+
+                        {(lead.city || lead.state || lead.country) && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Location
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                              {[lead.city, lead.state, lead.country].filter(Boolean).join(', ') || 'N/A'}
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.zipCode && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Zip Code
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.zipCode}</p>
+                          </div>
+                        )}
+
+                        {lead.companySize && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Company Size
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.companySize} employees</p>
+                          </div>
+                        )}
+
+                        {lead.annualRevenue && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Annual Revenue
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                              {lead.currency || 'USD'} {Number(lead.annualRevenue).toLocaleString()}
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.timezone && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Timezone
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.timezone}</p>
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-4">
@@ -1217,6 +1481,93 @@ const LeadProfile: React.FC = () => {
                             }
                           </p>
                         </div>
+
+                        {lead.priority && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Priority
+                            </label>
+                            <p className="mt-1">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                lead.priority === 'urgent' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
+                                lead.priority === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
+                                lead.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                              }`}>
+                                {lead.priority}
+                              </span>
+                            </p>
+                      </div>
+                        )}
+
+                        {lead.budget && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Budget
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                              {lead.currency || 'USD'} {Number(lead.budget).toLocaleString()}
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.preferredContactMethod && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Preferred Contact Method
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white capitalize">
+                              {lead.preferredContactMethod}
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.linkedinProfile && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              LinkedIn
+                            </label>
+                            <p className="mt-1 text-sm">
+                              <a 
+                                href={lead.linkedinProfile.startsWith('http://') || lead.linkedinProfile.startsWith('https://') ? lead.linkedinProfile : `https://${lead.linkedinProfile}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const url = lead.linkedinProfile?.startsWith('http://') || lead.linkedinProfile?.startsWith('https://') 
+                                    ? lead.linkedinProfile 
+                                    : `https://${lead.linkedinProfile}`;
+                                  window.open(url, '_blank', 'noopener,noreferrer');
+                                }}
+                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium inline-block"
+                              >
+                                {lead.linkedinProfile}
+                              </a>
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.lastContactedAt && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Last Contacted
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                              {new Date(lead.lastContactedAt).toLocaleDateString()} {new Date(lead.lastContactedAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        )}
+
+                        {lead.nextFollowUpAt && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Next Follow-up
+                            </label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                              {new Date(lead.nextFollowUpAt).toLocaleDateString()} {new Date(lead.nextFollowUpAt).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1237,16 +1588,19 @@ const LeadProfile: React.FC = () => {
                           Tags
                         </label>
                         <div className="flex flex-wrap gap-2">
-                          {lead.tags.map((tag) => (
+                          {lead.tags.map((leadTag: any) => {
+                            const tag = leadTag.tag || leadTag;
+                            return (
                             <span
-                              key={tag.id}
+                                key={tag.id || leadTag.id}
                               className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                              style={{ backgroundColor: tag.color + '20', color: tag.color }}
+                                style={{ backgroundColor: (tag.color || '#3B82F6') + '20', color: tag.color || '#3B82F6' }}
                             >
                               <Tag className="h-3 w-3 mr-1" />
-                              {tag.name}
+                                {tag.name || leadTag.name}
                             </span>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -1531,10 +1885,293 @@ const LeadProfile: React.FC = () => {
                         entityType="lead"
                         entityId={lead.id.toString()}
                         quotations={quotations}
-                        invoices={[]}
-                        onRefresh={() => fetchQuotations(lead.id)}
+                        invoices={invoices}
+                        onRefresh={() => {
+                          fetchQuotations(lead.id);
+                          fetchInvoices(lead.id);
+                        }}
                       />
                     )}
+                  </div>
+                )}
+
+                {activeTab === 'meetings' && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Scheduled Meetings
+                      </h3>
+                      <button 
+                        onClick={() => setShowScheduleMeeting(true)}
+                        className="bg-weconnect-red text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm flex items-center"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Schedule Meeting
+                      </button>
+                    </div>
+                    
+                    {meetingsLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-weconnect-red"></div>
+                      </div>
+                    ) : meetings.length > 0 ? (
+                      <div className="space-y-4">
+                        {meetings.map((meeting) => (
+                          <div key={meeting.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900 dark:text-white mb-1">
+                                  {meeting.subject || 'Meeting'}
+                                </h4>
+                                {meeting.scheduledAt && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <Calendar className="h-4 w-4 mr-2" />
+                                    {new Date(meeting.scheduledAt).toLocaleString()}
+                                  </div>
+                                )}
+                                {meeting.duration && (
+                                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    {meeting.duration} minutes
+                                  </div>
+                                )}
+                                {meeting.content && (
+                                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 whitespace-pre-wrap">
+                                    {meeting.content.split('\n').map((line, idx) => {
+                                      // Enhanced URL regex to catch more patterns
+                                      const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|zoom\.us\/[^\s]+|meet\.google\.com\/[^\s]+|teams\.microsoft\.com\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
+                                      
+                                      // Check if line contains "Meeting Link:"
+                                      const trimmedLine = line.trim();
+                                      const lowerLine = trimmedLine.toLowerCase();
+                                      const meetingLinkMatch = lowerLine.match(/meeting\s+link\s*:/i);
+                                      
+                                      if (meetingLinkMatch) {
+                                        // Extract the value after "Meeting Link:"
+                                        const matchIndex = trimmedLine.toLowerCase().indexOf('meeting link:');
+                                        const prefix = trimmedLine.substring(0, matchIndex + 'meeting link:'.length);
+                                        const value = trimmedLine.substring(matchIndex + 'meeting link:'.length).trim();
+                                        
+                                        if (value) {
+                                          const finalUrl = value.startsWith('http://') || value.startsWith('https://') 
+                                            ? value 
+                                            : `https://${value}`;
+                                          
+                                          return (
+                                            <p key={idx} className="mb-1">
+                                              <span>{prefix} </span>
+                                              <a
+                                                href={finalUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => {
+                                                  e.preventDefault();
+                                                  e.stopPropagation();
+                                                  window.open(finalUrl, '_blank', 'noopener,noreferrer');
+                                                }}
+                                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
+                                              >
+                                                {value}
+                                              </a>
+                                            </p>
+                                          );
+                                        }
+                                      }
+                                      
+                                      // Check if line starts with "Location:" or "Notes:"
+                                      const isLocationLine = lowerLine.startsWith('location:');
+                                      const isNotesLine = lowerLine.startsWith('notes:');
+                                      
+                                      if (isLocationLine || isNotesLine) {
+                                        // Find colon index in the trimmed line
+                                        const colonIndex = trimmedLine.indexOf(':');
+                                        if (colonIndex === -1) {
+                                          return <p key={idx} className="mb-1">{line}</p>;
+                                        }
+                                        
+                                        const prefix = trimmedLine.substring(0, colonIndex + 1);
+                                        const value = trimmedLine.substring(colonIndex + 1).trim();
+                                        
+                                        // For Location and Notes, check if value looks like a URL
+                                        const urlMatch = value.match(urlRegex);
+                                        
+                                        if (urlMatch && urlMatch.length > 0) {
+                                          // Found URL in the value
+                                          let lastIndex = 0;
+                                          const parts: React.ReactNode[] = [<span key="prefix">{prefix} </span>];
+                                          
+                                          urlMatch.forEach((match, matchIdx) => {
+                                            const matchIndex = value.indexOf(match, lastIndex);
+                                            
+                                            // Add text before the match
+                                            if (matchIndex > lastIndex) {
+                                              parts.push(
+                                                <span key={`text-${matchIdx}`}>
+                                                  {value.substring(lastIndex, matchIndex)}
+                                                </span>
+                                              );
+                                            }
+                                            
+                                            // Add the link
+                                            let url = match.trim();
+                                            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                                              url = 'https://' + url;
+                                            }
+                                            parts.push(
+                                              <a
+                                                key={`link-${matchIdx}`}
+                                                href={url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
+                                              >
+                                                {match.trim()}
+                                              </a>
+                                            );
+                                            
+                                            lastIndex = matchIndex + match.length;
+                                          });
+                                          
+                                          // Add remaining text
+                                          if (lastIndex < value.length) {
+                                            parts.push(
+                                              <span key="text-end">
+                                                {value.substring(lastIndex)}
+                                              </span>
+                                            );
+                                          }
+                                          
+                                          return <p key={idx} className="mb-1">{parts}</p>;
+                                        }
+                                        
+                                        // No URL found, show as normal text
+                                        return <p key={idx} className="mb-1">{line}</p>;
+                                      }
+                                      
+                                      // Regular URL detection for other lines
+                                      const matches = line.match(urlRegex);
+                                      
+                                      if (!matches || matches.length === 0) {
+                                        return <p key={idx} className="mb-1">{line}</p>;
+                                      }
+                                      
+                                      let lastIndex = 0;
+                                      const parts: React.ReactNode[] = [];
+                                      
+                                      matches.forEach((match, matchIdx) => {
+                                        const matchIndex = line.indexOf(match, lastIndex);
+                                        
+                                        // Add text before the match
+                                        if (matchIndex > lastIndex) {
+                                          parts.push(
+                                            <span key={`text-${matchIdx}`}>
+                                              {line.substring(lastIndex, matchIndex)}
+                                            </span>
+                                          );
+                                        }
+                                        
+                                        // Add the link
+                                        let url = match;
+                                        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                                          url = 'https://' + url;
+                                        }
+                                        parts.push(
+                                          <a
+                                            key={`link-${matchIdx}`}
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
+                                          >
+                                            {match}
+                                          </a>
+                                        );
+                                        
+                                        lastIndex = matchIndex + match.length;
+                                      });
+                                      
+                                      // Add remaining text
+                                      if (lastIndex < line.length) {
+                                        parts.push(
+                                          <span key="text-end">
+                                            {line.substring(lastIndex)}
+                                          </span>
+                                        );
+                                      }
+                                      
+                                      return <p key={idx} className="mb-1">{parts}</p>;
+                                    })}
+                                  </div>
+                                )}
+                                {meeting.outcome && (
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    <span className="font-medium">Outcome:</span> {meeting.outcome}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="ml-4">
+                                {meeting.completedAt ? (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                    Completed
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                    Scheduled
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {meeting.user && (
+                              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                <User className="h-3 w-3 mr-1" />
+                                Scheduled by {meeting.user.firstName} {meeting.user.lastName}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">No meetings scheduled</p>
+                        <button 
+                          onClick={() => setShowScheduleMeeting(true)}
+                          className="bg-weconnect-red text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+                        >
+                          Schedule First Meeting
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'tasks' && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <TaskManager
+                      key={`tasks-${lead.id}-${tasksRefreshKey}`}
+                      entityType="lead"
+                      entityId={lead.id.toString()}
+                      tasks={tasks.map((t: any) => ({
+                        ...t,
+                        id: String(t.id),
+                        assignedTo: t.assignedUser ? { 
+                          id: String(t.assignedUser.id), 
+                          firstName: t.assignedUser.firstName, 
+                          lastName: t.assignedUser.lastName 
+                        } : undefined,
+                        createdBy: t.createdByUser ? { 
+                          id: String(t.createdByUser.id), 
+                          firstName: t.createdByUser.firstName, 
+                          lastName: t.createdByUser.lastName 
+                        } : { 
+                          id: String(user?.id || ''), 
+                          firstName: user?.firstName || '', 
+                          lastName: user?.lastName || '' 
+                        },
+                      }))}
+                    />
                   </div>
                 )}
 
@@ -1610,48 +2247,8 @@ const LeadProfile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Lead Score */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Lead Score
-                </h3>
-                
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                    {lead.leadScore || 0}/100
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: `${lead.leadScore || 0}%` }}></div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    {(lead.leadScore || 0) >= 80 ? 'Hot Lead - High conversion probability' : 
-                     (lead.leadScore || 0) >= 60 ? 'Warm Lead - Good potential' : 
-                     (lead.leadScore || 0) >= 40 ? 'Cold Lead - Needs nurturing' : 
-                     'New Lead - Just started'}
-                  </p>
-                </div>
-                
-                <div className="mt-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Email engagement</span>
-                    <span className="text-green-600 dark:text-green-400">+25</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Company size</span>
-                    <span className="text-green-600 dark:text-green-400">+20</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Budget confirmed</span>
-                    <span className="text-green-600 dark:text-green-400">+15</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Multiple touchpoints</span>
-                    <span className="text-green-600 dark:text-green-400">+25</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
       
@@ -1803,14 +2400,27 @@ const LeadProfile: React.FC = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Location/Meeting Link
+                  Location
                 </label>
                 <input
                   type="text"
                   value={meetingForm.location}
                   onChange={(e) => setMeetingForm({ ...meetingForm, location: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                  placeholder="Office, Zoom link, etc."
+                  placeholder="Office address, physical location, etc."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Meeting Link
+                </label>
+                <input
+                  type="url"
+                  value={meetingForm.link}
+                  onChange={(e) => setMeetingForm({ ...meetingForm, link: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                  placeholder="https://zoom.us/j/..., https://meet.google.com/..., etc."
                 />
               </div>
               
@@ -1836,53 +2446,8 @@ const LeadProfile: React.FC = () => {
                 Cancel
               </button>
               <button
-                onClick={async () => {
-                  if (!meetingForm.title || !meetingForm.date || !meetingForm.time) {
-                    toast.error('Please fill in all required fields');
-                    return;
-                  }
-                  
-                  try {
-                        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-                    const meetingDateTime = new Date(`${meetingForm.date}T${meetingForm.time}`);
-                    
-                    // Create task for the meeting
-                    const response = await fetch('/api/tasks', {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        title: meetingForm.title,
-                        description: `Meeting with ${lead?.firstName} ${lead?.lastName}\n\nLocation: ${meetingForm.location || 'TBD'}\n\nNotes: ${meetingForm.notes || 'N/A'}`,
-                        entityType: 'lead',
-                        entityId: lead?.id,
-                        dueDate: meetingDateTime.toISOString(),
-                        priority: 'HIGH',
-                        status: 'PENDING',
-                        notifyAt: new Date(meetingDateTime.getTime() - 15 * 60000).toISOString() // 15 min before
-                      }),
-                    });
-                    
-                    if (!response.ok) {
-                      throw new Error('Failed to schedule meeting');
-                    }
-                    
-                    toast.success('Meeting scheduled successfully! You will be notified 15 minutes before.');
-                    setShowScheduleMeeting(false);
-                    setMeetingForm({ title: '', date: '', time: '', duration: '30', location: '', notes: '' });
-                    
-                    // Refresh tasks
-                    if (lead?.id) {
-                      fetchTasks(lead.id);
-                    }
-                  } catch (error: any) {
-                    console.error('Error scheduling meeting:', error);
-                    toast.error('Failed to schedule meeting. Please try again.');
-                  }
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+                onClick={handleScheduleMeeting}
+                className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
               >
                 Schedule Meeting
               </button>
@@ -2023,30 +2588,38 @@ const LeadProfile: React.FC = () => {
                     return;
                   }
                   
+                  if (!user?.id) {
+                    toast.error('User information not available');
+                    return;
+                  }
+                  
+                  if (!lead?.id) {
+                    toast.error('Lead information not available');
+                    return;
+                  }
+                  
                   try {
-                    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-                    const response = await fetch('/api/tasks', {
-                      method: 'POST',
-                      headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        title: taskForm.title,
-                        description: taskForm.description || undefined,
-                        dueDate: taskForm.dueDate || undefined,
-                        priority: taskForm.priority,
-                        assignedTo: taskForm.assignedTo ? Number(taskForm.assignedTo) : undefined,
-                        entityType: 'lead',
-                        entityId: lead?.id,
-                        status: 'PENDING',
-                      }),
-                    });
-                    
-                    if (!response.ok) {
-                      throw new Error('Failed to create task');
+                    // Format dueDate to ISO string if provided
+                    let formattedDueDate: string | undefined;
+                    if (taskForm.dueDate) {
+                      const date = new Date(taskForm.dueDate);
+                      formattedDueDate = date.toISOString();
                     }
                     
+                    const payload = {
+                        title: taskForm.title,
+                        description: taskForm.description || undefined,
+                      status: 'PENDING' as const,
+                      priority: taskForm.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+                      dueDate: formattedDueDate,
+                        assignedTo: taskForm.assignedTo ? Number(taskForm.assignedTo) : undefined,
+                      createdBy: user.id,
+                      leadId: Number(lead.id),
+                    };
+                    
+                    const response = await tasksService.create(payload);
+                    
+                    if (response.success) {
                     toast.success('Task created successfully!');
                     setShowCreateTask(false);
                     setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
@@ -2054,10 +2627,20 @@ const LeadProfile: React.FC = () => {
                     // Refresh tasks
                     if (lead?.id) {
                       fetchTasks(lead.id);
+                        // Force TaskManager to refresh
+                        setTasksRefreshKey(prev => prev + 1);
+                      }
+                      
+                      // Refresh activities to show the new task activity
+                      if (lead?.id) {
+                        fetchLeadActivities(lead.id);
+                      }
+                    } else {
+                      throw new Error(response.message || 'Failed to create task');
                     }
                   } catch (error: any) {
                     console.error('Error creating task:', error);
-                    toast.error('Failed to create task. Please try again.');
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to create task. Please try again.');
                   }
                 }}
                 className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"

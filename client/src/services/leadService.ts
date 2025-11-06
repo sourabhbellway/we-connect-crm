@@ -53,6 +53,29 @@ export interface Lead {
     email: string;
   };
   tags?: Array<{ id: number; name: string; color: string }>;
+  source?: {
+    id: number;
+    name: string;
+    description?: string;
+  };
+  // Additional fields
+  website?: string;
+  industry?: string;
+  address?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  zipCode?: string;
+  companySize?: number;
+  annualRevenue?: number | string;
+  timezone?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
+  budget?: number | string;
+  currency?: string;
+  preferredContactMethod?: string;
+  linkedinProfile?: string;
+  lastContactedAt?: string | null;
+  nextFollowUpAt?: string | null;
 }
 
 // Payload used by create/update endpoints. Backend expects tag IDs (number[]) not tag objects.
@@ -349,6 +372,23 @@ export const leadService = {
           status: error.response?.status,
           message: error.response?.data?.message,
           errors: error.response?.data?.errors,
+        });
+        throw error;
+      }
+    });
+  },
+
+  // Undo lead conversion - revert a converted lead back to its previous status
+  undoConversion: async (leadId: number) => {
+    return retryWithBackoff(async () => {
+      try {
+        const response = await apiClient.post(`/leads/${leadId}/undo-conversion`);
+        return response.data;
+      } catch (error: any) {
+        console.error("Undo conversion error:", {
+          leadId,
+          status: error.response?.status,
+          message: error.response?.data?.message,
         });
         throw error;
       }

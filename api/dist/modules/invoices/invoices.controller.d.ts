@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
@@ -7,10 +8,21 @@ import { RecordPaymentDto } from './dto/record-payment.dto';
 export declare class InvoicesController {
     private readonly service;
     constructor(service: InvoicesService);
-    list(page?: string, limit?: string, search?: string, status?: string): Promise<{
+    list(page?: string, limit?: string, search?: string, status?: string, entityType?: string, entityId?: string): Promise<{
         success: boolean;
         data: {
             items: ({
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    company: string | null;
+                } | null;
+                deal: {
+                    id: number;
+                    title: string;
+                } | null;
                 items: {
                     name: string;
                     id: number;
@@ -73,6 +85,8 @@ export declare class InvoicesController {
             limit: number;
         };
     }>;
+    previewPdf(id: string, res: Response): Promise<void>;
+    downloadPdf(id: string, res: Response): Promise<void>;
     get(id: string): Promise<{
         success: boolean;
         message: string;

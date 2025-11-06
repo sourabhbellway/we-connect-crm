@@ -20,15 +20,23 @@ export class IndustriesService {
       data: {
         name: dto.name,
         slug: dto.slug || dto.name.toLowerCase().replace(/\s+/g, '-'),
+        isActive: dto.isActive !== undefined ? dto.isActive : true,
       },
     });
     return { success: true, data: { industry } };
   }
 
   async update(id: number, dto: UpsertIndustryDto) {
+    const updateData: any = { name: dto.name };
+    if (dto.slug !== undefined) {
+      updateData.slug = dto.slug;
+    }
+    if (dto.isActive !== undefined) {
+      updateData.isActive = dto.isActive;
+    }
     const industry = await this.prisma.industry.update({
       where: { id },
-      data: { name: dto.name, slug: dto.slug },
+      data: updateData,
     });
     return { success: true, data: { industry } };
   }

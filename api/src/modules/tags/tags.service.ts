@@ -20,19 +20,28 @@ export class TagsService {
         name: dto.name,
         color: dto.color ?? '#3B82F6',
         description: dto.description ?? null,
+        isActive: dto.isActive !== undefined ? dto.isActive : true,
       },
     });
     return { success: true, data: tag };
   }
 
   async update(id: number, dto: UpsertTagDto) {
+    const updateData: any = {
+      name: dto.name,
+    };
+    if (dto.color !== undefined) {
+      updateData.color = dto.color;
+    }
+    if (dto.description !== undefined) {
+      updateData.description = dto.description ?? null;
+    }
+    if (dto.isActive !== undefined) {
+      updateData.isActive = dto.isActive;
+    }
     const tag = await this.prisma.tag.update({
       where: { id },
-      data: {
-        name: dto.name,
-        color: dto.color,
-        description: dto.description ?? null,
-      },
+      data: updateData,
     });
     return { success: true, data: tag };
   }

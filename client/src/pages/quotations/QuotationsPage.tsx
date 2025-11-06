@@ -5,11 +5,6 @@ import { Button, Card } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../../services/apiClient';
-import SearchInput from '../../components/SearchInput';
-import DropdownFilter from '../../components/DropdownFilter';
-import { useDebouncedSearch } from '../../hooks/useDebounce';
-import Pagination from '../../components/Pagination';
-import NoResults from '../../components/NoResults';
 import { toast } from 'react-toastify';
 
 interface Quotation {
@@ -37,6 +32,7 @@ const QuotationsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [processingInvoice, setProcessingInvoice] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -65,7 +61,15 @@ const QuotationsPage: React.FC = () => {
         const total = data.total || items.length || 0;
         const page = data.page || currentPage;
         const limit = data.limit || itemsPerPage;
-        setQuotations(items);
+        // Map API response to include customer info
+        const mappedQuotations = items.map((q: any) => ({
+          ...q,
+          customerName: q.lead ? `${q.lead.firstName || ''} ${q.lead.lastName || ''}`.trim() || q.lead.company : q.deal?.title || '-',
+          customerEmail: q.lead?.email || '-',
+          relatedTo: q.deal ? `Deal #${q.deal.id}` : q.lead ? `Lead #${q.lead.id}` : undefined,
+          relatedType: q.dealId ? 'deal' : q.leadId ? 'lead' : undefined,
+        }));
+        setQuotations(mappedQuotations);
         setPagination({
           currentPage: page,
           totalPages: Math.max(1, Math.ceil(total / limit)),
@@ -156,13 +160,21 @@ const QuotationsPage: React.FC = () => {
     navigate(`/quotations/edit/${quotationId}`);
   };
 
-  const handleBookOrder = async (quotationId: string) => {
+  const handleBookOrder = async (quotationId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    if (processingInvoice === quotationId) {
+      return; // Prevent duplicate calls
+    }
     try {
+      setProcessingInvoice(quotationId);
       // Mark accepted then create invoice
       await apiClient.put(`/quotations/${quotationId}/accept`);
       const res = await apiClient.post(`/quotations/${quotationId}/generate-invoice`);
       if (res.data?.success) {
         toast.success('Sales order booked and invoice created');
+        fetchQuotations(); // Refresh the list
         navigate('/invoices');
       } else {
         toast.info('Quotation accepted, but invoice not created');
@@ -170,26 +182,15 @@ const QuotationsPage: React.FC = () => {
     } catch (error: any) {
       console.error('Error booking sales order:', error);
       toast.error(error?.response?.data?.message || 'Failed to book sales order');
-    }
-  };
-
-  const handleSend = async (quotationId: string) => {
-    try {
-      const response = await apiClient.post(`/quotations/${quotationId}/send`);
-      if (response.data.success) {
-        toast.success(t('quotations.send_success') || 'Quotation sent successfully');
-        fetchQuotations();
-      }
-    } catch (error: any) {
-      console.error('Error sending quotation:', error);
-      toast.error(error?.response?.data?.message || t('quotations.send_error') || 'Failed to send quotation');
+    } finally {
+      setProcessingInvoice(null);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6 p-6">
           {/* Header Skeleton */}
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -260,7 +261,7 @@ const QuotationsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -388,7 +389,8 @@ const QuotationsPage: React.FC = () => {
                   {filteredQuotations.map((quotation) => (
                     <div 
                       key={quotation.id} 
-className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer items-center"
+                      className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors items-center"
+                      onClick={() => navigate(`/quotations/edit/${quotation.id}`)}
                     >
                       {/* Quotation Number & Title */}
                       <div className="col-span-3 min-w-0">
@@ -455,9 +457,15 @@ className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray
                       </div>
 
                       {/* Actions */}
-<div className="col-span-2 flex items-center justify-end gap-3 flex-shrink-0 pl-4 md:pl-6 min-w-[160px]">
+                      <div 
+                        className="col-span-2 flex items-center justify-end gap-3 flex-shrink-0 pl-4 md:pl-6 min-w-[160px]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button
-                          onClick={() => handlePreviewPDF(quotation.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreviewPDF(quotation.id);
+                          }}
                           className="p-2 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                           title="Preview"
                         >
@@ -466,15 +474,19 @@ className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray
                         {hasPermission('deal.update') && (
                           <>
                             <button
-                              onClick={() => handleEdit(quotation.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(quotation.id);
+                              }}
                               className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                               title="Edit"
                             >
                               <Edit size={16} />
                             </button>
                             <button
-                              onClick={() => handleBookOrder(quotation.id)}
-                              className="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                              onClick={(e) => handleBookOrder(quotation.id, e)}
+                              disabled={processingInvoice === quotation.id}
+                              className="p-2 text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Book Sales Order & Create Invoice"
                             >
                               <Send size={16} />
@@ -482,7 +494,10 @@ className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray
                           </>
                         )}
                         <button
-                          onClick={() => handleDownloadPDF(quotation.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadPDF(quotation.id);
+                          }}
                           className="p-2 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                           title="Download"
                         >
@@ -490,7 +505,10 @@ className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray
                         </button>
                         {hasPermission('deal.delete') && (
                           <button
-                            onClick={() => handleDelete(quotation.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(quotation.id);
+                            }}
                             className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                             title="Delete"
                           >
@@ -521,7 +539,7 @@ className="grid grid-cols-12 gap-6 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray
                 Previous
               </button>
               {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                let pageNum;
+                let pageNum: number;
                 if (pagination.totalPages <= 5) {
                   pageNum = i + 1;
                 } else if (currentPage <= 3) {

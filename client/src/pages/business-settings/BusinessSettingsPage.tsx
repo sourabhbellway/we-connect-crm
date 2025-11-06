@@ -17,6 +17,7 @@ import {
   Wallet,
   Settings,
   ChevronRight,
+  Tag,
 } from 'lucide-react';
 
 interface SettingsCategory {
@@ -81,6 +82,26 @@ const BusinessSettingsPage: React.FC = () => {
       items: [
         { name: 'Lead Sources', description: 'Manage lead source options', path: '/business-settings/lead-sources' },
         { name: 'Source Analytics', description: 'Cost per lead, conversion rates', path: '/business-settings/lead-sources/analytics' },
+      ],
+    },
+    {
+      id: 'tags',
+      name: 'Tags',
+      description: 'Manage tags for organizing leads and deals',
+      icon: <Tag className="w-6 h-6" />,
+      color: 'bg-blue-500',
+      items: [
+        { name: 'Tags Management', description: 'Create and manage tags', path: '/business-settings/tags' },
+      ],
+    },
+    {
+      id: 'industries',
+      name: 'Industries',
+      description: 'Manage industry options for leads and companies',
+      icon: <Building2 className="w-6 h-6" />,
+      color: 'bg-green-500',
+      items: [
+        { name: 'Industries Management', description: 'Create and manage industries', path: '/business-settings/industries' },
       ],
     },
     {

@@ -46,8 +46,12 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await userService.getUsers();
-      setUsers(response.data?.users || response.users || []);
+      const response = await userService.getUsers({ page: 1, limit: 100 });
+      // Handle different response structures
+      const items = Array.isArray(response?.data) 
+        ? response.data 
+        : response?.data?.users || response?.data || response?.users || [];
+      setUsers(items);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');

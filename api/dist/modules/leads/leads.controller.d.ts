@@ -18,7 +18,51 @@ export declare class LeadsController {
     list(page?: string, limit?: string, status?: string, search?: string, isDeleted?: string): Promise<{
         success: boolean;
         data: {
-            leads: any[];
+            leads: {
+                id: any;
+                firstName: any;
+                lastName: any;
+                email: any;
+                phone: any;
+                company: any;
+                position: any;
+                status: string;
+                notes: any;
+                isActive: any;
+                createdAt: any;
+                updatedAt: any;
+                sourceId: any;
+                assignedTo: any;
+                companyId: any;
+                deletedAt: any;
+                budget: any;
+                currency: any;
+                lastContactedAt: any;
+                nextFollowUpAt: any;
+                priority: string | undefined;
+                industry: any;
+                website: any;
+                companySize: any;
+                annualRevenue: any;
+                leadScore: any;
+                address: any;
+                country: any;
+                state: any;
+                city: any;
+                zipCode: any;
+                linkedinProfile: any;
+                timezone: any;
+                preferredContactMethod: any;
+                previousStatus: any;
+                convertedToDealId: any;
+                assignedUser: any;
+                tags: {
+                    id: any;
+                    name: any;
+                    color: any;
+                }[];
+                source: any;
+            }[];
             pagination: {
                 totalItems: number;
                 currentPage: number;
@@ -70,6 +114,53 @@ export declare class LeadsController {
             preferredContactMethod: string | null;
             sourceId: number | null;
             priority: import("@prisma/client").$Enums.LeadPriority;
+            assignedTo: number | null;
+            budget: import("@prisma/client/runtime/library").Decimal | null;
+            leadScore: number | null;
+            lastContactedAt: Date | null;
+            nextFollowUpAt: Date | null;
+            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            convertedToDealId: number | null;
+        } | {
+            status: string;
+            priority: string | undefined;
+            tags: {
+                id: any;
+                name: any;
+                color: any;
+            }[];
+            source: {
+                name: string;
+                id: number;
+                description: string | null;
+            } | null;
+            industry: string | null;
+            email: string;
+            firstName: string;
+            lastName: string;
+            id: number;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            companyId: number | null;
+            deletedAt: Date | null;
+            notes: string | null;
+            phone: string | null;
+            company: string | null;
+            position: string | null;
+            address: string | null;
+            website: string | null;
+            currency: string | null;
+            companySize: number | null;
+            annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+            country: string | null;
+            state: string | null;
+            city: string | null;
+            zipCode: string | null;
+            linkedinProfile: string | null;
+            timezone: string | null;
+            preferredContactMethod: string | null;
+            sourceId: number | null;
             assignedTo: number | null;
             budget: import("@prisma/client/runtime/library").Decimal | null;
             leadScore: number | null;

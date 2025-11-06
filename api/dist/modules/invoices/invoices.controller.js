@@ -26,13 +26,27 @@ let InvoicesController = class InvoicesController {
     constructor(service) {
         this.service = service;
     }
-    list(page, limit, search, status) {
+    list(page, limit, search, status, entityType, entityId) {
         return this.service.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             search,
             status,
+            entityType,
+            entityId,
         });
+    }
+    async previewPdf(id, res) {
+        const { buffer, filename } = await this.service.buildPdf(Number(id));
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+        res.send(buffer);
+    }
+    async downloadPdf(id, res) {
+        const { buffer, filename } = await this.service.buildPdf(Number(id));
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(buffer);
     }
     get(id) {
         return this.service.getById(Number(id));
@@ -69,10 +83,28 @@ __decorate([
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
     __param(3, (0, common_1.Query)('status')),
+    __param(4, (0, common_1.Query)('entityType')),
+    __param(5, (0, common_1.Query)('entityId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], InvoicesController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)(':id/pdf/preview'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "previewPdf", null);
+__decorate([
+    (0, common_1.Get)(':id/pdf/download'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "downloadPdf", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

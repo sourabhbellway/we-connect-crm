@@ -23,6 +23,17 @@ import { ListMessagesQuery } from './dto/list-messages.query';
 export class CommunicationsController {
   constructor(private readonly service: CommunicationsService) {}
 
+  // Specific routes first (more specific before generic)
+  @Get('leads/:leadId/meetings')
+  listMeetings(@Param('leadId') leadId: string) {
+    try {
+      return this.service.listMeetings(Number(leadId));
+    } catch (error) {
+      console.error('Error in listMeetings:', error);
+      throw error;
+    }
+  }
+
   @Get('leads')
   listLeadComms(@Query('leadId') leadId: string) {
     return this.service.listLeadComms(Number(leadId));

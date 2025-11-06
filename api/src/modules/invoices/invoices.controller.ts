@@ -7,9 +7,11 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import type { Response } from 'express';
 import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
@@ -28,13 +30,33 @@ export class InvoicesController {
     @Query('limit') limit?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
+    @Query('entityType') entityType?: string,
+    @Query('entityId') entityId?: string,
   ) {
     return this.service.list({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
       search,
       status,
+      entityType,
+      entityId,
     });
+  }
+
+  @Get(':id/pdf/preview')
+  async previewPdf(@Param('id') id: string, @Res() res: Response) {
+    const { buffer, filename } = await this.service.buildPdf(Number(id));
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.send(buffer);
+  }
+
+  @Get(':id/pdf/download')
+  async downloadPdf(@Param('id') id: string, @Res() res: Response) {
+    const { buffer, filename } = await this.service.buildPdf(Number(id));
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 
   @Get(':id')

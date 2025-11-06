@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   X, 
-  Building, 
   DollarSign, 
   CheckCircle,
   AlertCircle,
@@ -89,10 +88,6 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
           notes: lead.notes || "",
           website: (lead as any)?.website || "",
         },
-        companyData: {
-          name: lead.company || "",
-          domain: (lead as any)?.website || "",
-        },
         dealData: {
           ...prev.dealData,
           title: `Deal with ${lead.firstName} ${lead.lastName}`,
@@ -109,13 +104,13 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
     field: string,
     value: any
   ) => {
-    if (section === 'createCompany' || section === 'createDeal') {
+    if (section === 'createDeal') {
       setConversionData(prev => ({
         ...prev,
         [section]: value,
       }));
-    } else if (section === 'createContact') {
-      // Ignore createContact changes - always keep it false
+    } else if (section === 'createContact' || section === 'createCompany') {
+      // Ignore createContact and createCompany changes - always keep them false
       return;
     } else {
       setConversionData(prev => ({
@@ -132,13 +127,8 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
     e.preventDefault();
     
     // Validation
-    if (!conversionData.createCompany && !conversionData.createDeal) {
-      toast.error("Please select at least one item to create (Company or Deal)");
-      return;
-    }
-    
-    if (conversionData.createCompany && !conversionData.companyData.name) {
-      toast.error("Company name is required");
+    if (!conversionData.createDeal) {
+      toast.error("Please select Create Deal to convert the lead");
       return;
     }
     
@@ -221,54 +211,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
           </div>
 
           {/* Conversion Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Create Company */}
-            <div className={`border rounded-lg p-4 ${conversionData.createCompany ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-              <div className="flex items-center space-x-3 mb-4">
-                <input
-                  type="checkbox"
-                  checked={conversionData.createCompany}
-                  onChange={(e) => handleInputChange('createCompany', '', e.target.checked)}
-                  disabled={isConverting}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <div className="flex items-center space-x-2">
-                  <Building className="h-5 w-5 text-green-600" />
-                  <span className="font-medium text-gray-900 dark:text-white">Create Company</span>
-                </div>
-              </div>
-              
-              {conversionData.createCompany && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Company Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={conversionData.companyData.name || ""}
-                      onChange={(e) => handleInputChange('companyData', 'name', e.target.value)}
-                      disabled={isConverting}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Domain
-                    </label>
-                    <input
-                      type="text"
-                      value={conversionData.companyData.domain || ""}
-                      onChange={(e) => handleInputChange('companyData', 'domain', e.target.value)}
-                      placeholder="example.com"
-                      disabled={isConverting}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
+          <div className="grid grid-cols-1 gap-6">
             {/* Create Deal */}
             <div className={`border rounded-lg p-4 ${conversionData.createDeal ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
               <div className="flex items-center space-x-3 mb-4">
@@ -318,17 +261,9 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Currency
                       </label>
-                      <select
-                        value={conversionData.dealData.currency || "USD"}
-                        onChange={(e) => handleInputChange('dealData', 'currency', e.target.value)}
-                        disabled={isConverting}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white"
-                      >
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="GBP">GBP</option>
-                        <option value="INR">INR</option>
-                      </select>
+                      <div className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 flex items-center">
+                        <span className="font-medium">{conversionData.dealData.currency || "USD"}</span>
+                      </div>
                     </div>
                   </div>
                   <div>
@@ -358,7 +293,6 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                 <p className="text-blue-800 dark:text-blue-200 font-medium">Conversion Summary</p>
                 <ul className="text-blue-700 dark:text-blue-300 mt-1 space-y-1">
                   <li>• The lead status will be changed to "Converted"</li>
-                  {conversionData.createCompany && <li>• A new company record will be created (or linked if exists)</li>}
                   {conversionData.createDeal && <li>• A new deal/opportunity will be created and linked</li>}
                 </ul>
               </div>
@@ -377,7 +311,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={isConverting || (!conversionData.createCompany && !conversionData.createDeal)}
+              disabled={isConverting || !conversionData.createDeal}
               className="px-6 py-2 bg-[#ef444e] text-white text-sm font-medium rounded-lg hover:bg-[#f26971] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {isConverting ? (

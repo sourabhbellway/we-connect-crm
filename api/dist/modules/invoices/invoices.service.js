@@ -11,14 +11,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvoicesService = void 0;
 const common_1 = require("@nestjs/common");
+const PDFDocument = require("pdfkit");
 const prisma_service_1 = require("../../database/prisma.service");
 const genNumber = (prefix) => `${prefix}-${Date.now()}`;
+const pad = (num, size) => String(num).padStart(size, '0');
 let InvoicesService = class InvoicesService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async list({ page = 1, limit = 10, search, status, }) {
+    async list({ page = 1, limit = 10, search, status, entityType, entityId, }) {
         const where = { deletedAt: null };
         if (status)
             where.status = status.toUpperCase();
@@ -29,13 +31,33 @@ let InvoicesService = class InvoicesService {
                 { invoiceNumber: { contains: q, mode: 'insensitive' } },
             ];
         }
+        if (entityType && entityId) {
+            const id = Number(entityId);
+            if (entityType.toLowerCase() === 'lead') {
+                where.leadId = id;
+            }
+            else if (entityType.toLowerCase() === 'deal') {
+                where.dealId = id;
+            }
+            else if (entityType.toLowerCase() === 'contact') {
+            }
+        }
         const [items, total] = await Promise.all([
             this.prisma.invoice.findMany({
                 where,
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
-                include: { items: true, payments: true },
+                include: {
+                    items: true,
+                    payments: true,
+                    lead: {
+                        select: { id: true, firstName: true, lastName: true, email: true, company: true },
+                    },
+                    deal: {
+                        select: { id: true, title: true },
+                    },
+                },
             }),
             this.prisma.invoice.count({ where }),
         ]);
@@ -276,6 +298,119 @@ let InvoicesService = class InvoicesService {
             },
         });
         return { success: true, data: { payment } };
+    }
+    async buildPdf(id) {
+        const invoice = await this.prisma.invoice.findFirst({
+            where: { id, deletedAt: null },
+            include: {
+                items: true,
+                lead: true,
+                deal: true,
+            },
+        });
+        if (!invoice)
+            throw new Error('Invoice not found');
+        const customerName = invoice.lead
+            ? `${invoice.lead.firstName || ''} ${invoice.lead.lastName || ''}`.trim() || invoice.lead.company || 'N/A'
+            : invoice.deal
+                ? invoice.deal.title || 'N/A'
+                : 'N/A';
+        const customerEmail = invoice.lead?.email || '';
+        const doc = new PDFDocument({ size: 'A4', margin: 50 });
+        const chunks = [];
+        doc.on('data', (c) => chunks.push(c));
+        const bs = await this.prisma.businessSettings.findFirst();
+        let ext = {};
+        try {
+            ext = bs?.description ? JSON.parse(bs.description) : {};
+        }
+        catch { }
+        const companyName = bs?.companyName || ext.companyName || 'Your Company';
+        const companyAddress = ext.companyAddress || '';
+        const companyEmail = ext.companyEmail || '';
+        const companyPhone = ext.companyPhone || '';
+        doc.fontSize(20).text(companyName, { align: 'left' });
+        if (companyAddress)
+            doc.fontSize(10).text(companyAddress, { align: 'left' });
+        if (companyEmail)
+            doc.fontSize(10).text(companyEmail, { align: 'left' });
+        if (companyPhone)
+            doc.fontSize(10).text(companyPhone, { align: 'left' });
+        doc.moveDown(2);
+        doc.fontSize(24).text('INVOICE', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12);
+        doc.text(`Invoice Number: ${invoice.invoiceNumber}`, { align: 'left' });
+        doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, { align: 'left' });
+        if (invoice.dueDate) {
+            doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, { align: 'left' });
+        }
+        doc.text(`Status: ${invoice.status}`, { align: 'left' });
+        doc.moveDown();
+        doc.fontSize(14).text('Bill To:', { align: 'left' });
+        doc.fontSize(12);
+        doc.text(customerName, { align: 'left' });
+        if (customerEmail)
+            doc.text(customerEmail, { align: 'left' });
+        doc.moveDown();
+        doc.fontSize(12);
+        const tableTop = doc.y;
+        const itemHeight = 20;
+        let y = tableTop;
+        doc.font('Helvetica-Bold');
+        doc.text('Item', 50, y);
+        doc.text('Quantity', 200, y);
+        doc.text('Rate', 300, y);
+        doc.text('Amount', 400, y);
+        y += itemHeight;
+        doc.font('Helvetica');
+        invoice.items.forEach((item) => {
+            const itemName = item.name || 'Item';
+            const quantity = Number(item.quantity || 0);
+            const rate = Number(item.unitPrice || 0);
+            const amount = Number(item.totalAmount || 0);
+            doc.text(itemName, 50, y, { width: 140 });
+            doc.text(String(quantity), 200, y);
+            doc.text(`${invoice.currency} ${rate.toFixed(2)}`, 300, y);
+            doc.text(`${invoice.currency} ${amount.toFixed(2)}`, 400, y);
+            y += itemHeight;
+        });
+        y += 10;
+        doc.font('Helvetica-Bold');
+        doc.text(`Subtotal: ${invoice.currency} ${Number(invoice.subtotal).toFixed(2)}`, 300, y, { align: 'right' });
+        y += itemHeight;
+        if (Number(invoice.taxAmount) > 0) {
+            doc.text(`Tax: ${invoice.currency} ${Number(invoice.taxAmount).toFixed(2)}`, 300, y, { align: 'right' });
+            y += itemHeight;
+        }
+        if (Number(invoice.discountAmount) > 0) {
+            doc.text(`Discount: ${invoice.currency} ${Number(invoice.discountAmount).toFixed(2)}`, 300, y, { align: 'right' });
+            y += itemHeight;
+        }
+        doc.fontSize(14);
+        doc.text(`Total: ${invoice.currency} ${Number(invoice.totalAmount).toFixed(2)}`, 300, y, { align: 'right' });
+        if (invoice.notes) {
+            y += itemHeight * 2;
+            doc.fontSize(10);
+            doc.font('Helvetica');
+            doc.text('Notes:', 50, y);
+            doc.text(invoice.notes, 50, y + 15, { width: 500 });
+        }
+        if (invoice.terms) {
+            y += itemHeight * 2;
+            doc.fontSize(10);
+            doc.font('Helvetica');
+            doc.text('Terms:', 50, y);
+            doc.text(invoice.terms, 50, y + 15, { width: 500 });
+        }
+        doc.end();
+        return new Promise((resolve, reject) => {
+            doc.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+                resolve({ buffer, filename: `invoice-${invoice.invoiceNumber}.pdf` });
+            });
+            doc.on('error', reject);
+        });
     }
 };
 exports.InvoicesService = InvoicesService;

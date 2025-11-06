@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 class UpsertIndustryDto {
     name;
     slug;
+    isActive;
 }
 exports.UpsertIndustryDto = UpsertIndustryDto;
 __decorate([
@@ -25,4 +26,9 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpsertIndustryDto.prototype, "slug", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], UpsertIndustryDto.prototype, "isActive", void 0);
 //# sourceMappingURL=upsert-industry.dto.js.map

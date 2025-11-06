@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Calendar, Clock, User, Phone, Mail, MessageSquare, FileText, 
-  CheckCircle, TrendingUp, Plus, Filter, Search, MoreVertical,
-  Play, Pause, Edit, Trash2
+  CheckCircle, TrendingUp, Search,
+  Play
 } from 'lucide-react';
 import { Button, Card } from '../ui';
-import { useAuth } from '../../contexts/AuthContext';
-import { toast } from 'react-toastify';
 
 interface Activity {
   id: string;
@@ -33,23 +31,17 @@ interface ActivityTimelineProps {
 }
 
 const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ 
-  entityType, 
-  entityId, 
   activities: initialActivities 
 }) => {
-  const { user, hasPermission } = useAuth();
-  const [activities, setActivities] = useState<Activity[]>(initialActivities);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filterType, setFilterType] = useState('all');
+  const [activities] = useState<Activity[]>(initialActivities);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filter activities
   const filteredActivities = activities.filter(activity => {
-    const matchesFilter = filterType === 'all' || activity.type === filterType;
     const matchesSearch = searchTerm === '' || 
       activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       activity.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
+    return matchesSearch;
   });
 
   const getActivityIcon = (type: string) => {
@@ -145,21 +137,6 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                 className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-weconnect-red focus:border-transparent"
               />
             </div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-weconnect-red focus:border-transparent"
-            >
-              <option value="all">All Activities</option>
-              <option value="CALL">Calls</option>
-              <option value="EMAIL">Emails</option>
-              <option value="MEETING">Meetings</option>
-              <option value="VISIT">Visits</option>
-              <option value="DEMO">Demos</option>
-              <option value="NOTE">Notes</option>
-              <option value="QUOTE_SENT">Quotes</option>
-              <option value="PAYMENT_RECEIVED">Payments</option>
-            </select>
           </div>
         </div>
       </div>
@@ -177,8 +154,8 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                 No Activities Found
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {searchTerm || filterType !== 'all' 
-                  ? 'Try adjusting your search or filter criteria.'
+                {searchTerm
+                  ? 'Try adjusting your search criteria.'
                   : 'No activities found. Activities will appear here automatically as you interact with this lead.'
                 }
               </p>

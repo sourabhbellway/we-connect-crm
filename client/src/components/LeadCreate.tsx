@@ -19,6 +19,7 @@ const LeadCreate: React.FC = () => {
         // ensure numeric conversions
         sourceId: data.sourceId ? Number(data.sourceId) : undefined,
         assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
+        tags: Array.isArray(data.tags) ? data.tags.filter(Boolean) : [],
       });
       await refreshLeadsCount();
       toast.success("Lead created");

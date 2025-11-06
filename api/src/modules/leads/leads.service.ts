@@ -130,15 +130,68 @@ export class LeadsService {
             assignedUser: {
               select: { id: true, firstName: true, lastName: true, email: true },
             },
+            tags: { include: { tag: true } },
+            source: {
+              select: { id: true, name: true, description: true },
+            },
           },
         }),
       ]);
 
-      const leads = rows.map((r: any) => ({
-        ...r,
+      const leads = rows.map((r: any) => {
+        // Extract tags and source from Prisma response
+        const rawTags = r.tags || [];
+        const rawSource = r.source || null;
+        
+        // Build the lead object explicitly
+        return {
+          id: r.id,
+          firstName: r.firstName,
+          lastName: r.lastName,
+          email: r.email,
+          phone: r.phone,
+          company: r.company,
+          position: r.position,
         status: String(r.status || '').toLowerCase(),
+          notes: r.notes,
+          isActive: r.isActive,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+          sourceId: r.sourceId,
+          assignedTo: r.assignedTo,
+          companyId: r.companyId,
+          deletedAt: r.deletedAt,
+          budget: r.budget,
+          currency: r.currency,
+          lastContactedAt: r.lastContactedAt,
+          nextFollowUpAt: r.nextFollowUpAt,
         priority: r.priority ? String(r.priority).toLowerCase() : undefined,
-      }));
+          industry: r.industry,
+          website: r.website,
+          companySize: r.companySize,
+          annualRevenue: r.annualRevenue,
+          leadScore: r.leadScore,
+          address: r.address,
+          country: r.country,
+          state: r.state,
+          city: r.city,
+          zipCode: r.zipCode,
+          linkedinProfile: r.linkedinProfile,
+          timezone: r.timezone,
+          preferredContactMethod: r.preferredContactMethod,
+          previousStatus: r.previousStatus,
+          convertedToDealId: r.convertedToDealId,
+          assignedUser: r.assignedUser,
+          tags: Array.isArray(rawTags) && rawTags.length > 0
+            ? rawTags.map((lt: any) => ({
+                id: lt.tag?.id || lt.id,
+                name: lt.tag?.name || lt.name,
+                color: lt.tag?.color || lt.color,
+              }))
+            : [],
+          source: rawSource,
+        };
+      });
 
       const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
       return {
@@ -174,6 +227,9 @@ export class LeadsService {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
         tags: { include: { tag: true } },
+        source: {
+          select: { id: true, name: true, description: true },
+        },
       },
     });
     if (!leadRow) return { success: false, message: 'Lead not found' };
@@ -214,6 +270,8 @@ export class LeadsService {
       currency = 'USD';
     }
 
+    const { tags, ...leadData } = dto as any;
+
     const lead = await this.prisma.lead.create({
       data: {
         firstName: dto.firstName,
@@ -251,7 +309,42 @@ export class LeadsService {
       },
     });
 
-    return { success: true, data: lead };
+    // Handle tags if provided
+    if (Array.isArray(tags) && tags.length > 0) {
+      await this.prisma.leadTag.createMany({
+        data: tags.map((tagId: number) => ({
+          leadId: lead.id,
+          tagId: tagId,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    // Fetch the lead with tags and source for response
+    const leadWithTags = await this.prisma.lead.findUnique({
+      where: { id: lead.id },
+      include: {
+        tags: { include: { tag: true } },
+        source: {
+          select: { id: true, name: true, description: true },
+        },
+      },
+    });
+
+    const formattedLead = leadWithTags ? {
+      ...leadWithTags,
+      status: String(leadWithTags.status || '').toLowerCase(),
+      priority: leadWithTags.priority ? String(leadWithTags.priority).toLowerCase() : undefined,
+      tags: Array.isArray(leadWithTags.tags)
+        ? leadWithTags.tags.map((lt: any) => ({
+            id: lt.tag.id,
+            name: lt.tag.name,
+            color: lt.tag.color,
+          }))
+        : [],
+    } : lead;
+
+    return { success: true, data: formattedLead };
   }
 
   async update(id: number, dto: UpdateLeadDto) {
@@ -275,30 +368,103 @@ export class LeadsService {
       data: updateData,
     });
 
-    // Create activity for lead updates
-    try {
-      const activityType = rest.status && lead.status !== updated.status
-        ? 'LEAD_STATUS_CHANGED'
-        : rest.assignedTo && lead.assignedTo !== updated.assignedTo
-        ? 'LEAD_ASSIGNED'
-        : 'LEAD_UPDATED';
-
-      let description = 'Lead updated';
-      if (rest.status && lead.status !== updated.status) {
-        description = `Lead status changed from ${lead.status} to ${updated.status}`;
-      } else if (rest.priority && lead.priority !== updated.priority) {
-        description = `Lead priority changed to ${updated.priority}`;
-      } else if (rest.assignedTo && lead.assignedTo !== updated.assignedTo) {
-        description = 'Lead assigned to user';
+    // Handle tags if provided
+    if (Array.isArray(tags)) {
+      // Delete existing tags
+      await this.prisma.leadTag.deleteMany({
+        where: { leadId: id },
+      });
+      
+      // Create new tags
+      if (tags.length > 0) {
+        await this.prisma.leadTag.createMany({
+          data: tags.map((tagId: number) => ({
+            leadId: id,
+            tagId: tagId,
+          })),
+          skipDuplicates: true,
+        });
       }
+    }
+
+    // Create activity for lead updates with detailed messages
+    try {
+      const changes: string[] = [];
+      let activityType = 'LEAD_UPDATED';
+      let title = 'Lead updated';
+      let icon = 'Edit';
+      let iconColor = '#6B7280';
+
+      // Check status change
+      if (rest.status && lead.status !== updated.status) {
+        activityType = 'LEAD_STATUS_CHANGED';
+        title = 'Status changed';
+        icon = 'TrendingUp';
+        iconColor = '#10B981';
+        changes.push(`Status: ${String(lead.status).toLowerCase()} → ${String(updated.status).toLowerCase()}`);
+      }
+
+      // Check priority change
+      if (rest.priority && lead.priority !== updated.priority) {
+        if (activityType === 'LEAD_UPDATED') {
+          title = 'Priority changed';
+          icon = 'Flag';
+          iconColor = '#F59E0B';
+        }
+        changes.push(`Priority: ${String(lead.priority).toLowerCase()} → ${String(updated.priority).toLowerCase()}`);
+      }
+
+      // Check assignment change
+      if (rest.assignedTo !== undefined && lead.assignedTo !== updated.assignedTo) {
+        if (activityType === 'LEAD_UPDATED') {
+          activityType = 'LEAD_ASSIGNED';
+          title = 'Lead assigned';
+          icon = 'User';
+          iconColor = '#3B82F6';
+        }
+        if (updated.assignedTo) {
+          const assignedUser = await this.prisma.user.findUnique({
+            where: { id: updated.assignedTo },
+            select: { firstName: true, lastName: true },
+          });
+          const userName = assignedUser ? `${assignedUser.firstName} ${assignedUser.lastName}` : 'User';
+          changes.push(`Assigned to: ${userName}`);
+        } else {
+          changes.push('Unassigned');
+        }
+      }
+
+      // Check other field changes
+      if (rest.sourceId !== undefined && lead.sourceId !== updated.sourceId) {
+        changes.push('Source updated');
+      }
+      if (rest.budget !== undefined && lead.budget !== updated.budget) {
+        changes.push(`Budget: ${lead.budget || 'N/A'} → ${updated.budget || 'N/A'}`);
+      }
+      if (rest.leadScore !== undefined && lead.leadScore !== updated.leadScore) {
+        changes.push(`Lead Score: ${lead.leadScore || 0} → ${updated.leadScore || 0}`);
+      }
+      if (rest.company !== undefined && lead.company !== updated.company) {
+        changes.push(`Company: ${lead.company || 'N/A'} → ${updated.company || 'N/A'}`);
+      }
+      if (rest.email !== undefined && lead.email !== updated.email) {
+        changes.push(`Email: ${lead.email} → ${updated.email}`);
+      }
+      if (rest.phone !== undefined && lead.phone !== updated.phone) {
+        changes.push(`Phone: ${lead.phone || 'N/A'} → ${updated.phone || 'N/A'}`);
+      }
+
+      const description = changes.length > 0 
+        ? changes.join(', ')
+        : 'Lead information updated';
 
       await this.prisma.activity.create({
         data: {
-          title: activityType === 'LEAD_STATUS_CHANGED' ? 'Status changed' : activityType === 'LEAD_ASSIGNED' ? 'Lead assigned' : 'Lead updated',
+          title,
           description,
           type: activityType as any,
-          icon: activityType === 'LEAD_STATUS_CHANGED' ? 'TrendingUp' : activityType === 'LEAD_ASSIGNED' ? 'User' : 'Edit',
-          iconColor: activityType === 'LEAD_STATUS_CHANGED' ? '#10B981' : activityType === 'LEAD_ASSIGNED' ? '#3B82F6' : '#6B7280',
+          icon,
+          iconColor,
           metadata: {
             leadId: id,
             oldStatus: lead.status,
@@ -307,6 +473,7 @@ export class LeadsService {
             newPriority: updated.priority,
             oldAssignedTo: lead.assignedTo,
             newAssignedTo: updated.assignedTo,
+            changes,
           } as any,
           userId: lead.assignedTo || 1,
           leadId: id,
@@ -316,12 +483,39 @@ export class LeadsService {
       console.error('Error creating lead update activity:', error);
     }
 
-    const normalized = {
+    // Fetch the updated lead with tags and source for response
+    const updatedWithTags = await this.prisma.lead.findUnique({
+      where: { id },
+      include: {
+        tags: { include: { tag: true } },
+        source: {
+          select: { id: true, name: true, description: true },
+        },
+      },
+    });
+
+    const normalized = updatedWithTags ? {
+      ...updatedWithTags,
+      status: String(updatedWithTags.status || '').toLowerCase(),
+      priority: updatedWithTags.priority
+        ? String(updatedWithTags.priority).toLowerCase()
+        : undefined,
+      tags: Array.isArray(updatedWithTags.tags)
+        ? updatedWithTags.tags.map((lt: any) => ({
+            id: lt.tag.id,
+            name: lt.tag.name,
+            color: lt.tag.color,
+          }))
+        : [],
+      source: updatedWithTags.source || null,
+    } : {
       ...updated,
       status: String(updated.status || '').toLowerCase(),
       priority: updated.priority
         ? String(updated.priority).toLowerCase()
         : undefined,
+      tags: [],
+      source: null,
     } as any;
 
     return { success: true, data: { lead: normalized } };
@@ -441,11 +635,15 @@ export class LeadsService {
 
   async undoLeadConversion(id: number) {
     const lead = await this.prisma.lead.findFirst({
-      where: { id, deletedAt: null, status: 'CONVERTED' },
+      where: { 
+        id, 
+        deletedAt: null,
+        convertedToDealId: { not: null }, // Check if lead has a converted deal ID
+      },
     });
 
     if (!lead) {
-      return { success: false, message: 'This lead cannot be reverted.' };
+      return { success: false, message: 'This lead cannot be reverted. It may not have been converted or the conversion link is missing.' };
     }
 
     const result = await this.prisma.$transaction(async (tx) => {

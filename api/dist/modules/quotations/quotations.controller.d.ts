@@ -17,10 +17,21 @@ export declare class QuotationsController {
             }[];
         };
     }>;
-    list(page?: string, limit?: string, search?: string, status?: string): Promise<{
+    list(page?: string, limit?: string, search?: string, status?: string, entityType?: string, entityId?: string): Promise<{
         success: boolean;
         data: {
             items: ({
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    company: string | null;
+                } | null;
+                deal: {
+                    id: number;
+                    title: string;
+                } | null;
                 items: {
                     name: string;
                     id: number;

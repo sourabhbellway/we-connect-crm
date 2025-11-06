@@ -4,6 +4,7 @@ import { FileText, Plus, Eye, Download } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 import apiClient from '../../services/apiClient';
+import { toast } from 'react-toastify';
 
 interface Quotation {
   id: string;
@@ -45,7 +46,6 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('quotations');
-  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -89,7 +89,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           {labels.title}
         </h2>
@@ -104,8 +104,8 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
               New {labels.quotation}
             </Button>
             <Button 
-              className="flex items-center gap-2"
-              onClick={() => setShowInvoiceForm(true)}
+              className="flex items-center gap-2 bg-weconnect-red hover:bg-red-600"
+              onClick={() => navigate(`/invoices/new?entityType=${entityType}&entityId=${entityId}`)}
             >
               <Plus size={16} />
               New Invoice
@@ -241,7 +241,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                 {labels.emptyInvoiceDesc}
               </p>
               {hasPermission(`${entityType}.create`) && (
-                <Button onClick={() => setShowInvoiceForm(true)}>Create Invoice</Button>
+                <Button onClick={() => navigate(`/invoices/new?entityType=${entityType}&entityId=${entityId}`)}>Create Invoice</Button>
               )}
             </Card>
           ) : (
@@ -272,30 +272,54 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                         {invoice.status.replace('_', ' ')}
                       </span>
                       <span className="text-lg font-bold text-gray-900 dark:text-white">
-                        ${invoice.totalAmount.toLocaleString()}
+                        ${Number(invoice.totalAmount).toLocaleString()}
                       </span>
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <Button size="SM" variant="GHOST" onClick={async () => {
-                        try {
-                          const res = await apiClient.get(`/invoices/${invoice.id}/pdf/preview`, { responseType: 'blob' });
-                          const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-                          window.open(url, '_blank');
-                        } catch (e) { /* noop */ }
-                      }}>
+                      <Button 
+                        size="SM" 
+                        variant="GHOST" 
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const res = await apiClient.get(`/invoices/${invoice.id}/pdf/preview`, { responseType: 'blob' });
+                            const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                            window.open(url, '_blank');
+                          } catch (error: any) {
+                            console.error('Error previewing invoice:', error);
+                            if (error?.response?.status === 404) {
+                              navigate(`/invoices/${invoice.id}`);
+                            } else {
+                              toast.error(error?.response?.data?.message || 'Failed to preview invoice');
+                            }
+                          }
+                        }}
+                      >
                         <Eye size={14} />
                       </Button>
-                      <Button size="SM" variant="GHOST" onClick={async () => {
-                        try {
-                          const res = await apiClient.get(`/invoices/${invoice.id}/pdf/download`, { responseType: 'blob' });
-                          const url = URL.createObjectURL(new Blob([res.data]));
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
-                          a.click();
-                        } catch (e) { /* noop */ }
-                      }}>
+                      <Button 
+                        size="SM" 
+                        variant="GHOST" 
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const res = await apiClient.get(`/invoices/${invoice.id}/pdf/download`, { responseType: 'blob' });
+                            const url = URL.createObjectURL(new Blob([res.data]));
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+                            a.click();
+                          } catch (error: any) {
+                            console.error('Error downloading invoice:', error);
+                            if (error?.response?.status === 404) {
+                              navigate(`/invoices/${invoice.id}`);
+                            } else {
+                              toast.error(error?.response?.data?.message || 'Failed to download invoice');
+                            }
+                          }
+                        }}
+                      >
                         <Download size={14} />
                       </Button>
                     </div>
@@ -304,19 +328,6 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
               </Card>
             ))
           )}
-        </div>
-      )}
-
-      {/* Invoice Form Modal - TODO: Implement InvoiceForm component */}
-      {showInvoiceForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="p-6 max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Invoice Creation</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Invoice form coming soon. You can convert accepted quotations to invoices.
-            </p>
-            <Button onClick={() => setShowInvoiceForm(false)}>Close</Button>
-          </Card>
         </div>
       )}
     </div>

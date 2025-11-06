@@ -31,7 +31,7 @@ let QuotationsService = class QuotationsService {
         });
         return { success: true, data: { users } };
     }
-    async list({ page = 1, limit = 10, search, status, }) {
+    async list({ page = 1, limit = 10, search, status, entityType, entityId, }) {
         const where = { deletedAt: null };
         if (status)
             where.status = status.toUpperCase();
@@ -42,13 +42,32 @@ let QuotationsService = class QuotationsService {
                 { quotationNumber: { contains: q, mode: 'insensitive' } },
             ];
         }
+        if (entityType && entityId) {
+            const id = Number(entityId);
+            if (entityType.toLowerCase() === 'lead') {
+                where.leadId = id;
+            }
+            else if (entityType.toLowerCase() === 'deal') {
+                where.dealId = id;
+            }
+            else if (entityType.toLowerCase() === 'contact') {
+            }
+        }
         const [items, total] = await Promise.all([
             this.prisma.quotation.findMany({
                 where,
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
-                include: { items: true },
+                include: {
+                    items: true,
+                    lead: {
+                        select: { id: true, firstName: true, lastName: true, email: true, company: true },
+                    },
+                    deal: {
+                        select: { id: true, title: true },
+                    },
+                },
             }),
             this.prisma.quotation.count({ where }),
         ]);

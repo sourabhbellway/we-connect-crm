@@ -8,16 +8,23 @@ import { ListMessagesQuery } from './dto/list-messages.query';
 export declare class CommunicationsController {
     private readonly service;
     constructor(service: CommunicationsService);
-    listLeadComms(leadId: string): Promise<{
+    listMeetings(leadId: string): Promise<{
         success: boolean;
         data: {
-            items: {
+            items: ({
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
                 leadId: number;
+                type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
                 subject: string | null;
                 content: string;
@@ -25,7 +32,34 @@ export declare class CommunicationsController {
                 duration: number | null;
                 outcome: string | null;
                 scheduledAt: Date | null;
-            }[];
+            })[];
+        };
+    }>;
+    listLeadComms(leadId: string): Promise<{
+        success: boolean;
+        data: {
+            items: ({
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number;
+                leadId: number;
+                type: import("@prisma/client").$Enums.CommunicationType;
+                completedAt: Date | null;
+                subject: string | null;
+                content: string;
+                direction: string;
+                duration: number | null;
+                outcome: string | null;
+                scheduledAt: Date | null;
+            })[];
         };
     }>;
     listTemplates(type?: string, active?: string, page?: string, limit?: string): Promise<{
@@ -169,9 +203,9 @@ export declare class CommunicationsController {
                 updatedAt: Date;
                 userId: number;
                 status: import("@prisma/client").$Enums.MessageStatus;
+                leadId: number;
                 type: import("@prisma/client").$Enums.TemplateType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
-                leadId: number;
                 sentAt: Date | null;
                 subject: string | null;
                 content: string;
@@ -195,12 +229,25 @@ export declare class CommunicationsController {
         success: boolean;
         data: {
             communication: {
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
                 leadId: number;
+                type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
                 subject: string | null;
                 content: string;

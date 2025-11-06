@@ -12,6 +12,8 @@ import { BusinessSettingsPage } from "./pages";
 import CompanySettingsPage from "./pages/business-settings/CompanySettingsPage";
 import CurrencyTaxSettingsPage from "./pages/business-settings/CurrencyTaxSettingsPage";
 import LeadSourcesPage from "./pages/business-settings/LeadSourcesPage";
+import TagsPage from "./pages/business-settings/TagsPage";
+import IndustriesPage from "./pages/business-settings/IndustriesPage";
 import DealStagesPage from "./pages/business-settings/DealStagesPage";
 import CommunicationPage from "./pages/business-settings/CommunicationPage";
 import CommunicationAPIPage from "./pages/business-settings/CommunicationAPIPage";
@@ -19,6 +21,7 @@ import QuotationTemplatesPage from "./pages/business-settings/QuotationTemplates
 import QuotationsPage from "./pages/quotations/QuotationsPage";
 import CreateQuotationPage from "./pages/quotations/CreateQuotationPage";
 import InvoicesPage from "./pages/invoices/InvoicesPage";
+import CreateInvoicePage from "./pages/invoices/CreateInvoicePage";
 import { PERMISSIONS, TOAST_CONFIG } from "./constants";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
@@ -45,6 +48,7 @@ import TokenExpiryModal from "./components/TokenExpiryModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SearchResults from "./pages/SearchResults";
 import TasksPage from "./pages/tasks/TasksPage";
+import TaskDetailPage from "./pages/tasks/TaskDetailPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -236,11 +240,41 @@ function AppContent() {
           }
         />
         <Route
+          path="/invoices/new"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.CREATE}>
+              <MainLayout>
+                <CreateInvoicePage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invoices/edit/:id"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.UPDATE}>
+              <MainLayout>
+                <CreateInvoicePage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/task-management"
           element={
             <ProtectedRoute>
               <MainLayout>
                 <TasksPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TaskDetailPage />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -351,6 +385,26 @@ function AppContent() {
             <ProtectedRoute>
               <MainLayout>
                 <LeadSourcesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/tags"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <TagsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/business-settings/industries"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <IndustriesPage />
               </MainLayout>
             </ProtectedRoute>
           }

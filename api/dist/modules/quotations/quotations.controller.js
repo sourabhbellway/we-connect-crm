@@ -28,12 +28,14 @@ let QuotationsController = class QuotationsController {
     getTemplate() {
         return this.service.getTemplate();
     }
-    list(page, limit, search, status) {
+    list(page, limit, search, status, entityType, entityId) {
         return this.service.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             search,
             status,
+            entityType,
+            entityId,
         });
     }
     get(id) {
@@ -131,8 +133,10 @@ __decorate([
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
     __param(3, (0, common_1.Query)('status')),
+    __param(4, (0, common_1.Query)('entityType')),
+    __param(5, (0, common_1.Query)('entityId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], QuotationsController.prototype, "list", null);
 __decorate([

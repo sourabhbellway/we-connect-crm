@@ -34,12 +34,16 @@ export class QuotationsController {
     @Query('limit') limit?: string,
     @Query('search') search?: string,
     @Query('status') status?: string,
+    @Query('entityType') entityType?: string,
+    @Query('entityId') entityId?: string,
   ) {
     return this.service.list({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
       search,
       status,
+      entityType,
+      entityId,
     });
   }
 

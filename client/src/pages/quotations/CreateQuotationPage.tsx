@@ -374,7 +374,7 @@ const CreateQuotationPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      <div className="container-grid py-6">
+      <div className="mx-auto px-6 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Create Quotation</h1>

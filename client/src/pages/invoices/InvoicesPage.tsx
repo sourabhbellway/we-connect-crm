@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Receipt, Plus, Eye, Download, Filter, Search, Edit, Trash2, Send, DollarSign } from 'lucide-react';
 import { Button, Card } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
+import apiClient from '../../services/apiClient';
+import { toast } from 'react-toastify';
 
 interface Invoice {
-  id: string;
+  id: string | number;
   invoiceNumber: string;
   title: string;
-  totalAmount: number;
-  paidAmount: number;
+  totalAmount: number | string;
+  paidAmount?: number | string;
   currency: string;
   status: 'DRAFT' | 'SENT' | 'VIEWED' | 'PAID' | 'PARTIALLY_PAID' | 'OVERDUE' | 'CANCELLED' | 'REFUNDED';
   dueDate?: string;
@@ -23,63 +25,54 @@ interface Invoice {
 const InvoicesPage: React.FC = () => {
   const { hasPermission } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   useEffect(() => {
-    // TODO: Fetch invoices from API
-    // Mock data for now
-    setInvoices([
-      {
-        id: '1',
-        invoiceNumber: 'INV-2025-001',
-        title: 'Website Development - Phase 1',
-        totalAmount: 7500,
-        paidAmount: 7500,
-        currency: 'USD',
-        status: 'PAID',
-        dueDate: '2025-02-15',
-        createdAt: '2025-01-15',
-        customerName: 'Acme Corporation',
-        customerEmail: 'contact@acme.com',
-        relatedTo: 'Deal #234',
-        relatedType: 'deal'
-      },
-      {
-        id: '2',
-        invoiceNumber: 'INV-2025-002',
-        title: 'Mobile App Development - Milestone 1',
-        totalAmount: 12500,
-        paidAmount: 5000,
-        currency: 'USD',
-        status: 'PARTIALLY_PAID',
-        dueDate: '2025-02-28',
-        createdAt: '2025-01-20',
-        customerName: 'Tech Solutions Inc',
-        customerEmail: 'info@techsolutions.com',
-        relatedTo: 'Deal #567',
-        relatedType: 'deal'
-      },
-      {
-        id: '3',
-        invoiceNumber: 'INV-2025-003',
-        title: 'Consulting Services - January',
-        totalAmount: 3500,
-        paidAmount: 0,
-        currency: 'USD',
-        status: 'SENT',
-        dueDate: '2025-02-10',
-        createdAt: '2025-01-25',
-        customerName: 'Global Enterprises',
-        customerEmail: 'billing@globalent.com',
-        relatedTo: 'Contact #890',
-        relatedType: 'contact'
+    fetchInvoices();
+  }, [searchQuery, statusFilter]);
+
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get('/invoices', {
+        params: {
+          search: searchQuery || undefined,
+          status: statusFilter !== 'ALL' ? statusFilter : undefined,
+        }
+      });
+      if (response.data.success) {
+        const data = response.data.data || {};
+        const items = Array.isArray(data) ? data : (data.items || []);
+        // Map API response to Invoice interface
+        const mappedInvoices = items.map((item: any) => ({
+          id: item.id,
+          invoiceNumber: item.invoiceNumber,
+          title: item.title,
+          totalAmount: Number(item.totalAmount) || 0,
+          paidAmount: Number(item.paidAmount) || 0,
+          currency: item.currency || 'USD',
+          status: item.status,
+          dueDate: item.dueDate,
+          createdAt: item.createdAt,
+          customerName: item.lead ? `${item.lead.firstName || ''} ${item.lead.lastName || ''}`.trim() || item.lead.company : undefined,
+          customerEmail: item.lead?.email,
+          relatedTo: item.deal ? `Deal #${item.deal.id}` : item.lead ? `Lead #${item.lead.id}` : undefined,
+          relatedType: item.dealId ? 'deal' : item.leadId ? 'lead' : undefined,
+        }));
+        setInvoices(mappedInvoices);
       }
-    ]);
-    setLoading(false);
-  }, []);
+    } catch (error: any) {
+      console.error('Error fetching invoices:', error);
+      toast.error(error?.response?.data?.message || 'Failed to fetch invoices');
+      setInvoices([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -112,8 +105,8 @@ const InvoicesPage: React.FC = () => {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="mx-auto px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -126,7 +119,18 @@ const InvoicesPage: React.FC = () => {
             </p>
           </div>
           {hasPermission('deal.create') && (
-            <Button className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow">
+            <Button 
+              className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
+              onClick={() => {
+                const entityType = searchParams.get('entityType');
+                const entityId = searchParams.get('entityId');
+                if (entityType && entityId) {
+                  navigate(`/invoices/new?entityType=${entityType}&entityId=${entityId}`);
+                } else {
+                  navigate('/invoices/new');
+                }
+              }}
+            >
               <Plus size={20} />
               Create Invoice
             </Button>
@@ -188,7 +192,7 @@ const InvoicesPage: React.FC = () => {
           <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
             <div className="text-blue-600 dark:text-blue-400 text-sm font-medium">Total Revenue</div>
             <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
-              ${invoices.reduce((sum, inv) => sum + inv.paidAmount, 0).toLocaleString()}
+              ${invoices.reduce((sum, inv) => sum + (Number(inv.paidAmount) || 0), 0).toLocaleString()}
             </div>
           </Card>
         </div>
@@ -207,7 +211,7 @@ const InvoicesPage: React.FC = () => {
                   : 'Create your first invoice to get started'}
               </p>
               {hasPermission('deal.create') && (
-                <Button>Create Invoice</Button>
+                <Button onClick={() => navigate('/invoices/new')}>Create Invoice</Button>
               )}
             </Card>
           ) : (
@@ -253,12 +257,12 @@ const InvoicesPage: React.FC = () => {
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                             <span>Payment Progress</span>
-                            <span>${invoice.paidAmount.toLocaleString()} / ${invoice.totalAmount.toLocaleString()}</span>
+                            <span>${(Number(invoice.paidAmount) || 0).toLocaleString()} / ${Number(invoice.totalAmount).toLocaleString()}</span>
                           </div>
                           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                             <div 
                               className="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${(invoice.paidAmount / invoice.totalAmount) * 100}%` }}
+                              style={{ width: `${((Number(invoice.paidAmount) || 0) / Number(invoice.totalAmount)) * 100}%` }}
                             />
                           </div>
                         </div>
@@ -268,11 +272,11 @@ const InvoicesPage: React.FC = () => {
                   
                   <div className="text-right ml-6">
                     <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                      {invoice.currency} ${invoice.totalAmount.toLocaleString()}
+                      {invoice.currency} ${Number(invoice.totalAmount).toLocaleString()}
                     </div>
                     {invoice.status === 'PARTIALLY_PAID' && (
                       <div className="text-sm text-yellow-600 dark:text-yellow-400 mb-3 font-medium">
-                        ${invoice.paidAmount.toLocaleString()} paid
+                        ${(Number(invoice.paidAmount) || 0).toLocaleString()} paid
                       </div>
                     )}
                     {invoice.status === 'PAID' && (
@@ -283,21 +287,87 @@ const InvoicesPage: React.FC = () => {
                     )}
                     
                     <div className="flex items-center gap-2 mt-3">
-                      <Button size="SM" variant="GHOST" title="View">
+                      <Button 
+                        size="SM" 
+                        variant="GHOST" 
+                        title="View"
+                        onClick={async () => {
+                          try {
+                            const res = await apiClient.get(`/invoices/${invoice.id}/pdf/preview`, { responseType: 'blob' });
+                            const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                            window.open(url, '_blank');
+                          } catch (error: any) {
+                            toast.error(error?.response?.data?.message || 'Failed to preview invoice');
+                          }
+                        }}
+                      >
                         <Eye size={16} />
                       </Button>
-                      <Button size="SM" variant="GHOST" title="Edit">
+                      <Button 
+                        size="SM" 
+                        variant="GHOST" 
+                        title="Edit"
+                        onClick={() => navigate(`/invoices/edit/${invoice.id}`)}
+                      >
                         <Edit size={16} />
                       </Button>
-                      <Button size="SM" variant="GHOST" title="Download">
+                      <Button 
+                        size="SM" 
+                        variant="GHOST" 
+                        title="Download"
+                        onClick={async () => {
+                          try {
+                            const res = await apiClient.get(`/invoices/${invoice.id}/pdf/download`, { responseType: 'blob' });
+                            const url = URL.createObjectURL(new Blob([res.data]));
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+                            a.click();
+                            toast.success('Invoice downloaded successfully');
+                          } catch (error: any) {
+                            toast.error(error?.response?.data?.message || 'Failed to download invoice');
+                          }
+                        }}
+                      >
                         <Download size={16} />
                       </Button>
                       {invoice.status === 'DRAFT' && (
-                        <Button size="SM" variant="PRIMARY" className="ml-2" title="Send">
+                        <Button 
+                          size="SM" 
+                          variant="PRIMARY" 
+                          className="ml-2" 
+                          title="Send"
+                          onClick={async () => {
+                            try {
+                              await apiClient.put(`/invoices/${invoice.id}/send`);
+                              toast.success('Invoice sent successfully');
+                              fetchInvoices();
+                            } catch (error: any) {
+                              toast.error(error?.response?.data?.message || 'Failed to send invoice');
+                            }
+                          }}
+                        >
                           <Send size={16} />
                         </Button>
                       )}
-                      <Button size="SM" variant="GHOST" className="text-red-600 hover:text-red-700" title="Delete">
+                      <Button 
+                        size="SM" 
+                        variant="GHOST" 
+                        className="text-red-600 hover:text-red-700" 
+                        title="Delete"
+                        onClick={async () => {
+                          if (!window.confirm('Are you sure you want to delete this invoice?')) {
+                            return;
+                          }
+                          try {
+                            await apiClient.delete(`/invoices/${invoice.id}`);
+                            toast.success('Invoice deleted successfully');
+                            fetchInvoices();
+                          } catch (error: any) {
+                            toast.error(error?.response?.data?.message || 'Failed to delete invoice');
+                          }
+                        }}
+                      >
                         <Trash2 size={16} />
                       </Button>
                     </div>

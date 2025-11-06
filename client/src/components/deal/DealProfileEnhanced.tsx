@@ -3,13 +3,15 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, DollarSign, Calendar, User, Building, TrendingUp, Edit, Trash2, Tag, Target,
   Phone, Mail, MessageSquare, Clock, CheckCircle, FileText, CreditCard, Bell, Plus,
-  Activity, Users, BarChart3, Settings, Filter, Download, Eye
+  Activity, Users, BarChart3, Settings, Filter, Download, Eye, RotateCcw
 } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { dealService } from '../../services/dealService';
+import { leadService } from '../../services/leadService';
 import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { STORAGE_KEYS } from '../../constants';
 import ActivityTimeline from '../shared/ActivityTimeline';
 import TaskManager from '../shared/TaskManager';
 import CommunicationCenter from '../shared/CommunicationCenter';
@@ -69,6 +71,7 @@ const DealProfileEnhanced: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUndoingConversion, setIsUndoingConversion] = useState(false);
   
   // Dynamic data states
   const [activities, setActivities] = useState<any[]>([]);
@@ -192,6 +195,35 @@ const DealProfileEnhanced: React.FC = () => {
     }
   };
 
+  const handleUndoConversion = async () => {
+    if (!deal?.leadId) {
+      toast.error('This deal is not linked to a lead');
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to undo the lead conversion? This will revert the lead to its previous status and delete this deal.')) {
+      return;
+    }
+
+    try {
+      setIsUndoingConversion(true);
+      const response = await leadService.undoConversion(parseInt(deal.leadId));
+      
+      if (response.success) {
+        toast.success('Lead conversion undone successfully');
+        // Navigate to the lead profile
+        navigate(`/leads/${deal.leadId}`);
+      } else {
+        toast.error(response.message || 'Failed to undo conversion');
+      }
+    } catch (error: any) {
+      console.error('Failed to undo conversion:', error);
+      toast.error(error?.response?.data?.message || 'Failed to undo conversion');
+    } finally {
+      setIsUndoingConversion(false);
+    }
+  };
+
   const getStageColor = (stage: string) => {
     const stages = getDealStages();
     const stageData = stages.find(s => s.name === stage);
@@ -212,7 +244,7 @@ const DealProfileEnhanced: React.FC = () => {
   const fetchActivities = async () => {
     try {
       setActivitiesLoading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       const response = await fetch(`/api/activities?entityType=deal&entityId=${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -234,7 +266,7 @@ const DealProfileEnhanced: React.FC = () => {
   const fetchTasks = async () => {
     try {
       setTasksLoading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       const response = await fetch(`/api/tasks?entityType=deal&entityId=${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -256,7 +288,7 @@ const DealProfileEnhanced: React.FC = () => {
   const fetchCommunications = async () => {
     try {
       setCommunicationsLoading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       
       // Fetch communications and call logs in parallel
       const [commResponse, callsResponse] = await Promise.all([
@@ -287,7 +319,7 @@ const DealProfileEnhanced: React.FC = () => {
   const fetchQuotations = async () => {
     try {
       setQuotationsLoading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       
       // Fetch quotations and invoices in parallel
       const [quotesResponse, invoicesResponse] = await Promise.all([
@@ -318,7 +350,7 @@ const DealProfileEnhanced: React.FC = () => {
   const fetchPayments = async () => {
     try {
       setPaymentsLoading(true);
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       const response = await fetch(`/api/payments?entityType=deal&entityId=${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -339,7 +371,7 @@ const DealProfileEnhanced: React.FC = () => {
   
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       const response = await fetch(`/api/notifications?entityType=deal&entityId=${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -406,6 +438,17 @@ const DealProfileEnhanced: React.FC = () => {
           </Link>
         </div>
         <div className="flex space-x-3">
+          {deal.leadId && (
+            <Button 
+              variant="OUTLINE"
+              onClick={handleUndoConversion}
+              disabled={isUndoingConversion}
+              className="flex items-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20"
+            >
+              <RotateCcw size={16} />
+              {isUndoingConversion ? 'Undoing...' : 'Undo Conversion'}
+            </Button>
+          )}
           {hasPermission('deal.update') && (
             <Button 
               variant="OUTLINE"

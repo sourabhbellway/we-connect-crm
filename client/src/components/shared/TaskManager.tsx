@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  CheckCircle, Circle, Clock, User, Calendar, Plus, Filter, Search, 
-  AlertCircle, Flag, Edit, Trash2, MoreVertical, CalendarDays,
+  CheckCircle, Circle, Clock, User, Calendar, Filter, Search, 
+  AlertCircle, Flag, CalendarDays,
   Target, TrendingUp
 } from 'lucide-react';
-import { Button, Card, Input } from '../ui';
+import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
-import { tasksService, TaskPayload } from '../../services/tasksService';
-import { userService } from '../../services/userService';
-import { STORAGE_KEYS } from '../../constants';
+import { tasksService } from '../../services/tasksService';
 
 interface Task {
   id: string;
@@ -47,28 +45,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const { user, hasPermission } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [isLoading, setIsLoading] = useState(false);
-  const [showNewTask, setShowNewTask] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>([]);
-  const [newTask, setNewTask] = useState<{ title: string; description: string; dueDate: string; priority: 'LOW'|'MEDIUM'|'HIGH'|'URGENT'; assignedTo?: number | '' }>(
-    { title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' }
-  );
 
-// Load users and tasks
-  useEffect(() => {
-    // Fetch users (assignees)
-    (async () => {
-      try {
-        const resp = await userService.getUsers({ page: 1, limit: 100 });
-        const items = resp?.data?.users || resp?.data || resp?.users || [];
-        setUsers(items.map((u: any) => ({ id: u.id, firstName: u.firstName, lastName: u.lastName })));
-      } catch (e) {
-        // ignore
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     refresh();
@@ -239,88 +219,7 @@ return (
             )}
           </div>
         </div>
-        
-        {hasPermission(`${entityType}.create`) && (
-          <Button
-            onClick={() => setShowNewTask(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus size={16} />
-            New Task
-          </Button>
-        )}
       </div>
-
-      {/* New Task Modal */}
-      {showNewTask && (
-        <div className="border rounded-lg p-4 bg-white dark:bg-gray-800">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400">Title</label>
-              <Input value={newTask.title} onChange={(e: any) => setNewTask({ ...newTask, title: e.target.value })} />
-            </div>
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400">Due Date</label>
-              <input type="date" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700" />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-sm text-gray-600 dark:text-gray-400">Description</label>
-              <textarea value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700" rows={3} />
-            </div>
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400">Priority</label>
-              <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as any })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700">
-                <option value="URGENT">Urgent</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm text-gray-600 dark:text-gray-400">Assign To</label>
-              <select value={newTask.assignedTo ?? ''} onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value ? Number(e.target.value) : '' })} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700">
-                <option value="">Unassigned</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="OUTLINE" onClick={() => setShowNewTask(false)}>Cancel</Button>
-            <Button onClick={async () => {
-              if (!newTask.title.trim()) { toast.error('Title is required'); return; }
-              try {
-const payload: TaskPayload = {
-                  title: newTask.title,
-                  description: newTask.description || undefined,
-                  priority: newTask.priority,
-                  dueDate: newTask.dueDate || undefined,
-                  assignedTo: newTask.assignedTo === '' ? undefined : (newTask.assignedTo as number),
-                  createdBy: Number(localStorage.getItem('userId') || '1'),
-                  ...(entityType === 'lead' ? { leadId: Number(entityId) } : {}),
-                  ...(entityType === 'deal' ? { dealId: Number(entityId) } : {}),
-                  ...(entityType === 'contact' ? { contactId: Number(entityId) } : {}),
-                };
-const res = await tasksService.create(payload);
-                const task = res?.data?.task || res?.task;
-                const mapped = {
-                  ...task,
-                  id: String(task.id),
-                  assignedTo: task.assignedUser ? { id: String(task.assignedUser.id), firstName: task.assignedUser.firstName, lastName: task.assignedUser.lastName } : undefined,
-                  createdBy: task.createdByUser ? { id: String(task.createdByUser.id), firstName: task.createdByUser.firstName, lastName: task.createdByUser.lastName } : undefined,
-                } as any;
-                setTasks(prev => [mapped, ...prev]);
-                setShowNewTask(false);
-                setNewTask({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
-                toast.success('Task created');
-              } catch (e: any) {
-                toast.error(e?.response?.data?.message || 'Failed to create task');
-              }
-            }}>Create Task</Button>
-          </div>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -397,11 +296,6 @@ const res = await tasksService.create(payload);
                 : 'Create your first task to start organizing your work.'
               }
             </p>
-            {hasPermission(`${entityType}.create`) && (
-              <Button onClick={() => setShowNewTask(true)}>
-                Create First Task
-              </Button>
-            )}
           </Card>
         ) : (
           filteredTasks.map((task) => (
@@ -475,36 +369,6 @@ const res = await tasksService.create(payload);
                   </div>
                 </div>
 
-                {/* Actions */}
-                {hasPermission(`${entityType}.update`) && (
-                  <div className="flex items-center space-x-2 ml-4">
-<Button size="SM" variant="GHOST" onClick={async () => {
-                      // Quick assign to self
-                      try {
-                        const uid = Number(localStorage.getItem('userId'));
-                        const res = await tasksService.update(Number(task.id), { assignedTo: uid });
-                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, assignedTo: { id: String(uid), firstName: user?.firstName || 'You', lastName: user?.lastName || '' } as any } : t));
-                        toast.success('Assigned to you');
-                      } catch (e: any) {
-                        toast.error('Failed to assign');
-                      }
-                    }}>
-                      <Edit size={14} />
-                    </Button>
-                    <Button size="SM" variant="GHOST" onClick={async () => {
-                      if (!confirm('Delete this task?')) return;
-                      try {
-                        await tasksService.remove(Number(task.id));
-                        setTasks(prev => prev.filter(t => t.id !== task.id));
-                        toast.success('Task deleted');
-                      } catch (e: any) {
-                        toast.error('Failed to delete task');
-                      }
-                    }}>
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
-                )}
               </div>
             </Card>
           ))

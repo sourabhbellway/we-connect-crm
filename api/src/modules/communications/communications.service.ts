@@ -13,6 +13,27 @@ export class CommunicationsService {
   async listLeadComms(leadId: number) {
     const items = await this.prisma.leadCommunication.findMany({
       where: { leadId },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return { success: true, data: { items } };
+  }
+
+  async listMeetings(leadId: number) {
+    const items = await this.prisma.leadCommunication.findMany({
+      where: { 
+        leadId,
+        type: 'MEETING',
+      },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
     return { success: true, data: { items } };
@@ -32,7 +53,43 @@ export class CommunicationsService {
         scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
         completedAt: dto.completedAt ? new Date(dto.completedAt) : null,
       },
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        lead: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+      },
     });
+
+    // Create activity for meeting/communication
+    if (dto.type === 'MEETING' && dto.scheduledAt) {
+      try {
+        await this.prisma.activity.create({
+          data: {
+            title: 'Meeting scheduled',
+            description: dto.subject 
+              ? `Meeting "${dto.subject}" scheduled for ${new Date(dto.scheduledAt).toLocaleString()}`
+              : `Meeting scheduled for ${new Date(dto.scheduledAt).toLocaleString()}`,
+            type: 'COMMUNICATION_LOGGED' as any,
+            icon: 'Calendar',
+            iconColor: '#3B82F6',
+            metadata: {
+              leadId: dto.leadId,
+              communicationId: comm.id,
+              scheduledAt: dto.scheduledAt,
+              type: 'MEETING',
+            } as any,
+            userId: dto.userId,
+            leadId: dto.leadId,
+          },
+        });
+      } catch (error) {
+        console.error('Error creating meeting activity:', error);
+      }
+    }
+
     return { success: true, data: { communication: comm } };
   }
 

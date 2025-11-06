@@ -10,13 +10,20 @@ export declare class CommunicationsService {
     listLeadComms(leadId: number): Promise<{
         success: boolean;
         data: {
-            items: {
+            items: ({
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
                 leadId: number;
+                type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
                 subject: string | null;
                 content: string;
@@ -24,19 +31,59 @@ export declare class CommunicationsService {
                 duration: number | null;
                 outcome: string | null;
                 scheduledAt: Date | null;
-            }[];
+            })[];
+        };
+    }>;
+    listMeetings(leadId: number): Promise<{
+        success: boolean;
+        data: {
+            items: ({
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: number;
+                leadId: number;
+                type: import("@prisma/client").$Enums.CommunicationType;
+                completedAt: Date | null;
+                subject: string | null;
+                content: string;
+                direction: string;
+                duration: number | null;
+                outcome: string | null;
+                scheduledAt: Date | null;
+            })[];
         };
     }>;
     createLeadComm(dto: CreateLeadCommunicationDto): Promise<{
         success: boolean;
         data: {
             communication: {
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
                 leadId: number;
+                type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
                 subject: string | null;
                 content: string;
@@ -200,9 +247,9 @@ export declare class CommunicationsService {
                 updatedAt: Date;
                 userId: number;
                 status: import("@prisma/client").$Enums.MessageStatus;
+                leadId: number;
                 type: import("@prisma/client").$Enums.TemplateType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
-                leadId: number;
                 sentAt: Date | null;
                 subject: string | null;
                 content: string;
