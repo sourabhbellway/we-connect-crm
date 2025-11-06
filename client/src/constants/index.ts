@@ -27,11 +27,6 @@ export const API_ENDPOINTS = {
     STATS: '/leads/stats',
     SEARCH: '/leads/search',
   },
-  CONTACTS: {
-    BASE: '/contacts',
-    STATS: '/contacts/stats',
-    SEARCH: '/contacts/search',
-  },
   DEALS: {
     BASE: '/deals',
     STATS: '/deals/stats',
@@ -140,12 +135,6 @@ export const PERMISSIONS = {
   BUSINESS_SETTINGS: {
     READ: 'business_settings.read',
     UPDATE: 'business_settings.update',
-  },
-  CONTACT: {
-    CREATE: 'contact.create',
-    READ: 'contact.read',
-    UPDATE: 'contact.update',
-    DELETE: 'contact.delete',
   },
   DEAL: {
     CREATE: 'deal.create',

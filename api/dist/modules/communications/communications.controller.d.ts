@@ -16,8 +16,8 @@ export declare class CommunicationsController {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                leadId: number;
                 type: import("@prisma/client").$Enums.CommunicationType;
+                leadId: number;
                 completedAt: Date | null;
                 subject: string | null;
                 content: string;
@@ -169,10 +169,10 @@ export declare class CommunicationsController {
                 updatedAt: Date;
                 userId: number;
                 status: import("@prisma/client").$Enums.MessageStatus;
-                leadId: number;
                 type: import("@prisma/client").$Enums.TemplateType;
-                sentAt: Date | null;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                leadId: number;
+                sentAt: Date | null;
                 subject: string | null;
                 content: string;
                 templateId: number | null;
@@ -199,8 +199,8 @@ export declare class CommunicationsController {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                leadId: number;
                 type: import("@prisma/client").$Enums.CommunicationType;
+                leadId: number;
                 completedAt: Date | null;
                 subject: string | null;
                 content: string;

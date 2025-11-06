@@ -92,4 +92,17 @@ export const activityService = {
       throw error;
     }
   },
+
+  // Get activities by lead ID
+  getActivitiesByLeadId: async (leadId: number, page = 1, limit = 50) => {
+    try {
+      const response = await createAuthInstance().get(
+        `/activities/lead/${leadId}?page=${page}&limit=${limit}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching lead activities:", error);
+      throw error;
+    }
+  },
 };

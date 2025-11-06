@@ -44,8 +44,8 @@ export declare class DealsController {
                 probability: number;
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
-                actualCloseDate: Date | null;
                 leadId: number | null;
+                actualCloseDate: Date | null;
             };
         };
     }>;
@@ -68,8 +68,8 @@ export declare class DealsController {
                 probability: number;
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
-                actualCloseDate: Date | null;
                 leadId: number | null;
+                actualCloseDate: Date | null;
             };
         };
     }>;

@@ -153,6 +153,7 @@ export class TasksService {
           dueDate: task.dueDate,
         } as any,
         userId: dto.createdBy,
+        leadId: task.leadId ?? undefined,
       },
     });
 
@@ -207,6 +208,7 @@ export class TasksService {
           assignedTo: task.assignedTo,
         } as any,
         userId: task.createdBy,
+        leadId: task.leadId ?? undefined,
       },
     });
 

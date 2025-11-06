@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, User, Users, DollarSign } from 'lucide-react';
 import { leadService, Lead } from '../services/leadService';
-import { contactService, Contact } from '../services/contactService';
 import { dealService, Deal } from '../services/dealService';
 
 const SearchResults: React.FC = () => {
@@ -10,7 +9,6 @@ const SearchResults: React.FC = () => {
   const q = (params.get('q') || '').trim();
   const [loading, setLoading] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [contacts, setContacts] = useState<Contact[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
 
   useEffect(() => {
@@ -19,18 +17,15 @@ const SearchResults: React.FC = () => {
       setLoading(true);
       try {
         const leadPromise = q ? leadService.getLeads({ page: 1, limit: 10, search: q }) : Promise.resolve({ data: { leads: [] } });
-        const contactPromise = q ? contactService.getContacts(1, 10, q) : Promise.resolve({ data: { contacts: [] } } as any);
         const dealPromise = q ? dealService.getDeals(1, 10, q) : Promise.resolve({ data: { deals: [] } });
 
-        const [lr, cr, dr] = await Promise.all([
+        const [lr, dr] = await Promise.all([
           leadPromise.catch(() => ({ data: { leads: [] } })),
-          contactPromise.catch(() => ({ data: { contacts: [] } } as any)),
           dealPromise.catch(() => ({ data: { deals: [] } })),
         ]);
 
         if (!active) return;
         setLeads((lr as any)?.data?.leads ?? (lr as any)?.data?.items ?? []);
-        setContacts((cr as any)?.data?.contacts ?? []);
         setDeals((dr as any)?.data?.deals ?? []);
       } finally {
         if (active) setLoading(false);
@@ -57,7 +52,7 @@ const SearchResults: React.FC = () => {
       )}
 
       {!loading && q && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Leads */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-800 flex items-center gap-2">
@@ -76,28 +71,6 @@ const SearchResults: React.FC = () => {
               ))}
               {leads.length === 0 && (
                 <li className="px-4 py-6 text-sm text-gray-500">No leads found</li>
-              )}
-            </ul>
-          </div>
-
-          {/* Contacts */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-800 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-800 flex items-center gap-2">
-              <Users className="w-4 h-4 text-gray-500" />
-              <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">Contacts</h2>
-              <span className="ml-auto text-xs text-gray-500">{contacts.length}</span>
-            </div>
-            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
-              {contacts.map(c => (
-                <li key={c.id}>
-                  <Link to={`/contacts/${c.id}`} className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{[c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || `Contact #${c.id}`}</div>
-                    <div className="text-xs text-gray-500">{c.email || c.phone || ''}</div>
-                  </Link>
-                </li>
-              ))}
-              {contacts.length === 0 && (
-                <li className="px-4 py-6 text-sm text-gray-500">No contacts found</li>
               )}
             </ul>
           </div>

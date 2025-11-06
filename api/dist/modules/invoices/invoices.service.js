@@ -103,6 +103,31 @@ let InvoicesService = class InvoicesService {
             },
             include: { items: true },
         });
+        if (invoice.leadId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'Invoice created',
+                        description: `Invoice "${invoice.invoiceNumber}" created with total amount ${invoice.currency} ${Number(invoice.totalAmount).toFixed(2)}`,
+                        type: 'COMMUNICATION_LOGGED',
+                        icon: 'FileText',
+                        iconColor: '#8B5CF6',
+                        metadata: {
+                            invoiceId: invoice.id,
+                            invoiceNumber: invoice.invoiceNumber,
+                            totalAmount: invoice.totalAmount,
+                            currency: invoice.currency,
+                            status: invoice.status,
+                        },
+                        userId: invoice.createdBy,
+                        leadId: invoice.leadId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating invoice activity:', error);
+            }
+        }
         return { success: true, data: { invoice } };
     }
     async update(id, dto) {

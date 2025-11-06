@@ -52,8 +52,8 @@ export declare class InvoicesService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                description: string | null;
                 notes: string | null;
+                description: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
@@ -122,8 +122,8 @@ export declare class InvoicesService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                description: string | null;
                 notes: string | null;
+                description: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
@@ -174,8 +174,8 @@ export declare class InvoicesService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                description: string | null;
                 notes: string | null;
+                description: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
@@ -224,8 +224,8 @@ export declare class InvoicesService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                description: string | null;
                 notes: string | null;
+                description: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
@@ -307,8 +307,8 @@ export declare class InvoicesService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                description: string | null;
                 notes: string | null;
+                description: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.InvoiceStatus;

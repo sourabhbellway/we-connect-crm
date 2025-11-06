@@ -57,5 +57,9 @@ export declare class FilesController {
     download(id: string, res: any, disposition?: 'inline' | 'attachment'): Promise<any>;
     remove(id: string): Promise<{
         success: boolean;
+        message: string;
+    } | {
+        success: boolean;
+        message?: undefined;
     }>;
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
 
@@ -35,22 +35,52 @@ export class ActivitiesService {
     page?: number;
     limit?: number;
   }) {
-    const [users, leads] = await Promise.all([
-      this.prisma.user.findMany({
-        where: { deletedAt: { not: null } },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { deletedAt: 'desc' },
-      }),
-      this.prisma.lead.findMany({
-        where: { deletedAt: { not: null } },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { deletedAt: 'desc' },
-      }),
-    ]);
-    const total = users.length + leads.length;
-    return { success: true, data: { users, leads, total, page, limit } };
+    try {
+      const [users, leads, roles] = await Promise.all([
+        this.prisma.user.findMany({
+          where: { deletedAt: { not: null } },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { deletedAt: 'desc' },
+        }),
+        this.prisma.lead.findMany({
+          where: { deletedAt: { not: null } },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { deletedAt: 'desc' },
+        }),
+        this.prisma.role.findMany({
+          where: { deletedAt: { not: null } },
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { deletedAt: 'desc' },
+        }),
+      ]);
+      
+      const [usersTotal, leadsTotal, rolesTotal] = await Promise.all([
+        this.prisma.user.count({ where: { deletedAt: { not: null } } }),
+        this.prisma.lead.count({ where: { deletedAt: { not: null } } }),
+        this.prisma.role.count({ where: { deletedAt: { not: null } } }),
+      ]);
+      
+      return {
+        success: true,
+        data: {
+          users: { records: users, total: usersTotal, pages: Math.ceil(usersTotal / limit) },
+          leads: { records: leads, total: leadsTotal, pages: Math.ceil(leadsTotal / limit) },
+          roles: { records: roles, total: rolesTotal, pages: Math.ceil(rolesTotal / limit) },
+        },
+      };
+    } catch (error: any) {
+      console.error('Error in activities.getDeletedData:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: error?.message || 'Internal server error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async list({
@@ -111,6 +141,16 @@ export class ActivitiesService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' }, // Sabse pehle sabse recent activity
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
       }),
       this.prisma.activity.count({ where }),
     ]);

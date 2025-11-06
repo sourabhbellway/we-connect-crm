@@ -501,16 +501,7 @@ const DealProfile: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Contact</p>
                       <p className="text-gray-900 dark:text-white">
-                        {deal.contactId ? (
-                          <Link 
-                            to={`/contacts/${deal.contactId}`}
-                            className="hover:text-weconnect-red transition-colors"
-                          >
-                            {deal.contactName}
-                          </Link>
-                        ) : (
-                          deal.contactName
-                        )}
+                        {deal.contactName || '—'}
                       </p>
                     </div>
                   </div>

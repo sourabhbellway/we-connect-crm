@@ -103,6 +103,7 @@ model User {
   companyActivities      CompanyActivity[]         @relation("UserCompanyActivities")
   companyCommunications  CompanyCommunication[]    @relation("UserCompanyCommunications")
   companyFollowUps       CompanyFollowUp[]         @relation("UserCompanyFollowUps")
+  notes                  Note[]                    @relation("UserNotes")
   
   deals                  Deal[]                    @relation("UserDeals")
   communications         LeadCommunication[]       @relation("UserCommunications")
@@ -230,6 +231,7 @@ model Lead {
   tasks                  Task[]                 @relation("LeadTasks")
   quotations             Quotation[]            @relation("LeadQuotations")
   invoices               Invoice[]              @relation("LeadInvoices")
+  leadNotes              Note[]                 @relation("LeadNotes")
   previousStatus     LeadStatus? // यह store करेगा कि convert होने से पहले status क्या था
   activities  Activity[] @relation("LeadActivities")
   convertedToDealId  Int?       
@@ -513,6 +515,23 @@ model Task {
   lead          Lead?        @relation("LeadTasks", fields: [leadId], references: [id], onDelete: Cascade)
 
   @@map("tasks")
+}
+
+model Note {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  isPinned    Boolean  @default(false)
+  leadId      Int
+  createdBy   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  
+  lead        Lead     @relation("LeadNotes", fields: [leadId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserNotes", fields: [createdBy], references: [id])
+
+  @@map("notes")
 }
 
 model LeadCommunication {
@@ -873,6 +892,16 @@ enum ActivityType {
   DEAL_UPDATED
   DEAL_WON
   DEAL_LOST
+  FILE_UPLOADED
+  FILE_DELETED
+  QUOTATION_CREATED
+  QUOTATION_UPDATED
+  QUOTATION_SENT
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_SENT
+  NOTE_ADDED
+  NOTE_UPDATED
 }
 
 enum LeadStatus {

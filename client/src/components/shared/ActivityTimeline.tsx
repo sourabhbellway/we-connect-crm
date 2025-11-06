@@ -40,7 +40,6 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
   const { user, hasPermission } = useAuth();
   const [activities, setActivities] = useState<Activity[]>(initialActivities);
   const [isLoading, setIsLoading] = useState(false);
-  const [showNewActivity, setShowNewActivity] = useState(false);
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -163,16 +162,6 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
             </select>
           </div>
         </div>
-        
-        {hasPermission(`${entityType}.create`) && (
-          <Button
-            onClick={() => setShowNewActivity(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus size={16} />
-            Add Activity
-          </Button>
-        )}
       </div>
 
       {/* Activities List */}
@@ -190,14 +179,9 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {searchTerm || filterType !== 'all' 
                   ? 'Try adjusting your search or filter criteria.'
-                  : 'Start tracking activities to build a comprehensive timeline.'
+                  : 'No activities found. Activities will appear here automatically as you interact with this lead.'
                 }
               </p>
-              {hasPermission(`${entityType}.create`) && (
-                <Button onClick={() => setShowNewActivity(true)}>
-                  Add First Activity
-                </Button>
-              )}
             </Card>
           ) : (
             filteredActivities.map((activity) => {
@@ -261,17 +245,6 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                             </div>
                           )}
                         </div>
-
-                        {hasPermission(`${entityType}.update`) && (
-                          <div className="flex items-center space-x-2 ml-4">
-                            <Button size="SM" variant="GHOST">
-                              <Edit size={14} />
-                            </Button>
-                            <Button size="SM" variant="GHOST">
-                              <MoreVertical size={14} />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </Card>
                   </div>

@@ -31,6 +31,7 @@ import { FilesModule } from './modules/files/files.module';
 import { ProposalTemplatesModule } from './modules/proposal-templates/proposal-templates.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { BulkImportModule } from './modules/bulk-import/bulk-import.module';
+import { NotesModule } from './modules/notes/notes.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -66,6 +67,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     ProposalTemplatesModule,
     IntegrationsModule,
     BulkImportModule,
+    NotesModule,
   ],
   controllers: [AppController],
   providers: [

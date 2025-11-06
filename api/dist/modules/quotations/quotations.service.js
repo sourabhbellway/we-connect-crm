@@ -132,6 +132,30 @@ let QuotationsService = class QuotationsService {
             data: { quotationNumber: number, terms: termsFinal },
             include: { items: true },
         });
+        if (quotation.leadId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'Quotation created',
+                        description: `Quotation "${quotation.quotationNumber}" created with total amount ${quotation.currency} ${Number(quotation.totalAmount).toFixed(2)}`,
+                        type: 'COMMUNICATION_LOGGED',
+                        icon: 'FileText',
+                        iconColor: '#10B981',
+                        metadata: {
+                            quotationId: quotation.id,
+                            quotationNumber: quotation.quotationNumber,
+                            totalAmount: quotation.totalAmount,
+                            currency: quotation.currency,
+                        },
+                        userId: quotation.createdBy,
+                        leadId: quotation.leadId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating quotation activity:', error);
+            }
+        }
         return { success: true, data: { quotation } };
     }
     async update(id, dto) {
@@ -152,6 +176,29 @@ let QuotationsService = class QuotationsService {
             },
             include: { items: true },
         });
+        if (quotation.leadId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'Quotation updated',
+                        description: `Quotation "${quotation.quotationNumber}" updated. Status: ${quotation.status}`,
+                        type: 'COMMUNICATION_LOGGED',
+                        icon: 'Edit',
+                        iconColor: '#F59E0B',
+                        metadata: {
+                            quotationId: quotation.id,
+                            quotationNumber: quotation.quotationNumber,
+                            status: quotation.status,
+                        },
+                        userId: quotation.createdBy,
+                        leadId: quotation.leadId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating quotation update activity:', error);
+            }
+        }
         return { success: true, data: { quotation } };
     }
     async remove(id) {

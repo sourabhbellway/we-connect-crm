@@ -70,67 +70,77 @@ let LeadsService = class LeadsService {
         };
     }
     async list({ page, limit, status, search, isDeleted, }) {
-        const pageNum = Math.max(1, Number(page) || 1);
-        const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
-        const where = {};
-        if (isDeleted === true) {
-            where.deletedAt = { not: null };
-        }
-        else {
-            where.deletedAt = null;
-        }
-        if (status && String(status).trim() !== '') {
-            const up = String(status).toUpperCase();
-            if (client_1.LeadStatus[up])
-                where.status = client_1.LeadStatus[up];
-        }
-        if (search && String(search).trim() !== '') {
-            const q = String(search).trim();
-            where.OR = [
-                { firstName: { contains: q, mode: 'insensitive' } },
-                { lastName: { contains: q, mode: 'insensitive' } },
-                { email: { contains: q, mode: 'insensitive' } },
-                { phone: { contains: q, mode: 'insensitive' } },
-                { company: { contains: q, mode: 'insensitive' } },
-                { position: { contains: q, mode: 'insensitive' } },
-                { industry: { contains: q, mode: 'insensitive' } },
-                { country: { contains: q, mode: 'insensitive' } },
-                { state: { contains: q, mode: 'insensitive' } },
-                { city: { contains: q, mode: 'insensitive' } },
-            ];
-        }
-        const [totalItems, rows] = await Promise.all([
-            this.prisma.lead.count({ where }),
-            this.prisma.lead.findMany({
-                where,
-                orderBy: { createdAt: 'desc' },
-                skip: (pageNum - 1) * pageSize,
-                take: pageSize,
-                include: {
-                    assignedUser: {
-                        select: { id: true, firstName: true, lastName: true, email: true },
+        try {
+            const pageNum = Math.max(1, Number(page) || 1);
+            const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
+            const where = {};
+            if (isDeleted === true) {
+                where.deletedAt = { not: null };
+            }
+            else {
+                where.deletedAt = null;
+            }
+            if (status && String(status).trim() !== '') {
+                const up = String(status).toUpperCase();
+                if (client_1.LeadStatus[up])
+                    where.status = client_1.LeadStatus[up];
+            }
+            if (search && String(search).trim() !== '') {
+                const q = String(search).trim();
+                where.OR = [
+                    { firstName: { contains: q, mode: 'insensitive' } },
+                    { lastName: { contains: q, mode: 'insensitive' } },
+                    { email: { contains: q, mode: 'insensitive' } },
+                    { phone: { contains: q, mode: 'insensitive' } },
+                    { company: { contains: q, mode: 'insensitive' } },
+                    { position: { contains: q, mode: 'insensitive' } },
+                    { industry: { contains: q, mode: 'insensitive' } },
+                    { country: { contains: q, mode: 'insensitive' } },
+                    { state: { contains: q, mode: 'insensitive' } },
+                    { city: { contains: q, mode: 'insensitive' } },
+                ];
+            }
+            const [totalItems, rows] = await Promise.all([
+                this.prisma.lead.count({ where }),
+                this.prisma.lead.findMany({
+                    where,
+                    orderBy: { createdAt: 'desc' },
+                    skip: (pageNum - 1) * pageSize,
+                    take: pageSize,
+                    include: {
+                        assignedUser: {
+                            select: { id: true, firstName: true, lastName: true, email: true },
+                        },
+                    },
+                }),
+            ]);
+            const leads = rows.map((r) => ({
+                ...r,
+                status: String(r.status || '').toLowerCase(),
+                priority: r.priority ? String(r.priority).toLowerCase() : undefined,
+            }));
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+            return {
+                success: true,
+                data: {
+                    leads,
+                    pagination: {
+                        totalItems,
+                        currentPage: pageNum,
+                        pageSize,
+                        totalPages,
                     },
                 },
-            }),
-        ]);
-        const leads = rows.map((r) => ({
-            ...r,
-            status: String(r.status || '').toLowerCase(),
-            priority: r.priority ? String(r.priority).toLowerCase() : undefined,
-        }));
-        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-        return {
-            success: true,
-            data: {
-                leads,
-                pagination: {
-                    totalItems,
-                    currentPage: pageNum,
-                    pageSize,
-                    totalPages,
-                },
-            },
-        };
+            };
+        }
+        catch (error) {
+            console.error('Error in leads.list:', error);
+            throw new common_1.HttpException({
+                success: false,
+                message: error?.message || 'Internal server error',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async getById(id) {
         const leadRow = await this.prisma.lead.findFirst({
@@ -229,6 +239,46 @@ let LeadsService = class LeadsService {
             where: { id },
             data: updateData,
         });
+        try {
+            const activityType = rest.status && lead.status !== updated.status
+                ? 'LEAD_STATUS_CHANGED'
+                : rest.assignedTo && lead.assignedTo !== updated.assignedTo
+                    ? 'LEAD_ASSIGNED'
+                    : 'LEAD_UPDATED';
+            let description = 'Lead updated';
+            if (rest.status && lead.status !== updated.status) {
+                description = `Lead status changed from ${lead.status} to ${updated.status}`;
+            }
+            else if (rest.priority && lead.priority !== updated.priority) {
+                description = `Lead priority changed to ${updated.priority}`;
+            }
+            else if (rest.assignedTo && lead.assignedTo !== updated.assignedTo) {
+                description = 'Lead assigned to user';
+            }
+            await this.prisma.activity.create({
+                data: {
+                    title: activityType === 'LEAD_STATUS_CHANGED' ? 'Status changed' : activityType === 'LEAD_ASSIGNED' ? 'Lead assigned' : 'Lead updated',
+                    description,
+                    type: activityType,
+                    icon: activityType === 'LEAD_STATUS_CHANGED' ? 'TrendingUp' : activityType === 'LEAD_ASSIGNED' ? 'User' : 'Edit',
+                    iconColor: activityType === 'LEAD_STATUS_CHANGED' ? '#10B981' : activityType === 'LEAD_ASSIGNED' ? '#3B82F6' : '#6B7280',
+                    metadata: {
+                        leadId: id,
+                        oldStatus: lead.status,
+                        newStatus: updated.status,
+                        oldPriority: lead.priority,
+                        newPriority: updated.priority,
+                        oldAssignedTo: lead.assignedTo,
+                        newAssignedTo: updated.assignedTo,
+                    },
+                    userId: lead.assignedTo || 1,
+                    leadId: id,
+                },
+            });
+        }
+        catch (error) {
+            console.error('Error creating lead update activity:', error);
+        }
         const normalized = {
             ...updated,
             status: String(updated.status || '').toLowerCase(),

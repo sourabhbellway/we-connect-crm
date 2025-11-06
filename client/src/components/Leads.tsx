@@ -87,7 +87,7 @@ const getStatusColor = (status: string) => {
 const Leads: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { refreshLeadsCount, refreshContactsCount, refreshDealsCount } = useCounts();
+  const { refreshLeadsCount, refreshDealsCount } = useCounts();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -494,7 +494,6 @@ const Leads: React.FC = () => {
       fetchLeads();
       await Promise.all([
         refreshLeadsCount(),
-        refreshContactsCount(),
         refreshDealsCount()
       ]);
     } catch (err: any) {

@@ -49,9 +49,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -94,12 +94,12 @@ export declare class QuotationsService {
                     updatedAt: Date;
                     companyId: number | null;
                     deletedAt: Date | null;
+                    notes: string | null;
                     phone: string | null;
                     company: string | null;
                     position: string | null;
                     address: string | null;
                     website: string | null;
-                    notes: string | null;
                     currency: string | null;
                     status: import("@prisma/client").$Enums.LeadStatus;
                     companySize: number | null;
@@ -129,11 +129,11 @@ export declare class QuotationsService {
                     createdAt: Date;
                     updatedAt: Date;
                     deletedAt: Date | null;
+                    notes: string | null;
                     description: string | null;
                     phone: string | null;
                     address: string | null;
                     website: string | null;
-                    notes: string | null;
                     domain: string | null;
                     slug: string | null;
                     industryId: number | null;
@@ -174,8 +174,8 @@ export declare class QuotationsService {
                     probability: number;
                     expectedCloseDate: Date | null;
                     assignedTo: number | null;
-                    actualCloseDate: Date | null;
                     leadId: number | null;
+                    actualCloseDate: Date | null;
                 } | null;
                 items: {
                     name: string;
@@ -200,9 +200,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -252,9 +252,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -302,9 +302,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -385,9 +385,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -417,9 +417,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -449,9 +449,9 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
+                notes: string | null;
                 description: string | null;
                 expiresAt: Date | null;
-                notes: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.QuotationStatus;
@@ -507,8 +507,8 @@ export declare class QuotationsService {
                 updatedAt: Date;
                 companyId: number | null;
                 deletedAt: Date | null;
-                description: string | null;
                 notes: string | null;
+                description: string | null;
                 title: string;
                 currency: string;
                 status: import("@prisma/client").$Enums.InvoiceStatus;

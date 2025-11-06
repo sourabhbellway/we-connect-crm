@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Search as SearchIcon, User, Users, DollarSign } from 'lucide-react';
 import { useDebounce } from '../hooks/useDebounce';
 import { leadService, Lead } from '../services/leadService';
-import { contactService, Contact } from '../services/contactService';
 import { dealService, Deal } from '../services/dealService';
 
 interface ResultItem {
   id: number | string;
-  type: 'lead' | 'contact' | 'deal';
+  type: 'lead' | 'deal';
   title: string;
   subtitle?: string;
   path: string;
@@ -47,9 +46,8 @@ const SimpleHeaderSearch: React.FC = () => {
       }
       setLoading(true);
       try {
-        const [lr, cr, dr] = await Promise.all([
+        const [lr, dr] = await Promise.all([
           leadService.getLeads({ page: 1, limit: 5, search: term }).catch(() => ({ data: { leads: [] } })),
-          contactService.getContacts(1, 5, term).catch(() => ({ data: { contacts: [] } } as any)),
           dealService.getDeals(1, 5, term).catch(() => ({ data: { deals: [] } })),
         ]);
 
@@ -62,14 +60,6 @@ const SimpleHeaderSearch: React.FC = () => {
           path: `/leads/${l.id}`,
           icon: <User className="w-4 h-4" />,
         }));
-        const contactItems: ResultItem[] = ((cr as any)?.data?.contacts ?? []).map((c: Contact) => ({
-          id: c.id,
-          type: 'contact',
-          title: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || `Contact #${c.id}`,
-          subtitle: c.email || c.phone || '',
-          path: `/contacts/${c.id}`,
-          icon: <Users className="w-4 h-4" />,
-        }));
         const dealItems: ResultItem[] = ((dr as any)?.data?.deals ?? []).map((d: Deal) => ({
           id: d.id,
           type: 'deal',
@@ -78,7 +68,7 @@ const SimpleHeaderSearch: React.FC = () => {
           path: `/deals/${d.id}`,
           icon: <DollarSign className="w-4 h-4" />,
         }));
-        setResults([...leadItems, ...contactItems, ...dealItems]);
+        setResults([...leadItems, ...dealItems]);
       } finally {
         if (active) setLoading(false);
       }

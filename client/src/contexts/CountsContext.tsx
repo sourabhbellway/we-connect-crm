@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { userService } from "../services/userService";
 import { leadService } from "../services/leadService";
-import { contactService } from "../services/contactService";
 import { dealService } from "../services/dealService";
 import { roleService } from "../services/roleService";
 import { useAuth } from "./AuthContext";
@@ -17,7 +16,6 @@ interface CountsContextType {
   counts: {
     users: number;
     leads: number;
-    contacts: number;
     deals: number;
     roles: number;
     trashUsers: number;
@@ -27,7 +25,6 @@ interface CountsContextType {
   refreshCounts: () => Promise<void>;
   refreshUsersCount: () => Promise<void>;
   refreshLeadsCount: () => Promise<void>;
-  refreshContactsCount: () => Promise<void>;
   refreshDealsCount: () => Promise<void>;
   refreshRolesCount: () => Promise<void>;
   refreshTrashCounts: () => Promise<void>;
@@ -43,7 +40,6 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
   const [counts, setCounts] = useState({
     users: 0,
     leads: 0,
-    contacts: 0,
     deals: 0,
     roles: 0,
     trashUsers: 0,
@@ -57,24 +53,17 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
     try {
       const canReadUsers = hasPermission("user.read");
       const canReadLeads = hasPermission("lead.read");
-      const canReadContacts = hasPermission("contact.read");
       const canReadDeals = hasPermission("deal.read");
       const canReadRoles = hasPermission("role.read");
       const canReadDeleted = hasPermission("deleted.read");
 
-      const [usersResponse, leadsResponse, contactsResponse, dealsResponse, rolesResponse, deletedRes] = await Promise.all([
+      const [usersResponse, leadsResponse, dealsResponse, rolesResponse, deletedRes] = await Promise.all([
         canReadUsers
           ? userService.getUsers().catch(() => ({ data: { users: [] } }))
           : Promise.resolve({ data: { users: [] } }),
         canReadLeads
           ? leadService.getLeads().catch(() => ({ data: { leads: [] } }))
           : Promise.resolve({ data: { leads: [] } }),
-        canReadContacts
-          ? contactService.getContacts().catch((err) => {
-              console.log('Contacts API not available yet:', err.response?.status);
-              return { data: { contacts: [] } };
-            })
-          : Promise.resolve({ data: { contacts: [] } }),
         canReadDeals
           ? dealService.getDeals().catch((err) => {
               console.log('Deals API not available yet:', err.response?.status);
@@ -94,7 +83,6 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
       setCounts({
         users: usersResponse.data.users?.length || 0,
         leads: leadsResponse.data.leads?.length || 0,
-        contacts: contactsResponse.data.contacts?.length || 0,
         deals: dealsResponse.data.deals?.length || 0,
         roles: rolesResponse.data.roles?.length || 0,
         trashUsers: deletedRes?.data?.users?.total ?? 0,
@@ -134,21 +122,6 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
     }
   };
 
-  const refreshContactsCount = async () => {
-    try {
-      if (!isAuthenticated) return;
-      if (!hasPermission("contact.read")) return;
-      const response = await contactService.getContacts();
-      setCounts((prev) => ({
-        ...prev,
-        contacts: response.data.contacts?.length || 0,
-      }));
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
-        console.error("Error fetching contacts count:", error);
-      }
-    }
-  };
 
   const refreshDealsCount = async () => {
     try {
@@ -209,7 +182,6 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
         refreshCounts,
         refreshUsersCount,
         refreshLeadsCount,
-        refreshContactsCount,
         refreshDealsCount,
         refreshRolesCount,
         refreshTrashCounts,

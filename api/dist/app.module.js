@@ -41,6 +41,7 @@ const files_module_1 = require("./modules/files/files.module");
 const proposal_templates_module_1 = require("./modules/proposal-templates/proposal-templates.module");
 const integrations_module_1 = require("./modules/integrations/integrations.module");
 const bulk_import_module_1 = require("./modules/bulk-import/bulk-import.module");
+const notes_module_1 = require("./modules/notes/notes.module");
 const core_1 = require("@nestjs/core");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
@@ -78,6 +79,7 @@ exports.AppModule = AppModule = __decorate([
             proposal_templates_module_1.ProposalTemplatesModule,
             integrations_module_1.IntegrationsModule,
             bulk_import_module_1.BulkImportModule,
+            notes_module_1.NotesModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

@@ -139,6 +139,7 @@ let TasksService = class TasksService {
                     dueDate: task.dueDate,
                 },
                 userId: dto.createdBy,
+                leadId: task.leadId ?? undefined,
             },
         });
         return { success: true, data: { task } };
@@ -187,6 +188,7 @@ let TasksService = class TasksService {
                     assignedTo: task.assignedTo,
                 },
                 userId: task.createdBy,
+                leadId: task.leadId ?? undefined,
             },
         });
         return { success: true, data: { task } };

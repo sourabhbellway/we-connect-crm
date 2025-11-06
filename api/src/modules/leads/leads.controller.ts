@@ -44,12 +44,15 @@ export class LeadsController {
     @Query('search') search?: string,
     @Query('isDeleted') isDeleted?: string, // Query parameter to filter by deletion status
   ) {
+    // Convert string to boolean - handle 'true', 'True', 'TRUE', etc.
+    const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
+    
     return this.leads.list({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
       status,
       search,
-      isDeleted: isDeleted === 'true', // Convert string 'true' to boolean true
+      isDeleted: isDeletedBool,
     });
   }
 

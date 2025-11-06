@@ -716,16 +716,7 @@ const DealProfileEnhanced: React.FC = () => {
                           Primary Contact
                         </label>
                         <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                          {deal.contactId ? (
-                            <Link 
-                              to={`/contacts/${deal.contactId}`}
-                              className="hover:text-weconnect-red transition-colors"
-                            >
-                              {deal.contactName}
-                            </Link>
-                          ) : (
-                            deal.contactName
-                          )}
+                          {deal.contactName || '—'}
                         </p>
                       </div>
                     )}

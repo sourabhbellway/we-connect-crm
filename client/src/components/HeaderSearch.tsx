@@ -3,10 +3,9 @@ import { Search as SearchIcon, User, Users, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
 import { leadService, Lead } from '../services/leadService';
-import { contactService, Contact } from '../services/contactService';
 import { dealService, Deal } from '../services/dealService';
 
-export type SearchType = 'all' | 'leads' | 'contacts' | 'deals';
+export type SearchType = 'all' | 'leads' | 'deals';
 
 interface HeaderSearchProps {
   className?: string;
@@ -18,7 +17,7 @@ export interface HeaderSearchRef {
 
 interface ResultItem {
   id: number | string;
-  type: 'lead' | 'contact' | 'deal';
+  type: 'lead' | 'deal';
   title: string;
   subtitle?: string;
   path: string;
@@ -28,7 +27,6 @@ interface ResultItem {
 const TYPE_TABS: Array<{ key: SearchType; label: string }> = [
   { key: 'all', label: 'All' },
   { key: 'leads', label: 'Leads' },
-  { key: 'contacts', label: 'Contacts' },
   { key: 'deals', label: 'Deals' },
 ];
 
@@ -89,23 +87,6 @@ const HeaderSearch = forwardRef<HeaderSearchRef, HeaderSearchProps>(({ className
           }
         };
 
-        const fetchContacts = async () => {
-          try {
-            const res = await contactService.getContacts(1, 5, q);
-            const list: Contact[] = res?.data?.contacts ?? [];
-            return (list || []).slice(0, 5).map((c) => ({
-              id: c.id,
-              type: 'contact' as const,
-              title: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || `Contact #${c.id}`,
-              subtitle: c.email || c.phone || '',
-              path: `/contacts/${c.id}`,
-              icon: <Users className="w-4 h-4" />,
-            } satisfies ResultItem));
-          } catch {
-            return [] as ResultItem[];
-          }
-        };
-
         const fetchDeals = async () => {
           try {
             const res = await dealService.getDeals(1, 5, q);
@@ -125,12 +106,10 @@ const HeaderSearch = forwardRef<HeaderSearchRef, HeaderSearchProps>(({ className
 
         let data: ResultItem[] = [];
         if (type === 'all') {
-          const [a, b, c] = await Promise.all([fetchLeads(), fetchContacts(), fetchDeals()]);
-          data = [...a, ...b, ...c];
+          const [a, b] = await Promise.all([fetchLeads(), fetchDeals()]);
+          data = [...a, ...b];
         } else if (type === 'leads') {
           data = await fetchLeads();
-        } else if (type === 'contacts') {
-          data = await fetchContacts();
         } else if (type === 'deals') {
           data = await fetchDeals();
         }

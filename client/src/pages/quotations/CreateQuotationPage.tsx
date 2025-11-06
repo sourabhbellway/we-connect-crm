@@ -4,7 +4,6 @@ import { Plus, Trash2, Search, X } from 'lucide-react';
 import { Button, Card } from '../../components/ui';
 import apiClient from '../../services/apiClient';
 import { leadService } from '../../services/leadService';
-import { contactService } from '../../services/contactService';
 import { dealService } from '../../services/dealService';
 import { toast } from 'react-toastify';
 
@@ -35,7 +34,7 @@ const CreateQuotationPage: React.FC = () => {
   
   // Form fields
   const [subject, setSubject] = useState('');
-  const [relatedType, setRelatedType] = useState<'lead' | 'contact' | ''>('');
+  const [relatedType, setRelatedType] = useState<'lead' | ''>('');
   const [relatedId, setRelatedId] = useState('');
   const [status, setStatus] = useState('Draft');
   const [assignedTo, setAssignedTo] = useState('');
@@ -91,13 +90,8 @@ const CreateQuotationPage: React.FC = () => {
         setOpenTill(q.validUntil ? String(q.validUntil).slice(0, 10) : '');
         setDate(q.createdAt ? String(q.createdAt).slice(0, 10) : date);
         setAddress('');
-        setEmail(q.contact?.email || q.lead?.email || email);
-        if (q.contact) {
-          setRelatedType('contact');
-          setRelatedId(String(q.contactId));
-          const full = `${q.contact.firstName || ''} ${q.contact.lastName || ''}`.trim();
-          setToField(full); setSearchQuery(full);
-        } else if (q.lead) {
+        setEmail(q.lead?.email || email);
+        if (q.lead) {
           setRelatedType('lead');
           setRelatedId(String(q.leadId));
           const full = `${q.lead.firstName || ''} ${q.lead.lastName || ''}`.trim();
@@ -122,9 +116,9 @@ const CreateQuotationPage: React.FC = () => {
     })();
   }, [isEdit, editId]);
 
-  // Prefill when opened from an entity context (?entityType=lead|contact|deal&entityId=123)
+  // Prefill when opened from an entity context (?entityType=lead|deal&entityId=123)
   useEffect(() => {
-    const entityType = (searchParams.get('entityType') as 'lead' | 'contact' | 'deal' | null) || null;
+    const entityType = (searchParams.get('entityType') as 'lead' | 'deal' | null) || null;
     const entityIdParam = searchParams.get('entityId');
     if (!entityType || !entityIdParam) return;
     const id = parseInt(entityIdParam);
@@ -149,36 +143,13 @@ const CreateQuotationPage: React.FC = () => {
             setZipCode(lead.zipCode || '');
             if ((lead as any)?.currency) setCurrency((lead as any).currency);
           }
-        } else if (entityType === 'contact') {
-          const res = await contactService.getContactById(id);
-          const contact = res?.data || res;
-          if (contact) {
-            setRelatedType('contact');
-            setRelatedId(String(contact.id));
-            const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
-            setSubject(`Proposal for ${fullName}`);
-            setToField(fullName);
-            setSearchQuery(fullName);
-            setEmail(contact.email || '');
-            setPhone(contact.phone || '');
-            setAddress(contact.address || '');
-          }
         } else if (entityType === 'deal') {
           const res = await dealService.getDealById(id);
           const deal = (res as any)?.data || res;
           if (deal) {
             setDealId(String(deal.id));
-            // Prefer contact if present, else lead
-            if (deal.contact) {
-              setRelatedType('contact');
-              setRelatedId(String(deal.contact.id));
-              const fullName = `${deal.contact.firstName || ''} ${deal.contact.lastName || ''}`.trim();
-              setSubject(deal.title ? `${deal.title}` : `Proposal for ${fullName || 'Contact'}`);
-              setToField(fullName);
-              setSearchQuery(fullName);
-              setEmail(deal.contact.email || '');
-              setPhone(deal.contact.phone || '');
-            } else if (deal.lead) {
+            // Use lead if present
+            if (deal.lead) {
               setRelatedType('lead');
               setRelatedId(String(deal.lead.id));
               const fullName = `${deal.lead.firstName || ''} ${deal.lead.lastName || ''}`.trim();
@@ -236,7 +207,7 @@ const CreateQuotationPage: React.FC = () => {
 
   const searchEntities = async (query: string) => {
     if (!relatedType) {
-      toast.info('Please select Lead or Contact first');
+      toast.info('Please select Lead first');
       return;
     }
     if (!query.trim()) {
@@ -249,12 +220,8 @@ const CreateQuotationPage: React.FC = () => {
         const res: any = await leadService.getLeads({ page: 1, limit: 10, search: query });
         const results = res?.data?.leads || res?.data?.items || res?.leads || [];
         setSearchResults(results);
-      } else {
-        const res = await contactService.getContacts(1, 10, query);
-        const results = (res as any)?.data?.contacts || [];
-        setSearchResults(results);
-      }
       setShowSearchDropdown(true);
+      }
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Failed to search.');
       setSearchResults([]);
@@ -275,7 +242,7 @@ const CreateQuotationPage: React.FC = () => {
     setCountry(entity.country || '');
     setZipCode(entity.zipCode || '');
     setShowSearchDropdown(false);
-    toast.success(`${relatedType === 'lead' ? 'Lead' : 'Contact'} selected and details auto-filled`);
+    toast.success('Lead selected and details auto-filled');
   };
 
   const clearSelection = () => {
@@ -436,7 +403,7 @@ const CreateQuotationPage: React.FC = () => {
                   <select
                     value={relatedType}
                     onChange={(e) => {
-                      const newType = e.target.value as 'lead' | 'contact' | '';
+                      const newType = e.target.value as 'lead' | '';
                       setRelatedType(newType);
                       clearSelection();
                       if (newType) setShowSearchDropdown(true);
@@ -445,7 +412,6 @@ const CreateQuotationPage: React.FC = () => {
                   >
                     <option value="">Select</option>
                     <option value="lead">Lead</option>
-                    <option value="contact">Contact</option>
                   </select>
                 </div>
 

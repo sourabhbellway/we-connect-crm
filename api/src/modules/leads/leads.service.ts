@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { BulkAssignDto } from './dto/bulk-assign.dto';
 import { ConvertLeadDto } from './dto/convert-lead.dto';
@@ -87,71 +87,83 @@ export class LeadsService {
     search?: string;
     isDeleted?: boolean; // <--- यह boolean है
   }) {
-    const pageNum = Math.max(1, Number(page) || 1);
-    const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
+    try {
+      const pageNum = Math.max(1, Number(page) || 1);
+      const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
 
-    // --- यह where clause को dynamic बनाया गया है ---
-    const where: any = {};
-    if (isDeleted === true) {
-      where.deletedAt = { not: null }; // <--- Deleted leads के लिए
-    } else {
-      where.deletedAt = null; // <--- Active leads के लिए (default behavior)
-    }
+      // --- यह where clause को dynamic बनाया गया है ---
+      const where: any = {};
+      if (isDeleted === true) {
+        where.deletedAt = { not: null }; // <--- Deleted leads के लिए
+      } else {
+        where.deletedAt = null; // <--- Active leads के लिए (default behavior)
+      }
 
-    if (status && String(status).trim() !== '') {
-      const up = String(status).toUpperCase();
-      if ((LeadStatus as any)[up]) where.status = (LeadStatus as any)[up];
-    }
-    if (search && String(search).trim() !== '') {
-      const q = String(search).trim();
-      where.OR = [
-        { firstName: { contains: q, mode: 'insensitive' } },
-        { lastName: { contains: q, mode: 'insensitive' } },
-        { email: { contains: q, mode: 'insensitive' } },
-        { phone: { contains: q, mode: 'insensitive' } },
-        { company: { contains: q, mode: 'insensitive' } },
-        { position: { contains: q, mode: 'insensitive' } },
-        { industry: { contains: q, mode: 'insensitive' } },
-        { country: { contains: q, mode: 'insensitive' } },
-        { state: { contains: q, mode: 'insensitive' } },
-        { city: { contains: q, mode: 'insensitive' } },
-      ];
-    }
+      if (status && String(status).trim() !== '') {
+        const up = String(status).toUpperCase();
+        if ((LeadStatus as any)[up]) where.status = (LeadStatus as any)[up];
+      }
+      if (search && String(search).trim() !== '') {
+        const q = String(search).trim();
+        where.OR = [
+          { firstName: { contains: q, mode: 'insensitive' } },
+          { lastName: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
+          { phone: { contains: q, mode: 'insensitive' } },
+          { company: { contains: q, mode: 'insensitive' } },
+          { position: { contains: q, mode: 'insensitive' } },
+          { industry: { contains: q, mode: 'insensitive' } },
+          { country: { contains: q, mode: 'insensitive' } },
+          { state: { contains: q, mode: 'insensitive' } },
+          { city: { contains: q, mode: 'insensitive' } },
+        ];
+      }
 
-    const [totalItems, rows] = await Promise.all([
-      this.prisma.lead.count({ where }),
-      this.prisma.lead.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (pageNum - 1) * pageSize,
-        take: pageSize,
-        include: {
-          assignedUser: {
-            select: { id: true, firstName: true, lastName: true, email: true },
+      const [totalItems, rows] = await Promise.all([
+        this.prisma.lead.count({ where }),
+        this.prisma.lead.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip: (pageNum - 1) * pageSize,
+          take: pageSize,
+          include: {
+            assignedUser: {
+              select: { id: true, firstName: true, lastName: true, email: true },
+            },
+          },
+        }),
+      ]);
+
+      const leads = rows.map((r: any) => ({
+        ...r,
+        status: String(r.status || '').toLowerCase(),
+        priority: r.priority ? String(r.priority).toLowerCase() : undefined,
+      }));
+
+      const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+      return {
+        success: true,
+        data: {
+          leads,
+          pagination: {
+            totalItems,
+            currentPage: pageNum,
+            pageSize,
+            totalPages,
           },
         },
-      }),
-    ]);
-
-    const leads = rows.map((r: any) => ({
-      ...r,
-      status: String(r.status || '').toLowerCase(),
-      priority: r.priority ? String(r.priority).toLowerCase() : undefined,
-    }));
-
-    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-    return {
-      success: true,
-      data: {
-        leads,
-        pagination: {
-          totalItems,
-          currentPage: pageNum,
-          pageSize,
-          totalPages,
+      };
+    } catch (error: any) {
+      console.error('Error in leads.list:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: error?.message || 'Internal server error',
+          error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
         },
-      },
-    };
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async getById(id: number) {
@@ -262,6 +274,47 @@ export class LeadsService {
       where: { id },
       data: updateData,
     });
+
+    // Create activity for lead updates
+    try {
+      const activityType = rest.status && lead.status !== updated.status
+        ? 'LEAD_STATUS_CHANGED'
+        : rest.assignedTo && lead.assignedTo !== updated.assignedTo
+        ? 'LEAD_ASSIGNED'
+        : 'LEAD_UPDATED';
+
+      let description = 'Lead updated';
+      if (rest.status && lead.status !== updated.status) {
+        description = `Lead status changed from ${lead.status} to ${updated.status}`;
+      } else if (rest.priority && lead.priority !== updated.priority) {
+        description = `Lead priority changed to ${updated.priority}`;
+      } else if (rest.assignedTo && lead.assignedTo !== updated.assignedTo) {
+        description = 'Lead assigned to user';
+      }
+
+      await this.prisma.activity.create({
+        data: {
+          title: activityType === 'LEAD_STATUS_CHANGED' ? 'Status changed' : activityType === 'LEAD_ASSIGNED' ? 'Lead assigned' : 'Lead updated',
+          description,
+          type: activityType as any,
+          icon: activityType === 'LEAD_STATUS_CHANGED' ? 'TrendingUp' : activityType === 'LEAD_ASSIGNED' ? 'User' : 'Edit',
+          iconColor: activityType === 'LEAD_STATUS_CHANGED' ? '#10B981' : activityType === 'LEAD_ASSIGNED' ? '#3B82F6' : '#6B7280',
+          metadata: {
+            leadId: id,
+            oldStatus: lead.status,
+            newStatus: updated.status,
+            oldPriority: lead.priority,
+            newPriority: updated.priority,
+            oldAssignedTo: lead.assignedTo,
+            newAssignedTo: updated.assignedTo,
+          } as any,
+          userId: lead.assignedTo || 1,
+          leadId: id,
+        },
+      });
+    } catch (error) {
+      console.error('Error creating lead update activity:', error);
+    }
 
     const normalized = {
       ...updated,

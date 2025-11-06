@@ -79,5 +79,9 @@ export declare class FilesService {
     }>;
     remove(id: number): Promise<{
         success: boolean;
+        message: string;
+    } | {
+        success: boolean;
+        message?: undefined;
     }>;
 }

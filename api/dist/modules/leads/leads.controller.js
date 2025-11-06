@@ -30,12 +30,13 @@ let LeadsController = class LeadsController {
         return this.leads.getStats();
     }
     list(page, limit, status, search, isDeleted) {
+        const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
         return this.leads.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             status,
             search,
-            isDeleted: isDeleted === 'true',
+            isDeleted: isDeletedBool,
         });
     }
     get(id) {

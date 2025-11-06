@@ -14,6 +14,8 @@ import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { userService } from '../services/userService';
+import { activityService } from '../services/activityService';
+import { notesService, Note } from '../services/notesService';
 import TableLoader from './TableLoader';
 import BackButton from './BackButton';
 import { Button, Grid, GridItem, Container, Card } from './ui';
@@ -23,6 +25,7 @@ import LeadCommunication from './LeadCommunication';
 import LeadConversionModal from './LeadConversionModal';
 import QuotationManager from './shared/QuotationManager';
 import TaskManager from './shared/TaskManager';
+import ActivityTimeline from './shared/ActivityTimeline';
 
 // Call log interfaces
 interface CallLog {
@@ -48,7 +51,7 @@ const LeadProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
   const { 
     leadSources, 
     formatCurrency, 
@@ -75,29 +78,9 @@ const LeadProfile: React.FC = () => {
   // Activities will be fetched from API
   const [activities, setActivities] = useState<any[]>([]);
 
-  const [notes] = useState([
-    {
-      id: 1,
-      title: 'Initial contact notes',
-      content: 'Lead is very interested in our enterprise solution. They have budget approved and decision-making authority.',
-      isPinned: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      author: { firstName: 'John', lastName: 'Doe' }
-    },
-    {
-      id: 2,
-      title: 'Technical requirements',
-      content: 'Need integration with their existing CRM system. Timeline is flexible but prefer implementation by Q2.',
-      isPinned: false,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-      updatedAt: new Date(Date.now() - 86400000).toISOString(),
-      author: { firstName: 'Jane', lastName: 'Smith' }
-    }
-  ]);
-
-  // Dynamic data states
-  const [dynamicNotes, setDynamicNotes] = useState(notes);
+  // Notes state
+  const [dynamicNotes, setDynamicNotes] = useState<Note[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
   const [dynamicActivities, setDynamicActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
@@ -149,6 +132,7 @@ const LeadProfile: React.FC = () => {
       fetchLeadActivities(parseInt(id));
       fetchTasks(parseInt(id));
       fetchFiles(parseInt(id));
+      fetchNotes(parseInt(id));
       if (activeTab === 'call-logs') {
         fetchCallLogs(parseInt(id));
       }
@@ -173,14 +157,69 @@ const LeadProfile: React.FC = () => {
   const fetchLeadActivities = async (leadId: number) => {
     try {
       setActivitiesLoading(true);
-      // Since there's no lead-specific activity endpoint, we'll show empty for now
-      // In the future, you can implement /api/activities/lead/${leadId}
-      setDynamicActivities([]);
+      const response = await activityService.getActivitiesByLeadId(leadId, 1, 100);
+      const activities = response?.data?.items || [];
+      
+      // Transform activities to match ActivityTimeline format
+      const transformedActivities = activities.map((activity: any) => ({
+        id: String(activity.id),
+        type: mapActivityType(activity.type),
+        title: activity.title,
+        description: activity.description,
+        createdAt: activity.createdAt,
+        isCompleted: true,
+        user: activity.user ? {
+          id: String(activity.user.id),
+          firstName: activity.user.firstName || '',
+          lastName: activity.user.lastName || '',
+        } : undefined,
+      }));
+      
+      setDynamicActivities(transformedActivities);
+      setActivities(transformedActivities);
     } catch (err: any) {
       console.error('Error fetching lead activities:', err);
       setDynamicActivities([]);
+      setActivities([]);
     } finally {
       setActivitiesLoading(false);
+    }
+  };
+
+  // Map backend ActivityType to ActivityTimeline type
+  const mapActivityType = (type: string): any => {
+    const typeMap: Record<string, any> = {
+      'TASK_CREATED': 'NOTE',
+      'TASK_UPDATED': 'NOTE',
+      'TASK_COMPLETED': 'NOTE',
+      'LEAD_UPDATED': 'NOTE',
+      'LEAD_STATUS_CHANGED': 'STAGE_CHANGED',
+      'LEAD_ASSIGNED': 'NOTE',
+      'LEAD_CONVERTED': 'STAGE_CHANGED',
+      'COMMUNICATION_LOGGED': 'NOTE',
+      'FILE_UPLOADED': 'NOTE',
+      'FILE_DELETED': 'NOTE',
+      'QUOTATION_CREATED': 'QUOTE_SENT',
+      'QUOTATION_UPDATED': 'QUOTE_SENT',
+      'INVOICE_CREATED': 'PAYMENT_RECEIVED',
+      'INVOICE_UPDATED': 'PAYMENT_RECEIVED',
+    };
+    return typeMap[type] || 'OTHER';
+  };
+
+  // Fetch notes for the lead
+  const fetchNotes = async (leadId: number) => {
+    try {
+      setNotesLoading(true);
+      const response = await notesService.getNotesByLeadId(leadId);
+      const notes = response?.data?.notes || [];
+      setDynamicNotes(notes);
+    } catch (err: any) {
+      console.error('Error fetching notes:', err);
+      toast.error('Failed to fetch notes');
+      setDynamicNotes([]);
+    } finally {
+      setNotesLoading(false);
     }
   };
 
@@ -311,37 +350,44 @@ const LeadProfile: React.FC = () => {
   };
 
   // Dynamic functionality methods
-  const handleAddNote = () => {
+  const handleAddNote = async () => {
     if (!noteForm.title.trim() || !noteForm.content.trim()) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    const newNote = {
-      id: Date.now(),
-      title: noteForm.title,
-      content: noteForm.content,
-      isPinned: noteForm.isPinned,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      author: { firstName: 'Current', lastName: 'User' } // You can get this from auth context
-    };
+    if (!id || !user?.id) {
+      toast.error('Invalid lead or user information');
+      return;
+    }
 
-    setDynamicNotes([newNote, ...dynamicNotes]);
-    setNoteForm({ title: '', content: '', isPinned: false });
-    setShowAddNote(false);
-    toast.success('Note added successfully');
+    try {
+      const response = await notesService.createNote({
+        title: noteForm.title,
+        content: noteForm.content,
+        isPinned: noteForm.isPinned,
+        leadId: parseInt(id),
+        createdBy: user.id,
+      });
 
-    // Add activity for note creation
-    const noteActivity = {
-      id: Date.now() + 1,
-      type: 'note',
-      title: `Added note: ${newNote.title}`,
-      description: newNote.content.substring(0, 100) + (newNote.content.length > 100 ? '...' : ''),
-      timestamp: new Date().toISOString(),
-      author: { firstName: 'Current', lastName: 'User' }
-    };
-    setDynamicActivities([noteActivity, ...dynamicActivities]);
+      if (response.success) {
+        const newNote = response.data.note;
+        setDynamicNotes([newNote, ...dynamicNotes]);
+        setNoteForm({ title: '', content: '', isPinned: false });
+        setShowAddNote(false);
+        toast.success('Note added successfully');
+        
+        // Refresh activities to show the new note activity
+        if (id) {
+          fetchLeadActivities(parseInt(id));
+        }
+      } else {
+        toast.error(response.message || 'Failed to add note');
+      }
+    } catch (error: any) {
+      console.error('Error adding note:', error);
+      toast.error(error?.response?.data?.message || 'Failed to add note');
+    }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -562,18 +608,56 @@ const LeadProfile: React.FC = () => {
     }
   };
 
-  const handleDeleteNote = (noteId: number) => {
-    if (confirm('Are you sure you want to delete this note?')) {
-      setDynamicNotes(dynamicNotes.filter(note => note.id !== noteId));
-      toast.success('Note deleted successfully');
+  const handleDeleteNote = async (noteId: number) => {
+    if (!confirm('Are you sure you want to delete this note?')) {
+      return;
+    }
+
+    try {
+      const response = await notesService.deleteNote(noteId);
+      if (response.success) {
+        setDynamicNotes(dynamicNotes.filter(note => note.id !== noteId));
+        toast.success('Note deleted successfully');
+        
+        // Refresh activities to show the delete activity
+        if (id) {
+          fetchLeadActivities(parseInt(id));
+        }
+      } else {
+        toast.error(response.message || 'Failed to delete note');
+      }
+    } catch (error: any) {
+      console.error('Error deleting note:', error);
+      toast.error(error?.response?.data?.message || 'Failed to delete note');
     }
   };
 
-  const handleTogglePinNote = (noteId: number) => {
-    setDynamicNotes(dynamicNotes.map(note => 
-      note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
-    ));
-    toast.success('Note updated successfully');
+  const handleTogglePinNote = async (noteId: number) => {
+    const note = dynamicNotes.find(n => n.id === noteId);
+    if (!note) return;
+
+    try {
+      const response = await notesService.updateNote(noteId, {
+        isPinned: !note.isPinned,
+      });
+      
+      if (response.success) {
+        setDynamicNotes(dynamicNotes.map(n => 
+          n.id === noteId ? response.data.note : n
+        ));
+        toast.success('Note updated successfully');
+        
+        // Refresh activities to show the update activity
+        if (id) {
+          fetchLeadActivities(parseInt(id));
+        }
+      } else {
+        toast.error(response.message || 'Failed to update note');
+      }
+    } catch (error: any) {
+      console.error('Error updating note:', error);
+      toast.error(error?.response?.data?.message || 'Failed to update note');
+    }
   };
 
   const handlePreviewFile = async (file: any) => {
@@ -675,10 +759,6 @@ const LeadProfile: React.FC = () => {
         setTimeout(() => {
           navigate(`/deals/${response.data.deal.id}`);
         }, 1500);
-      } else if (response.data?.contact?.id) {
-        setTimeout(() => {
-          navigate(`/contacts/${response.data.contact.id}`);
-        }, 1500);
       }
     } catch (error: any) {
       console.error('Error converting lead:', error);
@@ -694,8 +774,6 @@ const LeadProfile: React.FC = () => {
           await fetchLead(lead.id);
           if (forceRes.data?.deal?.id) {
             setTimeout(() => navigate(`/deals/${forceRes.data.deal.id}`), 1200);
-          } else if (forceRes.data?.contact?.id) {
-            setTimeout(() => navigate(`/contacts/${forceRes.data.contact.id}`), 1200);
           }
           return;
         } catch (forceErr: any) {
@@ -709,8 +787,6 @@ const LeadProfile: React.FC = () => {
               await fetchLead(lead.id);
               if (retryRes.data?.deal?.id) {
                 setTimeout(() => navigate(`/deals/${retryRes.data.deal.id}`), 1200);
-              } else if (retryRes.data?.contact?.id) {
-                setTimeout(() => navigate(`/contacts/${retryRes.data.contact.id}`), 1200);
               }
               return;
             } catch (retryErr: any) {
@@ -1178,47 +1254,19 @@ const LeadProfile: React.FC = () => {
                 )}
 
                 {activeTab === 'activity' && (
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Recent Activity
-                    </h3>
-                    
-                    {dynamicActivities.length > 0 ? (
-                      <div className="space-y-4">
-                        {dynamicActivities.map((activity) => (
-                          <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                            <div className="flex-shrink-0 mt-1">
-                              {getActivityIcon(activity.type)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {activity.title}
-                                </p>
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(activity.timestamp).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                {activity.description}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                by {activity.author.firstName} {activity.author.lastName}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                  activitiesLoading ? (
+                    <Card className="p-6">
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-weconnect-red"></div>
                       </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <Activity className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                        <p className="text-gray-600 dark:text-gray-400 mb-2">No activity found</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Activity will appear here as you interact with this lead
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                    </Card>
+                  ) : (
+                    <ActivityTimeline 
+                      entityType="lead"
+                      entityId={id || ''}
+                      activities={activities}
+                    />
+                  )
                 )}
 
                 {activeTab === 'notes' && (
@@ -1235,7 +1283,11 @@ const LeadProfile: React.FC = () => {
                       </button>
                     </div>
                     
-                    {dynamicNotes.length > 0 ? (
+                    {notesLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-weconnect-red"></div>
+                      </div>
+                    ) : dynamicNotes.length > 0 ? (
                       <div className="space-y-4">
                         {dynamicNotes.map((note) => (
                           <div key={note.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
@@ -1265,7 +1317,7 @@ const LeadProfile: React.FC = () => {
                             </p>
                             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                               <span>
-                                by {note.author.firstName} {note.author.lastName}
+                                by {note.user ? `${note.user.firstName} ${note.user.lastName}` : 'Unknown User'}
                               </span>
                               <span>
                                 {new Date(note.createdAt).toLocaleDateString()}

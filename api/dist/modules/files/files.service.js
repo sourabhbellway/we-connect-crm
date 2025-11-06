@@ -45,13 +45,62 @@ let FilesService = class FilesService {
                 uploadedBy,
             },
         });
+        if (entityType === 'lead' && entityId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'File uploaded',
+                        description: `File "${saved.name}" uploaded (${(saved.fileSize / 1024).toFixed(2)} KB)`,
+                        type: 'COMMUNICATION_LOGGED',
+                        icon: 'FileText',
+                        iconColor: '#3B82F6',
+                        metadata: {
+                            fileId: saved.id,
+                            fileName: saved.name,
+                            fileSize: saved.fileSize,
+                            mimeType: saved.mimeType,
+                        },
+                        userId: uploadedBy,
+                        leadId: entityId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating file upload activity:', error);
+            }
+        }
         return { success: true, data: { file: saved } };
     }
     async remove(id) {
+        const file = await this.prisma.file.findFirst({ where: { id } });
+        if (!file)
+            return { success: false, message: 'File not found' };
         await this.prisma.file.update({
             where: { id },
             data: { deletedAt: new Date() },
         });
+        if (file.entityType === 'lead' && file.entityId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'File deleted',
+                        description: `File "${file.name}" deleted`,
+                        type: 'COMMUNICATION_LOGGED',
+                        icon: 'Trash2',
+                        iconColor: '#EF4444',
+                        metadata: {
+                            fileId: file.id,
+                            fileName: file.name,
+                        },
+                        userId: file.uploadedBy,
+                        leadId: file.entityId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating file delete activity:', error);
+            }
+        }
         return { success: true };
     }
 };
