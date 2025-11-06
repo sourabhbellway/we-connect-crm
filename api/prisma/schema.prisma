@@ -103,10 +103,7 @@ model User {
   companyActivities      CompanyActivity[]         @relation("UserCompanyActivities")
   companyCommunications  CompanyCommunication[]    @relation("UserCompanyCommunications")
   companyFollowUps       CompanyFollowUp[]         @relation("UserCompanyFollowUps")
-  contactActivities      ContactActivity[]         @relation("UserContactActivities")
-  contactCommunications  ContactCommunication[]    @relation("UserContactCommunications")
-  contactFollowUps       ContactFollowUp[]         @relation("UserContactFollowUps")
-  contacts               Contact[]                 @relation("UserContacts")
+  
   deals                  Deal[]                    @relation("UserDeals")
   communications         LeadCommunication[]       @relation("UserCommunications")
   followUps              LeadFollowUp[]            @relation("UserFollowUps")
@@ -203,7 +200,6 @@ model Lead {
   deletedAt              DateTime?
   budget                 Decimal?               @db.Decimal(10, 2)
   currency               String?                @default("USD")
-  convertedToContactId   Int?                   @unique
   lastContactedAt        DateTime?
   nextFollowUpAt         DateTime?
   priority               LeadPriority           @default(MEDIUM)
@@ -222,7 +218,6 @@ model Lead {
   preferredContactMethod String?                @default("email")
   callLogs               CallLog[]              @relation("LeadCallLogs")
   messages               CommunicationMessage[] @relation("LeadMessages")
-  convertedToContact     Contact?               @relation("LeadToContact")
   deals                  Deal[]                 @relation("LeadDeals")
   communications         LeadCommunication[]
   followUps              LeadFollowUp[]
@@ -235,6 +230,8 @@ model Lead {
   tasks                  Task[]                 @relation("LeadTasks")
   quotations             Quotation[]            @relation("LeadQuotations")
   invoices               Invoice[]              @relation("LeadInvoices")
+  previousStatus     LeadStatus? // यह store करेगा कि convert होने से पहले status क्या था
+  convertedToDealId  Int?       
 
   @@map("leads")
 }
@@ -357,6 +354,8 @@ model companies {
   twitterHandle   String?
   website         String?
   zipCode         String?
+  
+  // Relations
   automations     CommunicationAutomation[]
   providers       CommunicationProvider[]
   templates       CommunicationTemplate[]
@@ -367,12 +366,14 @@ model companies {
   activities      CompanyActivity[]
   communications  CompanyCommunication[]
   followUps       CompanyFollowUp[]
-  contacts        Contact[]
   deals           Deal[]
   lead_sources    LeadSource[]
   leads           Lead[]
   tagsRelation    Tag[]
   users           User[]
+  
+  // यह नई line add की गई है
+  companyQuotations Quotation[]             @relation("CompanyQuotations")
 }
 
 model RefreshToken {
@@ -491,13 +492,12 @@ model Task {
   createdBy     Int
   leadId        Int?
   dealId        Int?
-  contactId     Int?
+ 
   isActive      Boolean      @default(true)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   deletedAt     DateTime?
   assignedUser  User?        @relation("UserAssignedTasks", fields: [assignedTo], references: [id])
-  contact       Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
   createdByUser User         @relation("UserCreatedTasks", fields: [createdBy], references: [id])
   deal          Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
   lead          Lead?        @relation("LeadTasks", fields: [leadId], references: [id], onDelete: Cascade)
@@ -631,116 +631,9 @@ model CommunicationProvider {
   @@map("communication_providers")
 }
 
-model Contact {
-  id                     Int                    @id @default(autoincrement())
-  firstName              String
-  lastName               String
-  email                  String                 @unique
-  phone                  String?
-  company                String?
-  position               String?
-  address                String?
-  website                String?
-  notes                  String?
-  assignedTo             Int?
-  companyId              Int?
-  isActive               Boolean                @default(true)
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
-  deletedAt              DateTime?
-  alternatePhone         String?
-  birthday               DateTime?
-  blacklistReason        String?
-  city                   String?
-  country                String?
-  department             String?
-  industry               String?
-  isBlacklisted          Boolean                @default(false)
-  lastContactedAt        DateTime?
-  leadScore              Int?                   @default(0)
-  linkedinProfile        String?
-  preferredContactMethod String?                @default("email")
-  sourceLeadId           Int?                   @unique
-  state                  String?
-  tags                   String[]               @default([])
-  timezone               String?                @default("UTC")
-  twitterHandle          String?
-  zipCode                String?
-  activities             ContactActivity[]
-  communications         ContactCommunication[]
-  followUps              ContactFollowUp[]
-  assignedUser           User?                  @relation("UserContacts", fields: [assignedTo], references: [id])
-  companyRelation        companies?             @relation(fields: [companyId], references: [id])
-  sourceLead             Lead?                  @relation("LeadToContact", fields: [sourceLeadId], references: [id])
-  deals                  Deal[]                 @relation("ContactDeals")
-  tasks                  Task[]
-  quotations             Quotation[]            @relation("ContactQuotations")
-  invoices               Invoice[]              @relation("ContactInvoices")
 
-  @@map("contacts")
-}
 
-model ContactActivity {
-  id          Int                 @id @default(autoincrement())
-  contactId   Int
-  userId      Int?
-  type        ContactActivityType
-  title       String
-  description String?
-  duration    Int?
-  outcome     String?
-  scheduledAt DateTime?
-  completedAt DateTime?
-  isCompleted Boolean             @default(false)
-  metadata    Json?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  contact     Contact             @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user        User?               @relation("UserContactActivities", fields: [userId], references: [id])
 
-  @@map("contact_activities")
-}
-
-model ContactCommunication {
-  id          Int               @id @default(autoincrement())
-  contactId   Int
-  userId      Int
-  type        CommunicationType
-  subject     String?
-  content     String
-  direction   String            @default("outbound")
-  status      MessageStatus     @default(PENDING)
-  scheduledAt DateTime?
-  sentAt      DateTime?
-  deliveredAt DateTime?
-  readAt      DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  contact     Contact           @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user        User              @relation("UserContactCommunications", fields: [userId], references: [id])
-
-  @@map("contact_communications")
-}
-
-model ContactFollowUp {
-  id          Int               @id @default(autoincrement())
-  contactId   Int
-  userId      Int
-  type        CommunicationType @default(NOTE)
-  subject     String
-  notes       String?
-  priority    TaskPriority      @default(MEDIUM)
-  scheduledAt DateTime?
-  completedAt DateTime?
-  isCompleted Boolean           @default(false)
-  reminderSet Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  contact     Contact           @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user        User              @relation("UserContactFollowUps", fields: [userId], references: [id])
-
-  @@map("contact_followups")
-}
 
 model CompanyActivity {
   id          Int                 @id @default(autoincrement())
@@ -815,7 +708,7 @@ model Deal {
   expectedCloseDate DateTime?
   actualCloseDate   DateTime?
   assignedTo        Int?
-  contactId         Int?
+
   leadId            Int?
   companyId         Int?
   isActive          Boolean       @default(true)
@@ -825,7 +718,6 @@ model Deal {
   products          DealProduct[]
   assignedUser      User?         @relation("UserDeals", fields: [assignedTo], references: [id])
   companies         companies?    @relation(fields: [companyId], references: [id])
-  contact           Contact?      @relation("ContactDeals", fields: [contactId], references: [id])
   lead              Lead?         @relation("LeadDeals", fields: [leadId], references: [id])
   tasks             Task[]
   quotations        Quotation[]   @relation("DealQuotations")
@@ -1121,22 +1013,7 @@ enum CompanyStatus {
   COMPETITOR
 }
 
-enum ContactActivityType {
-  CALL
-  EMAIL
-  MEETING
-  VISIT
-  DEMO
-  PRESENTATION
-  FOLLOW_UP
-  NOTE
-  QUOTE_SENT
-  CONTRACT_SENT
-  PAYMENT_RECEIVED
-  SUPPORT_TICKET
-  TRAINING
-  OTHER
-}
+
 
 enum CompanyActivityType {
   CALL
@@ -1229,7 +1106,6 @@ model Quotation {
   companyId       Int?
   leadId          Int?
   dealId          Int?
-  contactId       Int?
   createdBy       Int
   sentAt          DateTime?
   viewedAt        DateTime?
@@ -1241,9 +1117,11 @@ model Quotation {
   deletedAt       DateTime?
   items           QuotationItem[]
   invoices        Invoice[]
+  
+  // Relations
+  companies       companies?       @relation("CompanyQuotations", fields: [companyId], references: [id])
   lead            Lead?            @relation("LeadQuotations", fields: [leadId], references: [id])
   deal            Deal?            @relation("DealQuotations", fields: [dealId], references: [id])
-  contact         Contact?         @relation("ContactQuotations", fields: [contactId], references: [id])
   createdByUser   User             @relation("UserQuotations", fields: [createdBy], references: [id])
 
   @@map("quotations")
@@ -1289,7 +1167,7 @@ model Invoice {
   companyId       Int?
   leadId          Int?
   dealId          Int?
-  contactId       Int?
+
   quotationId     Int?
   createdBy       Int
   sentAt          DateTime?
@@ -1302,7 +1180,6 @@ model Invoice {
   payments        Payment[]
   lead            Lead?          @relation("LeadInvoices", fields: [leadId], references: [id])
   deal            Deal?          @relation("DealInvoices", fields: [dealId], references: [id])
-  contact         Contact?       @relation("ContactInvoices", fields: [contactId], references: [id])
   quotation       Quotation?     @relation(fields: [quotationId], references: [id])
   createdByUser   User           @relation("UserInvoices", fields: [createdBy], references: [id])
 

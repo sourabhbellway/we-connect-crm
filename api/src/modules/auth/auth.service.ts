@@ -126,7 +126,8 @@ export class AuthService {
     }
 
     const payload = { userId: user.id, email: user.email };
-    const accessToken = await this.jwt.signAsync(payload);
+    const accessToken = await this.jwt.signAsync(payload, { expiresIn: `${ACCESS_LIFETIME_HOURS}h` });
+
     const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
 
     const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);

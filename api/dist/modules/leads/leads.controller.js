@@ -29,12 +29,13 @@ let LeadsController = class LeadsController {
     getStats() {
         return this.leads.getStats();
     }
-    list(page, limit, status, search) {
+    list(page, limit, status, search, isDeleted) {
         return this.leads.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             status,
             search,
+            isDeleted: isDeleted === 'true',
         });
     }
     get(id) {
@@ -58,6 +59,12 @@ let LeadsController = class LeadsController {
     convert(id, dto) {
         return this.leads.convert(Number(id), dto);
     }
+    async undoConversion(id) {
+        return this.leads.undoLeadConversion(Number(id));
+    }
+    restore(id) {
+        return this.leads.restore(Number(id));
+    }
 };
 exports.LeadsController = LeadsController;
 __decorate([
@@ -72,8 +79,9 @@ __decorate([
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('status')),
     __param(3, (0, common_1.Query)('search')),
+    __param(4, (0, common_1.Query)('isDeleted')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "list", null);
 __decorate([
@@ -128,6 +136,20 @@ __decorate([
     __metadata("design:paramtypes", [String, convert_lead_dto_1.ConvertLeadDto]),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "convert", null);
+__decorate([
+    (0, common_1.Post)(':id/undo-conversion'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], LeadsController.prototype, "undoConversion", null);
+__decorate([
+    (0, common_1.Put)(':id/restore'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], LeadsController.prototype, "restore", null);
 exports.LeadsController = LeadsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('leads'),

@@ -17,7 +17,7 @@ let TasksService = class TasksService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async list({ page = 1, limit = 10, status, search, leadId, dealId, contactId, assignedTo, }) {
+    async list({ page = 1, limit = 10, status, search, leadId, dealId, assignedTo, }) {
         const where = { deletedAt: null };
         if (status) {
             const values = status.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
@@ -27,8 +27,6 @@ let TasksService = class TasksService {
             where.leadId = leadId;
         if (dealId)
             where.dealId = dealId;
-        if (contactId)
-            where.contactId = contactId;
         if (assignedTo)
             where.assignedTo = assignedTo;
         if (search && search.trim()) {
@@ -45,8 +43,30 @@ let TasksService = class TasksService {
                 take: limit,
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    assignedUser: { select: { id: true, firstName: true, lastName: true } },
-                    createdByUser: { select: { id: true, firstName: true, lastName: true } },
+                    assignedUser: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true
+                        }
+                    },
+                    createdByUser: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true
+                        }
+                    },
+                    lead: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phone: true,
+                            company: true,
+                        },
+                    },
                 },
             }),
             this.prisma.task.count({ where }),
@@ -59,6 +79,16 @@ let TasksService = class TasksService {
             include: {
                 assignedUser: { select: { id: true, firstName: true, lastName: true } },
                 createdByUser: { select: { id: true, firstName: true, lastName: true } },
+                lead: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        company: true,
+                    },
+                },
             },
         });
         if (!task)
@@ -77,17 +107,26 @@ let TasksService = class TasksService {
                 createdBy: dto.createdBy,
                 leadId: dto.leadId ?? null,
                 dealId: dto.dealId ?? null,
-                contactId: dto.contactId ?? null,
             },
             include: {
                 assignedUser: { select: { id: true, firstName: true, lastName: true } },
                 createdByUser: { select: { id: true, firstName: true, lastName: true } },
+                lead: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        company: true,
+                    },
+                },
             },
         });
         await this.prisma.activity.create({
             data: {
                 title: 'Task created',
-                description: `Task "${task.title}" created${task.assignedTo ? ' and assigned' : ''}.`,
+                description: `Task "${task.title}" created${task.assignedUser ? ' and assigned' : ''}.`,
                 type: 'TASK_CREATED',
                 icon: 'CheckCircle',
                 iconColor: 'text-orange-600',
@@ -95,7 +134,6 @@ let TasksService = class TasksService {
                     taskId: task.id,
                     leadId: task.leadId,
                     dealId: task.dealId,
-                    contactId: task.contactId,
                     assignedTo: task.assignedTo,
                     priority: task.priority,
                     dueDate: task.dueDate,
@@ -117,12 +155,21 @@ let TasksService = class TasksService {
                 assignedTo: dto.assignedTo ?? undefined,
                 leadId: dto.leadId ?? undefined,
                 dealId: dto.dealId ?? undefined,
-                contactId: dto.contactId ?? undefined,
                 updatedAt: new Date(),
             },
             include: {
                 assignedUser: { select: { id: true, firstName: true, lastName: true } },
                 createdByUser: { select: { id: true, firstName: true, lastName: true } },
+                lead: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        company: true,
+                    },
+                },
             },
         });
         await this.prisma.activity.create({
@@ -151,6 +198,16 @@ let TasksService = class TasksService {
             include: {
                 assignedUser: { select: { id: true, firstName: true, lastName: true } },
                 createdByUser: { select: { id: true, firstName: true, lastName: true } },
+                lead: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true,
+                        company: true,
+                    },
+                },
             },
         });
         await this.prisma.activity.create({

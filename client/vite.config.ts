@@ -7,8 +7,8 @@ export default defineConfig({
   server: {
     host: true, // listen on all addresses for LAN access
     proxy: {
-      "/api": { target: "http://localhost:3010", changeOrigin: true },
-      "/uploads": { target: "http://localhost:3001", changeOrigin: true },
+      "/api": { target: 'http://127.0.0.1:3010', changeOrigin: true },
+      "/uploads": { target: "http://localhost:3010", changeOrigin: true },
     },
   },
   optimizeDeps: { exclude: ["lucide-react"] },

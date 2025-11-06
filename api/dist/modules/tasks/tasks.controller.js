@@ -23,18 +23,15 @@ let TasksController = class TasksController {
     constructor(service) {
         this.service = service;
     }
-    list(page, limit, status, search, leadId, dealId, contactId, entityType, entityId, assignedTo) {
+    list(page, limit, status, search, leadId, dealId, entityType, entityId, assignedTo) {
         let lead = leadId ? parseInt(leadId) : undefined;
         let deal = dealId ? parseInt(dealId) : undefined;
-        let contact = contactId ? parseInt(contactId) : undefined;
-        if (!lead && !deal && !contact && entityType && entityId) {
+        if (!lead && !deal && entityType && entityId) {
             const idNum = parseInt(entityId);
             if (entityType === 'lead')
                 lead = idNum;
             if (entityType === 'deal')
                 deal = idNum;
-            if (entityType === 'contact')
-                contact = idNum;
         }
         return this.service.list({
             page: page ? parseInt(page) : 1,
@@ -43,7 +40,6 @@ let TasksController = class TasksController {
             search,
             leadId: lead,
             dealId: deal,
-            contactId: contact,
             assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
         });
     }
@@ -59,8 +55,6 @@ let TasksController = class TasksController {
                 mapped.leadId = idNum;
             if (et === 'deal')
                 mapped.dealId = idNum;
-            if (et === 'contact')
-                mapped.contactId = idNum;
             delete mapped.entityType;
             delete mapped.entityId;
         }
@@ -85,12 +79,11 @@ __decorate([
     __param(3, (0, common_1.Query)('search')),
     __param(4, (0, common_1.Query)('leadId')),
     __param(5, (0, common_1.Query)('dealId')),
-    __param(6, (0, common_1.Query)('contactId')),
-    __param(7, (0, common_1.Query)('entityType')),
-    __param(8, (0, common_1.Query)('entityId')),
-    __param(9, (0, common_1.Query)('assignedTo')),
+    __param(6, (0, common_1.Query)('entityType')),
+    __param(7, (0, common_1.Query)('entityId')),
+    __param(8, (0, common_1.Query)('assignedTo')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], TasksController.prototype, "list", null);
 __decorate([

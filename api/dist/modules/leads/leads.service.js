@@ -13,6 +13,29 @@ exports.LeadsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
 const client_1 = require("@prisma/client");
+const countryCurrencyMap = {
+    'United States': 'USD',
+    'USA': 'USD',
+    'India': 'INR',
+    'United Kingdom': 'GBP',
+    'UK': 'GBP',
+    'Germany': 'EUR',
+    'France': 'EUR',
+    'Italy': 'EUR',
+    'Spain': 'EUR',
+    'Canada': 'CAD',
+    'Australia': 'AUD',
+    'Japan': 'JPY',
+    'China': 'CNY',
+    'UAE': 'AED',
+};
+function getCurrencyByCountry(country) {
+    if (!country)
+        return null;
+    const normalizedCountry = country.trim().toLowerCase();
+    const foundKey = Object.keys(countryCurrencyMap).find((key) => key.toLowerCase() === normalizedCountry);
+    return foundKey ? countryCurrencyMap[foundKey] : null;
+}
 function normalizeLeadStatus(status) {
     if (!status)
         return client_1.LeadStatus.NEW;
@@ -46,10 +69,16 @@ let LeadsService = class LeadsService {
             data: { total, converted, active: total - converted },
         };
     }
-    async list({ page, limit, status, search, }) {
+    async list({ page, limit, status, search, isDeleted, }) {
         const pageNum = Math.max(1, Number(page) || 1);
         const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
-        const where = { deletedAt: null };
+        const where = {};
+        if (isDeleted === true) {
+            where.deletedAt = { not: null };
+        }
+        else {
+            where.deletedAt = null;
+        }
         if (status && String(status).trim() !== '') {
             const up = String(status).toUpperCase();
             if (client_1.LeadStatus[up])
@@ -132,6 +161,16 @@ let LeadsService = class LeadsService {
         return { success: true, data: { lead } };
     }
     async create(dto) {
+        let currency = dto.currency;
+        if (!currency && dto.country) {
+            const defaultCurrency = getCurrencyByCountry(dto.country);
+            if (defaultCurrency) {
+                currency = defaultCurrency;
+            }
+        }
+        if (!currency) {
+            currency = 'USD';
+        }
         const lead = await this.prisma.lead.create({
             data: {
                 firstName: dto.firstName,
@@ -157,7 +196,7 @@ let LeadsService = class LeadsService {
                 sourceId: dto.sourceId,
                 assignedTo: dto.assignedTo,
                 budget: dto.budget,
-                currency: dto.currency ?? 'USD',
+                currency: currency,
                 leadScore: dto.leadScore,
                 notes: dto.notes,
                 lastContactedAt: dto.lastContactedAt
@@ -209,7 +248,7 @@ let LeadsService = class LeadsService {
             where: { id },
             data: { deletedAt: new Date() },
         });
-        return { success: true, message: 'Lead deleted' };
+        return { success: true, message: 'Lead moved to trash' };
     }
     async transfer(id, dto) {
         const lead = await this.prisma.lead.findFirst({
@@ -242,35 +281,8 @@ let LeadsService = class LeadsService {
         if (lead.status === 'CONVERTED')
             return { success: false, message: 'Lead is already converted' };
         const result = await this.prisma.$transaction(async (tx) => {
-            let createdContact = null;
             let createdCompany = null;
             let createdDeal = null;
-            if (dto.createContact) {
-                const email = dto.contactData?.email || lead.email;
-                const existing = await tx.contact.findFirst({
-                    where: { email, deletedAt: null },
-                });
-                if (existing) {
-                    createdContact = existing;
-                }
-                else {
-                    createdContact = await tx.contact.create({
-                        data: {
-                            firstName: dto.contactData?.firstName || lead.firstName,
-                            lastName: dto.contactData?.lastName || lead.lastName,
-                            email,
-                            phone: dto.contactData?.phone || lead.phone,
-                            company: dto.contactData?.company || lead.company,
-                            position: dto.contactData?.position || lead.position,
-                            address: dto.contactData?.address || lead.address,
-                            website: dto.contactData?.website || lead.website,
-                            notes: dto.contactData?.notes || lead.notes,
-                            assignedTo: lead.assignedTo,
-                            companyId: lead.companyId,
-                        },
-                    });
-                }
-            }
             if (dto.createCompany && dto.companyData?.name) {
                 const existingCompany = await tx.companies.findFirst({
                     where: { name: dto.companyData.name },
@@ -306,7 +318,6 @@ let LeadsService = class LeadsService {
                             ? new Date(dto.dealData.expectedCloseDate)
                             : null,
                         assignedTo: lead.assignedTo,
-                        contactId: createdContact?.id ?? null,
                         leadId: lead.id,
                         companyId: createdCompany?.id || lead.companyId || null,
                     },
@@ -316,18 +327,57 @@ let LeadsService = class LeadsService {
                 where: { id: lead.id },
                 data: {
                     status: 'CONVERTED',
-                    convertedToContactId: createdContact?.id ?? null,
+                    previousStatus: lead.status,
+                    convertedToDealId: createdDeal?.id ?? null,
                     updatedAt: new Date(),
                 },
             });
             return {
                 lead: updatedLead,
-                contact: createdContact,
                 company: createdCompany,
                 deal: createdDeal,
             };
         });
         return { success: true, data: result };
+    }
+    async undoLeadConversion(id) {
+        const lead = await this.prisma.lead.findFirst({
+            where: { id, deletedAt: null, status: 'CONVERTED' },
+        });
+        if (!lead) {
+            return { success: false, message: 'This lead cannot be reverted.' };
+        }
+        const result = await this.prisma.$transaction(async (tx) => {
+            if (lead.convertedToDealId) {
+                await tx.deal.update({
+                    where: { id: lead.convertedToDealId },
+                    data: { deletedAt: new Date() },
+                });
+            }
+            const revertedLead = await tx.lead.update({
+                where: { id: lead.id },
+                data: {
+                    status: lead.previousStatus || 'QUALIFIED',
+                    previousStatus: null,
+                    convertedToDealId: null,
+                    updatedAt: new Date(),
+                },
+            });
+            return { lead: revertedLead };
+        });
+        return { success: true, message: 'Lead conversion reverted successfully.', data: result };
+    }
+    async restore(id) {
+        const lead = await this.prisma.lead.findFirst({
+            where: { id, deletedAt: { not: null } },
+        });
+        if (!lead)
+            return { success: false, message: 'Lead not found in trash' };
+        await this.prisma.lead.update({
+            where: { id },
+            data: { deletedAt: null },
+        });
+        return { success: true, message: 'Lead restored successfully' };
     }
 };
 exports.LeadsService = LeadsService;

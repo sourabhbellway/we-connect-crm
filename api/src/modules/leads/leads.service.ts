@@ -12,6 +12,34 @@ import {
   DealStatus,
 } from '@prisma/client';
 
+// --- NEW CODE: Country-to-Currency Mapping ---
+const countryCurrencyMap: { [key: string]: string } = {
+  'United States': 'USD',
+  'USA': 'USD',
+  'India': 'INR',
+  'United Kingdom': 'GBP',
+  'UK': 'GBP',
+  'Germany': 'EUR',
+  'France': 'EUR',
+  'Italy': 'EUR',
+  'Spain': 'EUR',
+  'Canada': 'CAD',
+  'Australia': 'AUD',
+  'Japan': 'JPY',
+  'China': 'CNY',
+  'UAE': 'AED',
+};
+
+function getCurrencyByCountry(country: string): string | null {
+  if (!country) return null;
+  const normalizedCountry = country.trim().toLowerCase();
+  const foundKey = Object.keys(countryCurrencyMap).find(
+    (key) => key.toLowerCase() === normalizedCountry
+  );
+  return foundKey ? countryCurrencyMap[foundKey] : null;
+}
+// --- NEW CODE END ---
+
 function normalizeLeadStatus(status?: string): LeadStatus {
   if (!status) return LeadStatus.NEW;
   const up = status.toUpperCase();
@@ -24,7 +52,6 @@ function normalizeLeadPriority(priority?: string): LeadPriority {
   return (LeadPriority as any)[up] ?? LeadPriority.MEDIUM;
 }
 
-// Preserve legacy helper name used by convert() for Deal status mapping
 function toEnumStatus(status?: string): DealStatus {
   if (!status) return DealStatus.DRAFT;
   const up = status.toUpperCase();
@@ -46,21 +73,31 @@ export class LeadsService {
     };
   }
 
+  // --- UPDATED METHOD: list ---
   async list({
     page,
     limit,
     status,
     search,
+    isDeleted, // <--- यह नया parameter add किया गया है
   }: {
     page: number;
     limit: number;
     status?: string;
     search?: string;
+    isDeleted?: boolean; // <--- यह boolean है
   }) {
     const pageNum = Math.max(1, Number(page) || 1);
     const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
 
-    const where: any = { deletedAt: null };
+    // --- यह where clause को dynamic बनाया गया है ---
+    const where: any = {};
+    if (isDeleted === true) {
+      where.deletedAt = { not: null }; // <--- Deleted leads के लिए
+    } else {
+      where.deletedAt = null; // <--- Active leads के लिए (default behavior)
+    }
+
     if (status && String(status).trim() !== '') {
       const up = String(status).toUpperCase();
       if ((LeadStatus as any)[up]) where.status = (LeadStatus as any)[up];
@@ -96,7 +133,6 @@ export class LeadsService {
       }),
     ]);
 
-    // Normalize enums to lowercase for frontend compatibility
     const leads = rows.map((r: any) => ({
       ...r,
       status: String(r.status || '').toLowerCase(),
@@ -148,50 +184,52 @@ export class LeadsService {
     return { success: true, data: { lead } };
   }
 
+  // --- UPDATED METHOD: create ---
   async create(dto: CreateLeadDto) {
+    // 1. Check if user provided a currency manually
+    let currency = dto.currency;
+
+    // 2. If not, try to set it based on the country
+    if (!currency && dto.country) {
+      const defaultCurrency = getCurrencyByCountry(dto.country);
+      if (defaultCurrency) {
+        currency = defaultCurrency;
+      }
+    }
+
+    // 3. If still no currency, fall back to a global default
+    if (!currency) {
+      currency = 'USD';
+    }
+
     const lead = await this.prisma.lead.create({
       data: {
-        // Basic
         firstName: dto.firstName,
         lastName: dto.lastName,
         email: dto.email,
         phone: dto.phone,
-
-        // Company
         company: dto.company,
         position: dto.position,
         industry: dto.industry,
         website: dto.website,
         companySize: dto.companySize,
         annualRevenue: dto.annualRevenue as any,
-
-        // Location
         address: dto.address,
         country: dto.country,
         state: dto.state,
         city: dto.city,
         zipCode: dto.zipCode,
-
-        // Contact & Social
         linkedinProfile: dto.linkedinProfile,
         timezone: dto.timezone,
         preferredContactMethod: dto.preferredContactMethod ?? 'email',
-
-        // Lead Management
         status: normalizeLeadStatus(dto.status),
         priority: normalizeLeadPriority(dto.priority),
         sourceId: dto.sourceId,
         assignedTo: dto.assignedTo,
-
-        // Business
         budget: dto.budget as any,
-        currency: dto.currency ?? 'USD',
+        currency: currency, // <--- Use the calculated currency here
         leadScore: dto.leadScore,
-
-        // Notes
         notes: dto.notes,
-
-        // Timing
         lastContactedAt: dto.lastContactedAt
           ? new Date(dto.lastContactedAt)
           : null,
@@ -200,8 +238,6 @@ export class LeadsService {
           : null,
       },
     });
-
-    // NOTE: Tag relationships can be handled here later if needed (LeadTag createMany)
 
     return { success: true, data: lead };
   }
@@ -212,9 +248,7 @@ export class LeadsService {
     });
     if (!lead) return { success: false, message: 'Lead not found' };
 
-    // Remove fields that are not directly updatable on Lead model
     const { tags, ...rest } = dto as any;
-
     const updateData: any = { ...rest, updatedAt: new Date() };
     if (rest.status) updateData.status = normalizeLeadStatus(rest.status);
     if (rest.priority)
@@ -229,9 +263,6 @@ export class LeadsService {
       data: updateData,
     });
 
-    // TODO: handle tag relation updates if needed
-
-    // Return normalized shape
     const normalized = {
       ...updated,
       status: String(updated.status || '').toLowerCase(),
@@ -243,6 +274,7 @@ export class LeadsService {
     return { success: true, data: { lead: normalized } };
   }
 
+  // --- UPDATED METHOD: remove (अब भी soft delete है) ---
   async remove(id: number) {
     const lead = await this.prisma.lead.findFirst({
       where: { id, deletedAt: null },
@@ -253,7 +285,7 @@ export class LeadsService {
       where: { id },
       data: { deletedAt: new Date() },
     });
-    return { success: true, message: 'Lead deleted' };
+    return { success: true, message: 'Lead moved to trash' }; // <--- Message थोड़ दिया
   }
 
   async transfer(id: number, dto: TransferLeadDto) {
@@ -289,35 +321,8 @@ export class LeadsService {
       return { success: false, message: 'Lead is already converted' };
 
     const result = await this.prisma.$transaction(async (tx: PrismaClient) => {
-      let createdContact: any = null;
       let createdCompany: any = null;
       let createdDeal: any = null;
-
-      if (dto.createContact) {
-        const email = dto.contactData?.email || lead.email;
-        const existing = await tx.contact.findFirst({
-          where: { email, deletedAt: null },
-        });
-        if (existing) {
-          createdContact = existing;
-        } else {
-          createdContact = await (tx as any).contact.create({
-            data: {
-              firstName: dto.contactData?.firstName || lead.firstName,
-              lastName: dto.contactData?.lastName || lead.lastName,
-              email,
-              phone: dto.contactData?.phone || lead.phone,
-              company: dto.contactData?.company || lead.company,
-              position: dto.contactData?.position || lead.position,
-              address: dto.contactData?.address || lead.address,
-              website: dto.contactData?.website || lead.website,
-              notes: dto.contactData?.notes || lead.notes,
-              assignedTo: lead.assignedTo,
-              companyId: lead.companyId,
-            },
-          });
-        }
-      }
 
       if (dto.createCompany && dto.companyData?.name) {
         const existingCompany = await (tx as any).companies.findFirst({
@@ -355,7 +360,6 @@ export class LeadsService {
               ? new Date(dto.dealData.expectedCloseDate)
               : null,
             assignedTo: lead.assignedTo,
-            contactId: createdContact?.id ?? null,
             leadId: lead.id,
             companyId: createdCompany?.id || lead.companyId || null,
           },
@@ -366,19 +370,67 @@ export class LeadsService {
         where: { id: lead.id },
         data: {
           status: 'CONVERTED',
-          convertedToContactId: createdContact?.id ?? null,
+          previousStatus: lead.status,
+          convertedToDealId: createdDeal?.id ?? null,
           updatedAt: new Date(),
         },
       });
 
       return {
         lead: updatedLead,
-        contact: createdContact,
         company: createdCompany,
         deal: createdDeal,
       };
     });
 
     return { success: true, data: result };
+  }
+
+  async undoLeadConversion(id: number) {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, deletedAt: null, status: 'CONVERTED' },
+    });
+
+    if (!lead) {
+      return { success: false, message: 'This lead cannot be reverted.' };
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      
+      if (lead.convertedToDealId) {
+        await tx.deal.update({
+          where: { id: lead.convertedToDealId },
+          data: { deletedAt: new Date() },
+        });
+      }
+      
+      const revertedLead = await tx.lead.update({
+        where: { id: lead.id },
+        data: {
+          status: lead.previousStatus || 'QUALIFIED',
+          previousStatus: null,
+          convertedToDealId: null,
+          updatedAt: new Date(),
+        },
+      });
+
+      return { lead: revertedLead };
+    });
+
+    return { success: true, message: 'Lead conversion reverted successfully.', data: result };
+  }
+
+  // --- NEW METHOD: restore ---
+  async restore(id: number) {
+    const lead = await this.prisma.lead.findFirst({
+      where: { id, deletedAt: { not: null } }, // <--- सिर्फ deleted lead को ही restore कर सकेंगे
+    });
+    if (!lead) return { success: false, message: 'Lead not found in trash' };
+
+    await this.prisma.lead.update({
+      where: { id },
+      data: { deletedAt: null }, // <--- deletedAt को null करके restore कर दें
+    });
+    return { success: true, message: 'Lead restored successfully' };
   }
 }

@@ -21,7 +21,6 @@ const database_module_1 = require("./database/database.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const users_module_1 = require("./modules/users/users.module");
 const leads_module_1 = require("./modules/leads/leads.module");
-const contacts_module_1 = require("./modules/contacts/contacts.module");
 const companies_module_1 = require("./modules/companies/companies.module");
 const deals_module_1 = require("./modules/deals/deals.module");
 const lead_sources_module_1 = require("./modules/lead-sources/lead-sources.module");
@@ -59,7 +58,6 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
             leads_module_1.LeadsModule,
-            contacts_module_1.ContactsModule,
             companies_module_1.CompaniesModule,
             deals_module_1.DealsModule,
             lead_sources_module_1.LeadSourcesModule,

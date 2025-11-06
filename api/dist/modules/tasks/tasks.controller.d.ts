@@ -4,10 +4,18 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 export declare class TasksController {
     private readonly service;
     constructor(service: TasksService);
-    list(page?: string, limit?: string, status?: string, search?: string, leadId?: string, dealId?: string, contactId?: string, entityType?: 'lead' | 'deal' | 'contact' | 'company', entityId?: string, assignedTo?: string): Promise<{
+    list(page?: string, limit?: string, status?: string, search?: string, leadId?: string, dealId?: string, entityType?: 'lead' | 'deal' | 'company', entityId?: string, assignedTo?: string): Promise<{
         success: boolean;
         data: {
             items: ({
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    phone: string | null;
+                    company: string | null;
+                } | null;
                 assignedUser: {
                     firstName: string;
                     lastName: string;
@@ -29,14 +37,21 @@ export declare class TasksController {
                 status: import("@prisma/client").$Enums.TaskStatus;
                 priority: import("@prisma/client").$Enums.TaskPriority;
                 assignedTo: number | null;
-                contactId: number | null;
                 leadId: number | null;
+                dealId: number | null;
+                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-                createdBy: number;
-                dealId: number | null;
             })[];
             tasks: ({
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    phone: string | null;
+                    company: string | null;
+                } | null;
                 assignedUser: {
                     firstName: string;
                     lastName: string;
@@ -58,12 +73,11 @@ export declare class TasksController {
                 status: import("@prisma/client").$Enums.TaskStatus;
                 priority: import("@prisma/client").$Enums.TaskPriority;
                 assignedTo: number | null;
-                contactId: number | null;
                 leadId: number | null;
+                dealId: number | null;
+                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-                createdBy: number;
-                dealId: number | null;
             })[];
             total: number;
             page: number;
@@ -78,6 +92,14 @@ export declare class TasksController {
         success: boolean;
         data: {
             task: {
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    phone: string | null;
+                    company: string | null;
+                } | null;
                 assignedUser: {
                     firstName: string;
                     lastName: string;
@@ -99,12 +121,11 @@ export declare class TasksController {
                 status: import("@prisma/client").$Enums.TaskStatus;
                 priority: import("@prisma/client").$Enums.TaskPriority;
                 assignedTo: number | null;
-                contactId: number | null;
                 leadId: number | null;
+                dealId: number | null;
+                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-                createdBy: number;
-                dealId: number | null;
             };
         };
         message?: undefined;
@@ -113,6 +134,14 @@ export declare class TasksController {
         success: boolean;
         data: {
             task: {
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    phone: string | null;
+                    company: string | null;
+                } | null;
                 assignedUser: {
                     firstName: string;
                     lastName: string;
@@ -134,12 +163,11 @@ export declare class TasksController {
                 status: import("@prisma/client").$Enums.TaskStatus;
                 priority: import("@prisma/client").$Enums.TaskPriority;
                 assignedTo: number | null;
-                contactId: number | null;
                 leadId: number | null;
+                dealId: number | null;
+                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-                createdBy: number;
-                dealId: number | null;
             };
         };
     }>;
@@ -147,6 +175,14 @@ export declare class TasksController {
         success: boolean;
         data: {
             task: {
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    phone: string | null;
+                    company: string | null;
+                } | null;
                 assignedUser: {
                     firstName: string;
                     lastName: string;
@@ -168,12 +204,11 @@ export declare class TasksController {
                 status: import("@prisma/client").$Enums.TaskStatus;
                 priority: import("@prisma/client").$Enums.TaskPriority;
                 assignedTo: number | null;
-                contactId: number | null;
                 leadId: number | null;
+                dealId: number | null;
+                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-                createdBy: number;
-                dealId: number | null;
             };
         };
     }>;
@@ -181,6 +216,14 @@ export declare class TasksController {
         success: boolean;
         data: {
             task: {
+                lead: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    phone: string | null;
+                    company: string | null;
+                } | null;
                 assignedUser: {
                     firstName: string;
                     lastName: string;
@@ -202,12 +245,11 @@ export declare class TasksController {
                 status: import("@prisma/client").$Enums.TaskStatus;
                 priority: import("@prisma/client").$Enums.TaskPriority;
                 assignedTo: number | null;
-                contactId: number | null;
                 leadId: number | null;
+                dealId: number | null;
+                createdBy: number;
                 dueDate: Date | null;
                 completedAt: Date | null;
-                createdBy: number;
-                dealId: number | null;
             };
         };
     }>;
