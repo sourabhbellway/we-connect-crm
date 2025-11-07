@@ -68,7 +68,6 @@ let ExpensesService = class ExpensesService {
                                 email: true,
                             },
                         },
-                        createdByUser: { select: { id: true, firstName: true, lastName: true } },
                         approvedByUser: {
                             select: {
                                 id: true,
@@ -126,7 +125,6 @@ let ExpensesService = class ExpensesService {
                         email: true,
                     },
                 },
-                createdByUser: { select: { id: true, firstName: true, lastName: true } },
                 approvedByUser: {
                     select: {
                         id: true,
@@ -162,52 +160,78 @@ let ExpensesService = class ExpensesService {
         return { success: true, data: { expense } };
     }
     async create(dto) {
-        const expense = await this.prisma.expense.create({
-            data: {
+        try {
+            const user = await this.prisma.user.findFirst({
+                where: { id: dto.submittedBy, deletedAt: null },
+            });
+            if (!user) {
+                throw new common_1.HttpException({ success: false, message: 'User not found or has been deleted' }, common_1.HttpStatus.BAD_REQUEST);
+            }
+            const createData = {
                 expenseDate: new Date(dto.expenseDate),
                 amount: dto.amount,
                 type: dto.type,
+                category: dto.category || dto.type || 'OTHER',
                 description: dto.description ?? null,
                 remarks: dto.remarks ?? null,
                 receiptUrl: dto.receiptUrl ?? null,
                 submittedBy: dto.submittedBy,
-                createdBy: dto.submittedBy,
                 projectId: dto.projectId ?? null,
                 dealId: dto.dealId ?? null,
                 leadId: dto.leadId ?? null,
                 currency: dto.currency ?? 'USD',
                 status: 'PENDING',
-            },
-            include: {
-                submittedByUser: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
+            };
+            const expense = await this.prisma.expense.create({
+                data: createData,
+                include: {
+                    submittedByUser: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                        },
                     },
                 },
-                createdByUser: { select: { id: true, firstName: true, lastName: true } },
-            },
-        });
-        return { success: true, data: { expense } };
+            });
+            return { success: true, data: { expense } };
+        }
+        catch (error) {
+            console.error('Error creating expense:', error);
+            if (error instanceof common_1.HttpException) {
+                throw error;
+            }
+            throw new common_1.HttpException({
+                success: false,
+                message: error?.message || 'Failed to create expense',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async update(id, dto) {
+        const updateData = {
+            expenseDate: dto.expenseDate ? new Date(dto.expenseDate) : undefined,
+            amount: dto.amount,
+            type: dto.type,
+            description: dto.description,
+            remarks: dto.remarks,
+            receiptUrl: dto.receiptUrl,
+            projectId: dto.projectId ?? undefined,
+            dealId: dto.dealId ?? undefined,
+            leadId: dto.leadId ?? undefined,
+            currency: dto.currency,
+            updatedAt: new Date(),
+        };
+        if (dto.category !== undefined) {
+            updateData.category = dto.category;
+        }
+        else if (dto.type !== undefined) {
+            updateData.category = dto.type;
+        }
         const expense = await this.prisma.expense.update({
             where: { id },
-            data: {
-                expenseDate: dto.expenseDate ? new Date(dto.expenseDate) : undefined,
-                amount: dto.amount,
-                type: dto.type,
-                description: dto.description,
-                remarks: dto.remarks,
-                receiptUrl: dto.receiptUrl,
-                projectId: dto.projectId ?? undefined,
-                dealId: dto.dealId ?? undefined,
-                leadId: dto.leadId ?? undefined,
-                currency: dto.currency,
-                updatedAt: new Date(),
-            },
+            data: updateData,
             include: {
                 submittedByUser: {
                     select: {

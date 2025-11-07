@@ -73,10 +73,72 @@ let UsersService = class UsersService {
             roles,
             createdAt: u.createdAt,
             updatedAt: u.updatedAt,
+            deletedAt: u.deletedAt,
         };
     }
-    async findAll() {
+    async findAll({ page, limit, search, isDeleted, } = {}) {
+        if (page !== undefined && limit !== undefined) {
+            const pageNum = Math.max(1, Number(page) || 1);
+            const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
+            const where = {};
+            if (isDeleted === true) {
+                where.deletedAt = { not: null };
+            }
+            else if (isDeleted === false || isDeleted === undefined) {
+                where.deletedAt = null;
+            }
+            if (search && String(search).trim() !== '') {
+                const q = String(search).trim();
+                where.OR = [
+                    { firstName: { contains: q, mode: 'insensitive' } },
+                    { lastName: { contains: q, mode: 'insensitive' } },
+                    { email: { contains: q, mode: 'insensitive' } },
+                ];
+            }
+            const [totalItems, rows] = await Promise.all([
+                this.prisma.user.count({ where }),
+                this.prisma.user.findMany({
+                    where,
+                    orderBy: { createdAt: 'desc' },
+                    skip: (pageNum - 1) * pageSize,
+                    take: pageSize,
+                    include: {
+                        roles: {
+                            include: {
+                                role: {
+                                    include: { permissions: { include: { permission: true } } },
+                                },
+                            },
+                        },
+                    },
+                }),
+            ]);
+            const users = await Promise.all(rows.map((u) => this.mapUser(u)));
+            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+            return {
+                success: true,
+                data: {
+                    users,
+                    pagination: {
+                        totalItems,
+                        currentPage: pageNum,
+                        pageSize,
+                        totalPages,
+                    },
+                },
+            };
+        }
+        const where = { deletedAt: null };
+        if (search && String(search).trim() !== '') {
+            const q = String(search).trim();
+            where.OR = [
+                { firstName: { contains: q, mode: 'insensitive' } },
+                { lastName: { contains: q, mode: 'insensitive' } },
+                { email: { contains: q, mode: 'insensitive' } },
+            ];
+        }
         const rows = await this.prisma.user.findMany({
+            where,
             include: {
                 roles: {
                     include: {
@@ -108,8 +170,8 @@ let UsersService = class UsersService {
         };
     }
     async findOne(id) {
-        const u = await this.prisma.user.findUnique({
-            where: { id },
+        const u = await this.prisma.user.findFirst({
+            where: { id, deletedAt: null },
             include: {
                 roles: {
                     include: {
@@ -120,6 +182,8 @@ let UsersService = class UsersService {
                 },
             },
         });
+        if (!u)
+            return { success: false, message: 'User not found' };
         return { success: true, data: await this.mapUser(u) };
     }
     async assignRoles(userId, roleIds) {
@@ -144,6 +208,11 @@ let UsersService = class UsersService {
         return { success: true, data: { user } };
     }
     async update(id, dto) {
+        const user = await this.prisma.user.findFirst({
+            where: { id, deletedAt: null },
+        });
+        if (!user)
+            return { success: false, message: 'User not found' };
         const data = {};
         if (dto.email !== undefined)
             data.email = dto.email;
@@ -156,8 +225,32 @@ let UsersService = class UsersService {
         if (dto.password) {
             data.password = await bcrypt.hash(dto.password, 10);
         }
-        const user = await this.prisma.user.update({ where: { id }, data });
-        return { success: true, data: { user } };
+        const updated = await this.prisma.user.update({ where: { id }, data });
+        return { success: true, data: { user: updated } };
+    }
+    async remove(id) {
+        const user = await this.prisma.user.findFirst({
+            where: { id, deletedAt: null },
+        });
+        if (!user)
+            return { success: false, message: 'User not found' };
+        await this.prisma.user.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
+        return { success: true, message: 'User moved to trash' };
+    }
+    async restore(id) {
+        const user = await this.prisma.user.findFirst({
+            where: { id, deletedAt: { not: null } },
+        });
+        if (!user)
+            return { success: false, message: 'User not found in trash' };
+        await this.prisma.user.update({
+            where: { id },
+            data: { deletedAt: null },
+        });
+        return { success: true, message: 'User restored successfully' };
     }
 };
 exports.UsersService = UsersService;

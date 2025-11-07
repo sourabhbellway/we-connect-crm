@@ -1,5 +1,26 @@
 import apiClient from "./apiClient";
 
+// Helper function for exponential backoff retry
+const retryWithBackoff = async (
+  fn: () => Promise<any>,
+  maxRetries = 3,
+  baseDelay = 1000
+) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (error.response?.status === 429 && i < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, i);
+        console.log(`Rate limited, retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+};
+
 export interface RoleFilters {
   search?: string;
   showOnlyActive?: boolean;
@@ -59,5 +80,33 @@ export const roleService = {
   assignRoleToUser: async (userId: number, roleIds: number[]) => {
     const response = await apiClient.put(`/users/${userId}/role`, { roleIds });
     return response.data;
+  },
+
+  // Get deleted roles
+  getDeletedRoles: async (page: number = 1, limit: number = 10) => {
+    const params = new URLSearchParams();
+    params.append("isDeleted", "true");
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+
+    const response = await apiClient.get(`/roles?${params.toString()}`);
+    return response.data;
+  },
+
+  // Restore a deleted role
+  restoreRole: async (id: number) => {
+    return retryWithBackoff(async () => {
+      try {
+        const response = await apiClient.put(`/roles/${id}/restore`);
+        return response.data;
+      } catch (error: any) {
+        console.error("Role restore error:", {
+          id,
+          status: error.response?.status,
+          message: error.response?.data?.message,
+        });
+        throw error;
+      }
+    });
   },
 };

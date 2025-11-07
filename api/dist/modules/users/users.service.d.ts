@@ -5,7 +5,33 @@ export declare class UsersService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     private mapUser;
-    findAll(): Promise<{
+    findAll({ page, limit, search, isDeleted, }?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        isDeleted?: boolean;
+    }): Promise<{
+        success: boolean;
+        data: {
+            users: ({
+                id: any;
+                email: any;
+                firstName: any;
+                lastName: any;
+                fullName: string;
+                roles: any;
+                createdAt: any;
+                updatedAt: any;
+                deletedAt: any;
+            } | null)[];
+            pagination: {
+                totalItems: number;
+                currentPage: number;
+                pageSize: number;
+                totalPages: number;
+            };
+        };
+    } | {
         success: boolean;
         data: ({
             id: any;
@@ -16,6 +42,7 @@ export declare class UsersService {
             roles: any;
             createdAt: any;
             updatedAt: any;
+            deletedAt: any;
         } | null)[];
     }>;
     getStats(): Promise<{
@@ -31,6 +58,10 @@ export declare class UsersService {
     }>;
     findOne(id: number): Promise<{
         success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
         data: {
             id: any;
             email: any;
@@ -40,7 +71,9 @@ export declare class UsersService {
             roles: any;
             createdAt: any;
             updatedAt: any;
+            deletedAt: any;
         } | null;
+        message?: undefined;
     }>;
     assignRoles(userId: number, roleIds: number[]): Promise<{
         success: boolean;
@@ -75,6 +108,10 @@ export declare class UsersService {
     }>;
     update(id: number, dto: UpdateUserDto): Promise<{
         success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
         data: {
             user: {
                 email: string;
@@ -100,5 +137,14 @@ export declare class UsersService {
                 twoFactorSecret: string | null;
             };
         };
+        message?: undefined;
+    }>;
+    remove(id: number): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    restore(id: number): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

@@ -3,10 +3,11 @@ import { UpsertRoleDto } from './dto/upsert-role.dto';
 export declare class RolesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ search, page, limit, }: {
+    list({ search, page, limit, isDeleted, }: {
         search?: string;
         page?: number;
         limit?: number;
+        isDeleted?: boolean;
     }): Promise<{
         success: boolean;
         data: {
@@ -18,6 +19,7 @@ export declare class RolesService {
                 accessScope: import("@prisma/client").$Enums.RoleAccessScope;
                 createdAt: Date;
                 updatedAt: Date;
+                deletedAt: Date | null;
                 permissions: {
                     name: string;
                     id: number;
@@ -28,9 +30,12 @@ export declare class RolesService {
                     module: string;
                 }[];
             }[];
-            totalCount: number;
-            page: number;
-            limit: number;
+            pagination: {
+                totalItems: number;
+                currentPage: number;
+                pageSize: number;
+                totalPages: number;
+            };
         };
     }>;
     create(dto: UpsertRoleDto): Promise<{
@@ -56,6 +61,10 @@ export declare class RolesService {
     }>;
     update(id: number, dto: UpsertRoleDto): Promise<{
         success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
         data: {
             id: number;
             name: string;
@@ -74,8 +83,14 @@ export declare class RolesService {
             createdAt: Date;
             updatedAt: Date;
         };
+        message?: undefined;
     }>;
     remove(id: number): Promise<{
         success: boolean;
+        message: string;
+    }>;
+    restore(id: number): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

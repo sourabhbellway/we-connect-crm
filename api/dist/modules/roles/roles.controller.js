@@ -22,11 +22,13 @@ let RolesController = class RolesController {
     constructor(service) {
         this.service = service;
     }
-    list(search, page, limit) {
+    list(search, page, limit, isDeleted) {
+        const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
         return this.service.list({
             search,
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
+            isDeleted: isDeletedBool,
         });
     }
     create(dto) {
@@ -38,6 +40,9 @@ let RolesController = class RolesController {
     remove(id) {
         return this.service.remove(Number(id));
     }
+    restore(id) {
+        return this.service.restore(Number(id));
+    }
 };
 exports.RolesController = RolesController;
 __decorate([
@@ -45,8 +50,9 @@ __decorate([
     __param(0, (0, common_1.Query)('search')),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
+    __param(3, (0, common_1.Query)('isDeleted')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], RolesController.prototype, "list", null);
 __decorate([
@@ -71,6 +77,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], RolesController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Put)(':id/restore'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], RolesController.prototype, "restore", null);
 exports.RolesController = RolesController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('roles'),

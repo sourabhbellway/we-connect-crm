@@ -11,10 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateExpenseDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 class CreateExpenseDto {
     expenseDate;
     amount;
     type;
+    category;
     description;
     remarks;
     receiptUrl;
@@ -30,6 +32,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "expenseDate", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "amount", void 0);
@@ -55,6 +58,11 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
+], CreateExpenseDto.prototype, "category", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
@@ -67,21 +75,25 @@ __decorate([
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "receiptUrl", void 0);
 __decorate([
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "submittedBy", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "projectId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "dealId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "leadId", void 0);

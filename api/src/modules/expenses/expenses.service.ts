@@ -82,8 +82,6 @@ export class ExpensesService {
                 email: true,
               },
             },
-            // @ts-ignore - generated after prisma migrate
-            createdByUser: { select: { id: true, firstName: true, lastName: true } },
             approvedByUser: {
               select: {
                 id: true,
@@ -146,8 +144,6 @@ export class ExpensesService {
             email: true,
           },
         },
-        // @ts-ignore - generated after prisma migrate
-        createdByUser: { select: { id: true, firstName: true, lastName: true } },
         approvedByUser: {
           select: {
             id: true,
@@ -184,56 +180,94 @@ export class ExpensesService {
   }
 
   async create(dto: CreateExpenseDto) {
-    const expense = await this.prisma.expense.create({
-      data: {
+    try {
+      // Validate that submittedBy user exists and is not deleted
+      const user = await this.prisma.user.findFirst({
+        where: { id: dto.submittedBy, deletedAt: null },
+      });
+      
+      if (!user) {
+        throw new HttpException(
+          { success: false, message: 'User not found or has been deleted' },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const createData: any = {
         expenseDate: new Date(dto.expenseDate),
         amount: dto.amount,
         type: dto.type as any,
+        category: dto.category || dto.type || 'OTHER', // Use category if provided, otherwise use type as category
         description: dto.description ?? null,
         remarks: dto.remarks ?? null,
         receiptUrl: dto.receiptUrl ?? null,
         submittedBy: dto.submittedBy,
-        // @ts-ignore - generated after prisma migrate
-        createdBy: dto.submittedBy,
         projectId: dto.projectId ?? null,
         dealId: dto.dealId ?? null,
         leadId: dto.leadId ?? null,
         currency: dto.currency ?? 'USD',
         status: 'PENDING',
-      },
-      include: {
-        submittedByUser: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+      };
+
+      const expense = await this.prisma.expense.create({
+        data: createData,
+        include: {
+          submittedByUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-        // @ts-ignore - generated after prisma migrate
-        createdByUser: { select: { id: true, firstName: true, lastName: true } },
-      },
-    });
+      });
 
-    return { success: true, data: { expense } };
+      return { success: true, data: { expense } };
+    } catch (error: any) {
+      console.error('Error creating expense:', error);
+      
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      
+      throw new HttpException(
+        {
+          success: false,
+          message: error?.message || 'Failed to create expense',
+          error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async update(id: number, dto: UpdateExpenseDto) {
+    const updateData: any = {
+      expenseDate: dto.expenseDate ? new Date(dto.expenseDate) : undefined,
+      amount: dto.amount,
+      type: dto.type as any,
+      description: dto.description,
+      remarks: dto.remarks,
+      receiptUrl: dto.receiptUrl,
+      projectId: dto.projectId ?? undefined,
+      dealId: dto.dealId ?? undefined,
+      leadId: dto.leadId ?? undefined,
+      currency: dto.currency,
+      updatedAt: new Date(),
+    };
+
+    // Handle category if provided, otherwise keep existing
+    if (dto.category !== undefined) {
+      updateData.category = dto.category;
+    } else if (dto.type !== undefined) {
+      // If type is updated but category not provided, use type as category
+      updateData.category = dto.type;
+    }
+
     const expense = await this.prisma.expense.update({
       where: { id },
-      data: {
-        expenseDate: dto.expenseDate ? new Date(dto.expenseDate) : undefined,
-        amount: dto.amount,
-        type: dto.type as any,
-        description: dto.description,
-        remarks: dto.remarks,
-        receiptUrl: dto.receiptUrl,
-        projectId: dto.projectId ?? undefined,
-        dealId: dto.dealId ?? undefined,
-        leadId: dto.leadId ?? undefined,
-        currency: dto.currency,
-        updatedAt: new Date(),
-      },
+      data: updateData,
       include: {
         submittedByUser: {
           select: {

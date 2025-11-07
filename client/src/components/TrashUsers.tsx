@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import {  Users as UsersIcon, Mail, Calendar, User, Trash2 } from "lucide-react";
+import {  Users as UsersIcon, Mail, Calendar, User, RotateCcw } from "lucide-react";
 import BackButton from "./BackButton";
-import { activityService } from "../services/activityService";
+import { userService } from "../services/userService";
 import Pagination from "./Pagination";
 import TableLoader from "./TableLoader";
 import NoResults from "./NoResults";
@@ -30,11 +30,11 @@ const TrashUsers: React.FC = () => {
       try {
         setLoading(true);
         setError("");
-        const res = await activityService.getDeletedData(currentPage, limit);
-        const records: DeletedUserRecord[] = res?.data?.users?.records ?? [];
+        const res = await userService.getDeletedUsers(currentPage, limit);
+        const records: DeletedUserRecord[] = res?.data?.users ?? [];
         setUsers(records);
-        setTotal(res?.data?.users?.total ?? 0);
-        setPages(res?.data?.users?.pages ?? 0);
+        setTotal(res?.data?.pagination?.totalItems ?? 0);
+        setPages(res?.data?.pagination?.totalPages ?? 0);
       } catch (e: any) {
         const message = e?.response?.data?.message || "Failed to load deleted users";
         setError(message);
@@ -45,6 +45,22 @@ const TrashUsers: React.FC = () => {
     },
     [limit]
   );
+
+  const handleRestore = async (userId: number) => {
+    if (!window.confirm("Are you sure you want to restore this user?")) {
+      return;
+    }
+
+    try {
+      await userService.restoreUser(userId);
+      toast.success("User restored successfully!");
+      // Refresh the list
+      fetchData(page);
+    } catch (e: any) {
+      const message = e?.response?.data?.message || "Failed to restore user";
+      toast.error(message, { toastId: "trash_users_restore_error" });
+    }
+  };
 
   useEffect(() => {
     fetchData(page);
@@ -81,15 +97,16 @@ const TrashUsers: React.FC = () => {
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Deleted</th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             {loading ? (
-              <TableLoader rows={8} columns={4} />
+              <TableLoader rows={8} columns={5} />
             ) : (
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {error ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <NoResults
                       title="Network or server error"
                       description={error}
@@ -124,17 +141,22 @@ const TrashUsers: React.FC = () => {
                         <Calendar className="h-3 w-3 mr-1" /> {new Date(user.deletedAt).toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Auto-delete after 30 days
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleRestore(user.id)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                        title="Restore user"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Restore
+                      </button>
                     </td>
                  
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <NoResults
                       icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
                       description="No deleted users found."

@@ -4,7 +4,28 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
-    findAll(): Promise<{
+    findAll(page?: string, limit?: string, search?: string, isDeleted?: string): Promise<{
+        success: boolean;
+        data: {
+            users: ({
+                id: any;
+                email: any;
+                firstName: any;
+                lastName: any;
+                fullName: string;
+                roles: any;
+                createdAt: any;
+                updatedAt: any;
+                deletedAt: any;
+            } | null)[];
+            pagination: {
+                totalItems: number;
+                currentPage: number;
+                pageSize: number;
+                totalPages: number;
+            };
+        };
+    } | {
         success: boolean;
         data: ({
             id: any;
@@ -15,6 +36,7 @@ export declare class UsersController {
             roles: any;
             createdAt: any;
             updatedAt: any;
+            deletedAt: any;
         } | null)[];
     }>;
     getStats(): Promise<{
@@ -30,6 +52,10 @@ export declare class UsersController {
     }>;
     findOne(id: string): Promise<{
         success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
         data: {
             id: any;
             email: any;
@@ -39,12 +65,18 @@ export declare class UsersController {
             roles: any;
             createdAt: any;
             updatedAt: any;
+            deletedAt: any;
         } | null;
+        message?: undefined;
     }>;
     assignRoles(id: string, roleIds: number[]): Promise<{
         success: boolean;
     }>;
     update(id: string, dto: UpdateUserDto): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
         success: boolean;
         data: {
             user: {
@@ -71,6 +103,7 @@ export declare class UsersController {
                 twoFactorSecret: string | null;
             };
         };
+        message?: undefined;
     }>;
     create(dto: CreateUserDto): Promise<{
         success: boolean;
@@ -99,5 +132,13 @@ export declare class UsersController {
                 twoFactorSecret: string | null;
             };
         };
+    }>;
+    remove(id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    restore(id: string): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

@@ -4,12 +4,14 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsDecimal,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateExpenseDto {
   @IsDateString() expenseDate: string;
-  @IsNumber() amount: number;
+  @Type(() => Number)
+  @IsNumber()
+  amount: number;
   @IsEnum([
     'TRAVEL',
     'MEALS',
@@ -26,12 +28,15 @@ export class CreateExpenseDto {
     'OTHER',
   ])
   type: string;
+  @IsOptional() @IsString() category?: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() remarks?: string;
   @IsOptional() @IsString() receiptUrl?: string;
-  @IsNumber() submittedBy: number;
-  @IsOptional() @IsNumber() projectId?: number;
-  @IsOptional() @IsNumber() dealId?: number;
-  @IsOptional() @IsNumber() leadId?: number;
+  @Type(() => Number)
+  @IsNumber()
+  submittedBy: number;
+  @IsOptional() @Type(() => Number) @IsNumber() projectId?: number;
+  @IsOptional() @Type(() => Number) @IsNumber() dealId?: number;
+  @IsOptional() @Type(() => Number) @IsNumber() leadId?: number;
   @IsOptional() @IsString() currency?: string;
 }

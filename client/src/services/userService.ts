@@ -100,4 +100,32 @@ export const userService = {
       return response.data;
     });
   },
+
+  // Get deleted users
+  getDeletedUsers: async (page: number = 1, limit: number = 10) => {
+    const params = new URLSearchParams();
+    params.append("isDeleted", "true");
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+
+    const response = await apiClient.get(`/users?${params.toString()}`);
+    return response.data;
+  },
+
+  // Restore a deleted user
+  restoreUser: async (id: number) => {
+    return retryWithBackoff(async () => {
+      try {
+        const response = await apiClient.put(`/users/${id}/restore`);
+        return response.data;
+      } catch (error: any) {
+        console.error("User restore error:", {
+          id,
+          status: error.response?.status,
+          message: error.response?.data?.message,
+        });
+        throw error;
+      }
+    });
+  },
 };

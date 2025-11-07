@@ -21,7 +21,34 @@ export declare class ExpensesService {
     }): Promise<{
         success: boolean;
         data: {
-            items: {
+            items: ({
+                lead: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    company: string | null;
+                } | null;
+                deal: {
+                    id: number;
+                    title: string;
+                } | null;
+                submittedByUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                approvedByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                rejectedByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -43,8 +70,36 @@ export declare class ExpensesService {
                 approvalRemarks: string | null;
                 approvedBy: number | null;
                 rejectedBy: number | null;
-            }[];
-            expenses: {
+                approvedAt: Date | null;
+            })[];
+            expenses: ({
+                lead: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    company: string | null;
+                } | null;
+                deal: {
+                    id: number;
+                    title: string;
+                } | null;
+                submittedByUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                approvedByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                rejectedByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -66,7 +121,8 @@ export declare class ExpensesService {
                 approvalRemarks: string | null;
                 approvedBy: number | null;
                 rejectedBy: number | null;
-            }[];
+                approvedAt: Date | null;
+            })[];
             total: number;
             page: number;
             limit: number;
@@ -80,6 +136,33 @@ export declare class ExpensesService {
         success: boolean;
         data: {
             expense: {
+                lead: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                    company: string | null;
+                } | null;
+                deal: {
+                    id: number;
+                    title: string;
+                } | null;
+                submittedByUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                approvedByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                rejectedByUser: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -101,6 +184,7 @@ export declare class ExpensesService {
                 approvalRemarks: string | null;
                 approvedBy: number | null;
                 rejectedBy: number | null;
+                approvedAt: Date | null;
             };
         };
         message?: undefined;
@@ -109,6 +193,13 @@ export declare class ExpensesService {
         success: boolean;
         data: {
             expense: {
+                submittedByUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+            } & {
                 id: number;
                 isActive: boolean;
                 createdAt: Date;
@@ -130,6 +221,7 @@ export declare class ExpensesService {
                 approvalRemarks: string | null;
                 approvedBy: number | null;
                 rejectedBy: number | null;
+                approvedAt: Date | null;
             };
         };
     }>;
@@ -165,6 +257,7 @@ export declare class ExpensesService {
                 approvalRemarks: string | null;
                 approvedBy: number | null;
                 rejectedBy: number | null;
+                approvedAt: Date | null;
             };
         };
     }>;
@@ -210,6 +303,7 @@ export declare class ExpensesService {
                 approvalRemarks: string | null;
                 approvedBy: number | null;
                 rejectedBy: number | null;
+                approvedAt: Date | null;
             };
         };
     }>;

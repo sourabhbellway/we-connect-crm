@@ -17,8 +17,14 @@ let RolesService = class RolesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async list({ search, page = 1, limit = 10, }) {
-        const where = { deletedAt: null };
+    async list({ search, page = 1, limit = 10, isDeleted, }) {
+        const where = {};
+        if (isDeleted === true) {
+            where.deletedAt = { not: null };
+        }
+        else if (isDeleted === false || isDeleted === undefined) {
+            where.deletedAt = null;
+        }
         if (search && search.trim()) {
             const q = search.trim();
             where.OR = [{ name: { contains: q, mode: 'insensitive' } }];
@@ -43,9 +49,22 @@ let RolesService = class RolesService {
             accessScope: r.accessScope,
             createdAt: r.createdAt,
             updatedAt: r.updatedAt,
+            deletedAt: r.deletedAt,
             permissions: r.permissions.map((rp) => rp.permission),
         }));
-        return { success: true, data: { roles: data, totalCount: total, page, limit } };
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        return {
+            success: true,
+            data: {
+                roles: data,
+                pagination: {
+                    totalItems: total,
+                    currentPage: page,
+                    pageSize: limit,
+                    totalPages,
+                },
+            }
+        };
     }
     async create(dto) {
         const role = await this.prisma.role.create({
@@ -76,7 +95,12 @@ let RolesService = class RolesService {
         };
     }
     async update(id, dto) {
-        const role = await this.prisma.role.update({
+        const role = await this.prisma.role.findFirst({
+            where: { id, deletedAt: null },
+        });
+        if (!role)
+            return { success: false, message: 'Role not found' };
+        const updated = await this.prisma.role.update({
             where: { id },
             data: {
                 name: dto.name,
@@ -94,23 +118,40 @@ let RolesService = class RolesService {
         return {
             success: true,
             data: {
-                id: role.id,
-                name: role.name,
-                description: role.description,
-                isActive: role.isActive,
-                accessScope: role.accessScope,
-                permissions: role.permissions.map((rp) => rp.permission),
-                createdAt: role.createdAt,
-                updatedAt: role.updatedAt,
+                id: updated.id,
+                name: updated.name,
+                description: updated.description,
+                isActive: updated.isActive,
+                accessScope: updated.accessScope,
+                permissions: updated.permissions.map((rp) => rp.permission),
+                createdAt: updated.createdAt,
+                updatedAt: updated.updatedAt,
             },
         };
     }
     async remove(id) {
+        const role = await this.prisma.role.findFirst({
+            where: { id, deletedAt: null },
+        });
+        if (!role)
+            return { success: false, message: 'Role not found' };
         await this.prisma.role.update({
             where: { id },
-            data: { isActive: false, deletedAt: new Date() },
+            data: { deletedAt: new Date() },
         });
-        return { success: true };
+        return { success: true, message: 'Role moved to trash' };
+    }
+    async restore(id) {
+        const role = await this.prisma.role.findFirst({
+            where: { id, deletedAt: { not: null } },
+        });
+        if (!role)
+            return { success: false, message: 'Role not found in trash' };
+        await this.prisma.role.update({
+            where: { id },
+            data: { deletedAt: null },
+        });
+        return { success: true, message: 'Role restored successfully' };
     }
 };
 exports.RolesService = RolesService;

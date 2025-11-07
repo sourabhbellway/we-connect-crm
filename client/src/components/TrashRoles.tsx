@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import {  Shield,  Calendar, User, Trash2 } from "lucide-react";
+import {  Shield,  Calendar, User, RotateCcw } from "lucide-react";
 import BackButton from "./BackButton";
-import { activityService } from "../services/activityService";
+import { roleService } from "../services/roleService";
 import Pagination from "./Pagination";
 import TableLoader from "./TableLoader";
 import NoResults from "./NoResults";
@@ -29,11 +29,11 @@ const TrashRoles: React.FC = () => {
       try {
         setLoading(true);
         setError("");
-        const res = await activityService.getDeletedData(currentPage, limit);
-        const records: DeletedRoleRecord[] = res?.data?.roles?.records ?? [];
+        const res = await roleService.getDeletedRoles(currentPage, limit);
+        const records: DeletedRoleRecord[] = res?.data?.roles ?? [];
         setRoles(records);
-        setTotal(res?.data?.roles?.total ?? 0);
-        setPages(res?.data?.roles?.pages ?? 0);
+        setTotal(res?.data?.pagination?.totalItems ?? 0);
+        setPages(res?.data?.pagination?.totalPages ?? 0);
       } catch (e: any) {
         const message = e?.response?.data?.message || "Failed to load deleted roles";
         setError(message);
@@ -44,6 +44,22 @@ const TrashRoles: React.FC = () => {
     },
     [limit]
   );
+
+  const handleRestore = async (roleId: number) => {
+    if (!window.confirm("Are you sure you want to restore this role?")) {
+      return;
+    }
+
+    try {
+      await roleService.restoreRole(roleId);
+      toast.success("Role restored successfully!");
+      // Refresh the list
+      fetchData(page);
+    } catch (e: any) {
+      const message = e?.response?.data?.message || "Failed to restore role";
+      toast.error(message, { toastId: "trash_roles_restore_error" });
+    }
+  };
 
   useEffect(() => {
     fetchData(page);
@@ -81,15 +97,16 @@ const TrashRoles: React.FC = () => {
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
                 <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Deleted</th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             {loading ? (
-              <TableLoader rows={8} columns={4} />
+              <TableLoader rows={8} columns={5} />
             ) : (
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {error ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <NoResults
                       title="Network or server error"
                       description={error}
@@ -115,16 +132,21 @@ const TrashRoles: React.FC = () => {
                         <Calendar className="h-3 w-3 mr-1" /> {new Date(role.deletedAt).toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Auto-delete after 30 days
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleRestore(role.id)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                        title="Restore role"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" />
+                        Restore
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <NoResults
                       icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
                       description="No deleted roles found."

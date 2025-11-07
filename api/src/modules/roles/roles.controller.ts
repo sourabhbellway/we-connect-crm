@@ -23,11 +23,15 @@ export class RolesController {
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('isDeleted') isDeleted?: string,
   ) {
+    const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
+    
     return this.service.list({
       search,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
+      isDeleted: isDeletedBool,
     });
   }
 
@@ -44,5 +48,10 @@ export class RolesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
+  }
+
+  @Put(':id/restore')
+  restore(@Param('id') id: string) {
+    return this.service.restore(Number(id));
   }
 }
