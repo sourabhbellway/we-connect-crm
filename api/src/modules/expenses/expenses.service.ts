@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
@@ -20,6 +20,7 @@ export class ExpensesService {
     projectId,
     dealId,
     leadId,
+    currency,
   }: {
     page?: number;
     limit?: number;
@@ -32,6 +33,7 @@ export class ExpensesService {
     projectId?: number;
     dealId?: number;
     leadId?: number;
+    currency?: string;
   }) {
     const where: any = { deletedAt: null };
 
@@ -48,6 +50,7 @@ export class ExpensesService {
     if (projectId) where.projectId = projectId;
     if (dealId) where.dealId = dealId;
     if (leadId) where.leadId = leadId;
+    if (currency) where.currency = currency;
 
     if (startDate || endDate) {
       where.expenseDate = {};
@@ -58,65 +61,78 @@ export class ExpensesService {
     if (search && search.trim()) {
       const q = search.trim();
       where.OR = [
-        { category: { contains: q, mode: 'insensitive' } },
         { description: { contains: q, mode: 'insensitive' } },
         { remarks: { contains: q, mode: 'insensitive' } },
       ];
     }
 
-    const [items, total] = await Promise.all([
-      this.prisma.expense.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          submittedByUser: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+    try {
+      const [items, total] = await Promise.all([
+        this.prisma.expense.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            submittedByUser: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            // @ts-ignore - generated after prisma migrate
+            createdByUser: { select: { id: true, firstName: true, lastName: true } },
+            approvedByUser: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            rejectedByUser: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+            deal: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+            lead: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                company: true,
+              },
             },
           },
-          approvedByUser: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-          rejectedByUser: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
-          deal: {
-            select: {
-              id: true,
-              title: true,
-            },
-          },
-          lead: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              company: true,
-            },
-          },
-        },
-      }),
-      this.prisma.expense.count({ where }),
-    ]);
+        }),
+        this.prisma.expense.count({ where }),
+      ]);
 
-    return {
-      success: true,
-      data: { items, expenses: items, total, page, limit },
-    };
+      return {
+        success: true,
+        data: { items, expenses: items, total, page, limit },
+      };
+    } catch (error: any) {
+      console.error('Error in expenses.list:', error);
+      throw new HttpException(
+        {
+          success: false,
+          message: error?.message || 'Internal server error',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
+
 
   async getById(id: number) {
     const expense = await this.prisma.expense.findFirst({
@@ -130,6 +146,8 @@ export class ExpensesService {
             email: true,
           },
         },
+        // @ts-ignore - generated after prisma migrate
+        createdByUser: { select: { id: true, firstName: true, lastName: true } },
         approvedByUser: {
           select: {
             id: true,
@@ -171,11 +189,12 @@ export class ExpensesService {
         expenseDate: new Date(dto.expenseDate),
         amount: dto.amount,
         type: dto.type as any,
-        category: dto.category,
         description: dto.description ?? null,
         remarks: dto.remarks ?? null,
         receiptUrl: dto.receiptUrl ?? null,
         submittedBy: dto.submittedBy,
+        // @ts-ignore - generated after prisma migrate
+        createdBy: dto.submittedBy,
         projectId: dto.projectId ?? null,
         dealId: dto.dealId ?? null,
         leadId: dto.leadId ?? null,
@@ -191,6 +210,8 @@ export class ExpensesService {
             email: true,
           },
         },
+        // @ts-ignore - generated after prisma migrate
+        createdByUser: { select: { id: true, firstName: true, lastName: true } },
       },
     });
 
@@ -204,7 +225,6 @@ export class ExpensesService {
         expenseDate: dto.expenseDate ? new Date(dto.expenseDate) : undefined,
         amount: dto.amount,
         type: dto.type as any,
-        category: dto.category,
         description: dto.description,
         remarks: dto.remarks,
         receiptUrl: dto.receiptUrl,
@@ -238,10 +258,12 @@ export class ExpensesService {
 
     if (dto.status === 'APPROVED') {
       data.approvedBy = dto.reviewedBy;
+      data.approvedAt = new Date();
       data.rejectedBy = null;
     } else if (dto.status === 'REJECTED') {
       data.rejectedBy = dto.reviewedBy;
       data.approvedBy = null;
+      data.approvedAt = null;
     }
 
     const expense = await this.prisma.expense.update({
@@ -273,6 +295,31 @@ export class ExpensesService {
       },
     });
 
+    // Create a simple activity to notify the submitter
+    try {
+      await this.prisma.activity.create({
+        data: {
+          title: dto.status === 'APPROVED' ? 'Expense approved' : 'Expense rejected',
+          description:
+            dto.status === 'APPROVED'
+              ? `Your expense #${expense.id} has been approved.`
+              : `Your expense #${expense.id} has been rejected.${data.approvalRemarks ? ' Remarks: ' + data.approvalRemarks : ''}`,
+          type: 'COMMUNICATION_LOGGED' as any,
+          icon: 'DollarSign',
+          iconColor: dto.status === 'APPROVED' ? '#10B981' : '#EF4444',
+          metadata: {
+            expenseId: expense.id,
+            amount: expense.amount,
+            status: expense.status,
+          } as any,
+          userId: expense.submittedByUser?.id ?? undefined,
+        },
+      });
+    } catch (e) {
+      // Non-blocking
+      console.error('Error creating expense activity:', e);
+    }
+
     return { success: true, data: { expense } };
   }
 
@@ -284,6 +331,7 @@ export class ExpensesService {
 
     return { success: true, message: 'Expense deleted successfully' };
   }
+
 
   async getStats(userId?: number) {
     const where: any = { deletedAt: null };

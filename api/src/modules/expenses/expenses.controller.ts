@@ -14,6 +14,8 @@ import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { ApproveExpenseDto } from './dto/approve-expense.dto';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('expenses')
@@ -33,6 +35,7 @@ export class ExpensesController {
     @Query('projectId') projectId?: string,
     @Query('dealId') dealId?: string,
     @Query('leadId') leadId?: string,
+    @Query('currency') currency?: string,
   ) {
     return this.service.list({
       page: page ? parseInt(page) : 1,
@@ -46,6 +49,7 @@ export class ExpensesController {
       projectId: projectId ? parseInt(projectId) : undefined,
       dealId: dealId ? parseInt(dealId) : undefined,
       leadId: leadId ? parseInt(leadId) : undefined,
+      currency,
     });
   }
 
@@ -53,6 +57,7 @@ export class ExpensesController {
   getStats(@Query('userId') userId?: string) {
     return this.service.getStats(userId ? parseInt(userId) : undefined);
   }
+
 
   @Get(':id')
   get(@Param('id') id: string) {
@@ -65,16 +70,22 @@ export class ExpensesController {
   }
 
   @Put(':id')
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
+  @RequirePermission('expense.update')
   update(@Param('id') id: string, @Body() dto: UpdateExpenseDto) {
     return this.service.update(Number(id), dto);
   }
 
   @Put(':id/approve')
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
+  @RequirePermission('expense.approve')
   approve(@Param('id') id: string, @Body() dto: ApproveExpenseDto) {
     return this.service.approve(Number(id), dto);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
+  @RequirePermission('expense.delete')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }

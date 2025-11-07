@@ -66,6 +66,7 @@ export declare class ActivitiesService {
             leads: {
                 records: {
                     industry: string | null;
+                    budget: import("@prisma/client/runtime/library").Decimal | null;
                     email: string;
                     firstName: string;
                     lastName: string;
@@ -95,7 +96,6 @@ export declare class ActivitiesService {
                     sourceId: number | null;
                     priority: import("@prisma/client").$Enums.LeadPriority;
                     assignedTo: number | null;
-                    budget: import("@prisma/client/runtime/library").Decimal | null;
                     leadScore: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;

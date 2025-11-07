@@ -192,9 +192,11 @@ function Dashboard() {
       try {
         if (hasPermission("activity.read")) {
           const response = await activityService.getRecentActivities(5);
-          const transformedActivities = response.data.map(
-            transformActivityData
-          );
+          // Response structure: { success: true, data: { items: [...] } }
+          const items = response?.data?.items || response?.data || [];
+          const transformedActivities = Array.isArray(items) 
+            ? items.map(transformActivityData)
+            : [];
           setActivities(transformedActivities);
         }
       } catch (error) {

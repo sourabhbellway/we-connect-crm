@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { STORAGE_KEYS } from '../constants';
 import {
   ArrowLeft, ArrowRight, User, Mail, Phone, Building, Calendar,
   Edit, Tag, Star, Clock, Activity, Phone as PhoneCallIcon, 
   MessageSquare, FileText, Link as LinkIcon,
-  Users, TrendingUp, Award, AlertCircle, CheckCircle, XCircle,
-  MoreVertical, Trash2, Share, Eye, Plus, PhoneCall, RefreshCw
+  Users, TrendingUp, CheckCircle, XCircle,
+  Trash2, Eye, Plus, PhoneCall
 } from 'lucide-react';
 import { leadService, Lead } from '../services/leadService';
 import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
@@ -18,10 +17,8 @@ import { activityService } from '../services/activityService';
 import { notesService, Note } from '../services/notesService';
 import { tasksService } from '../services/tasksService';
 import { communicationService, Meeting } from '../services/communicationService';
-import TableLoader from './TableLoader';
 import BackButton from './BackButton';
-import { Button, Grid, GridItem, Container, Card } from './ui';
-import { UI_CONFIG } from '../constants';
+import { Button, Container, Card } from './ui';
 import LeadTransferModal from './LeadTransferModal';
 import LeadCommunication from './LeadCommunication';
 import LeadConversionModal from './LeadConversionModal';
@@ -52,21 +49,15 @@ interface CallLog {
 const LeadProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const { hasPermission, user } = useAuth();
   const { 
-    leadSources, 
-    formatCurrency, 
-    getLeadSourceById,
-    defaultPipeline,
-    getDealStages 
+    getLeadSourceById
   } = useBusinessSettings();
 
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [showActions, setShowActions] = useState(false);
   
   // Modal states
   const [showAddNote, setShowAddNote] = useState(false);
@@ -83,7 +74,6 @@ const LeadProfile: React.FC = () => {
   // Notes state
   const [dynamicNotes, setDynamicNotes] = useState<Note[]>([]);
   const [notesLoading, setNotesLoading] = useState(false);
-  const [dynamicActivities, setDynamicActivities] = useState<any[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [files, setFiles] = useState<any[]>([]);
   
@@ -112,7 +102,6 @@ const LeadProfile: React.FC = () => {
   
   // Form states
   const [noteForm, setNoteForm] = useState({ title: '', content: '', isPinned: false });
-  const [activityForm, setActivityForm] = useState({ type: 'note', title: '', description: '' });
   const [callLogForm, setCallLogForm] = useState({
     phoneNumber: '',
     callType: 'OUTBOUND' as 'INBOUND' | 'OUTBOUND',
@@ -221,11 +210,9 @@ const LeadProfile: React.FC = () => {
         };
       });
       
-      setDynamicActivities(transformedActivities);
       setActivities(transformedActivities);
     } catch (err: any) {
       console.error('Error fetching lead activities:', err);
-      setDynamicActivities([]);
       setActivities([]);
     } finally {
       setActivitiesLoading(false);
@@ -304,7 +291,7 @@ const LeadProfile: React.FC = () => {
       }
       
       const data = await response.json();
-      setCallLogs(data.data.callLogs || []);
+      setCallLogs(data.data?.callLogs || data.callLogs || []);
     } catch (err: any) {
       console.error('Error fetching call logs:', err);
       toast.error('Failed to load call logs');
@@ -688,7 +675,7 @@ const LeadProfile: React.FC = () => {
         throw new Error(errorData.message || 'Failed to initiate call');
       }
 
-      const data = await response.json();
+      await response.json();
       toast.success('Call initiated! Check your mobile device.');
       
       // Refresh call logs if on that tab
@@ -962,25 +949,6 @@ const LeadProfile: React.FC = () => {
     return statusColors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
   };
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case 'high': return <TrendingUp className="h-4 w-4 text-orange-500" />;
-      case 'medium': return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'low': return <Clock className="h-4 w-4 text-green-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
-    }
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'email': return <Mail className="h-4 w-4 text-blue-500" />;
-      case 'call': return <PhoneCallIcon className="h-4 w-4 text-green-500" />;
-      case 'note': return <FileText className="h-4 w-4 text-purple-500" />;
-      case 'task': return <CheckCircle className="h-4 w-4 text-orange-500" />;
-      default: return <Activity className="h-4 w-4 text-gray-500" />;
-    }
-  };
 
   const getCallStatusColor = (status: string) => {
     switch (status) {
@@ -1075,7 +1043,6 @@ const LeadProfile: React.FC = () => {
 
   // Use source from API if available, otherwise fallback to context
   const leadSource = lead?.source || getLeadSourceById(lead?.sourceId?.toString() || '');
-  const dealStages = getDealStages();
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Eye },
@@ -1091,206 +1058,161 @@ const LeadProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
+      {/* Header - Compact */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className=" mx-auto px-6">
-          <div className="py-6">
-            <div className="flex items-center justify-between mb-6">
-              <BackButton to="/leads" />
-              
+        <div className="mx-auto px-6">
+          <div className="py-4">
+            <div className="flex items-center justify-end mb-4">
               {/* Actions */}
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 {hasPermission('lead.update') && (
                   <button
                     onClick={handleEdit}
-                    className="flex items-center px-4 py-2 bg-weconnect-red text-white rounded-lg hover:bg-red-600 transition-colors"
+                    className="flex items-center px-3 py-1.5 bg-weconnect-red text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Lead
+                    <Edit className="h-4 w-4 mr-1.5" />
+                    Edit
                   </button>
                 )}
-                
-                <div className="relative">
-                  <button
-                    onClick={() => setShowActions(!showActions)}
-                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <MoreVertical className="h-5 w-5" />
-                  </button>
+                <BackButton to="/leads" />
+              </div>
+            </div>
+
+            {/* Lead Header - Compact */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  <div className="h-14 w-14 rounded-xl bg-weconnect-red flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-xl">
+                      {lead.firstName[0]}{lead.lastName[0]}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    {lead.firstName} {lead.lastName}
+                  </h1>
                   
-                  {showActions && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 overflow-hidden">
-                      <div className="py-1">
-                        <button
-                          onClick={() => {/* TODO: Implement share */}}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <Share className="h-4 w-4 mr-3" />
-                          Share Lead
-                        </button>
-                        <button
-                          onClick={() => setShowAssignModal(true)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <Users className="h-4 w-4 mr-3" />
-                          Assign Lead
-                        </button>
-                        <button
-                          onClick={() => setShowTransferModal(true)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <ArrowRight className="h-4 w-4 mr-3" />
-                          Transfer Lead
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowActions(false);
-                            setShowConversionModal(true);
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <TrendingUp className="h-4 w-4 mr-3" />
-                          Convert Lead
-                        </button>
-                        <button
-                          onClick={async () => {
-                            setShowActions(false);
-                            await resetConversionStatus();
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <RefreshCw className="h-4 w-4 mr-3" />
-                          Reset Conversion Status
-                        </button>
-                        {hasPermission('lead.delete') && (
-                          <>
-                            <hr className="my-1 border-gray-200 dark:border-gray-600" />
-                            <button
-                              onClick={handleDelete}
-                              className="flex items-center w-full px-4 py-2 text-sm text-weconnect-red hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                            >
-                              <Trash2 className="h-4 w-4 mr-3" />
-                              Delete Lead
-                            </button>
-                          </>
-                        )}
-                      </div>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    {lead.company && (
+                      <span className="flex items-center">
+                        <Building className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
+                        {lead.company}
+                      </span>
+                    )}
+                    {lead.email && (
+                      <span className="flex items-center">
+                        <Mail className="h-3.5 w-3.5 mr-1.5 text-green-500" />
+                        {lead.email}
+                      </span>
+                    )}
+                    {lead.phone && (
+                      <span className="flex items-center">
+                        <Phone className="h-3.5 w-3.5 mr-1.5 text-purple-500" />
+                        {lead.phone}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(lead.status)}`}>
+                      {lead.status}
+                    </span>
+                    
+                    {leadSource && (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200">
+                        {leadSource.name}
+                      </span>
+                    )}
+
+                    {lead.assignedUser && (
+                      <span className="flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs">
+                        <User className="h-3 w-3 mr-1.5 text-orange-500" />
+                        {lead.assignedUser.firstName} {lead.assignedUser.lastName}
+                      </span>
+                    )}
+
+                    {/* Lead Score - Compact */}
+                    <div className="flex items-center px-2.5 py-1 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <TrendingUp className="h-3 w-3 mr-1.5 text-green-600 dark:text-green-400" />
+                      <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+                        Score: {lead.leadScore || 0}/100
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Lead Header */}
-            <div className="flex items-start space-x-6">
-              {/* Avatar */}
-              <div className="flex-shrink-0">
-                <div className="h-20 w-20 rounded-2xl bg-weconnect-red flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-2xl">
-                    {lead.firstName[0]}{lead.lastName[0]}
-                  </span>
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                  {lead.firstName} {lead.lastName}
-                </h1>
-                
-                <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400 mb-4">
-                  {lead.company && (
-                    <span className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg">
-                      <Building className="h-4 w-4 mr-2 text-blue-500" />
-                      {lead.company}
-                    </span>
-                  )}
-                  {lead.email && (
-                    <span className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg">
-                      <Mail className="h-4 w-4 mr-2 text-green-500" />
-                      {lead.email}
-                    </span>
-                  )}
-                  {lead.phone && (
-                    <span className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg">
-                      <Phone className="h-4 w-4 mr-2 text-purple-500" />
-                      {lead.phone}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${getStatusColor(lead.status)}`}>
-                    {lead.status}
-                  </span>
-                  
-                  {leadSource && (
-                    <span className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium bg-blue-50 text-blue-600 border border-blue-200">
-                      {leadSource.name}
-                    </span>
-                  )}
-
-                  {lead.assignedUser && (
-                    <span className="flex items-center px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-xl text-sm">
-                      <User className="h-4 w-4 mr-2 text-orange-500" />
-                      {lead.assignedUser.firstName} {lead.assignedUser.lastName}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Lead Score - Detailed */}
-              <div className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800 min-w-[280px]">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Lead Score
-                </h3>
-                
-                <div className="text-center mb-4">
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                    {lead.leadScore || 0}/100
-                </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
-                  <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${lead.leadScore || 0}%` }}></div>
-                </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {(lead.leadScore || 0) >= 80 ? 'Hot Lead - High conversion probability' : 
-                     (lead.leadScore || 0) >= 60 ? 'Warm Lead - Good potential' : 
-                     (lead.leadScore || 0) >= 40 ? 'Cold Lead - Needs nurturing' : 
-                     'New Lead - Just started'}
-                  </p>
-              </div>
-
-                <div className="mt-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Email engagement</span>
-                    <span className="text-green-600 dark:text-green-400">+25</span>
-            </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Company size</span>
-                    <span className="text-green-600 dark:text-green-400">+20</span>
-          </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Budget confirmed</span>
-                    <span className="text-green-600 dark:text-green-400">+15</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Multiple touchpoints</span>
-                    <span className="text-green-600 dark:text-green-400">+25</span>
                   </div>
                 </div>
               </div>
 
+              {/* Quick Actions in Header */}
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleQuickAction('call')}
+                  className="flex items-center px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-sm"
+                  title="Call Lead"
+                >
+                  <PhoneCallIcon className="h-4 w-4 mr-1.5" />
+                  Call
+                </button>
+                
+                <button 
+                  onClick={() => handleQuickAction('email')}
+                  className="flex items-center px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-sm"
+                  title="Send Email"
+                >
+                  <Mail className="h-4 w-4 mr-1.5" />
+                  Email
+                </button>
+                
+                <button 
+                  onClick={() => handleQuickAction('meeting')}
+                  className="flex items-center px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-sm"
+                  title="Schedule Meeting"
+                >
+                  <Calendar className="h-4 w-4 mr-1.5" />
+                  Meeting
+                </button>
+                
+                <button 
+                  onClick={() => setShowCreateTask(true)}
+                  className="flex items-center px-3 py-1.5 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors text-sm"
+                  title="Create Task"
+                >
+                  <CheckCircle className="h-4 w-4 mr-1.5" />
+                  Task
+                </button>
+
+                <button 
+                  onClick={() => setShowAssignModal(true)}
+                  className="flex items-center px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-sm"
+                  title="Assign Lead"
+                >
+                  <Users className="h-4 w-4 mr-1.5" />
+                  Assign
+                </button>
+
+                <button 
+                  onClick={() => setShowConversionModal(true)}
+                  className="flex items-center px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-sm"
+                  title="Convert Lead"
+                >
+                  <TrendingUp className="h-4 w-4 mr-1.5" />
+                  Convert
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className=" mx-auto px-6">
-        <div className="py-6 space-y-6">
-          {/* Tabs */}
+      <div className="mx-auto px-6 py-6">
+        <div className="space-y-6">
+          {/* Tabs - Compact */}
           <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-8 overflow-x-auto">
+            <nav className="-mb-px flex space-x-6 overflow-x-auto">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -1303,7 +1225,7 @@ const LeadProfile: React.FC = () => {
                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}
                   >
-                    <Icon className="h-4 w-4 mr-2" />
+                    <Icon className="h-4 w-4 mr-1.5" />
                     {tab.label}
                   </button>
                 );
@@ -1311,57 +1233,38 @@ const LeadProfile: React.FC = () => {
             </nav>
           </div>
 
-          {/* Tab Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
+          {/* Tab Content - Full Width */}
+          <div>
                 {activeTab === 'overview' && (
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Lead Information
+                        Lead Details
                       </h3>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         Created {new Date(lead.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 4 Column Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Column 1 */}
                       <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Email
-                          </label>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.email}</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Phone
-                          </label>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.phone || 'N/A'}</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Company
-                          </label>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.company || 'N/A'}</p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Position
-                          </label>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.position || 'N/A'}</p>
-                        </div>
+                        {lead.position && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                              Position
+                            </label>
+                            <p className="text-sm text-gray-900 dark:text-white">{lead.position}</p>
+                          </div>
+                        )}
 
                         {lead.website && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Website
                             </label>
-                            <p className="mt-1 text-sm">
+                            <p className="text-sm">
                               <a 
                                 href={lead.website.startsWith('http://') || lead.website.startsWith('https://') ? lead.website : `https://${lead.website}`}
                                 target="_blank"
@@ -1373,7 +1276,7 @@ const LeadProfile: React.FC = () => {
                                     : `https://${lead.website}`;
                                   window.open(url, '_blank', 'noopener,noreferrer');
                                 }}
-                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium inline-block"
+                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
                               >
                                 {lead.website}
                               </a>
@@ -1383,28 +1286,31 @@ const LeadProfile: React.FC = () => {
 
                         {lead.industry && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Industry
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.industry}</p>
+                            <p className="text-sm text-gray-900 dark:text-white">{lead.industry}</p>
                           </div>
                         )}
 
                         {lead.address && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Address
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.address}</p>
+                            <p className="text-sm text-gray-900 dark:text-white">{lead.address}</p>
                           </div>
                         )}
+                      </div>
 
+                      {/* Column 2 */}
+                      <div className="space-y-4">
                         {(lead.city || lead.state || lead.country) && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Location
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                            <p className="text-sm text-gray-900 dark:text-white">
                               {[lead.city, lead.state, lead.country].filter(Boolean).join(', ') || 'N/A'}
                             </p>
                           </div>
@@ -1412,82 +1318,42 @@ const LeadProfile: React.FC = () => {
 
                         {lead.zipCode && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Zip Code
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.zipCode}</p>
+                            <p className="text-sm text-gray-900 dark:text-white">{lead.zipCode}</p>
                           </div>
                         )}
 
                         {lead.companySize && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Company Size
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.companySize} employees</p>
+                            <p className="text-sm text-gray-900 dark:text-white">{lead.companySize} employees</p>
                           </div>
                         )}
 
                         {lead.annualRevenue && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Annual Revenue
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                            <p className="text-sm text-gray-900 dark:text-white">
                               {lead.currency || 'USD'} {Number(lead.annualRevenue).toLocaleString()}
                             </p>
                           </div>
                         )}
-
-                        {lead.timezone && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Timezone
-                            </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">{lead.timezone}</p>
-                          </div>
-                        )}
                       </div>
 
+                      {/* Column 3 */}
                       <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Status
-                          </label>
-                          <p className="mt-1">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(lead.status)}`}>
-                              {lead.status}
-                            </span>
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Source
-                          </label>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                            {leadSource?.name || 'N/A'}
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                            Assigned To
-                          </label>
-                          <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                            {lead.assignedUser 
-                              ? `${lead.assignedUser.firstName} ${lead.assignedUser.lastName}`
-                              : 'Unassigned'
-                            }
-                          </p>
-                        </div>
-
                         {lead.priority && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Priority
                             </label>
-                            <p className="mt-1">
+                            <p>
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 lead.priority === 'urgent' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
                                 lead.priority === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
@@ -1497,15 +1363,15 @@ const LeadProfile: React.FC = () => {
                                 {lead.priority}
                               </span>
                             </p>
-                      </div>
+                          </div>
                         )}
 
                         {lead.budget && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Budget
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                            <p className="text-sm text-gray-900 dark:text-white">
                               {lead.currency || 'USD'} {Number(lead.budget).toLocaleString()}
                             </p>
                           </div>
@@ -1513,21 +1379,33 @@ const LeadProfile: React.FC = () => {
 
                         {lead.preferredContactMethod && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Preferred Contact Method
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                              Preferred Contact
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white capitalize">
+                            <p className="text-sm text-gray-900 dark:text-white capitalize">
                               {lead.preferredContactMethod}
                             </p>
                           </div>
                         )}
 
+                        {lead.timezone && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                              Timezone
+                            </label>
+                            <p className="text-sm text-gray-900 dark:text-white">{lead.timezone}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Column 4 */}
+                      <div className="space-y-4">
                         {lead.linkedinProfile && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               LinkedIn
                             </label>
-                            <p className="mt-1 text-sm">
+                            <p className="text-sm">
                               <a 
                                 href={lead.linkedinProfile.startsWith('http://') || lead.linkedinProfile.startsWith('https://') ? lead.linkedinProfile : `https://${lead.linkedinProfile}`}
                                 target="_blank"
@@ -1539,7 +1417,7 @@ const LeadProfile: React.FC = () => {
                                     : `https://${lead.linkedinProfile}`;
                                   window.open(url, '_blank', 'noopener,noreferrer');
                                 }}
-                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium inline-block"
+                                className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-medium"
                               >
                                 {lead.linkedinProfile}
                               </a>
@@ -1549,22 +1427,24 @@ const LeadProfile: React.FC = () => {
 
                         {lead.lastContactedAt && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Last Contacted
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                              {new Date(lead.lastContactedAt).toLocaleDateString()} {new Date(lead.lastContactedAt).toLocaleTimeString()}
+                            <p className="text-sm text-gray-900 dark:text-white">
+                              {new Date(lead.lastContactedAt).toLocaleDateString()}<br />
+                              <span className="text-xs text-gray-500">{new Date(lead.lastContactedAt).toLocaleTimeString()}</span>
                             </p>
                           </div>
                         )}
 
                         {lead.nextFollowUpAt && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                               Next Follow-up
                             </label>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                              {new Date(lead.nextFollowUpAt).toLocaleDateString()} {new Date(lead.nextFollowUpAt).toLocaleTimeString()}
+                            <p className="text-sm text-gray-900 dark:text-white">
+                              {new Date(lead.nextFollowUpAt).toLocaleDateString()}<br />
+                              <span className="text-xs text-gray-500">{new Date(lead.nextFollowUpAt).toLocaleTimeString()}</span>
                             </p>
                           </div>
                         )}
@@ -2178,77 +2058,7 @@ const LeadProfile: React.FC = () => {
                 {activeTab === 'communication' && (
                   <LeadCommunication lead={lead} />
                 )}
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Quick Actions */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Quick Actions
-                </h3>
-                
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => handleQuickAction('call')}
-                    className="w-full flex items-center px-4 py-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                  >
-                    <PhoneCallIcon className="h-4 w-4 mr-3" />
-                    Call Lead
-                  </button>
-                  
-                  <button 
-                    onClick={() => handleQuickAction('email')}
-                    className="w-full flex items-center px-4 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                  >
-                    <Mail className="h-4 w-4 mr-3" />
-                    Send Email
-                  </button>
-                  
-                  <button 
-                    onClick={() => handleQuickAction('meeting')}
-                    className="w-full flex items-center px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
-                  >
-                    <Calendar className="h-4 w-4 mr-3" />
-                    Schedule Meeting
-                  </button>
-                  
-                    <button 
-                      onClick={() => setShowAssignModal(true)}
-                      className="w-full flex items-center px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
-                    >
-                      <Users className="h-4 w-4 mr-3" />
-                      Assign Lead
-                    </button>
-                    
-                    <button 
-                      onClick={() => setShowTransferModal(true)}
-                      className="w-full flex items-center px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
-                    >
-                      <ArrowRight className="h-4 w-4 mr-3" />
-                      Transfer Lead
-                    </button>
-
-                    <button 
-                      onClick={() => setShowConversionModal(true)}
-                      className="w-full flex items-center px-4 py-3 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-                    >
-                      <TrendingUp className="h-4 w-4 mr-3" />
-                      Convert Lead
-                    </button>
-
-                    <button 
-                      onClick={() => setShowCreateTask(true)}
-                      className="w-full flex items-center px-4 py-3 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 rounded-lg hover:bg-teal-100 dark:hover:bg-teal-900/30 transition-colors"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-3" />
-                      Create Task
-                    </button>
-                </div>
-              </div>
-
-                  </div>
-                  </div>
+          </div>
         </div>
       </div>
       

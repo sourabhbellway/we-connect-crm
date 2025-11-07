@@ -170,36 +170,32 @@ async function main() {
     console.log('⚠️  Permissions seeding skipped:', error);
   }
 
-  // 5. Assign all permissions to Admin role
+  // Ensure expense.* permissions exist and assign to Admin
   try {
-    const adminRole = await prisma.role.findUnique({
-      where: { name: 'Admin' },
-      include: { permissions: true },
-    });
+    const expensePerms = [
+      { name: 'Expense create', key: 'expense.create', module: 'Expenses', description: 'Create expenses' },
+      { name: 'Expense read', key: 'expense.read', module: 'Expenses', description: 'View expenses' },
+      { name: 'Expense update', key: 'expense.update', module: 'Expenses', description: 'Edit expenses' },
+      { name: 'Expense delete', key: 'expense.delete', module: 'Expenses', description: 'Delete expenses' },
+      { name: 'Expense approve', key: 'expense.approve', module: 'Expenses', description: 'Approve/Reject expenses' },
+    ];
+    for (const p of expensePerms) {
+      await prisma.permission.upsert({ where: { key: p.key }, update: {}, create: p });
+    }
 
+    const adminRole = await prisma.role.findUnique({ where: { name: 'Admin' }, include: { permissions: true } });
     if (adminRole) {
-      const allPermissions = await prisma.permission.findMany();
-      const existingPermissionIds = adminRole.permissions.map(p => p.permissionId);
-      const newPermissionIds = allPermissions
-        .filter(p => !existingPermissionIds.includes(p.id))
-        .map(p => p.id);
-
-      if (newPermissionIds.length > 0) {
-        for (const permId of newPermissionIds) {
-          await prisma.rolePermission.create({
-            data: {
-              roleId: adminRole.id,
-              permissionId: permId,
-            },
-          });
+      const existingIds = new Set(adminRole.permissions.map((rp) => rp.permissionId));
+      const perms = await prisma.permission.findMany({ where: { key: { in: expensePerms.map((p) => p.key) } } });
+      for (const perm of perms) {
+        if (!existingIds.has(perm.id)) {
+          await prisma.rolePermission.create({ data: { roleId: adminRole.id, permissionId: perm.id } });
         }
-        console.log(`✅ ${newPermissionIds.length} Permissions assigned to Admin role`);
-      } else {
-        console.log('ℹ️  All permissions already assigned to Admin role');
       }
+      console.log('✅ Expense permissions ensured and assigned to Admin');
     }
   } catch (error) {
-    console.log('⚠️  Permission assignment skipped:', error);
+    console.log('⚠️  Expense permissions ensure failed:', error);
   }
 
   console.log('✅ Database seeding completed!');

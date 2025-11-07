@@ -282,10 +282,10 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                         variant="GHOST" 
                         onClick={async (e) => {
                           e.stopPropagation();
-                          try {
-                            const res = await apiClient.get(`/invoices/${invoice.id}/pdf/preview`, { responseType: 'blob' });
-                            const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-                            window.open(url, '_blank');
+                        try {
+                          const res = await apiClient.get(`/invoices/${invoice.id}/pdf/preview`, { responseType: 'blob' });
+                          const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                          window.open(url, '_blank');
                           } catch (error: any) {
                             console.error('Error previewing invoice:', error);
                             if (error?.response?.status === 404) {
@@ -303,13 +303,13 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                         variant="GHOST" 
                         onClick={async (e) => {
                           e.stopPropagation();
-                          try {
-                            const res = await apiClient.get(`/invoices/${invoice.id}/pdf/download`, { responseType: 'blob' });
-                            const url = URL.createObjectURL(new Blob([res.data]));
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
-                            a.click();
+                        try {
+                          const res = await apiClient.get(`/invoices/${invoice.id}/pdf/download`, { responseType: 'blob' });
+                          const url = URL.createObjectURL(new Blob([res.data]));
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+                          a.click();
                           } catch (error: any) {
                             console.error('Error downloading invoice:', error);
                             if (error?.response?.status === 404) {

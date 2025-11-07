@@ -92,6 +92,7 @@ export declare class LeadsService {
         success: boolean;
         data: {
             industry: string | null;
+            budget: import("@prisma/client/runtime/library").Decimal | null;
             email: string;
             firstName: string;
             lastName: string;
@@ -121,7 +122,6 @@ export declare class LeadsService {
             sourceId: number | null;
             priority: import("@prisma/client").$Enums.LeadPriority;
             assignedTo: number | null;
-            budget: import("@prisma/client/runtime/library").Decimal | null;
             leadScore: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
@@ -141,6 +141,7 @@ export declare class LeadsService {
                 description: string | null;
             } | null;
             industry: string | null;
+            budget: import("@prisma/client/runtime/library").Decimal | null;
             email: string;
             firstName: string;
             lastName: string;
@@ -168,7 +169,6 @@ export declare class LeadsService {
             preferredContactMethod: string | null;
             sourceId: number | null;
             assignedTo: number | null;
-            budget: import("@prisma/client/runtime/library").Decimal | null;
             leadScore: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
@@ -200,6 +200,7 @@ export declare class LeadsService {
         message: string;
         data: {
             industry: string | null;
+            budget: import("@prisma/client/runtime/library").Decimal | null;
             email: string;
             firstName: string;
             lastName: string;
@@ -229,7 +230,6 @@ export declare class LeadsService {
             sourceId: number | null;
             priority: import("@prisma/client").$Enums.LeadPriority;
             assignedTo: number | null;
-            budget: import("@prisma/client/runtime/library").Decimal | null;
             leadScore: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
@@ -264,6 +264,7 @@ export declare class LeadsService {
         data: {
             lead: {
                 industry: string | null;
+                budget: import("@prisma/client/runtime/library").Decimal | null;
                 email: string;
                 firstName: string;
                 lastName: string;
@@ -293,7 +294,6 @@ export declare class LeadsService {
                 sourceId: number | null;
                 priority: import("@prisma/client").$Enums.LeadPriority;
                 assignedTo: number | null;
-                budget: import("@prisma/client/runtime/library").Decimal | null;
                 leadScore: number | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;

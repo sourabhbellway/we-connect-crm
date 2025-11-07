@@ -123,6 +123,7 @@ model User {
   submittedExpenses      Expense[]                 @relation("UserSubmittedExpenses")
   approvedExpenses       Expense[]                 @relation("UserApprovedExpenses")
   rejectedExpenses       Expense[]                 @relation("UserRejectedExpenses")
+  createdExpenses        Expense[]                 @relation("UserCreatedExpenses")
   createdBudgets         Budget[]                  @relation("UserCreatedBudgets")
   companies              companies?                @relation(fields: [companyId], references: [id])
 
@@ -1335,24 +1336,27 @@ model Expense {
   expenseDate     DateTime
   amount          Decimal       @db.Decimal(12, 2)
   type            ExpenseType
-  category        String
   description     String?
   remarks         String?
   receiptUrl      String?
   status          ExpenseStatus @default(PENDING)
   submittedBy     Int
+  createdBy       Int?
   approvedBy      Int?
   rejectedBy      Int?
+  approvedAt      DateTime?
   approvalRemarks String?
   projectId       Int?
   dealId          Int?
   leadId          Int?
   currency        String        @default("USD")
+  exceedsBudget   Boolean       @default(false)
   isActive        Boolean       @default(true)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   deletedAt       DateTime?
   submittedByUser User          @relation("UserSubmittedExpenses", fields: [submittedBy], references: [id])
+  createdByUser   User?         @relation("UserCreatedExpenses", fields: [createdBy], references: [id])
   approvedByUser  User?         @relation("UserApprovedExpenses", fields: [approvedBy], references: [id])
   rejectedByUser  User?         @relation("UserRejectedExpenses", fields: [rejectedBy], references: [id])
   deal            Deal?         @relation(fields: [dealId], references: [id])
@@ -1371,6 +1375,7 @@ model Budget {
   period          BudgetPeriod
   startDate       DateTime
   endDate         DateTime
+  expenseType     ExpenseType?
   projectId       Int?
   departmentId    Int?
   currency        String      @default("USD")

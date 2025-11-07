@@ -49,6 +49,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SearchResults from "./pages/SearchResults";
 import TasksPage from "./pages/tasks/TasksPage";
 import TaskDetailPage from "./pages/tasks/TaskDetailPage";
+import ExpensesPage from "./pages/expenses/ExpensesPage";
+import AutomationManagementPage from "./pages/automation/AutomationManagementPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -275,6 +277,26 @@ function AppContent() {
             <ProtectedRoute>
               <MainLayout>
                 <TaskDetailPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/expense-management"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ExpensesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/automation-management"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <AutomationManagementPage />
               </MainLayout>
             </ProtectedRoute>
           }

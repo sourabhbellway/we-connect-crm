@@ -913,7 +913,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
           <div>
             <EnhancedSelectField
-              label="Industry"
+            label="Industry"
               leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
               value={showOtherIndustryInput ? "Other" : (formState.form.industry || "")}
               onChange={(value) => {
@@ -940,11 +940,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
               <div className="mt-2">
                 <InputField
                   label="Specify Industry"
-                  leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
-                  value={formState.form.industry || ""}
-                  onChange={(e) => handleChange("industry", e.target.value)}
-                  placeholder="e.g. Technology, Healthcare"
-                />
+            leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
+            value={formState.form.industry || ""}
+            onChange={(e) => handleChange("industry", e.target.value)}
+            placeholder="e.g. Technology, Healthcare"
+          />
               </div>
             )}
           </div>

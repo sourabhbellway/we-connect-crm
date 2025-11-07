@@ -26,7 +26,6 @@ export class CreateExpenseDto {
     'OTHER',
   ])
   type: string;
-  @IsString() category: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() remarks?: string;
   @IsOptional() @IsString() receiptUrl?: string;
