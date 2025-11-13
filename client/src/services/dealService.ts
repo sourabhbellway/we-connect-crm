@@ -31,6 +31,8 @@ export interface Deal {
     firstName: string;
     lastName: string;
     email: string;
+    phone?: string;
+    company?: string;
   };
   companies?: {
     id: number;

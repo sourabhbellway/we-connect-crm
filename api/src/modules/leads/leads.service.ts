@@ -5,6 +5,10 @@ import { ConvertLeadDto } from './dto/convert-lead.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { TransferLeadDto } from './dto/transfer-lead.dto';
+import { AutomationService } from '../automation/automation.service';
+import { WorkflowTrigger } from '../automation/dto/create-workflow.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 import {
   PrismaClient,
   LeadStatus,
@@ -60,7 +64,11 @@ function toEnumStatus(status?: string): DealStatus {
 
 @Injectable()
 export class LeadsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly automationService: AutomationService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async getStats() {
     const total = await this.prisma.lead.count({ where: { deletedAt: null } });
@@ -344,6 +352,30 @@ export class LeadsService {
         : [],
     } : lead;
 
+    // Trigger automation for LEAD_CREATED
+    try {
+      await this.automationService.executeWorkflowsForTrigger(
+        WorkflowTrigger.LEAD_CREATED,
+        formattedLead,
+      );
+    } catch (error) {
+      console.error('Failed to execute automation for LEAD_CREATED:', error);
+    }
+
+    // Send notification if lead is assigned
+    if (dto.assignedTo) {
+      try {
+        await this.notificationsService.notifyLeadEvent(
+          NotificationType.LEAD_ASSIGNED,
+          dto.assignedTo,
+          lead.id,
+          `${lead.firstName} ${lead.lastName}`,
+        );
+      } catch (error) {
+        console.error('Failed to send notification:', error);
+      }
+    }
+
     return { success: true, data: formattedLead };
   }
 
@@ -517,6 +549,58 @@ export class LeadsService {
       tags: [],
       source: null,
     } as any;
+
+    // Trigger automation workflows based on what changed
+    try {
+      // Always trigger LEAD_UPDATED
+      await this.automationService.executeWorkflowsForTrigger(
+        WorkflowTrigger.LEAD_UPDATED,
+        { ...normalized, previousStatus: lead.status },
+      );
+
+      // Trigger LEAD_STATUS_CHANGED if status changed
+      if (rest.status && lead.status !== updated.status) {
+        await this.automationService.executeWorkflowsForTrigger(
+          WorkflowTrigger.LEAD_STATUS_CHANGED,
+          { ...normalized, oldStatus: lead.status, newStatus: updated.status },
+        );
+      }
+
+      // Trigger LEAD_ASSIGNED if assigned user changed
+      if (rest.assignedTo !== undefined && lead.assignedTo !== updated.assignedTo) {
+        await this.automationService.executeWorkflowsForTrigger(
+          WorkflowTrigger.LEAD_ASSIGNED,
+          { ...normalized, oldAssignedTo: lead.assignedTo, newAssignedTo: updated.assignedTo },
+        );
+
+        // Send notification to newly assigned user
+        if (updated.assignedTo) {
+          await this.notificationsService.notifyLeadEvent(
+            NotificationType.LEAD_ASSIGNED,
+            updated.assignedTo,
+            lead.id,
+            `${lead.firstName} ${lead.lastName}`,
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Failed to execute automation for lead update:', error);
+    }
+
+    // Send notification for status change to assigned user
+    if (rest.status && lead.status !== updated.status && updated.assignedTo) {
+      try {
+        await this.notificationsService.notifyLeadEvent(
+          NotificationType.LEAD_STATUS_CHANGED,
+          updated.assignedTo,
+          lead.id,
+          `${lead.firstName} ${lead.lastName}`,
+          String(updated.status).toLowerCase(),
+        );
+      } catch (error) {
+        console.error('Failed to send status change notification:', error);
+      }
+    }
 
     return { success: true, data: { lead: normalized } };
   }

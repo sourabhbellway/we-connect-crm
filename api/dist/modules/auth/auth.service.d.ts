@@ -27,6 +27,7 @@ export declare class AuthService {
                 fullName: string;
                 lastLogin: Date | null;
                 profilePicture: string | undefined;
+                dateOfBirth: Date | undefined;
                 roles: {
                     id: number;
                     name: string;
@@ -52,6 +53,7 @@ export declare class AuthService {
                 fullName: string;
                 lastLogin: Date | null;
                 profilePicture: string | undefined;
+                dateOfBirth: Date | undefined;
                 roles: {
                     id: number;
                     name: string;
@@ -96,6 +98,7 @@ export declare class AuthService {
                 fullName: string;
                 lastLogin: Date | null;
                 profilePicture: string | undefined;
+                dateOfBirth: Date | undefined;
                 roles: {
                     id: number;
                     name: string;

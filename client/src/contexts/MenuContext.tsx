@@ -10,6 +10,7 @@ const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 const DEFAULT_MENU_ORDER = [
   'dashboard',
+  'profile',
   'leads',
   'trash',
   'deals',
@@ -22,7 +23,7 @@ const DEFAULT_MENU_ORDER = [
 ];
 
 // Increment this when default order changes so saved orders can be reconciled
-const MENU_ORDER_VERSION = 2;
+const MENU_ORDER_VERSION = 3;
 
 interface MenuProviderProps {
   children: ReactNode;

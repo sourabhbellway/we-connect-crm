@@ -13,10 +13,10 @@ export declare class IntegrationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 description: string | null;
+                config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
                 authType: import("@prisma/client").$Enums.IntegrationAuthType;
-                config: import("@prisma/client/runtime/library").JsonValue | null;
             }[];
         };
     }>;
@@ -30,10 +30,10 @@ export declare class IntegrationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 description: string | null;
+                config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
                 authType: import("@prisma/client").$Enums.IntegrationAuthType;
-                config: import("@prisma/client/runtime/library").JsonValue | null;
             };
         };
     }>;
@@ -47,10 +47,10 @@ export declare class IntegrationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 description: string | null;
+                config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
                 authType: import("@prisma/client").$Enums.IntegrationAuthType;
-                config: import("@prisma/client/runtime/library").JsonValue | null;
             };
         };
     }>;

@@ -20,8 +20,8 @@ export declare class NotesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 title: string;
-                leadId: number;
                 createdBy: number;
+                leadId: number;
                 content: string;
                 isPinned: boolean;
             })[];
@@ -47,8 +47,8 @@ export declare class NotesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 title: string;
-                leadId: number;
                 createdBy: number;
+                leadId: number;
                 content: string;
                 isPinned: boolean;
             };
@@ -71,8 +71,8 @@ export declare class NotesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 title: string;
-                leadId: number;
                 createdBy: number;
+                leadId: number;
                 content: string;
                 isPinned: boolean;
             };
@@ -98,8 +98,8 @@ export declare class NotesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 title: string;
-                leadId: number;
                 createdBy: number;
+                leadId: number;
                 content: string;
                 isPinned: boolean;
             };

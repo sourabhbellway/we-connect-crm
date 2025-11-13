@@ -48,7 +48,14 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [showCreate, setShowCreate] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    priority: 'MEDIUM',
+    dueDate: '', // ISO yyyy-mm-dd
+  });
 
   useEffect(() => {
     refresh();
@@ -59,7 +66,7 @@ const refresh = async () => {
     try {
       setIsLoading(true);
       const res = await tasksService.list({ entityType: entityType as any, entityId, status: 'PENDING,IN_PROGRESS,COMPLETED' });
-      const list = res?.data?.tasks || res?.data?.items || res?.tasks || [];
+      const list = res?.data?.tasks || res?.data?.items || res?.tasks || res?.items || [];
       const mapped = list.map((t: any) => ({
         ...t,
         id: String(t.id),
@@ -72,6 +79,45 @@ const refresh = async () => {
       setTasks(initialTasks || []);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreate = async () => {
+    try {
+      if (!form.title.trim()) {
+        toast.error('Please enter a task title');
+        return;
+      }
+      const creatorId = Number((user as any)?.id || (user as any)?.userId);
+      if (!creatorId) {
+        toast.error('Unable to determine current user');
+        return;
+      }
+      setIsCreating(true);
+      const link: any = {};
+      if (entityType === 'deal') link.dealId = Number(entityId);
+      if (entityType === 'lead') link.leadId = Number(entityId);
+      if (entityType === 'contact') link.contactId = Number(entityId);
+
+      await tasksService.create({
+        title: form.title.trim(),
+        description: form.description?.trim() || undefined,
+        priority: form.priority as any,
+        status: 'PENDING',
+        dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : undefined,
+        createdBy: creatorId,
+        entityType: entityType as any,
+        entityId: Number(entityId),
+        ...link,
+      });
+      toast.success('Task created');
+      setShowCreate(false);
+      setForm({ title: '', description: '', priority: 'MEDIUM', dueDate: '' });
+      await refresh();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Failed to create task');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -219,7 +265,66 @@ return (
             )}
           </div>
         </div>
+        {hasPermission('task.create') && (
+          <Button onClick={() => setShowCreate(v => !v)}>{showCreate ? 'Cancel' : 'New Task'}</Button>
+        )}
       </div>
+
+      {/* Create Task */}
+      {showCreate && (
+        <Card className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Title</label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                placeholder="Task title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Due Date</label>
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Priority</label>
+              <select
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="URGENT">Urgent</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                placeholder="Optional details"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <Button onClick={handleCreate} disabled={isCreating} className="bg-weconnect-red hover:bg-red-600">
+              {isCreating ? 'Creating...' : 'Create Task'}
+            </Button>
+            <Button variant="OUTLINE" onClick={() => setShowCreate(false)}>Cancel</Button>
+          </div>
+        </Card>
+      )}
 
       {/* Filters */}
       <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-4">

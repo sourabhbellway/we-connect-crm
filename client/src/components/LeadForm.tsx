@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import InputField, { TextAreaField } from "./InputField";
 import { EnhancedSelectField } from "./EnhancedSelectField";
+import PhoneInputWithCountry from "./PhoneInputWithCountry";
 import { LeadPayload } from "../services/leadService";
 import { userService } from "../services/userService";
 // Lead sources now come from BusinessSettingsContext
@@ -575,28 +576,32 @@ const LeadForm: React.FC<LeadFormProps> = ({
     const v = (value || "").trim();
     if (!v) return `${label} is required`;
     if (v.length < 3) return `${label} must be at least 3 characters`;
-    if (/<[^>]*>/i.test(v)) return "Invalid characters detected";
+    if (v.length > 50) return `${label} must not exceed 50 characters`;
     if (!/^[A-Za-z\s]+$/.test(v)) return "Only letters and spaces are allowed";
     return null;
   };
 
   const hasSpecialChars = (value: string): boolean => /[^A-Za-z0-9\s]/.test(value || "");
 
-  // Phone validation: optional, but if provided must be 10-20 digits total
+  // Phone validation: optional, but if provided must be 7-15 digits total
   const validatePhone = (value: string): string | null => {
     const v = (value || "").trim();
     if (!v) return null; // optional
+    // Allow digits, spaces, +, -, (, )
+    if (!/^[0-9+\s()-]+$/.test(v)) {
+      return "Phone can only contain digits, spaces, +, -, (, )";
+    }
     const digits = v.replace(/\D/g, "");
-    if (digits.length < 10 || digits.length > 20) {
-      return "Phone number must be between 10 and 20 characters";
+    if (digits.length < 7 || digits.length > 15) {
+      return "Phone must contain 7 to 15 digits";
     }
     return null;
   };
 
-  // Company and Position validation: 2-100 chars
+  // Company and Position validation: optional, but if provided 2-100 chars
   const validateCompany = (value: string): string | null => {
     const v = (value || "").trim();
-    if (!v) return "Company is required";
+    if (!v) return null; // optional
     if (hasSpecialChars(v)) return "Company cannot contain special characters";
     if (v.length < 2) return "Company name must be between 2 and 100 characters";
     if (v.length > 100) return "Company name must be between 2 and 100 characters";
@@ -605,7 +610,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   const validatePosition = (value: string): string | null => {
     const v = (value || "").trim();
-    if (!v) return "Position is required";
+    if (!v) return null; // optional
     if (hasSpecialChars(v)) return "Position cannot contain special characters";
     if (v.length < 2) return "Position must be between 2 and 100 characters";
     if (v.length > 100) return "Position must be between 2 and 100 characters";
@@ -694,17 +699,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
       }
 
       if (key === "phone") {
-        // Store value as-is (can be "+<code><number>" or local digits); validate len if present
-        newForm.phone = String(value ?? "");
-
         const phoneValue = String(value ?? "");
-        const digits = phoneValue.replace(/\D/g, "");
+        newForm.phone = phoneValue;
+
         if (!phoneValue) {
           delete newErrors.phone; // optional
-        } else if (digits.length < 10 || digits.length > 20) {
-          newErrors.phone = "Phone number must be between 10 and 20 digits";
         } else {
-          delete newErrors.phone;
+          const phoneError = validatePhone(phoneValue);
+          if (phoneError) {
+            newErrors.phone = phoneError;
+          } else {
+            delete newErrors.phone;
+          }
         }
       }
 
@@ -876,12 +882,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
             />
           </div>
           <div className="md:col-span-2 lg:col-span-2">
-            <InputField
+            <PhoneInputWithCountry
               label="Phone"
-              leftIcon={<PhoneIcon className="h-4 w-4 text-gray-400" />}
-              type="tel"
               value={formState.form.phone || ""}
-              onChange={(e) => handleChange("phone", e.target.value)}
+              onChange={(fullPhone, countryCode) => handleChange("phone", fullPhone)}
               error={formState.errors.phone}
               placeholder="Enter phone number"
             />
@@ -901,7 +905,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
             leftIcon={<BuildingIcon className="h-4 w-4 text-gray-400" />}
             value={formState.form.company || ""}
             onChange={(e) => handleChange("company", e.target.value)}
-            required
             error={formState.errors.company}
           />
           <InputField

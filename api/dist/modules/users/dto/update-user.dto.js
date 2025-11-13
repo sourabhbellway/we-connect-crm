@@ -17,6 +17,7 @@ class UpdateUserDto {
     lastName;
     password;
     isActive;
+    managerId;
 }
 exports.UpdateUserDto = UpdateUserDto;
 __decorate([
@@ -44,4 +45,9 @@ __decorate([
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], UpdateUserDto.prototype, "isActive", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], UpdateUserDto.prototype, "managerId", void 0);
 //# sourceMappingURL=update-user.dto.js.map

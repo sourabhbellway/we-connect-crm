@@ -6,6 +6,11 @@ import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import WeConnectLogo from "../assets/logo.png";
 import { toast } from "react-toastify";
 
+// Validation constraints
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 64;
+const MAX_EMAIL_LENGTH = 254;
+
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -16,6 +21,7 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(
     () => localStorage.getItem("rememberMe") === "true"
   );
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { login, isLoading, isAuthenticated } = useAuth();
   const { companySettings } = useBusinessSettings();
@@ -27,8 +33,6 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Do not show toast for auth errors
-
   // Prefill email from localStorage when Remember Me is enabled
   useEffect(() => {
     if (rememberMe) {
@@ -39,19 +43,24 @@ const Login: React.FC = () => {
     }
   }, [rememberMe]);
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email) {
+    const email = formData.email.trim();
+    const password = formData.password.trim();
+
+    if (!email) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    } else if (email.length > MAX_EMAIL_LENGTH) {
+      newErrors.email = "Email is too long";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Enter a valid email address";
     }
 
-    if (!formData.password) {
+    if (!password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
+      newErrors.password = `Password must be between ${MIN_PASSWORD_LENGTH} and ${MAX_PASSWORD_LENGTH} characters`;
     }
 
     setErrors(newErrors);
@@ -62,13 +71,26 @@ const Login: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLoading) return; // prevent multiple submits
+
+    // Trim inputs before validation and submission
+    const trimmed = {
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+    };
+    // Reflect trimmed values in UI state
+    if (trimmed.email !== formData.email || trimmed.password !== formData.password) {
+      setFormData(trimmed);
+    }
 
     if (!validateForm()) return;
 
     try {
-      await login(formData);
+      setSubmitError(null);
+      await login(trimmed);
       // Persist or clear remembered email based on preference
       localStorage.setItem("rememberMe", String(rememberMe));
       if (rememberMe) {
@@ -81,17 +103,28 @@ const Login: React.FC = () => {
       const anyErr: any = err;
       const message =
         anyErr?.response?.data?.message || anyErr?.message || "Invalid credentials";
+      // Show toast and inline error for visibility
       toast.error(message, { toastId: "login_invalid" });
+      setSubmitError(message);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    if (submitError) setSubmitError(null);
+  };
+
+  const handleTrimOnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const trimmed = value.trim();
+    if (trimmed !== value) {
+      setFormData((prev) => ({ ...prev, [name]: trimmed }));
     }
   };
 
@@ -112,7 +145,7 @@ const Login: React.FC = () => {
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-transparent"></div>
           
           {/* Header */}
-          <div className="relative text-center mb-8">
+          <div className="relative text-center mb-6">
             <div className="mb-6">
               {companySettings?.logo ? (
                 <img
@@ -136,7 +169,12 @@ const Login: React.FC = () => {
             </p>
           </div>
 
-          {/* Error is shown via toast only */}
+          {/* Inline error message */}
+          {submitError && (
+            <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 text-red-200 px-4 py-3">
+              <p className="text-sm">{submitError}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form className="relative space-y-6" onSubmit={handleSubmit} noValidate>
@@ -151,13 +189,17 @@ const Login: React.FC = () => {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
-                <input
+<input
                   id="email"
                   name="email"
                   type="email"
+                  inputMode="email"
                   autoComplete="email"
+                  required
+                  maxLength={MAX_EMAIL_LENGTH}
                   value={formData.email}
                   onChange={handleInputChange}
+                  onBlur={handleTrimOnBlur}
                   className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
                     errors.email
                       ? "border-red-400/60 ring-red-400/20"
@@ -182,13 +224,17 @@ const Login: React.FC = () => {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
-                <input
+<input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
+                  required
+                  minLength={MIN_PASSWORD_LENGTH}
+                  maxLength={MAX_PASSWORD_LENGTH}
                   value={formData.password}
                   onChange={handleInputChange}
+                  onBlur={handleTrimOnBlur}
                   className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
                     errors.password
                       ? "border-red-400/60 ring-red-400/20"
@@ -248,9 +294,11 @@ const Login: React.FC = () => {
               </button>
             </div>
 
-            <button
+<button
               type="submit"
               disabled={isLoading}
+              aria-disabled={isLoading}
+              aria-busy={isLoading}
               className="w-full flex justify-center items-center py-4 px-6 mt-8 rounded-xl text-base font-semibold text-white bg-weconnect-red hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               {isLoading ? (

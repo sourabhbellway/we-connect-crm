@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useTheme } from "../contexts/ThemeContext";
 import { userService } from "../services/userService";
 import { authService } from "../services/authService";
+import { API_BASE_URL } from "../config/config";
 import InputField, { SelectField } from "./InputField";
 import { industryService, Industry } from "../services/industryService";
 import {
@@ -32,9 +33,10 @@ const Profile: React.FC = () => {
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     email: user?.email || "",
-    company: (user as any)?.company || "",
-    industryId: (user as any)?.industryId as number | undefined,
+    dateOfBirth: (user as any)?.dateOfBirth ? String((user as any).dateOfBirth).slice(0, 10) : "",
   });
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadIndustries = async () => {
@@ -104,8 +106,7 @@ const Profile: React.FC = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        company: formData.company || undefined,
-        industryId: formData.industryId ?? undefined,
+        dateOfBirth: formData.dateOfBirth || undefined,
       });
 
       // Preserve existing roles/permissions if API doesn't return them
@@ -137,8 +138,7 @@ const Profile: React.FC = () => {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
-      company: (user as any)?.company || "",
-      industryId: (user as any)?.industryId,
+      dateOfBirth: (user as any)?.dateOfBirth ? String((user as any).dateOfBirth).slice(0, 10) : "",
     });
     setIsEditing(false);
   };
@@ -153,6 +153,8 @@ const Profile: React.FC = () => {
       minute: "2-digit",
     });
   };
+
+  const assetBase = (API_BASE_URL || "").replace(/\/api\/?$/, "") || window.location.origin;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
@@ -172,9 +174,65 @@ const Profile: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5">
               <div className="text-center mb-4">
                 <div className="relative mx-auto h-16 w-16 mb-3">
-                  <div className="h-16 w-16 bg-gradient-to-br from-[#EF444E] to-[#ff5a64] rounded-full flex items-center justify-center border-4 border-white dark:border-gray-700 shadow">
-                    <User className="h-8 w-8 text-white" />
-                  </div>
+                  {user?.profilePicture ? (
+                    <img
+                      src={`${assetBase}/uploads/${user.profilePicture}`}
+                      alt="Avatar"
+                      className="h-16 w-16 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 bg-gradient-to-br from-[#EF444E] to-[#ff5a64] rounded-full flex items-center justify-center border-4 border-white dark:border-gray-700 shadow">
+                      <User className="h-8 w-8 text-white" />
+                    </div>
+                  )}
+                  {isEditing && (
+                    <div className="mt-3 flex justify-center">
+                      <label className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-[#EF444E] rounded-full hover:bg-[#dc2626] cursor-pointer">
+                        {avatarUploading ? (
+                          <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1.5" />
+                        ) : (
+                          <Edit className="h-4 w-4 mr-1" />
+                        )}
+                        {t("user.changeAvatar", "Change Avatar")}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                            // Client-side validation (matches server limits ~5MB and image types)
+                            const maxSize = 5 * 1024 * 1024; // 5MB
+                            const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+                            if (!allowed.includes(file.type)) {
+                              setAvatarError("Please select a valid image file (jpg, png, webp, gif)");
+                              return;
+                            }
+                            if (file.size > maxSize) {
+                              setAvatarError("File is too large. Max 5MB allowed");
+                              return;
+                            }
+
+                            setAvatarError(null);
+                            try {
+                              setAvatarUploading(true);
+                              const resp = await userService.uploadProfilePicture(file);
+                              const updatedUser = { ...(user as any), ...(resp?.data?.user || {}) } as any;
+                              updateUser(updatedUser);
+                            } catch (err: any) {
+                              setAvatarError(err?.message || 'Failed to upload');
+                            } finally {
+                              setAvatarUploading(false);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
+                  {avatarError && (
+                    <p className="text-xs text-red-500 mt-2">{avatarError}</p>
+                  )}
                 </div>
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{user?.fullName}</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{user?.roles?.[0]?.name || t("common.noRole")}</p>
@@ -257,37 +315,15 @@ const Profile: React.FC = () => {
                       onChange={handleInputChange}
                       disabled={!isEditing}
                     />
-                    {showAdminOnlyFields && (
-                      <>
-                        <InputField
-                          label={t("user.companyName", "Company Name") as string}
-                          leftIcon={<Building className="h-4 w-4 text-gray-400" />}
-                          name="company"
-                          value={formData.company}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                        />
-                        <SelectField
-                          label={t("user.chooseIndustry", "Choose your Industry") as string}
-                          leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
-                          value={formData.industryId ?? ""}
-                          onChange={(e) =>
-                            setFormData((s) => ({
-                              ...s,
-                              industryId: e.target.value ? Number(e.target.value) : undefined,
-                            }))
-                          }
-                          disabled={!isEditing}
-                        >
-                          <option value="">{t("common.selectOption", "Select option")}</option>
-                          {industries.map((i) => (
-                            <option key={i.id} value={i.id}>
-                              {i.name}
-                            </option>
-                          ))}
-                        </SelectField>
-                      </>
-                    )}
+                    <InputField
+                      label={t("user.dateOfBirth", "Date of Birth") as string}
+                      leftIcon={<Calendar className="h-4 w-4 text-gray-400" />}
+                      name="dateOfBirth"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                    />
                   </div>
 
                   {isEditing && (

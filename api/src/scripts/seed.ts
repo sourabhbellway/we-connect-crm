@@ -118,56 +118,201 @@ async function main() {
 
   // 4. Seed Permissions (अगर permissions service में नहीं हैं)
   try {
-    const permissionCount = await prisma.permission.count();
-    if (permissionCount === 0) {
-      const permissions = [
-        // Dashboard
-        { name: 'View Dashboard', key: 'dashboard.read', module: 'Dashboard', description: 'View dashboard' },
-        
-        // Users
-        { name: 'View Users', key: 'user.read', module: 'Users', description: 'View users' },
-        { name: 'Create Users', key: 'user.create', module: 'Users', description: 'Create users' },
-        { name: 'Update Users', key: 'user.update', module: 'Users', description: 'Update users' },
-        { name: 'Delete Users', key: 'user.delete', module: 'Users', description: 'Delete users' },
-        
-        // Leads
-        { name: 'View Leads', key: 'lead.read', module: 'Leads', description: 'View leads' },
-        { name: 'Create Leads', key: 'lead.create', module: 'Leads', description: 'Create leads' },
-        { name: 'Update Leads', key: 'lead.update', module: 'Leads', description: 'Update leads' },
-        { name: 'Delete Leads', key: 'lead.delete', module: 'Leads', description: 'Delete leads' },
-        
-        // Contacts
-        { name: 'View Contacts', key: 'contact.read', module: 'Contacts', description: 'View contacts' },
-        { name: 'Create Contacts', key: 'contact.create', module: 'Contacts', description: 'Create contacts' },
-        { name: 'Update Contacts', key: 'contact.update', module: 'Contacts', description: 'Update contacts' },
-        { name: 'Delete Contacts', key: 'contact.delete', module: 'Contacts', description: 'Delete contacts' },
-        
-        // Deals
-        { name: 'View Deals', key: 'deal.read', module: 'Deals', description: 'View deals' },
-        { name: 'Create Deals', key: 'deal.create', module: 'Deals', description: 'Create deals' },
-        { name: 'Update Deals', key: 'deal.update', module: 'Deals', description: 'Update deals' },
-        { name: 'Delete Deals', key: 'deal.delete', module: 'Deals', description: 'Delete deals' },
-        
-        // Roles
-        { name: 'View Roles', key: 'role.read', module: 'Roles', description: 'View roles' },
-        { name: 'Create Roles', key: 'role.create', module: 'Roles', description: 'Create roles' },
-        { name: 'Update Roles', key: 'role.update', module: 'Roles', description: 'Update roles' },
-        { name: 'Delete Roles', key: 'role.delete', module: 'Roles', description: 'Delete roles' },
-      ];
+    const basePermissions = [
+      // Dashboard
+      { name: 'View Dashboard', key: 'dashboard.read', module: 'Dashboard', description: 'View dashboard' },
 
-      for (const perm of permissions) {
-        await prisma.permission.upsert({
-          where: { key: perm.key },
-          update: {},
-          create: perm,
-        });
-      }
-      console.log(`✅ ${permissions.length} Permissions seeded`);
-    } else {
-      console.log('ℹ️  Permissions already exist');
+      // Users
+      { name: 'View Users', key: 'user.read', module: 'Users', description: 'View users' },
+      { name: 'Create Users', key: 'user.create', module: 'Users', description: 'Create users' },
+      { name: 'Update Users', key: 'user.update', module: 'Users', description: 'Update users' },
+      { name: 'Delete Users', key: 'user.delete', module: 'Users', description: 'Delete users' },
+
+      // Roles
+      { name: 'View Roles', key: 'role.read', module: 'Roles', description: 'View roles' },
+      { name: 'Create Roles', key: 'role.create', module: 'Roles', description: 'Create roles' },
+      { name: 'Update Roles', key: 'role.update', module: 'Roles', description: 'Update roles' },
+      { name: 'Delete Roles', key: 'role.delete', module: 'Roles', description: 'Delete roles' },
+
+      // Permissions management
+      { name: 'View Permissions', key: 'permission.read', module: 'Permissions', description: 'View permissions' },
+      { name: 'Create Permissions', key: 'permission.create', module: 'Permissions', description: 'Create permissions' },
+      { name: 'Update Permissions', key: 'permission.update', module: 'Permissions', description: 'Update permissions' },
+      { name: 'Delete Permissions', key: 'permission.delete', module: 'Permissions', description: 'Delete permissions' },
+
+      // Leads
+      { name: 'View Leads', key: 'lead.read', module: 'Leads', description: 'View leads' },
+      { name: 'Create Leads', key: 'lead.create', module: 'Leads', description: 'Create leads' },
+      { name: 'Update Leads', key: 'lead.update', module: 'Leads', description: 'Update leads' },
+      { name: 'Delete Leads', key: 'lead.delete', module: 'Leads', description: 'Delete leads' },
+
+      // Deals
+      { name: 'View Deals', key: 'deal.read', module: 'Deals', description: 'View deals' },
+      { name: 'Create Deals', key: 'deal.create', module: 'Deals', description: 'Create deals' },
+      { name: 'Update Deals', key: 'deal.update', module: 'Deals', description: 'Update deals' },
+      { name: 'Delete Deals', key: 'deal.delete', module: 'Deals', description: 'Delete deals' },
+
+      // Quotations
+      { name: 'View Quotations', key: 'quotation.read', module: 'Quotations', description: 'View quotations' },
+      { name: 'Create Quotations', key: 'quotation.create', module: 'Quotations', description: 'Create quotations' },
+      { name: 'Update Quotations', key: 'quotation.update', module: 'Quotations', description: 'Update quotations' },
+      { name: 'Delete Quotations', key: 'quotation.delete', module: 'Quotations', description: 'Delete quotations' },
+
+      // Invoices
+      { name: 'View Invoices', key: 'invoice.read', module: 'Invoices', description: 'View invoices' },
+      { name: 'Create Invoices', key: 'invoice.create', module: 'Invoices', description: 'Create invoices' },
+      { name: 'Update Invoices', key: 'invoice.update', module: 'Invoices', description: 'Update invoices' },
+      { name: 'Delete Invoices', key: 'invoice.delete', module: 'Invoices', description: 'Delete invoices' },
+
+      // Activities / Tasks
+      { name: 'View Activities', key: 'activity.read', module: 'Activities', description: 'View tasks and activities' },
+
+      // Business Settings
+      { name: 'View Business Settings', key: 'business_settings.read', module: 'BusinessSettings', description: 'View business settings' },
+      { name: 'Update Business Settings', key: 'business_settings.update', module: 'BusinessSettings', description: 'Update business settings' },
+
+      // Trash
+      { name: 'View Trash', key: 'deleted.read', module: 'Trash', description: 'View deleted items' },
+
+      // Expenses
+      { name: 'Expense create', key: 'expense.create', module: 'Expenses', description: 'Create expenses' },
+      { name: 'Expense read', key: 'expense.read', module: 'Expenses', description: 'View expenses' },
+      { name: 'Expense update', key: 'expense.update', module: 'Expenses', description: 'Edit expenses' },
+      { name: 'Expense delete', key: 'expense.delete', module: 'Expenses', description: 'Delete expenses' },
+      { name: 'Expense approve', key: 'expense.approve', module: 'Expenses', description: 'Approve/Reject expenses' },
+    ];
+
+    for (const perm of basePermissions) {
+      await prisma.permission.upsert({
+        where: { key: perm.key },
+        update: {},
+        create: perm,
+      });
     }
+    console.log(`✅ Permissions ensured: ${basePermissions.length}`);
   } catch (error) {
     console.log('⚠️  Permissions seeding skipped:', error);
+  }
+
+  // 5. Create Sales Executive and Sales Manager roles with permissions
+  try {
+    // Role: Sales Executive (OWN scope)
+    const salesExec = await prisma.role.upsert({
+      where: { name: 'Sales Executive' },
+      update: {},
+      create: {
+        name: 'Sales Executive',
+        description: 'Can manage own leads/deals and view activities',
+        isActive: true,
+        accessScope: 'OWN',
+      },
+    });
+
+    // Role: Sales Manager (GLOBAL scope)
+    const salesMgr = await prisma.role.upsert({
+      where: { name: 'Sales Manager' },
+      update: {},
+      create: {
+        name: 'Sales Manager',
+        description: 'Manage team leads/deals and quotations, view activities',
+        isActive: true,
+        accessScope: 'GLOBAL',
+      },
+    });
+
+    // Permissions to assign
+    const execKeys = [
+      'dashboard.read',
+      'lead.read', 'lead.create', 'lead.update',
+      'deal.read', 'deal.create', 'deal.update',
+      'quotation.read', 'quotation.create', 'quotation.update',
+      'invoice.read',
+      'activity.read',
+    ];
+
+    const mgrKeys = [
+      ...execKeys,
+      'lead.delete',
+      'deal.delete',
+      'quotation.delete',
+      'invoice.update', 'invoice.delete',
+    ];
+
+    const execPerms = await prisma.permission.findMany({ where: { key: { in: execKeys } } });
+    const mgrPerms = await prisma.permission.findMany({ where: { key: { in: mgrKeys } } });
+
+    // Assign permissions (avoid duplicates)
+    for (const p of execPerms) {
+      await prisma.rolePermission.upsert({
+        where: { roleId_permissionId: { roleId: salesExec.id, permissionId: p.id } },
+        update: {},
+        create: { roleId: salesExec.id, permissionId: p.id },
+      });
+    }
+
+    for (const p of mgrPerms) {
+      await prisma.rolePermission.upsert({
+        where: { roleId_permissionId: { roleId: salesMgr.id, permissionId: p.id } },
+        update: {},
+        create: { roleId: salesMgr.id, permissionId: p.id },
+      });
+    }
+
+    console.log('✅ Roles ensured: Sales Executive, Sales Manager (with permissions)');
+  } catch (error) {
+    console.log('⚠️  Sales role setup failed:', error);
+  }
+
+  // 6. Assign sales roles to sample users (optional)
+  try {
+    const salesExecRole = await prisma.role.findUnique({ where: { name: 'Sales Executive' } });
+    const salesMgrRole = await prisma.role.findUnique({ where: { name: 'Sales Manager' } });
+
+    // Ensure sample Sales Executive user exists and assign role
+    const salesExecUser = await prisma.user.upsert({
+      where: { email: 'sales.exec@weconnect.com' },
+      update: {},
+      create: {
+        email: 'sales.exec@weconnect.com',
+        password: await bcrypt.hash('sales123', 10),
+        firstName: 'Sales',
+        lastName: 'Executive',
+        isActive: true,
+        emailVerified: true,
+      },
+    });
+    if (salesExecRole) {
+      await prisma.userRole.upsert({
+        where: { userId_roleId: { userId: salesExecUser.id, roleId: salesExecRole.id } },
+        update: {},
+        create: { userId: salesExecUser.id, roleId: salesExecRole.id },
+      });
+    }
+
+    // Ensure sample Sales Manager user exists and assign role
+    const salesMgrUser = await prisma.user.upsert({
+      where: { email: 'sales.manager@weconnect.com' },
+      update: {},
+      create: {
+        email: 'sales.manager@weconnect.com',
+        password: await bcrypt.hash('manager123', 10),
+        firstName: 'Sales',
+        lastName: 'Manager',
+        isActive: true,
+        emailVerified: true,
+      },
+    });
+    if (salesMgrRole) {
+      await prisma.userRole.upsert({
+        where: { userId_roleId: { userId: salesMgrUser.id, roleId: salesMgrRole.id } },
+        update: {},
+        create: { userId: salesMgrUser.id, roleId: salesMgrRole.id },
+      });
+    }
+
+    console.log('✅ Sample sales users ensured and assigned roles');
+  } catch (error) {
+    console.log('⚠️  Assigning sales roles to sample users failed:', error);
   }
 
   // Ensure expense.* permissions exist and assign to Admin

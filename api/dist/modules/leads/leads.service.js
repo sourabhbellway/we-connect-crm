@@ -12,7 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LeadsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
+const automation_service_1 = require("../automation/automation.service");
+const create_workflow_dto_1 = require("../automation/dto/create-workflow.dto");
+const notifications_service_1 = require("../notifications/notifications.service");
 const client_1 = require("@prisma/client");
+const client_2 = require("@prisma/client");
 const countryCurrencyMap = {
     'United States': 'USD',
     'USA': 'USD',
@@ -38,26 +42,30 @@ function getCurrencyByCountry(country) {
 }
 function normalizeLeadStatus(status) {
     if (!status)
-        return client_1.LeadStatus.NEW;
+        return client_2.LeadStatus.NEW;
     const up = status.toUpperCase();
-    return client_1.LeadStatus[up] ?? client_1.LeadStatus.NEW;
+    return client_2.LeadStatus[up] ?? client_2.LeadStatus.NEW;
 }
 function normalizeLeadPriority(priority) {
     if (!priority)
-        return client_1.LeadPriority.MEDIUM;
+        return client_2.LeadPriority.MEDIUM;
     const up = priority.toUpperCase();
-    return client_1.LeadPriority[up] ?? client_1.LeadPriority.MEDIUM;
+    return client_2.LeadPriority[up] ?? client_2.LeadPriority.MEDIUM;
 }
 function toEnumStatus(status) {
     if (!status)
-        return client_1.DealStatus.DRAFT;
+        return client_2.DealStatus.DRAFT;
     const up = status.toUpperCase();
-    return client_1.DealStatus[up] ?? client_1.DealStatus.DRAFT;
+    return client_2.DealStatus[up] ?? client_2.DealStatus.DRAFT;
 }
 let LeadsService = class LeadsService {
     prisma;
-    constructor(prisma) {
+    automationService;
+    notificationsService;
+    constructor(prisma, automationService, notificationsService) {
         this.prisma = prisma;
+        this.automationService = automationService;
+        this.notificationsService = notificationsService;
     }
     async getStats() {
         const total = await this.prisma.lead.count({ where: { deletedAt: null } });
@@ -82,8 +90,8 @@ let LeadsService = class LeadsService {
             }
             if (status && String(status).trim() !== '') {
                 const up = String(status).toUpperCase();
-                if (client_1.LeadStatus[up])
-                    where.status = client_1.LeadStatus[up];
+                if (client_2.LeadStatus[up])
+                    where.status = client_2.LeadStatus[up];
             }
             if (search && String(search).trim() !== '') {
                 const q = String(search).trim();
@@ -301,6 +309,20 @@ let LeadsService = class LeadsService {
                 }))
                 : [],
         } : lead;
+        try {
+            await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_CREATED, formattedLead);
+        }
+        catch (error) {
+            console.error('Failed to execute automation for LEAD_CREATED:', error);
+        }
+        if (dto.assignedTo) {
+            try {
+                await this.notificationsService.notifyLeadEvent(client_1.NotificationType.LEAD_ASSIGNED, dto.assignedTo, lead.id, `${lead.firstName} ${lead.lastName}`);
+            }
+            catch (error) {
+                console.error('Failed to send notification:', error);
+            }
+        }
         return { success: true, data: formattedLead };
     }
     async update(id, dto) {
@@ -455,6 +477,29 @@ let LeadsService = class LeadsService {
             tags: [],
             source: null,
         };
+        try {
+            await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_UPDATED, { ...normalized, previousStatus: lead.status });
+            if (rest.status && lead.status !== updated.status) {
+                await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_STATUS_CHANGED, { ...normalized, oldStatus: lead.status, newStatus: updated.status });
+            }
+            if (rest.assignedTo !== undefined && lead.assignedTo !== updated.assignedTo) {
+                await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_ASSIGNED, { ...normalized, oldAssignedTo: lead.assignedTo, newAssignedTo: updated.assignedTo });
+                if (updated.assignedTo) {
+                    await this.notificationsService.notifyLeadEvent(client_1.NotificationType.LEAD_ASSIGNED, updated.assignedTo, lead.id, `${lead.firstName} ${lead.lastName}`);
+                }
+            }
+        }
+        catch (error) {
+            console.error('Failed to execute automation for lead update:', error);
+        }
+        if (rest.status && lead.status !== updated.status && updated.assignedTo) {
+            try {
+                await this.notificationsService.notifyLeadEvent(client_1.NotificationType.LEAD_STATUS_CHANGED, updated.assignedTo, lead.id, `${lead.firstName} ${lead.lastName}`, String(updated.status).toLowerCase());
+            }
+            catch (error) {
+                console.error('Failed to send status change notification:', error);
+            }
+        }
         return { success: true, data: { lead: normalized } };
     }
     async remove(id) {
@@ -606,6 +651,8 @@ let LeadsService = class LeadsService {
 exports.LeadsService = LeadsService;
 exports.LeadsService = LeadsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        automation_service_1.AutomationService,
+        notifications_service_1.NotificationsService])
 ], LeadsService);
 //# sourceMappingURL=leads.service.js.map

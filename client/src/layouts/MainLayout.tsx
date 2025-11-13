@@ -92,6 +92,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       permission: PERMISSIONS.DASHBOARD.READ,
     },
     {
+      id: 'profile',
+      name: t('user.profile') || 'Profile',
+      href: '/profile',
+      icon: UserIcon,
+    },
+    {
       id: 'leads',
       name: t('navigation.leads') || 'Leads',
       href: '/leads',
@@ -139,6 +145,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       icon: Settings,
       badge: '',
       badgeColor: 'bg-purple-500',
+      permission: PERMISSIONS.BUSINESS_SETTINGS.READ,
     },
     {
       id: 'trash',

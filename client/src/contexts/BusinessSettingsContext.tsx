@@ -365,9 +365,39 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
     if (!currencySettings) return String(num);
     
     const curr = currency || currencySettings.primary;
-    const symbol = currencySettings.symbol || '$';
     const decimals = currencySettings.decimalPlaces || 2;
-    
+
+    // When a specific currency is requested and it may differ from the primary,
+    // try to format using Intl for correct symbol (₹, $, €, etc.)
+    try {
+      if (curr) {
+        return new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: curr,
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        }).format(num);
+      }
+    } catch (e) {
+      // Fall back to manual formatting below
+    }
+
+    // Fallback: use configured symbol/position, but pick a sensible symbol for non-primary currencies
+    const symbolMap: Record<string, string> = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      INR: '₹',
+      JPY: '¥',
+      AUD: 'A$',
+      CAD: 'C$',
+      SGD: 'S$',
+    };
+
+    const symbol = curr && curr !== currencySettings.primary
+      ? (symbolMap[curr] || currencySettings.symbol || '$')
+      : (currencySettings.symbol || '$');
+
     const formatted = num.toFixed(decimals);
     
     return currencySettings.position === 'before' 

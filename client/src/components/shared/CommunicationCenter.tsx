@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Phone, Mail, Plus, Search } from 'lucide-react';
+import { MessageSquare, Phone, Mail, Plus, Search, ArrowDownLeft, ArrowUpRight, MessageCircle } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -97,33 +97,64 @@ const CommunicationCenter: React.FC<CommunicationCenterProps> = ({
               )}
             </Card>
           ) : (
-            communications.map((comm) => (
-              <Card key={comm.id} className="p-4">
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    {comm.type === 'CALL' && <Phone size={20} className="text-blue-600 dark:text-blue-300" />}
-                    {comm.type === 'EMAIL' && <Mail size={20} className="text-blue-600 dark:text-blue-300" />}
-                    {comm.type !== 'CALL' && comm.type !== 'EMAIL' && <MessageSquare size={20} className="text-blue-600 dark:text-blue-300" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {comm.subject || comm.type}
-                      </h3>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(comm.createdAt).toLocaleDateString()}
-                      </span>
+            communications.map((comm) => {
+              const isInbound = comm.direction === 'inbound';
+              return (
+                <Card key={comm.id} className={`p-4 ${
+                  isInbound 
+                    ? 'border-l-4 border-l-green-500 bg-green-50/50 dark:bg-green-900/10' 
+                    : 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+                }`}>
+                  <div className="flex items-start space-x-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      isInbound
+                        ? 'bg-green-100 dark:bg-green-900'
+                        : 'bg-blue-100 dark:bg-blue-900'
+                    }`}>
+                      {comm.type === 'CALL' && <Phone size={20} className={isInbound ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'} />}
+                      {comm.type === 'EMAIL' && <Mail size={20} className={isInbound ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'} />}
+                      {comm.type === 'WHATSAPP' && <MessageCircle size={20} className={isInbound ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'} />}
+                      {comm.type !== 'CALL' && comm.type !== 'EMAIL' && comm.type !== 'WHATSAPP' && <MessageSquare size={20} className={isInbound ? 'text-green-600 dark:text-green-300' : 'text-blue-600 dark:text-blue-300'} />}
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-2">{comm.content}</p>
-                    {comm.user && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        by {comm.user.firstName} {comm.user.lastName}
-                      </p>
-                    )}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {comm.subject || comm.type}
+                          </h3>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                            isInbound
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                              : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                          }`}>
+                            {isInbound ? (
+                              <>
+                                <ArrowDownLeft size={12} />
+                                Received
+                              </>
+                            ) : (
+                              <>
+                                <ArrowUpRight size={12} />
+                                Sent
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(comm.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2 whitespace-pre-wrap">{comm.content}</p>
+                      {comm.user && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {isInbound ? 'from' : 'by'} {comm.user.firstName} {comm.user.lastName}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </Card>
+              );
+            })
           )}
         </div>
       )}

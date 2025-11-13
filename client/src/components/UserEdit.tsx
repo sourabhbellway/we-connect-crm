@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import UserForm from "./UserForm";
 import { userService } from "../services/userService";
+import { roleService } from "../services/roleService";
 import { toast } from "react-toastify";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { UserEditPayload } from "./UserCreate";
@@ -40,12 +41,15 @@ const UserEdit: React.FC = () => {
             password: "", // Don't pre-fill password for security
             roleIds: userFromState.roles?.map((role: any) => role.id) || [],
             isActive: userFromState.isActive,
+            managerId: userFromState.managerId,
           });
         } else {
-          // Fallback: fetch all users and find the specific one
-          const response = await userService.getUsers();
-          const users = response.data.users;
-          const user = users.find((u: any) => u.id === parseInt(id));
+          // Fallback: fetch users and find the specific one (support both response shapes)
+          const resp = await userService.getUsers();
+          const list = (resp?.data?.users ?? resp?.data ?? resp?.users ?? []) as any[];
+          const user = Array.isArray(list)
+            ? list.find((u: any) => u.id === parseInt(id))
+            : null;
 
           if (!user) {
             toast.error("User not found");
@@ -60,6 +64,7 @@ const UserEdit: React.FC = () => {
             password: "", // Don't pre-fill password for security
             roleIds: user.roles?.map((role: any) => role.id) || [],
             isActive: user.isActive,
+            managerId: user.managerId,
           });
         }
       } catch (error: any) {
@@ -79,11 +84,22 @@ const UserEdit: React.FC = () => {
 
     try {
       setSubmitting(true);
-      await userService.updateUser(parseInt(id), {
-        ...data,
-        // Don't send password if it's empty (user didn't want to change it)
-        ...(data.password ? { password: data.password } : {}),
-      });
+
+      // Whitelist payload to satisfy backend ValidationPipe (forbidNonWhitelisted)
+      const updatePayload: any = {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        isActive: data.isActive,
+        managerId: data.managerId ?? null,
+      };
+      if (data.password) updatePayload.password = data.password;
+
+      await userService.updateUser(parseInt(id), updatePayload);
+
+      // Sync roles explicitly via dedicated endpoint (replaces existing roles)
+      await roleService.assignRoleToUser(parseInt(id), data.roleIds || []);
+
       await refreshUsersCount();
       toast.success("User updated successfully!");
       navigate("/users");

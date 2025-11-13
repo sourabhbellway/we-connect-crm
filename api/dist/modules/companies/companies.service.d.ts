@@ -21,6 +21,7 @@ export declare class CompaniesService {
                 deletedAt: Date | null;
                 notes: string | null;
                 description: string | null;
+                status: import("@prisma/client").$Enums.CompanyStatus;
                 phone: string | null;
                 address: string | null;
                 website: string | null;
@@ -28,7 +29,6 @@ export declare class CompaniesService {
                 slug: string | null;
                 industryId: number | null;
                 currency: string | null;
-                status: import("@prisma/client").$Enums.CompanyStatus;
                 companySize: import("@prisma/client").$Enums.CompanySize | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
                 country: string | null;
@@ -71,6 +71,7 @@ export declare class CompaniesService {
                 deletedAt: Date | null;
                 notes: string | null;
                 description: string | null;
+                status: import("@prisma/client").$Enums.CompanyStatus;
                 phone: string | null;
                 address: string | null;
                 website: string | null;
@@ -78,7 +79,6 @@ export declare class CompaniesService {
                 slug: string | null;
                 industryId: number | null;
                 currency: string | null;
-                status: import("@prisma/client").$Enums.CompanyStatus;
                 companySize: import("@prisma/client").$Enums.CompanySize | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
                 country: string | null;
@@ -116,6 +116,7 @@ export declare class CompaniesService {
                 deletedAt: Date | null;
                 notes: string | null;
                 description: string | null;
+                status: import("@prisma/client").$Enums.CompanyStatus;
                 phone: string | null;
                 address: string | null;
                 website: string | null;
@@ -123,7 +124,6 @@ export declare class CompaniesService {
                 slug: string | null;
                 industryId: number | null;
                 currency: string | null;
-                status: import("@prisma/client").$Enums.CompanyStatus;
                 companySize: import("@prisma/client").$Enums.CompanySize | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
                 country: string | null;
@@ -160,6 +160,7 @@ export declare class CompaniesService {
                 deletedAt: Date | null;
                 notes: string | null;
                 description: string | null;
+                status: import("@prisma/client").$Enums.CompanyStatus;
                 phone: string | null;
                 address: string | null;
                 website: string | null;
@@ -167,7 +168,6 @@ export declare class CompaniesService {
                 slug: string | null;
                 industryId: number | null;
                 currency: string | null;
-                status: import("@prisma/client").$Enums.CompanyStatus;
                 companySize: import("@prisma/client").$Enums.CompanySize | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
                 country: string | null;

@@ -45,20 +45,32 @@ class CreateLeadDto {
 }
 exports.CreateLeadDto = CreateLeadDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'First name is required' }),
+    (0, class_validator_1.IsString)({ message: 'First name must be a string' }),
+    (0, class_validator_1.MinLength)(2, { message: 'First name must be at least 2 characters' }),
+    (0, class_validator_1.MaxLength)(50, { message: 'First name must not exceed 50 characters' }),
+    (0, class_validator_1.Matches)(/^[A-Za-z\s]+$/, { message: 'First name can only contain letters and spaces' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "firstName", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Last name is required' }),
+    (0, class_validator_1.IsString)({ message: 'Last name must be a string' }),
+    (0, class_validator_1.MinLength)(2, { message: 'Last name must be at least 2 characters' }),
+    (0, class_validator_1.MaxLength)(50, { message: 'Last name must not exceed 50 characters' }),
+    (0, class_validator_1.Matches)(/^[A-Za-z\s]+$/, { message: 'Last name can only contain letters and spaces' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "lastName", void 0);
 __decorate([
-    (0, class_validator_1.IsEmail)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Email is required' }),
+    (0, class_validator_1.IsEmail)({}, { message: 'Please enter a valid email address' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Phone must be a string' }),
+    (0, class_validator_1.Matches)(/^[0-9+\s()-]+$/, { message: 'Phone can only contain digits, spaces, +, -, (, )' }),
+    (0, class_validator_1.MinLength)(7, { message: 'Phone must be at least 7 characters' }),
+    (0, class_validator_1.MaxLength)(15, { message: 'Phone must not exceed 15 characters' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "phone", void 0);
 __decorate([

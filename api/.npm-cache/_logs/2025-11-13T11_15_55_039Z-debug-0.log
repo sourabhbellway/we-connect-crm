@@ -1,0 +1,19 @@
+0 verbose cli /opt/homebrew/Cellar/node@20/20.19.5/bin/node /Users/abhishek/.npm-global/bin/npm
+1 info using npm@11.6.1
+2 info using node@v20.19.5
+3 silly config load:file:/Users/abhishek/.npm-global/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/api/.npmrc
+5 silly config load:file:/Users/abhishek/.npmrc
+6 silly config load:file:/Users/abhishek/.npm-global/etc/npmrc
+7 verbose title npm install
+8 verbose argv "install" "--cache" ".npm-cache"
+9 verbose logfile logs-max:10 dir:/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/api/.npm-cache/_logs/2025-11-13T11_15_55_039Z-
+10 verbose logfile /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/api/.npm-cache/_logs/2025-11-13T11_15_55_039Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/api
+13 verbose os Darwin 24.3.0
+14 verbose node v20.19.5
+15 verbose npm  v11.6.1
+16 verbose exit 1
+17 verbose code 1
+18 error A complete log of this run can be found in: /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/api/.npm-cache/_logs/2025-11-13T11_15_55_039Z-debug-0.log

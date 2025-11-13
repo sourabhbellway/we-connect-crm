@@ -1,14 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLeadCommunicationDto } from './dto/create-lead-communication.dto';
 import { UpsertTemplateDto } from './dto/upsert-template.dto';
 import { SendEmailDto } from './dto/send-email.dto';
 import { SendWhatsAppDto } from './dto/send-whatsapp.dto';
 import { SendTemplatedDto } from './dto/send-templated.dto';
+import { WhatsAppWebhookDto } from './dto/whatsapp-webhook.dto';
+import { EmailWebhookDto } from './dto/email-webhook.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 
 @Injectable()
 export class CommunicationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(CommunicationsService.name);
+  
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   async listLeadComms(leadId: number) {
     const items = await this.prisma.leadCommunication.findMany({
@@ -343,6 +352,232 @@ export class CommunicationsService {
           totalPages: Math.ceil(total / limit),
           totalItems: total,
           itemsPerPage: limit,
+        },
+      },
+    };
+  }
+
+  // Webhook Handlers for Two-Way Communication
+  async handleWhatsAppWebhook(dto: WhatsAppWebhookDto) {
+    try {
+      this.logger.log(`Received WhatsApp webhook from: ${dto.from}`);
+
+      // Normalize phone number (remove +, spaces, etc.)
+      const normalizedPhone = dto.from.replace(/[^0-9]/g, '');
+
+      // Try to find lead by phone number
+      const lead = await this.prisma.lead.findFirst({
+        where: {
+          phone: {
+            contains: normalizedPhone,
+          },
+          deletedAt: null,
+        },
+      });
+
+      if (!lead) {
+        this.logger.warn(`No lead found for phone: ${dto.from}`);
+        return {
+          success: false,
+          message: 'Lead not found for this phone number',
+          data: { phone: dto.from },
+        };
+      }
+
+      // Create inbound message record
+      const message = await this.prisma.communicationMessage.create({
+        data: {
+          leadId: lead.id,
+          userId: lead.assignedTo || 1,
+          type: 'WHATSAPP' as any,
+          recipient: dto.to || '',
+          content: dto.content,
+          status: 'DELIVERED' as any,
+          sentAt: dto.timestamp ? new Date(dto.timestamp) : new Date(),
+          deliveredAt: new Date(),
+          externalId: dto.messageId,
+          metadata: {
+            direction: 'inbound',
+            from: dto.from,
+            contactName: dto.contactName,
+            messageType: dto.messageType,
+            mediaUrls: dto.mediaUrls,
+            ...dto.metadata,
+          } as any,
+        },
+      });
+
+      // Create activity log
+      await this.prisma.activity.create({
+        data: {
+          title: 'WhatsApp Message Received',
+          description: `Received message from ${dto.contactName || dto.from}: "${dto.content.substring(0, 100)}${dto.content.length > 100 ? '...' : ''}"`,
+          type: 'COMMUNICATION_LOGGED' as any,
+          icon: 'MessageCircle',
+          iconColor: '#25D366',
+          metadata: {
+            leadId: lead.id,
+            messageId: message.id,
+            direction: 'inbound',
+            type: 'WHATSAPP',
+          } as any,
+          userId: lead.assignedTo || 1,
+          leadId: lead.id,
+        },
+      });
+
+      this.logger.log(`WhatsApp message saved: ${message.id} for lead: ${lead.id}`);
+
+      // Send notification to assigned user
+      if (lead.assignedTo) {
+        try {
+          await this.notificationsService.create({
+            userId: lead.assignedTo,
+            type: NotificationType.CLIENT_REPLY,
+            title: 'WhatsApp Reply Received',
+            message: `${dto.contactName || dto.from} replied: "${dto.content.substring(0, 100)}${dto.content.length > 100 ? '...' : ''}"`,
+            link: `/leads/${lead.id}`,
+            metadata: { leadId: lead.id, messageId: message.id, type: 'WHATSAPP' },
+          });
+        } catch (error) {
+          this.logger.error('Failed to send notification:', error);
+        }
+      }
+
+      return {
+        success: true,
+        message: 'WhatsApp message received and saved',
+        data: { messageId: message.id, leadId: lead.id },
+      };
+    } catch (error) {
+      this.logger.error('Error processing WhatsApp webhook:', error);
+      return {
+        success: false,
+        message: 'Failed to process WhatsApp webhook',
+        error: error.message,
+      };
+    }
+  }
+
+  async handleEmailWebhook(dto: EmailWebhookDto) {
+    try {
+      this.logger.log(`Received email webhook from: ${dto.from}`);
+
+      // Try to find lead by email
+      const lead = await this.prisma.lead.findFirst({
+        where: {
+          email: {
+            equals: dto.from,
+            mode: 'insensitive',
+          },
+          deletedAt: null,
+        },
+      });
+
+      if (!lead) {
+        this.logger.warn(`No lead found for email: ${dto.from}`);
+        return {
+          success: false,
+          message: 'Lead not found for this email address',
+          data: { email: dto.from },
+        };
+      }
+
+      // Use HTML content if available, otherwise text content, otherwise general content
+      const emailContent = dto.htmlContent || dto.textContent || dto.content;
+
+      // Create inbound message record
+      const message = await this.prisma.communicationMessage.create({
+        data: {
+          leadId: lead.id,
+          userId: lead.assignedTo || 1,
+          type: 'EMAIL' as any,
+          recipient: dto.to || '',
+          subject: dto.subject,
+          content: emailContent,
+          status: 'DELIVERED' as any,
+          sentAt: dto.timestamp ? new Date(dto.timestamp) : new Date(),
+          deliveredAt: new Date(),
+          externalId: dto.messageId,
+          metadata: {
+            direction: 'inbound',
+            from: dto.from,
+            fromName: dto.fromName,
+            inReplyTo: dto.inReplyTo,
+            references: dto.references,
+            attachments: dto.attachments,
+            cc: dto.cc,
+            bcc: dto.bcc,
+            textContent: dto.textContent,
+            htmlContent: dto.htmlContent,
+            ...dto.metadata,
+          } as any,
+        },
+      });
+
+      // Create activity log
+      await this.prisma.activity.create({
+        data: {
+          title: 'Email Received',
+          description: `Received email from ${dto.fromName || dto.from}: "${dto.subject}"`,
+          type: 'COMMUNICATION_LOGGED' as any,
+          icon: 'Mail',
+          iconColor: '#3B82F6',
+          metadata: {
+            leadId: lead.id,
+            messageId: message.id,
+            direction: 'inbound',
+            type: 'EMAIL',
+            subject: dto.subject,
+          } as any,
+          userId: lead.assignedTo || 1,
+          leadId: lead.id,
+        },
+      });
+
+      this.logger.log(`Email message saved: ${message.id} for lead: ${lead.id}`);
+
+      // Send notification to assigned user
+      if (lead.assignedTo) {
+        try {
+          await this.notificationsService.create({
+            userId: lead.assignedTo,
+            type: NotificationType.CLIENT_REPLY,
+            title: 'Email Reply Received',
+            message: `${dto.fromName || dto.from} replied: "${dto.subject}"`,
+            link: `/leads/${lead.id}`,
+            metadata: { leadId: lead.id, messageId: message.id, type: 'EMAIL' },
+          });
+        } catch (error) {
+          this.logger.error('Failed to send notification:', error);
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Email received and saved',
+        data: { messageId: message.id, leadId: lead.id },
+      };
+    } catch (error) {
+      this.logger.error('Error processing email webhook:', error);
+      return {
+        success: false,
+        message: 'Failed to process email webhook',
+        error: error.message,
+      };
+    }
+  }
+
+  // Get webhook URLs (for documentation/configuration)
+  getWebhookUrls(baseUrl: string) {
+    return {
+      success: true,
+      data: {
+        whatsapp: `${baseUrl}/communications/webhooks/whatsapp`,
+        email: `${baseUrl}/communications/webhooks/email`,
+        instructions: {
+          whatsapp: 'Configure this URL in your WhatsApp Business API provider webhook settings',
+          email: 'Configure this URL as the inbound webhook in your email provider (e.g., SendGrid, Mailgun)',
         },
       },
     };

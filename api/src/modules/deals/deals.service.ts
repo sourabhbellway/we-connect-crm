@@ -38,7 +38,7 @@ export class DealsService {
         orderBy: [{ value: 'desc' }, { createdAt: 'desc' }],
         include: {
           assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
-          lead: { select: { id: true, firstName: true, lastName: true, email: true } },
+          lead: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, company: true } },
           companies: { select: { id: true, name: true } },
         },
       }),
@@ -70,7 +70,7 @@ export class DealsService {
       where: { id, deletedAt: null },
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
-        lead: { select: { id: true, firstName: true, lastName: true, email: true } },
+        lead: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, company: true } },
         companies: { select: { id: true, name: true } },
       },
     });

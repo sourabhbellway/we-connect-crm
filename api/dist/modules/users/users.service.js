@@ -64,19 +64,31 @@ let UsersService = class UsersService {
                 module: rp.permission.module,
             })),
         }));
+        const manager = u.manager
+            ? {
+                id: u.manager.id,
+                fullName: `${u.manager.firstName ?? ''} ${u.manager.lastName ?? ''}`.trim(),
+                email: u.manager.email,
+            }
+            : null;
         return {
             id: u.id,
             email: u.email,
             firstName: u.firstName,
             lastName: u.lastName,
             fullName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
+            isActive: u.isActive,
+            lastLogin: u.lastLogin,
+            dateOfBirth: u.dateOfBirth ?? undefined,
+            managerId: u.managerId ?? undefined,
+            manager,
             roles,
             createdAt: u.createdAt,
             updatedAt: u.updatedAt,
             deletedAt: u.deletedAt,
         };
     }
-    async findAll({ page, limit, search, isDeleted, } = {}) {
+    async findAll({ page, limit, search, status, isDeleted, } = {}) {
         if (page !== undefined && limit !== undefined) {
             const pageNum = Math.max(1, Number(page) || 1);
             const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
@@ -86,6 +98,12 @@ let UsersService = class UsersService {
             }
             else if (isDeleted === false || isDeleted === undefined) {
                 where.deletedAt = null;
+            }
+            if (status && String(status).toLowerCase().trim() === 'active') {
+                where.isActive = true;
+            }
+            else if (status && String(status).toLowerCase().trim() === 'inactive') {
+                where.isActive = false;
             }
             if (search && String(search).trim() !== '') {
                 const q = String(search).trim();
@@ -103,6 +121,7 @@ let UsersService = class UsersService {
                     skip: (pageNum - 1) * pageSize,
                     take: pageSize,
                     include: {
+                        manager: { select: { id: true, firstName: true, lastName: true, email: true } },
                         roles: {
                             include: {
                                 role: {
@@ -129,6 +148,12 @@ let UsersService = class UsersService {
             };
         }
         const where = { deletedAt: null };
+        if (status && String(status).toLowerCase().trim() === 'active') {
+            where.isActive = true;
+        }
+        else if (status && String(status).toLowerCase().trim() === 'inactive') {
+            where.isActive = false;
+        }
         if (search && String(search).trim() !== '') {
             const q = String(search).trim();
             where.OR = [
@@ -173,6 +198,7 @@ let UsersService = class UsersService {
         const u = await this.prisma.user.findFirst({
             where: { id, deletedAt: null },
             include: {
+                manager: { select: { id: true, firstName: true, lastName: true, email: true } },
                 roles: {
                     include: {
                         role: {
@@ -203,6 +229,7 @@ let UsersService = class UsersService {
                 password: hashed,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
+                managerId: dto.managerId ?? null,
             },
         });
         return { success: true, data: { user } };
@@ -225,7 +252,42 @@ let UsersService = class UsersService {
         if (dto.password) {
             data.password = await bcrypt.hash(dto.password, 10);
         }
+        if (dto.managerId !== undefined)
+            data.managerId = dto.managerId;
         const updated = await this.prisma.user.update({ where: { id }, data });
+        return { success: true, data: { user: updated } };
+    }
+    async updateProfile(id, dto) {
+        const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
+        if (!user)
+            return { success: false, message: 'User not found' };
+        const data = {};
+        if (dto.firstName !== undefined)
+            data.firstName = dto.firstName;
+        if (dto.lastName !== undefined)
+            data.lastName = dto.lastName;
+        if (dto.email !== undefined)
+            data.email = dto.email;
+        if (dto.dateOfBirth !== undefined) {
+            if (dto.dateOfBirth === null || dto.dateOfBirth === '') {
+                data.dateOfBirth = null;
+            }
+            else {
+                const d = new Date(dto.dateOfBirth);
+                if (isNaN(d.getTime())) {
+                    return { success: false, message: 'Invalid dateOfBirth' };
+                }
+                data.dateOfBirth = d;
+            }
+        }
+        const updated = await this.prisma.user.update({ where: { id }, data });
+        return { success: true, data: { user: updated } };
+    }
+    async updateAvatar(id, fileName) {
+        const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
+        if (!user)
+            return { success: false, message: 'User not found' };
+        const updated = await this.prisma.user.update({ where: { id }, data: { profilePicture: fileName } });
         return { success: true, data: { user: updated } };
     }
     async remove(id) {

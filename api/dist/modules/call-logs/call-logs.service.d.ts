@@ -17,8 +17,8 @@ export declare class CallLogsService {
                 notes: string | null;
                 userId: number;
                 leadId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
@@ -44,8 +44,8 @@ export declare class CallLogsService {
                 notes: string | null;
                 userId: number;
                 leadId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
@@ -68,8 +68,8 @@ export declare class CallLogsService {
                 notes: string | null;
                 userId: number;
                 leadId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
@@ -91,8 +91,8 @@ export declare class CallLogsService {
                 notes: string | null;
                 userId: number;
                 leadId: number;
-                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 duration: number | null;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;

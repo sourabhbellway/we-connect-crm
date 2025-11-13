@@ -17,23 +17,50 @@ const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const create_user_dto_1 = require("./dto/create-user.dto");
 const update_user_dto_1 = require("./dto/update-user.dto");
+const update_profile_dto_1 = require("./dto/update-profile.dto");
 const passport_1 = require("@nestjs/passport");
+const user_decorator_1 = require("../../common/decorators/user.decorator");
+const platform_express_1 = require("@nestjs/platform-express");
+const multer_1 = require("multer");
+const path_1 = require("path");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
         this.usersService = usersService;
     }
-    findAll(page, limit, search, isDeleted) {
+    findAll(page, limit, search, status, isDeleted) {
         const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
         return this.usersService.findAll({
             page: page ? parseInt(page) : undefined,
             limit: limit ? parseInt(limit) : undefined,
             search,
+            status,
             isDeleted: isDeletedBool,
         });
     }
     getStats() {
         return this.usersService.getStats();
+    }
+    getMyProfile(user) {
+        if (!user?.userId && !user?.id)
+            throw new common_1.BadRequestException('Invalid user context');
+        const id = user.userId ?? user.id;
+        return this.usersService.findOne(Number(id));
+    }
+    updateMyProfile(user, dto) {
+        if (!user?.userId && !user?.id)
+            throw new common_1.BadRequestException('Invalid user context');
+        const id = user.userId ?? user.id;
+        return this.usersService.updateProfile(Number(id), dto);
+    }
+    async uploadAvatar(user, file) {
+        if (!user?.userId && !user?.id)
+            throw new common_1.BadRequestException('Invalid user context');
+        if (!file)
+            throw new common_1.BadRequestException('No file uploaded');
+        const id = user.userId ?? user.id;
+        const fileName = file.filename;
+        return this.usersService.updateAvatar(Number(id), fileName);
     }
     findOne(id) {
         return this.usersService.findOne(+id);
@@ -60,9 +87,10 @@ __decorate([
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
-    __param(3, (0, common_1.Query)('isDeleted')),
+    __param(3, (0, common_1.Query)('status')),
+    __param(4, (0, common_1.Query)('isDeleted')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "findAll", null);
 __decorate([
@@ -71,6 +99,39 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getStats", null);
+__decorate([
+    (0, common_1.Get)('profile'),
+    __param(0, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getMyProfile", null);
+__decorate([
+    (0, common_1.Put)('profile'),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateProfileDto]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "updateMyProfile", null);
+__decorate([
+    (0, common_1.Post)('profile/avatar'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.diskStorage)({
+            destination: 'uploads',
+            filename: (req, file, cb) => {
+                const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+                cb(null, `avatar-${unique}${(0, path_1.extname)(file.originalname)}`);
+            },
+        }),
+        limits: { fileSize: 5 * 1024 * 1024 },
+    })),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "uploadAvatar", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

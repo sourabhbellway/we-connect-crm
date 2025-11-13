@@ -10,6 +10,8 @@ import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/call_service.dart';
+import 'providers/notification_preferences_provider.dart';
+import 'utils/app_lifecycle.dart';
 
 // Handle background messages
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -31,7 +33,11 @@ void main() async {
   // Request permissions
   await _requestPermissions();
   
-  runApp(const WeConnectCRMApp());
+  // Initialize shared AuthService instance and lifecycle observer
+  final authService = AuthService();
+  AppLifecycle.setup(authService: authService);
+  
+  runApp(WeConnectCRMApp(authService: authService));
 }
 
 Future<void> _requestPermissions() async {
@@ -56,14 +62,20 @@ Future<void> _requestPermissions() async {
 }
 
 class WeConnectCRMApp extends StatelessWidget {
-  const WeConnectCRMApp({Key? key}) : super(key: key);
+  final AuthService authService;
+  const WeConnectCRMApp({Key? key, required this.authService}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider.value(value: authService),
         Provider(create: (_) => NotificationService()),
+        ChangeNotifierProvider(
+          create: (ctx) => NotificationPreferencesProvider(
+            ctx.read<NotificationService>(),
+          ),
+        ),
         Provider(create: (_) => CallService()),
       ],
       child: MaterialApp(

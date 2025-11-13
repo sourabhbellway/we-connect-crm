@@ -116,6 +116,7 @@ const DealProfile: React.FC = () => {
         ...d,
         id: String(d.id ?? id),
         value: Number(d.value ?? 0),
+        currency: d.currency || getCurrency(),
         contactName: d.contact ? `${d.contact.firstName || ''} ${d.contact.lastName || ''}`.trim() : undefined,
         contactId: d.contact?.id ? String(d.contact.id) : undefined,
         contactEmail: d.contact?.email,
@@ -368,16 +369,27 @@ const DealProfile: React.FC = () => {
               <BackButton to="/deals" />
               <div className="flex space-x-3">
                 {deal.leadId && (
-                  <Button 
-                    variant="SECONDARY"
-                    size="SM"
-                    onClick={handleUndoConversion}
-                    disabled={isUndoingConversion}
-                    className="flex items-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20"
-                  >
-                    <RotateCcw size={16} />
-                    {isUndoingConversion ? 'Undoing...' : 'Undo Conversion'}
-                  </Button>
+                  <>
+                    <Button 
+                      variant="SECONDARY"
+                      size="SM"
+                      onClick={() => navigate(`/leads/${deal.leadId}`)}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye size={16} />
+                      View Lead
+                    </Button>
+                    <Button 
+                      variant="SECONDARY"
+                      size="SM"
+                      onClick={handleUndoConversion}
+                      disabled={isUndoingConversion}
+                      className="flex items-center gap-2 border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/20"
+                    >
+                      <RotateCcw size={16} />
+                      {isUndoingConversion ? 'Undoing...' : 'Undo Conversion'}
+                    </Button>
+                  </>
                 )}
                 {hasPermission('deal.update') && (
                   <Button 
@@ -426,6 +438,18 @@ const DealProfile: React.FC = () => {
                 </p>
                 
                 <div className="flex flex-wrap items-center gap-4 text-gray-600 dark:text-gray-400 mb-4">
+                  {deal.companyName && (
+                    <span className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg">
+                      <Building className="h-4 w-4 mr-2 text-blue-500" />
+                      {deal.companyName}
+                    </span>
+                  )}
+                  {deal.contactName && (
+                    <span className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg">
+                      <User className="h-4 w-4 mr-2 text-orange-500" />
+                      {deal.contactName}
+                    </span>
+                  )}
                   {deal.contactEmail && (
                     <span className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1 rounded-lg">
                       <Mail className="h-4 w-4 mr-2 text-green-500" />
@@ -468,7 +492,7 @@ const DealProfile: React.FC = () => {
               {/* Quick Stats */}
               <div className="text-center bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200 min-w-[220px]">
                 <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Deal Value</div>
-                <div className="text-4xl font-bold text-green-600 mb-2">{formatCurrency(deal.value || 0)}</div>
+                <div className="text-4xl font-bold text-green-600 mb-2">{formatCurrency(deal.value || 0, deal.currency || getCurrency())}</div>
                 {typeof deal.probability === 'number' && (
                   <>
                     <div className="flex items-center justify-center mb-3">
@@ -556,6 +580,7 @@ const DealProfile: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">Company</p>
                       <p className="text-gray-900 dark:text-white">{deal.companyName}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Deal is linked to this company</p>
                     </div>
                   </div>
                 )}

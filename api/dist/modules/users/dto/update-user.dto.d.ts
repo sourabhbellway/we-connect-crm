@@ -4,4 +4,5 @@ export declare class UpdateUserDto {
     lastName?: string;
     password?: string;
     isActive?: boolean;
+    managerId?: number;
 }

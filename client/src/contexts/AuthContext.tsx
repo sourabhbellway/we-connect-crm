@@ -320,6 +320,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const hasPermission = (permission: string): boolean => {
     if (!state.user || !state.user.roles) return false;
+    // Admin override: any Admin or Super Admin role grants access to all modules
+    const isAdmin = state.user.roles.some((role) => {
+      const name = (role.name || '').toLowerCase();
+      return name === 'admin' || name === 'super_admin' || name === 'super admin';
+    });
+    if (isAdmin) return true;
+
     return state.user.roles.some((role) =>
       role.permissions.some((perm) => perm.key === permission)
     );

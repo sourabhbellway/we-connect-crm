@@ -17,7 +17,18 @@ const config_1 = require("@nestjs/config");
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
     constructor(config) {
         super({
-            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+            jwtFromRequest: passport_jwt_1.ExtractJwt.fromExtractors([
+                (req) => {
+                    try {
+                        const token = req?.query?.token || req?.query?.access_token;
+                        return token || null;
+                    }
+                    catch {
+                        return null;
+                    }
+                },
+                passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ]),
             ignoreExpiration: false,
             secretOrKey: config.get('jwt.secret') ?? 'changeme',
         });

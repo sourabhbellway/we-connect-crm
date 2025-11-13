@@ -1,10 +1,11 @@
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
-    findAll(page?: string, limit?: string, search?: string, isDeleted?: string): Promise<{
+    findAll(page?: string, limit?: string, search?: string, status?: string, isDeleted?: string): Promise<{
         success: boolean;
         data: {
             users: ({
@@ -13,6 +14,15 @@ export declare class UsersController {
                 firstName: any;
                 lastName: any;
                 fullName: string;
+                isActive: any;
+                lastLogin: any;
+                dateOfBirth: any;
+                managerId: any;
+                manager: {
+                    id: any;
+                    fullName: string;
+                    email: any;
+                } | null;
                 roles: any;
                 createdAt: any;
                 updatedAt: any;
@@ -33,6 +43,15 @@ export declare class UsersController {
             firstName: any;
             lastName: any;
             fullName: string;
+            isActive: any;
+            lastLogin: any;
+            dateOfBirth: any;
+            managerId: any;
+            manager: {
+                id: any;
+                fullName: string;
+                email: any;
+            } | null;
             roles: any;
             createdAt: any;
             updatedAt: any;
@@ -50,6 +69,104 @@ export declare class UsersController {
             };
         };
     }>;
+    getMyProfile(user: any): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            id: any;
+            email: any;
+            firstName: any;
+            lastName: any;
+            fullName: string;
+            isActive: any;
+            lastLogin: any;
+            dateOfBirth: any;
+            managerId: any;
+            manager: {
+                id: any;
+                fullName: string;
+                email: any;
+            } | null;
+            roles: any;
+            createdAt: any;
+            updatedAt: any;
+            deletedAt: any;
+        } | null;
+        message?: undefined;
+    }>;
+    updateMyProfile(user: any, dto: UpdateProfileDto): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            user: {
+                email: string;
+                password: string;
+                firstName: string;
+                lastName: string;
+                id: number;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
+                isActive: boolean;
+                lastLogin: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                profilePicture: string | null;
+                companyId: number | null;
+                deletedAt: Date | null;
+                accountLockedUntil: Date | null;
+                emailVerified: boolean;
+                emailVerifiedAt: Date | null;
+                failedLoginAttempts: number;
+                passwordResetExpires: Date | null;
+                twoFactorEnabled: boolean;
+                twoFactorSecret: string | null;
+                dateOfBirth: Date | null;
+                managerId: number | null;
+            };
+        };
+        message?: undefined;
+    }>;
+    uploadAvatar(user: any, file?: Express.Multer.File): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            user: {
+                email: string;
+                password: string;
+                firstName: string;
+                lastName: string;
+                id: number;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
+                isActive: boolean;
+                lastLogin: Date | null;
+                createdAt: Date;
+                updatedAt: Date;
+                profilePicture: string | null;
+                companyId: number | null;
+                deletedAt: Date | null;
+                accountLockedUntil: Date | null;
+                emailVerified: boolean;
+                emailVerifiedAt: Date | null;
+                failedLoginAttempts: number;
+                passwordResetExpires: Date | null;
+                twoFactorEnabled: boolean;
+                twoFactorSecret: string | null;
+                dateOfBirth: Date | null;
+                managerId: number | null;
+            };
+        };
+        message?: undefined;
+    }>;
     findOne(id: string): Promise<{
         success: boolean;
         message: string;
@@ -62,6 +179,15 @@ export declare class UsersController {
             firstName: any;
             lastName: any;
             fullName: string;
+            isActive: any;
+            lastLogin: any;
+            dateOfBirth: any;
+            managerId: any;
+            manager: {
+                id: any;
+                fullName: string;
+                email: any;
+            } | null;
             roles: any;
             createdAt: any;
             updatedAt: any;
@@ -101,6 +227,8 @@ export declare class UsersController {
                 passwordResetExpires: Date | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
+                dateOfBirth: Date | null;
+                managerId: number | null;
             };
         };
         message?: undefined;
@@ -130,6 +258,8 @@ export declare class UsersController {
                 passwordResetExpires: Date | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
+                dateOfBirth: Date | null;
+                managerId: number | null;
             };
         };
     }>;

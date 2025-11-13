@@ -4,9 +4,13 @@ import { ConvertLeadDto } from './dto/convert-lead.dto';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { TransferLeadDto } from './dto/transfer-lead.dto';
+import { AutomationService } from '../automation/automation.service';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class LeadsService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly automationService;
+    private readonly notificationsService;
+    constructor(prisma: PrismaService, automationService: AutomationService, notificationsService: NotificationsService);
     getStats(): Promise<{
         success: boolean;
         data: {
@@ -103,13 +107,13 @@ export declare class LeadsService {
             companyId: number | null;
             deletedAt: Date | null;
             notes: string | null;
+            status: import("@prisma/client").$Enums.LeadStatus;
             phone: string | null;
             company: string | null;
             position: string | null;
             address: string | null;
             website: string | null;
             currency: string | null;
-            status: import("@prisma/client").$Enums.LeadStatus;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
             country: string | null;
@@ -211,13 +215,13 @@ export declare class LeadsService {
             companyId: number | null;
             deletedAt: Date | null;
             notes: string | null;
+            status: import("@prisma/client").$Enums.LeadStatus;
             phone: string | null;
             company: string | null;
             position: string | null;
             address: string | null;
             website: string | null;
             currency: string | null;
-            status: import("@prisma/client").$Enums.LeadStatus;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
             country: string | null;
@@ -275,13 +279,13 @@ export declare class LeadsService {
                 companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
+                status: import("@prisma/client").$Enums.LeadStatus;
                 phone: string | null;
                 company: string | null;
                 position: string | null;
                 address: string | null;
                 website: string | null;
                 currency: string | null;
-                status: import("@prisma/client").$Enums.LeadStatus;
                 companySize: number | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
                 country: string | null;

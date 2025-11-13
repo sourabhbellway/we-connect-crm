@@ -36,7 +36,7 @@ dependencies:
   url_launcher: ^6.2.2
   
   # Local notifications
-  flutter_local_notifications: ^16.3.0
+  flutter_local_notifications: ^19.5.0
   
   # UI and utilities
   fluttertoast: ^8.2.4
@@ -57,13 +57,13 @@ flutter:
     - assets/icons/
   
   # Fonts
-  fonts:
-    - family: Inter
-      fonts:
-        - asset: assets/fonts/Inter-Regular.ttf
-        - asset: assets/fonts/Inter-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Inter-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Inter-Bold.ttf
-          weight: 700
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700

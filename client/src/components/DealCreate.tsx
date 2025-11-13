@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "./BackButton";
 import { Button } from "./ui";
@@ -10,6 +10,12 @@ const DealCreate: React.FC = () => {
   const navigate = useNavigate();
   const { currencySettings } = useBusinessSettings();
   const [submitting, setSubmitting] = useState(false);
+
+  // Enforce lead-first creation: redirect to Lead form
+  useEffect(() => {
+    toast.info("Create a lead first, then convert it to a deal.");
+    navigate("/leads/new", { replace: true });
+  }, [navigate]);
   const [form, setForm] = useState({
     title: "",
     value: "",

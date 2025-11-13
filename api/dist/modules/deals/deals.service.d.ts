@@ -41,10 +41,10 @@ export declare class DealsService {
                 companyId: number | null;
                 deletedAt: Date | null;
                 description: string | null;
+                status: import("@prisma/client").$Enums.DealStatus;
                 title: string;
                 value: import("@prisma/client/runtime/library").Decimal;
                 currency: string;
-                status: import("@prisma/client").$Enums.DealStatus;
                 probability: number;
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;
@@ -65,10 +65,10 @@ export declare class DealsService {
                 companyId: number | null;
                 deletedAt: Date | null;
                 description: string | null;
+                status: import("@prisma/client").$Enums.DealStatus;
                 title: string;
                 value: import("@prisma/client/runtime/library").Decimal;
                 currency: string;
-                status: import("@prisma/client").$Enums.DealStatus;
                 probability: number;
                 expectedCloseDate: Date | null;
                 assignedTo: number | null;

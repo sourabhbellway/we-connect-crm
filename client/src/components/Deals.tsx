@@ -36,6 +36,24 @@ import TableSortHeader, { SortOrder as TblSortOrder } from './list/TableSortHead
 // Helper to get stage pill class from its color
 const stagePillStyle = (color: string) => `text-xs px-2 py-1 rounded-full text-white`;
 
+// Deal status helpers
+const STATUS_OPTIONS = ['DRAFT', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST'] as const;
+const getStatusClasses = (status?: string) => {
+  switch ((status || '').toUpperCase()) {
+    case 'WON':
+      return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+    case 'LOST':
+      return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+    case 'NEGOTIATION':
+      return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+    case 'PROPOSAL':
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+    case 'DRAFT':
+    default:
+      return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+  }
+};
+
 const Deals: React.FC = () => {
   const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -89,15 +107,29 @@ useEffect(() => {
     }
   };
 
+  const updateStatusInline = async (id: number, nextStatus: Deal['status']) => {
+    const prev = deals;
+    setDeals(prev => prev.map(d => (d.id === id ? { ...d, status: nextStatus } : d)));
+    try {
+      await dealService.updateDeal(id, { status: nextStatus });
+      toast.success('Status updated');
+    } catch (e) {
+      toast.error('Failed to update status');
+      setDeals(prev); // revert
+    }
+  };
+
 // Filter
   const filtered = deals.filter((deal) => {
-    const term = debouncedSearchValue.toLowerCase();
+    const term = (debouncedSearchValue || '').toLowerCase();
+    const companyName = deal.companies?.name || (deal.lead as any)?.company || '';
     const matchesSearch = !term ||
-      deal.title.toLowerCase().includes(term) ||
-      (deal.description?.toLowerCase().includes(term) ?? false) ||
-      (deal.contact?.firstName.toLowerCase().includes(term) ?? false) ||
-      (deal.contact?.lastName.toLowerCase().includes(term) ?? false) ||
-      (deal.companies?.name.toLowerCase().includes(term) ?? false);
+      (deal.title || '').toLowerCase().includes(term) ||
+      ((deal.description || '').toLowerCase().includes(term)) ||
+      ((deal.lead?.firstName || '').toLowerCase().includes(term)) ||
+      ((deal.lead?.lastName || '').toLowerCase().includes(term)) ||
+      ((deal.lead?.phone || '').toLowerCase().includes(term)) ||
+      companyName.toLowerCase().includes(term);
 
     const matchesStage = stageFilter === 'ALL' || (deal.stage || '') === stageFilter;
     return matchesSearch && matchesStage;
@@ -203,7 +235,7 @@ const getStageColor = (stageName?: string) => {
           title="Deals"
           subtitle="Track and manage your sales opportunities"
           addLabel="Add Deal"
-          onAdd={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/deals/new') : undefined}
+          onAdd={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/leads/new') : undefined}
         />
       </div>
 
@@ -366,16 +398,16 @@ const getStageColor = (stageName?: string) => {
 
                       {/* Company & Contact Info */}
                       <div className="space-y-1.5">
-                        {deal.companies?.name && (
+                        {(deal.companies?.name || (deal.lead as any)?.company) && (
                           <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                             <Building className="h-3 w-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">{deal.companies.name}</span>
+                            <span className="truncate">{deal.companies?.name || (deal.lead as any)?.company}</span>
                           </div>
                         )}
-                        {deal.contact && (
+                        {deal.lead && (
                           <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                             <User className="h-3 w-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">{deal.contact.firstName} {deal.contact.lastName}</span>
+                            <span className="truncate">{deal.lead.firstName} {deal.lead.lastName}</span>
                           </div>
                         )}
                       </div>
@@ -579,9 +611,11 @@ const getStageColor = (stageName?: string) => {
                       </th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Company</th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         <TableSortHeader label="Stage" column={'stage'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c:any)=>onHeaderSort(c)} />
                       </th>
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                       <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         <TableSortHeader label="Expected Close" column={'expectedCloseDate'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c:any)=>onHeaderSort(c)} />
                       </th>
@@ -605,12 +639,20 @@ const getStageColor = (stageName?: string) => {
                             <div className="flex-shrink-0">
                               <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
                                 <span className="text-white font-medium text-sm">
-                                  {(deal.contact?.firstName?.[0] || deal.companies?.name?.[0] || 'D').toUpperCase()}
+                                  {(deal.lead?.firstName?.[0] || deal.companies?.name?.[0] || 'D').toUpperCase()}
                                 </span>
                               </div>
                             </div>
-                            <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">{deal.title}</div>
+                            <div className="min-w-[12rem]">
+                              {/* Deal title */}
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                <Link
+                                  to={`/deals/${deal.id}`}
+                                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                >
+                                  {deal.title}
+                                </Link>
+                              </div>
                               {deal.description && (
                                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{deal.description}</div>
                               )}
@@ -624,18 +666,38 @@ const getStageColor = (stageName?: string) => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Company">
-                          <div className="text-sm text-gray-900 dark:text-white">{deal.companies?.name || '-'}</div>
+                          <div className="text-sm text-gray-900 dark:text-white">{deal.companies?.name || (deal.lead as any)?.company || '-'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Contact">
                           <div className="text-sm text-gray-900 dark:text-white flex items-center">
                             <User className="h-3 w-3 mr-1" />
-                            {deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName}` : '-'}
+                            {deal.lead ? `${deal.lead.firstName} ${deal.lead.lastName}` : '-'}
                           </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Phone">
+                          <div className="text-sm text-gray-900 dark:text-white">{deal.lead?.phone || '-'}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap" data-label="Stage">
                           <span className={`px-2 py-1 text-xs rounded-full text-white`} style={{ backgroundColor: getStageColor(deal.stage) }}>
                             {deal.stage || '-'}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap" data-label="Status">
+                          {hasPermission(PERMISSIONS.DEAL.UPDATE) ? (
+                            <select
+                              className={`text-xs px-2 py-1 rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusClasses(deal.status)}`}
+                              value={deal.status}
+                              onChange={(e) => updateStatusInline(deal.id, e.target.value as Deal['status'])}
+                            >
+                              {STATUS_OPTIONS.map(s => (
+                                <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className={`px-2 py-1 text-xs rounded-full ${getStatusClasses(deal.status)}`}>
+                              {deal.status}
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" data-label="Expected Close">
                           <div className="flex items-center">

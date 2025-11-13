@@ -14,6 +14,7 @@ export interface UserPayload {
   password: string;
   roleIds: number[];
   isActive?: boolean;
+  managerId?: number; // Reporting Authority
 }
 
 export interface UserEditPayload {
@@ -23,6 +24,7 @@ export interface UserEditPayload {
   password?: string; // Optional for edit operations
   roleIds: number[];
   isActive?: boolean;
+  managerId?: number; // Reporting Authority
 }
 
 const UserCreate: React.FC = () => {
@@ -39,6 +41,7 @@ const UserCreate: React.FC = () => {
         firstName: data.firstName,
         lastName: data.lastName,
         password: data.password,
+        ...(data.managerId ? { managerId: data.managerId } : {}),
       };
       const res = await userService.createUser(createPayload);
       const newUser = res?.data?.user || res?.user || res;

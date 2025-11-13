@@ -5,9 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/env.dart' as env;
 
 class CallService {
-  static const String _baseUrl = 'http://31.97.233.21:3001/api';
+  static String get _baseUrl => env.apiBaseUrl;
   
   Future<void> makeCall(String phoneNumber, [String? callLogId]) async {
     try {

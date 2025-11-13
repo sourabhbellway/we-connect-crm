@@ -14,8 +14,9 @@ import {
   PasswordRequirements,
 } from '../types/auth';
 import { STORAGE_KEYS } from '../constants';
+import { API_BASE_URL as API_ROOT } from '../config/config';
 
-const API_BASE_URL = '/api/auth';
+const API_BASE_URL = `${API_ROOT}/auth`;
 
 class AuthService {
   private deviceId: string;
@@ -39,7 +40,6 @@ class AuthService {
 
   private getAuthHeaders() {
     return {
-      'x-device-id': this.deviceId,
       'Content-Type': 'application/json',
     };
   }
@@ -337,7 +337,6 @@ class AuthService {
     const message = error.response?.data?.message || 'Authentication error occurred';
     const status = error.response?.status;
 
-    // Handle specific error cases
     if (status === 423) {
       return new Error('Account is temporarily locked. Please try again later.');
     } else if (status === 429) {
@@ -360,10 +359,7 @@ class AuthService {
         if (!refreshSuccess) return false;
       }
 
-      // Set the authorization header
       axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`;
-      
-      // Verify the token by getting user profile
       await this.getProfile();
       return true;
     } catch (error) {

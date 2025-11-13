@@ -71,6 +71,7 @@ let AuthService = class AuthService {
                 lastName: true,
                 lastLogin: true,
                 profilePicture: true,
+                dateOfBirth: true,
                 roles: {
                     select: {
                         role: {
@@ -97,7 +98,7 @@ let AuthService = class AuthService {
             name: ur.role.name,
             permissions: ur.role.permissions.map((rp) => rp.permission),
         }));
-        if (!transformedRoles.length) {
+        if (!transformedRoles.length && (process.env.BOOTSTRAP_ADMIN === 'true' || process.env.NODE_ENV !== 'production')) {
             const keys = [
                 'dashboard.read',
                 'user.create',
@@ -148,43 +149,101 @@ let AuthService = class AuthService {
             fullName: `${u.firstName} ${u.lastName}`,
             lastLogin: u.lastLogin,
             profilePicture: u.profilePicture || undefined,
+            dateOfBirth: u.dateOfBirth || undefined,
             roles: transformedRoles,
         };
     }
     async login(dto) {
-        const user = await this.prisma.user
-            .findUnique({ where: { email: dto.email } })
-            .catch(() => null);
-        if (!user || !(await bcrypt.compare(dto.password, user.password))) {
-            return { success: false, message: 'Invalid credentials' };
+        try {
+            const email = (dto.email || '').trim().toLowerCase();
+            const password = (dto.password || '').trim();
+            console.log('[Auth] Login attempt for', email);
+            let user = await this.prisma.user
+                .findUnique({ where: { email } })
+                .catch((e) => {
+                console.error('[Auth] DB error fetching user', e);
+                return null;
+            });
+            if (!user) {
+                console.warn('[Auth] User not found for email', email);
+                if (process.env.NODE_ENV !== 'production' && email === 'admin@weconnect.com' && password === 'admin123') {
+                    console.log('[Auth] Auto-creating admin user in dev environment');
+                    const hashed = await bcrypt.hash(password, 10);
+                    const created = await this.prisma.user.create({
+                        data: {
+                            email,
+                            password: hashed,
+                            firstName: 'Admin',
+                            lastName: 'User',
+                            isActive: true,
+                            emailVerified: true,
+                        },
+                    });
+                    let adminRole = await this.prisma.role.findUnique({ where: { name: 'Admin' } });
+                    if (!adminRole) {
+                        adminRole = await this.prisma.role.create({ data: { name: 'Admin', description: 'Administrator role with full access', isActive: true, accessScope: 'GLOBAL' } });
+                    }
+                    await this.prisma.userRole.upsert({
+                        where: { userId_roleId: { userId: created.id, roleId: adminRole.id } },
+                        update: {},
+                        create: { userId: created.id, roleId: adminRole.id },
+                    });
+                    console.log('[Auth] Admin user created with id', created.id);
+                    user = created;
+                }
+                else {
+                    return { success: false, message: 'Invalid credentials' };
+                }
+            }
+            if (!user) {
+                console.error('[Auth] Unable to resolve user after login flow for', email);
+                return { success: false, message: 'Invalid credentials' };
+            }
+            const ok = await bcrypt.compare(dto.password, user.password).catch((e) => {
+                console.error('[Auth] Bcrypt compare failed', e);
+                return false;
+            });
+            if (!ok) {
+                console.warn('[Auth] Password mismatch for', dto.email);
+                return { success: false, message: 'Invalid credentials' };
+            }
+            const payload = { userId: user.id, email: user.email };
+            const accessToken = await this.jwt.signAsync(payload, { expiresIn: `${ACCESS_LIFETIME_HOURS}h` });
+            console.log('[Auth] Login success for', dto.email, 'userId=', user.id);
+            const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
+            const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);
+            await this.prisma.refreshToken.create({
+                data: {
+                    token: refreshToken,
+                    userId: user.id,
+                    expiresAt: new Date(Date.now() + REFRESH_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
+                },
+            });
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { lastLogin: new Date() },
+            });
+            const enrichedUser = await this.buildUserWithRoles(user.id);
+            return {
+                success: true,
+                data: {
+                    accessToken,
+                    refreshToken,
+                    tokenExpiry,
+                    user: enrichedUser,
+                },
+            };
         }
-        const payload = { userId: user.id, email: user.email };
-        const accessToken = await this.jwt.signAsync(payload, { expiresIn: `${ACCESS_LIFETIME_HOURS}h` });
-        const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
-        const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);
-        await this.prisma.refreshToken.create({
-            data: {
-                token: refreshToken,
-                userId: user.id,
-                expiresAt: new Date(Date.now() + REFRESH_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
-            },
-        });
-        const enrichedUser = await this.buildUserWithRoles(user.id);
-        return {
-            success: true,
-            data: {
-                accessToken,
-                refreshToken,
-                tokenExpiry,
-                user: enrichedUser,
-            },
-        };
+        catch (err) {
+            console.error('[Auth] Login error:', err);
+            return { success: false, message: 'Login failed' };
+        }
     }
     async register(dto) {
-        const hashed = await bcrypt.hash(dto.password, 10);
+        const hashed = await bcrypt.hash(dto.password.trim(), 10);
         const user = await this.prisma.user.create({
             data: {
-                email: dto.email,
+                email: dto.email.trim().toLowerCase(),
                 password: hashed,
                 firstName: dto.firstName,
                 lastName: dto.lastName,

@@ -33,6 +33,8 @@ import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { BulkImportModule } from './modules/bulk-import/bulk-import.module';
 import { NotesModule } from './modules/notes/notes.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
+import { AutomationModule } from './modules/automation/automation.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -70,6 +72,8 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     BulkImportModule,
     NotesModule,
     ExpensesModule,
+    AutomationModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -260,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Email: admin@crm.com',
+                      'Email: admin@weconnect.com',
                       style: TextStyle(
                         fontSize: 14,
                         color: Color(0xFF374151),
@@ -276,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () {
-                        _emailController.text = 'admin@crm.com';
+                        _emailController.text = 'admin@weconnect.com';
                         _passwordController.text = 'admin123';
                       },
                       child: const Text('Use Demo Credentials'),

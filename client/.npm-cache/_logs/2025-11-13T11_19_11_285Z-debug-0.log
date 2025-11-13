@@ -1,0 +1,1009 @@
+0 verbose cli /opt/homebrew/Cellar/node@20/20.19.5/bin/node /Users/abhishek/.npm-global/bin/npm
+1 info using npm@11.6.1
+2 info using node@v20.19.5
+3 silly config load:file:/Users/abhishek/.npm-global/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/.npmrc
+5 silly config load:file:/Users/abhishek/.npmrc
+6 silly config load:file:/Users/abhishek/.npm-global/etc/npmrc
+7 verbose title npm install
+8 verbose argv "install" "--cache" ".npm-cache"
+9 verbose logfile logs-max:10 dir:/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/.npm-cache/_logs/2025-11-13T11_19_11_285Z-
+10 verbose logfile /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/.npm-cache/_logs/2025-11-13T11_19_11_285Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:2197815296 maxSize:549453824 maxEntrySize:274726912
+13 silly idealTree buildDeps
+14 verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules
+15 silly reify mark retired [
+15 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/axios'
+15 silly reify ]
+16 silly reify mark retired [
+16 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/baseline-browser-mapping',
+16 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/baseline-browser-mapping'
+16 silly reify ]
+17 silly reify mark retired [
+17 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/caniuse-lite'
+17 silly reify ]
+18 silly reify mark retired [
+18 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/electron-to-chromium'
+18 silly reify ]
+19 silly reify mark retired [
+19 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/eslint',
+19 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/eslint'
+19 silly reify ]
+20 silly reify mark retired [
+20 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/i18next'
+20 silly reify ]
+21 silly reify mark retired [
+21 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/rollup',
+21 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/rollup'
+21 silly reify ]
+22 silly reify mark retired [
+22 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/typescript-eslint'
+22 silly reify ]
+23 silly reify mark retired [
+23 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@eslint/js'
+23 silly reify ]
+24 silly reify mark retired [
+24 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-darwin-arm64'
+24 silly reify ]
+25 silly reify mark retired [
+25 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/type-utils'
+25 silly reify ]
+26 silly reify mark retired [
+26 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/tsconfig-utils'
+26 silly reify ]
+27 silly reify mark retired [
+27 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/parser'
+27 silly reify ]
+28 silly reify mark retired [
+28 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/scope-manager'
+28 silly reify ]
+29 silly reify mark retired [
+29 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/types'
+29 silly reify ]
+30 silly reify mark retired [
+30 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/typescript-estree'
+30 silly reify ]
+31 silly reify mark retired [
+31 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/visitor-keys'
+31 silly reify ]
+32 silly reify mark retired [
+32 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/project-service'
+32 silly reify ]
+33 silly reify mark retired [
+33 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/eslint-plugin'
+33 silly reify ]
+34 silly reify mark retired [
+34 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/utils'
+34 silly reify ]
+35 silly reify moves {
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/axios': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.axios-3GkF1KhW',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/baseline-browser-mapping': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.baseline-browser-mapping-ZsKBQ583',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/baseline-browser-mapping': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/.baseline-browser-mapping-RSRhBnXI',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/caniuse-lite': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.caniuse-lite-PbdXWydC',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/electron-to-chromium': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.electron-to-chromium-q8T7FT3u',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/eslint': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.eslint-CtmnvZmG',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/eslint': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/.eslint-MEsSCQjX',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/i18next': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.i18next-LU1bHhrF',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/rollup': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.rollup-bndNrdAt',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/rollup': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.bin/.rollup-LPmwtFpV',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/typescript-eslint': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/.typescript-eslint-PVmCzysy',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@eslint/js': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@eslint/.js-j2fb6X9r',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-darwin-arm64': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/.rollup-darwin-arm64-YBJSyPfz',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/type-utils': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.type-utils-y2vtLdpQ',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/tsconfig-utils': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.tsconfig-utils-wWQswLSu',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/parser': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.parser-sy9jBzWw',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/scope-manager': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.scope-manager-FNAqESSs',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/types': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.types-C0Uc6l32',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/typescript-estree': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.typescript-estree-EU1wFS54',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/visitor-keys': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.visitor-keys-EH8lRa9z',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/project-service': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.project-service-s69gVcBg',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/eslint-plugin': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.eslint-plugin-FjLkT70U',
+35 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/utils': '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@typescript-eslint/.utils-N0hBk14h'
+35 silly reify }
+36 silly audit bulk request {
+36 silly audit   '@adobe/css-tools': [ '4.4.4' ],
+36 silly audit   '@alloc/quick-lru': [ '5.2.0' ],
+36 silly audit   '@babel/code-frame': [ '7.27.1' ],
+36 silly audit   '@babel/compat-data': [ '7.28.5' ],
+36 silly audit   '@babel/core': [ '7.28.5' ],
+36 silly audit   '@babel/generator': [ '7.28.5' ],
+36 silly audit   '@babel/helper-compilation-targets': [ '7.27.2' ],
+36 silly audit   '@babel/helper-globals': [ '7.28.0' ],
+36 silly audit   '@babel/helper-module-imports': [ '7.27.1' ],
+36 silly audit   '@babel/helper-module-transforms': [ '7.28.3' ],
+36 silly audit   '@babel/helper-plugin-utils': [ '7.27.1' ],
+36 silly audit   '@babel/helper-string-parser': [ '7.27.1' ],
+36 silly audit   '@babel/helper-validator-identifier': [ '7.28.5' ],
+36 silly audit   '@babel/helper-validator-option': [ '7.27.1' ],
+36 silly audit   '@babel/helpers': [ '7.28.4' ],
+36 silly audit   '@babel/parser': [ '7.28.5' ],
+36 silly audit   '@babel/plugin-syntax-async-generators': [ '7.8.4' ],
+36 silly audit   '@babel/plugin-syntax-bigint': [ '7.8.3' ],
+36 silly audit   '@babel/plugin-syntax-class-properties': [ '7.12.13' ],
+36 silly audit   '@babel/plugin-syntax-class-static-block': [ '7.14.5' ],
+36 silly audit   '@babel/plugin-syntax-import-attributes': [ '7.27.1' ],
+36 silly audit   '@babel/plugin-syntax-import-meta': [ '7.10.4' ],
+36 silly audit   '@babel/plugin-syntax-json-strings': [ '7.8.3' ],
+36 silly audit   '@babel/plugin-syntax-jsx': [ '7.27.1' ],
+36 silly audit   '@babel/plugin-syntax-logical-assignment-operators': [ '7.10.4' ],
+36 silly audit   '@babel/plugin-syntax-nullish-coalescing-operator': [ '7.8.3' ],
+36 silly audit   '@babel/plugin-syntax-numeric-separator': [ '7.10.4' ],
+36 silly audit   '@babel/plugin-syntax-object-rest-spread': [ '7.8.3' ],
+36 silly audit   '@babel/plugin-syntax-optional-catch-binding': [ '7.8.3' ],
+36 silly audit   '@babel/plugin-syntax-optional-chaining': [ '7.8.3' ],
+36 silly audit   '@babel/plugin-syntax-private-property-in-object': [ '7.14.5' ],
+36 silly audit   '@babel/plugin-syntax-top-level-await': [ '7.14.5' ],
+36 silly audit   '@babel/plugin-syntax-typescript': [ '7.27.1' ],
+36 silly audit   '@babel/plugin-transform-react-jsx-self': [ '7.27.1' ],
+36 silly audit   '@babel/plugin-transform-react-jsx-source': [ '7.27.1' ],
+36 silly audit   '@babel/runtime': [ '7.28.4' ],
+36 silly audit   '@babel/template': [ '7.27.2' ],
+36 silly audit   '@babel/traverse': [ '7.28.5' ],
+36 silly audit   '@babel/types': [ '7.28.5' ],
+36 silly audit   '@bcoe/v8-coverage': [ '0.2.3' ],
+36 silly audit   '@dnd-kit/accessibility': [ '3.1.1' ],
+36 silly audit   '@dnd-kit/core': [ '6.3.1' ],
+36 silly audit   '@dnd-kit/sortable': [ '10.0.0' ],
+36 silly audit   '@dnd-kit/utilities': [ '3.2.2' ],
+36 silly audit   '@esbuild/aix-ppc64': [ '0.21.5' ],
+36 silly audit   '@esbuild/android-arm': [ '0.21.5' ],
+36 silly audit   '@esbuild/android-arm64': [ '0.21.5' ],
+36 silly audit   '@esbuild/android-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/darwin-arm64': [ '0.21.5' ],
+36 silly audit   '@esbuild/darwin-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/freebsd-arm64': [ '0.21.5' ],
+36 silly audit   '@esbuild/freebsd-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-arm': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-arm64': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-ia32': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-loong64': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-mips64el': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-ppc64': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-riscv64': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-s390x': [ '0.21.5' ],
+36 silly audit   '@esbuild/linux-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/netbsd-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/openbsd-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/sunos-x64': [ '0.21.5' ],
+36 silly audit   '@esbuild/win32-arm64': [ '0.21.5' ],
+36 silly audit   '@esbuild/win32-ia32': [ '0.21.5' ],
+36 silly audit   '@esbuild/win32-x64': [ '0.21.5' ],
+36 silly audit   '@eslint-community/eslint-utils': [ '4.9.0' ],
+36 silly audit   'eslint-visitor-keys': [ '3.4.3', '4.2.1' ],
+36 silly audit   '@eslint-community/regexpp': [ '4.12.2' ],
+36 silly audit   '@eslint/config-array': [ '0.21.1' ],
+36 silly audit   '@eslint/config-helpers': [ '0.4.2' ],
+36 silly audit   '@eslint/core': [ '0.17.0' ],
+36 silly audit   '@eslint/eslintrc': [ '3.3.1' ],
+36 silly audit   globals: [ '14.0.0', '15.15.0' ],
+36 silly audit   '@eslint/js': [ '9.39.0' ],
+36 silly audit   '@eslint/object-schema': [ '2.1.7' ],
+36 silly audit   '@eslint/plugin-kit': [ '0.4.1' ],
+36 silly audit   '@hookform/resolvers': [ '3.10.0' ],
+36 silly audit   '@humanfs/core': [ '0.19.1' ],
+36 silly audit   '@humanfs/node': [ '0.16.7' ],
+36 silly audit   '@humanwhocodes/module-importer': [ '1.0.1' ],
+36 silly audit   '@humanwhocodes/retry': [ '0.4.3' ],
+36 silly audit   '@isaacs/cliui': [ '8.0.2' ],
+36 silly audit   'ansi-regex': [ '6.2.2', '5.0.1' ],
+36 silly audit   'ansi-styles': [ '6.2.3', '5.2.0', '4.3.0' ],
+36 silly audit   'emoji-regex': [ '9.2.2', '8.0.0' ],
+36 silly audit   'string-width': [ '5.1.2', '4.2.3' ],
+36 silly audit   'strip-ansi': [ '7.1.2', '6.0.1' ],
+36 silly audit   'wrap-ansi': [ '8.1.0', '7.0.0' ],
+36 silly audit   '@istanbuljs/load-nyc-config': [ '1.1.0' ],
+36 silly audit   argparse: [ '1.0.10', '2.0.1' ],
+36 silly audit   'find-up': [ '4.1.0', '5.0.0' ],
+36 silly audit   'js-yaml': [ '3.14.1', '4.1.0' ],
+36 silly audit   'locate-path': [ '5.0.0', '6.0.0' ],
+36 silly audit   'p-limit': [ '2.3.0', '3.1.0' ],
+36 silly audit   'p-locate': [ '4.1.0', '5.0.0' ],
+36 silly audit   'resolve-from': [ '5.0.0', '4.0.0' ],
+36 silly audit   '@istanbuljs/schema': [ '0.1.3' ],
+36 silly audit   '@jest/console': [ '29.7.0' ],
+36 silly audit   '@jest/core': [ '29.7.0' ],
+36 silly audit   'pretty-format': [ '29.7.0', '27.5.1' ],
+36 silly audit   'react-is': [ '18.3.1', '17.0.2' ],
+36 silly audit   '@jest/environment': [ '29.7.0' ],
+36 silly audit   '@jest/expect': [ '29.7.0' ],
+36 silly audit   '@jest/expect-utils': [ '29.7.0' ],
+36 silly audit   '@jest/fake-timers': [ '29.7.0' ],
+36 silly audit   '@jest/globals': [ '29.7.0' ],
+36 silly audit   '@jest/reporters': [ '29.7.0' ],
+36 silly audit   '@jest/schemas': [ '29.6.3' ],
+36 silly audit   '@jest/source-map': [ '29.6.3' ],
+36 silly audit   '@jest/test-result': [ '29.7.0' ],
+36 silly audit   '@jest/test-sequencer': [ '29.7.0' ],
+36 silly audit   '@jest/transform': [ '29.7.0' ],
+36 silly audit   '@jest/types': [ '29.6.3' ],
+36 silly audit   '@jridgewell/gen-mapping': [ '0.3.13' ],
+36 silly audit   '@jridgewell/remapping': [ '2.3.5' ],
+36 silly audit   '@jridgewell/resolve-uri': [ '3.1.2' ],
+36 silly audit   '@jridgewell/sourcemap-codec': [ '1.5.5' ],
+36 silly audit   '@jridgewell/trace-mapping': [ '0.3.31' ],
+36 silly audit   '@nodelib/fs.scandir': [ '2.1.5' ],
+36 silly audit   '@nodelib/fs.stat': [ '2.0.5' ],
+36 silly audit   '@nodelib/fs.walk': [ '1.2.8' ],
+36 silly audit   '@pkgjs/parseargs': [ '0.11.0' ],
+36 silly audit   '@pkgr/core': [ '0.2.9' ],
+36 silly audit   '@remix-run/router': [ '1.23.0' ],
+36 silly audit   '@rolldown/pluginutils': [ '1.0.0-beta.27' ],
+36 silly audit   '@rollup/rollup-android-arm-eabi': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-android-arm64': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-darwin-arm64': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-darwin-x64': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-freebsd-arm64': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-freebsd-x64': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-arm-gnueabihf': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-arm-musleabihf': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-arm64-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-arm64-musl': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-loong64-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-ppc64-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-riscv64-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-riscv64-musl': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-s390x-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-x64-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-linux-x64-musl': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-openharmony-arm64': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-win32-arm64-msvc': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-win32-ia32-msvc': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-win32-x64-gnu': [ '4.52.5' ],
+36 silly audit   '@rollup/rollup-win32-x64-msvc': [ '4.52.5' ],
+36 silly audit   '@sinclair/typebox': [ '0.27.8' ],
+36 silly audit   '@sinonjs/commons': [ '3.0.1' ],
+36 silly audit   '@sinonjs/fake-timers': [ '10.3.0' ],
+36 silly audit   '@testing-library/dom': [ '10.4.1' ],
+36 silly audit   '@testing-library/jest-dom': [ '6.9.1' ],
+36 silly audit   'dom-accessibility-api': [ '0.6.3', '0.5.16' ],
+36 silly audit   '@testing-library/react': [ '16.3.0' ],
+36 silly audit   '@tootallnate/once': [ '2.0.0' ],
+36 silly audit   '@types/aria-query': [ '5.0.4' ],
+36 silly audit   '@types/babel__core': [ '7.20.5' ],
+36 silly audit   '@types/babel__generator': [ '7.27.0' ],
+36 silly audit   '@types/babel__template': [ '7.4.4' ],
+36 silly audit   '@types/babel__traverse': [ '7.28.0' ],
+36 silly audit   '@types/estree': [ '1.0.8' ],
+36 silly audit   '@types/graceful-fs': [ '4.1.9' ],
+36 silly audit   '@types/history': [ '4.7.11' ],
+36 silly audit   '@types/istanbul-lib-coverage': [ '2.0.6' ],
+36 silly audit   '@types/istanbul-lib-report': [ '3.0.3' ],
+36 silly audit   '@types/istanbul-reports': [ '3.0.4' ],
+36 silly audit   '@types/jest': [ '29.5.14' ],
+36 silly audit   '@types/jsdom': [ '20.0.1' ],
+36 silly audit   '@types/json-schema': [ '7.0.15' ],
+36 silly audit   '@types/node': [ '24.10.0' ],
+36 silly audit   '@types/prop-types': [ '15.7.15' ],
+36 silly audit   '@types/react': [ '18.3.26' ],
+36 silly audit   '@types/react-dom': [ '18.3.7' ],
+36 silly audit   '@types/react-router': [ '5.1.20' ],
+36 silly audit   '@types/react-router-dom': [ '5.3.3' ],
+36 silly audit   '@types/stack-utils': [ '2.0.3' ],
+36 silly audit   '@types/tough-cookie': [ '4.0.5' ],
+36 silly audit   '@types/yargs': [ '17.0.34' ],
+36 silly audit   '@types/yargs-parser': [ '21.0.3' ],
+36 silly audit   '@typescript-eslint/eslint-plugin': [ '8.46.2' ],
+36 silly audit   ignore: [ '7.0.5', '5.3.2' ],
+36 silly audit   '@typescript-eslint/parser': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/project-service': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/scope-manager': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/tsconfig-utils': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/type-utils': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/types': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/typescript-estree': [ '8.46.2' ],
+36 silly audit   'brace-expansion': [ '2.0.2', '1.1.12' ],
+36 silly audit   minimatch: [ '9.0.5', '3.1.2' ],
+36 silly audit   semver: [ '7.7.3', '6.3.1' ],
+36 silly audit   '@typescript-eslint/utils': [ '8.46.2' ],
+36 silly audit   '@typescript-eslint/visitor-keys': [ '8.46.2' ],
+36 silly audit   '@vitejs/plugin-react': [ '4.7.0' ],
+36 silly audit   abab: [ '2.0.6' ],
+36 silly audit   acorn: [ '8.15.0' ],
+36 silly audit   'acorn-globals': [ '7.0.1' ],
+36 silly audit   'acorn-jsx': [ '5.3.2' ],
+36 silly audit   'acorn-walk': [ '8.3.4' ],
+36 silly audit   'agent-base': [ '6.0.2' ],
+36 silly audit   ajv: [ '6.12.6' ],
+36 silly audit   'ansi-escapes': [ '4.3.2' ],
+36 silly audit   'any-promise': [ '1.3.0' ],
+36 silly audit   anymatch: [ '3.1.3' ],
+36 silly audit   arg: [ '5.0.2' ],
+36 silly audit   'aria-query': [ '5.3.0' ],
+36 silly audit   asynckit: [ '0.4.0' ],
+36 silly audit   autoprefixer: [ '10.4.21' ],
+36 silly audit   axios: [ '1.13.1' ],
+36 silly audit   'babel-jest': [ '29.7.0' ],
+36 silly audit   'babel-plugin-istanbul': [ '6.1.1' ],
+36 silly audit   'istanbul-lib-instrument': [ '5.2.1', '6.0.3' ],
+36 silly audit   'babel-plugin-jest-hoist': [ '29.6.3' ],
+36 silly audit   'babel-preset-current-node-syntax': [ '1.2.0' ],
+36 silly audit   'babel-preset-jest': [ '29.6.3' ],
+36 silly audit   'balanced-match': [ '1.0.2' ],
+36 silly audit   'baseline-browser-mapping': [ '2.8.23' ],
+36 silly audit   'binary-extensions': [ '2.3.0' ],
+36 silly audit   braces: [ '3.0.3' ],
+36 silly audit   browserslist: [ '4.27.0' ],
+36 silly audit   'bs-logger': [ '0.2.6' ],
+36 silly audit   bser: [ '2.1.1' ],
+36 silly audit   'buffer-from': [ '1.1.2' ],
+36 silly audit   'call-bind-apply-helpers': [ '1.0.2' ],
+36 silly audit   callsites: [ '3.1.0' ],
+36 silly audit   camelcase: [ '5.3.1', '6.3.0' ],
+36 silly audit   'camelcase-css': [ '2.0.1' ],
+36 silly audit   'caniuse-lite': [ '1.0.30001753' ],
+36 silly audit   chalk: [ '4.1.2' ],
+36 silly audit   'supports-color': [ '7.2.0', '8.1.1' ],
+36 silly audit   'char-regex': [ '1.0.2' ],
+36 silly audit   chokidar: [ '3.6.0' ],
+36 silly audit   'glob-parent': [ '5.1.2', '6.0.2' ],
+36 silly audit   'ci-info': [ '3.9.0' ],
+36 silly audit   'cjs-module-lexer': [ '1.4.3' ],
+36 silly audit   cliui: [ '8.0.1' ],
+36 silly audit   clsx: [ '1.2.1' ],
+36 silly audit   co: [ '4.6.0' ],
+36 silly audit   'collect-v8-coverage': [ '1.0.3' ],
+36 silly audit   'color-convert': [ '2.0.1' ],
+36 silly audit   'color-name': [ '1.1.4' ],
+36 silly audit   'combined-stream': [ '1.0.8' ],
+36 silly audit   commander: [ '4.1.1' ],
+36 silly audit   'concat-map': [ '0.0.1' ],
+36 silly audit   concurrently: [ '8.2.2' ],
+36 silly audit   'convert-source-map': [ '2.0.0' ],
+36 silly audit   'create-jest': [ '29.7.0' ],
+36 silly audit   'cross-spawn': [ '7.0.6' ],
+36 silly audit   'css.escape': [ '1.5.1' ],
+36 silly audit   cssesc: [ '3.0.0' ],
+36 silly audit   cssom: [ '0.5.0', '0.3.8' ],
+36 silly audit   cssstyle: [ '2.3.0' ],
+36 silly audit   csstype: [ '3.1.3' ],
+36 silly audit   'data-urls': [ '3.0.2' ],
+36 silly audit   'date-fns': [ '2.30.0' ],
+36 silly audit   debug: [ '4.4.3' ],
+36 silly audit   'decimal.js': [ '10.6.0' ],
+36 silly audit   dedent: [ '1.7.0' ],
+36 silly audit   'deep-is': [ '0.1.4' ],
+36 silly audit   deepmerge: [ '4.3.1' ],
+36 silly audit   'delayed-stream': [ '1.0.0' ],
+36 silly audit   dequal: [ '2.0.3' ],
+36 silly audit   'detect-newline': [ '3.1.0' ],
+36 silly audit   didyoumean: [ '1.2.2' ],
+36 silly audit   'diff-sequences': [ '29.6.3' ],
+36 silly audit   dlv: [ '1.1.3' ],
+36 silly audit   domexception: [ '4.0.0' ],
+36 silly audit   'dunder-proto': [ '1.0.1' ],
+36 silly audit   eastasianwidth: [ '0.2.0' ],
+36 silly audit   'electron-to-chromium': [ '1.5.244' ],
+36 silly audit   emittery: [ '0.13.1' ],
+36 silly audit   entities: [ '6.0.1' ],
+36 silly audit   'error-ex': [ '1.3.4' ],
+36 silly audit   'es-define-property': [ '1.0.1' ],
+36 silly audit   'es-errors': [ '1.3.0' ],
+36 silly audit   'es-object-atoms': [ '1.1.1' ],
+36 silly audit   'es-set-tostringtag': [ '2.1.0' ],
+36 silly audit   esbuild: [ '0.21.5' ],
+36 silly audit   escalade: [ '3.2.0' ],
+36 silly audit   'escape-string-regexp': [ '4.0.0', '2.0.0' ],
+36 silly audit   escodegen: [ '2.1.0' ],
+36 silly audit   eslint: [ '9.39.0' ],
+36 silly audit   'eslint-config-prettier': [ '9.1.2' ],
+36 silly audit   'eslint-plugin-prettier': [ '5.5.4' ],
+36 silly audit   'eslint-plugin-react-hooks': [ '5.2.0' ],
+36 silly audit   'eslint-plugin-react-refresh': [ '0.4.24' ],
+36 silly audit   'eslint-scope': [ '8.4.0' ],
+36 silly audit   espree: [ '10.4.0' ],
+36 silly audit   esprima: [ '4.0.1' ],
+36 silly audit   esquery: [ '1.6.0' ],
+36 silly audit   esrecurse: [ '4.3.0' ],
+36 silly audit   estraverse: [ '5.3.0' ],
+36 silly audit   esutils: [ '2.0.3' ],
+36 silly audit   execa: [ '5.1.1' ],
+36 silly audit   exit: [ '0.1.2' ],
+36 silly audit   expect: [ '29.7.0' ],
+36 silly audit   'fast-deep-equal': [ '3.1.3' ],
+36 silly audit   'fast-diff': [ '1.3.0' ],
+36 silly audit   'fast-glob': [ '3.3.3' ],
+36 silly audit   'fast-json-stable-stringify': [ '2.1.0' ],
+36 silly audit   'fast-levenshtein': [ '2.0.6' ],
+36 silly audit   fastq: [ '1.19.1' ],
+36 silly audit   'fb-watchman': [ '2.0.2' ],
+36 silly audit   'file-entry-cache': [ '8.0.0' ],
+36 silly audit   'fill-range': [ '7.1.1' ],
+36 silly audit   'flat-cache': [ '4.0.1' ],
+36 silly audit   flatted: [ '3.3.3' ],
+36 silly audit   'follow-redirects': [ '1.15.11' ],
+36 silly audit   'foreground-child': [ '3.3.1' ],
+36 silly audit   'signal-exit': [ '4.1.0', '3.0.7' ],
+36 silly audit   'form-data': [ '4.0.4' ],
+36 silly audit   'fraction.js': [ '4.3.7' ],
+36 silly audit   'fs.realpath': [ '1.0.0' ],
+36 silly audit   fsevents: [ '2.3.3' ],
+36 silly audit   'function-bind': [ '1.1.2' ],
+36 silly audit   gensync: [ '1.0.0-beta.2' ],
+36 silly audit   'get-caller-file': [ '2.0.5' ],
+36 silly audit   'get-intrinsic': [ '1.3.0' ],
+36 silly audit   'get-package-type': [ '0.1.0' ],
+36 silly audit   'get-proto': [ '1.0.1' ],
+36 silly audit   'get-stream': [ '6.0.1' ],
+36 silly audit   glob: [ '7.2.3', '10.4.5' ],
+36 silly audit   gopd: [ '1.2.0' ],
+36 silly audit   'graceful-fs': [ '4.2.11' ],
+36 silly audit   graphemer: [ '1.4.0' ],
+36 silly audit   handlebars: [ '4.7.8' ],
+36 silly audit   'harmony-reflect': [ '1.6.2' ],
+36 silly audit   'has-flag': [ '4.0.0' ],
+36 silly audit   'has-symbols': [ '1.1.0' ],
+36 silly audit   'has-tostringtag': [ '1.0.2' ],
+36 silly audit   hasown: [ '2.0.2' ],
+36 silly audit   'html-encoding-sniffer': [ '3.0.0' ],
+36 silly audit   'html-escaper': [ '2.0.2' ],
+36 silly audit   'html-parse-stringify': [ '3.0.1' ],
+36 silly audit   'http-proxy-agent': [ '5.0.0' ],
+36 silly audit   'https-proxy-agent': [ '5.0.1' ],
+36 silly audit   'human-signals': [ '2.1.0' ],
+36 silly audit   i18next: [ '25.6.0' ],
+36 silly audit   'i18next-browser-languagedetector': [ '8.2.0' ],
+36 silly audit   'iconv-lite': [ '0.6.3' ],
+36 silly audit   'identity-obj-proxy': [ '3.0.0' ],
+36 silly audit   'import-fresh': [ '3.3.1' ],
+36 silly audit   'import-local': [ '3.2.0' ],
+36 silly audit   imurmurhash: [ '0.1.4' ],
+36 silly audit   'indent-string': [ '4.0.0' ],
+36 silly audit   inflight: [ '1.0.6' ],
+36 silly audit   inherits: [ '2.0.4' ],
+36 silly audit   'is-arrayish': [ '0.2.1' ],
+36 silly audit   'is-binary-path': [ '2.1.0' ],
+36 silly audit   'is-core-module': [ '2.16.1' ],
+36 silly audit   'is-extglob': [ '2.1.1' ],
+36 silly audit   'is-fullwidth-code-point': [ '3.0.0' ],
+36 silly audit   'is-generator-fn': [ '2.1.0' ],
+36 silly audit   'is-glob': [ '4.0.3' ],
+36 silly audit   'is-number': [ '7.0.0' ],
+36 silly audit   'is-potential-custom-element-name': [ '1.0.1' ],
+36 silly audit   'is-stream': [ '2.0.1' ],
+36 silly audit   isexe: [ '2.0.0' ],
+36 silly audit   'istanbul-lib-coverage': [ '3.2.2' ],
+36 silly audit   'istanbul-lib-report': [ '3.0.1' ],
+36 silly audit   'istanbul-lib-source-maps': [ '4.0.1' ],
+36 silly audit   'istanbul-reports': [ '3.2.0' ],
+36 silly audit   jackspeak: [ '3.4.3' ],
+36 silly audit   jest: [ '29.7.0' ],
+36 silly audit   'jest-changed-files': [ '29.7.0' ],
+36 silly audit   'jest-circus': [ '29.7.0' ],
+36 silly audit   'jest-cli': [ '29.7.0' ],
+36 silly audit   'jest-config': [ '29.7.0' ],
+36 silly audit   'jest-diff': [ '29.7.0' ],
+36 silly audit   'jest-docblock': [ '29.7.0' ],
+36 silly audit   'jest-each': [ '29.7.0' ],
+36 silly audit   'jest-environment-jsdom': [ '29.7.0' ],
+36 silly audit   'jest-environment-node': [ '29.7.0' ],
+36 silly audit   'jest-get-type': [ '29.6.3' ],
+36 silly audit   'jest-haste-map': [ '29.7.0' ],
+36 silly audit   'jest-leak-detector': [ '29.7.0' ],
+36 silly audit   'jest-matcher-utils': [ '29.7.0' ],
+36 silly audit   'jest-message-util': [ '29.7.0' ],
+36 silly audit   'jest-mock': [ '29.7.0' ],
+36 silly audit   'jest-pnp-resolver': [ '1.2.3' ],
+36 silly audit   'jest-regex-util': [ '29.6.3' ],
+36 silly audit   'jest-resolve': [ '29.7.0' ],
+36 silly audit   'jest-resolve-dependencies': [ '29.7.0' ],
+36 silly audit   'jest-runner': [ '29.7.0' ],
+36 silly audit   'jest-runtime': [ '29.7.0' ],
+36 silly audit   'jest-snapshot': [ '29.7.0' ],
+36 silly audit   'jest-util': [ '29.7.0' ],
+36 silly audit   'jest-validate': [ '29.7.0' ],
+36 silly audit   'jest-watcher': [ '29.7.0' ],
+36 silly audit   'jest-worker': [ '29.7.0' ],
+36 silly audit   jiti: [ '1.21.7' ],
+36 silly audit   'js-tokens': [ '4.0.0' ],
+36 silly audit   jsdom: [ '20.0.3' ],
+36 silly audit   jsesc: [ '3.1.0' ],
+36 silly audit   'json-buffer': [ '3.0.1' ],
+36 silly audit   'json-parse-even-better-errors': [ '2.3.1' ],
+36 silly audit   'json-schema-traverse': [ '0.4.1' ],
+36 silly audit   'json-stable-stringify-without-jsonify': [ '1.0.1' ],
+36 silly audit   json5: [ '2.2.3' ],
+36 silly audit   keyv: [ '4.5.4' ],
+36 silly audit   kleur: [ '3.0.3' ],
+36 silly audit   leven: [ '3.1.0' ],
+36 silly audit   levn: [ '0.4.1' ],
+36 silly audit   lilconfig: [ '3.1.3' ],
+36 silly audit   'lines-and-columns': [ '1.2.4' ],
+36 silly audit   lodash: [ '4.17.21' ],
+36 silly audit   'lodash.memoize': [ '4.1.2' ],
+36 silly audit   'lodash.merge': [ '4.6.2' ],
+36 silly audit   'loose-envify': [ '1.4.0' ],
+36 silly audit   'lru-cache': [ '5.1.1', '10.4.3' ],
+36 silly audit   'lucide-react': [ '0.344.0' ],
+36 silly audit   'lz-string': [ '1.5.0' ],
+36 silly audit   'make-dir': [ '4.0.0' ],
+36 silly audit   'make-error': [ '1.3.6' ],
+36 silly audit   makeerror: [ '1.0.12' ],
+36 silly audit   'math-intrinsics': [ '1.1.0' ],
+36 silly audit   'merge-stream': [ '2.0.0' ],
+36 silly audit   merge2: [ '1.4.1' ],
+36 silly audit   micromatch: [ '4.0.8' ],
+36 silly audit   'mime-db': [ '1.52.0' ],
+36 silly audit   'mime-types': [ '2.1.35' ],
+36 silly audit   'mimic-fn': [ '2.1.0' ],
+36 silly audit   'min-indent': [ '1.0.1' ],
+36 silly audit   minimist: [ '1.2.8' ],
+36 silly audit   minipass: [ '7.1.2' ],
+36 silly audit   ms: [ '2.1.3' ],
+36 silly audit   mz: [ '2.7.0' ],
+36 silly audit   nanoid: [ '3.3.11' ],
+36 silly audit   'natural-compare': [ '1.4.0' ],
+36 silly audit   'neo-async': [ '2.6.2' ],
+36 silly audit   'node-int64': [ '0.4.0' ],
+36 silly audit   'node-releases': [ '2.0.27' ],
+36 silly audit   'normalize-path': [ '3.0.0' ],
+36 silly audit   'normalize-range': [ '0.1.2' ],
+36 silly audit   'npm-run-path': [ '4.0.1' ],
+36 silly audit   nwsapi: [ '2.2.22' ],
+36 silly audit   'object-assign': [ '4.1.1' ],
+36 silly audit   'object-hash': [ '3.0.0' ],
+36 silly audit   once: [ '1.4.0' ],
+36 silly audit   onetime: [ '5.1.2' ],
+36 silly audit   optionator: [ '0.9.4' ],
+36 silly audit   'p-try': [ '2.2.0' ],
+36 silly audit   'package-json-from-dist': [ '1.0.1' ],
+36 silly audit   'parent-module': [ '1.0.1' ],
+36 silly audit   'parse-json': [ '5.2.0' ],
+36 silly audit   parse5: [ '7.3.0' ],
+36 silly audit   'path-exists': [ '4.0.0' ],
+36 silly audit   'path-is-absolute': [ '1.0.1' ],
+36 silly audit   'path-key': [ '3.1.1' ],
+36 silly audit   'path-parse': [ '1.0.7' ],
+36 silly audit   'path-scurry': [ '1.11.1' ],
+36 silly audit   picocolors: [ '1.1.1' ],
+36 silly audit   picomatch: [ '2.3.1' ],
+36 silly audit   pify: [ '2.3.0' ],
+36 silly audit   pirates: [ '4.0.7' ],
+36 silly audit   'pkg-dir': [ '4.2.0' ],
+36 silly audit   postcss: [ '8.5.6' ],
+36 silly audit   'postcss-import': [ '15.1.0' ],
+36 silly audit   'postcss-js': [ '4.1.0' ],
+36 silly audit   'postcss-load-config': [ '6.0.1' ],
+36 silly audit   'postcss-nested': [ '6.2.0' ],
+36 silly audit   'postcss-selector-parser': [ '6.1.2' ],
+36 silly audit   'postcss-value-parser': [ '4.2.0' ],
+36 silly audit   'prelude-ls': [ '1.2.1' ],
+36 silly audit   prettier: [ '3.6.2' ],
+36 silly audit   'prettier-linter-helpers': [ '1.0.0' ],
+36 silly audit   prompts: [ '2.4.2' ],
+36 silly audit   'property-expr': [ '2.0.6' ],
+36 silly audit   'proxy-from-env': [ '1.1.0' ],
+36 silly audit   psl: [ '1.15.0' ],
+36 silly audit   punycode: [ '2.3.1' ],
+36 silly audit   'pure-rand': [ '6.1.0' ],
+36 silly audit   querystringify: [ '2.2.0' ],
+36 silly audit   'queue-microtask': [ '1.2.3' ],
+36 silly audit   react: [ '18.3.1' ],
+36 silly audit   'react-dom': [ '18.3.1' ],
+36 silly audit   'react-hook-form': [ '7.66.0' ],
+36 silly audit   'react-i18next': [ '15.7.4' ],
+36 silly audit   'react-icons': [ '5.5.0' ],
+36 silly audit   'react-refresh': [ '0.17.0' ],
+36 silly audit   'react-router': [ '6.30.1' ],
+36 silly audit   'react-router-dom': [ '6.30.1' ],
+36 silly audit   'react-toastify': [ '9.1.3' ],
+36 silly audit   'read-cache': [ '1.0.0' ],
+36 silly audit   readdirp: [ '3.6.0' ],
+36 silly audit   redent: [ '3.0.0' ],
+36 silly audit   'require-directory': [ '2.1.1' ],
+36 silly audit   'requires-port': [ '1.0.0' ],
+36 silly audit   resolve: [ '1.22.11' ],
+36 silly audit   'resolve-cwd': [ '3.0.0' ],
+36 silly audit   'resolve.exports': [ '2.0.3' ],
+36 silly audit   reusify: [ '1.1.0' ],
+36 silly audit   rollup: [ '4.52.5' ],
+36 silly audit   'run-parallel': [ '1.2.0' ],
+36 silly audit   rxjs: [ '7.8.2' ],
+36 silly audit   'safer-buffer': [ '2.1.2' ],
+36 silly audit   saxes: [ '6.0.0' ],
+36 silly audit   scheduler: [ '0.23.2' ],
+36 silly audit   'shebang-command': [ '2.0.0' ],
+36 silly audit   'shebang-regex': [ '3.0.0' ],
+36 silly audit   'shell-quote': [ '1.8.3' ],
+36 silly audit   sisteransi: [ '1.0.5' ],
+36 silly audit   slash: [ '3.0.0' ],
+36 silly audit   'source-map': [ '0.6.1' ],
+36 silly audit   'source-map-js': [ '1.2.1' ],
+36 silly audit   'source-map-support': [ '0.5.13' ],
+36 silly audit   'spawn-command': [ '0.0.2' ],
+36 silly audit   'sprintf-js': [ '1.0.3' ],
+36 silly audit   'stack-utils': [ '2.0.6' ],
+36 silly audit   'string-length': [ '4.0.2' ],
+36 silly audit   'strip-bom': [ '4.0.0' ],
+36 silly audit   'strip-final-newline': [ '2.0.0' ],
+36 silly audit   'strip-indent': [ '3.0.0' ],
+36 silly audit   'strip-json-comments': [ '3.1.1' ],
+36 silly audit   sucrase: [ '3.35.0' ],
+36 silly audit   'supports-preserve-symlinks-flag': [ '1.0.0' ],
+36 silly audit   'symbol-tree': [ '3.2.4' ],
+36 silly audit   synckit: [ '0.11.11' ],
+36 silly audit   tailwindcss: [ '3.4.18' ],
+36 silly audit   'test-exclude': [ '6.0.0' ],
+36 silly audit   thenify: [ '3.3.1' ],
+36 silly audit   'thenify-all': [ '1.6.0' ],
+36 silly audit   'tiny-case': [ '1.0.3' ],
+36 silly audit   tmpl: [ '1.0.5' ],
+36 silly audit   'to-regex-range': [ '5.0.1' ],
+36 silly audit   toposort: [ '2.0.2' ],
+36 silly audit   'tough-cookie': [ '4.1.4' ],
+36 silly audit   tr46: [ '3.0.0' ],
+36 silly audit   'tree-kill': [ '1.2.2' ],
+36 silly audit   'ts-api-utils': [ '2.1.0' ],
+36 silly audit   'ts-interface-checker': [ '0.1.13' ],
+36 silly audit   'ts-jest': [ '29.4.5' ],
+36 silly audit   'type-fest': [ '4.41.0', '0.21.3', '2.19.0' ],
+36 silly audit   tslib: [ '2.8.1' ],
+36 silly audit   'type-check': [ '0.4.0' ],
+36 silly audit   'type-detect': [ '4.0.8' ],
+36 silly audit   typescript: [ '5.9.3' ],
+36 silly audit   'typescript-eslint': [ '8.46.2' ],
+36 silly audit   'uglify-js': [ '3.19.3' ],
+36 silly audit   'undici-types': [ '7.16.0' ],
+36 silly audit   universalify: [ '0.2.0' ],
+36 silly audit   'update-browserslist-db': [ '1.1.4' ],
+36 silly audit   'uri-js': [ '4.4.1' ],
+36 silly audit   'url-parse': [ '1.5.10' ],
+36 silly audit   'util-deprecate': [ '1.0.2' ],
+36 silly audit   'v8-to-istanbul': [ '9.3.0' ],
+36 silly audit   vite: [ '5.4.21' ],
+36 silly audit   'void-elements': [ '3.1.0' ],
+36 silly audit   'w3c-xmlserializer': [ '4.0.0' ],
+36 silly audit   walker: [ '1.0.8' ],
+36 silly audit   'webidl-conversions': [ '7.0.0' ],
+36 silly audit   'whatwg-encoding': [ '2.0.0' ],
+36 silly audit   'whatwg-mimetype': [ '3.0.0' ],
+36 silly audit   'whatwg-url': [ '11.0.0' ],
+36 silly audit   which: [ '2.0.2' ],
+36 silly audit   'word-wrap': [ '1.2.5' ],
+36 silly audit   wordwrap: [ '1.0.0' ],
+36 silly audit   wrappy: [ '1.0.2' ],
+36 silly audit   'write-file-atomic': [ '4.0.2' ],
+36 silly audit   ws: [ '8.18.3' ],
+36 silly audit   'xml-name-validator': [ '4.0.0' ],
+36 silly audit   xmlchars: [ '2.2.0' ],
+36 silly audit   y18n: [ '5.0.8' ],
+36 silly audit   yallist: [ '3.1.1' ],
+36 silly audit   yargs: [ '17.7.2' ],
+36 silly audit   'yargs-parser': [ '21.1.1' ],
+36 silly audit   'yocto-queue': [ '0.1.0' ],
+36 silly audit   yup: [ '1.7.1' ]
+36 silly audit }
+37 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-x64-msvc
+38 silly reify mark deleted [
+38 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-x64-msvc'
+38 silly reify ]
+39 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-x64-gnu
+40 silly reify mark deleted [
+40 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-x64-gnu'
+40 silly reify ]
+41 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-ia32-msvc
+42 silly reify mark deleted [
+42 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-ia32-msvc'
+42 silly reify ]
+43 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-arm64-msvc
+44 silly reify mark deleted [
+44 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-win32-arm64-msvc'
+44 silly reify ]
+45 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-openharmony-arm64
+46 silly reify mark deleted [
+46 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-openharmony-arm64'
+46 silly reify ]
+47 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-x64-musl
+48 silly reify mark deleted [
+48 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-x64-musl'
+48 silly reify ]
+49 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-x64-gnu
+50 silly reify mark deleted [
+50 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-x64-gnu'
+50 silly reify ]
+51 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-s390x-gnu
+52 silly reify mark deleted [
+52 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-s390x-gnu'
+52 silly reify ]
+53 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-riscv64-musl
+54 silly reify mark deleted [
+54 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-riscv64-musl'
+54 silly reify ]
+55 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-riscv64-gnu
+56 silly reify mark deleted [
+56 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-riscv64-gnu'
+56 silly reify ]
+57 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-ppc64-gnu
+58 silly reify mark deleted [
+58 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-ppc64-gnu'
+58 silly reify ]
+59 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-loong64-gnu
+60 silly reify mark deleted [
+60 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-loong64-gnu'
+60 silly reify ]
+61 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm64-musl
+62 silly reify mark deleted [
+62 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm64-musl'
+62 silly reify ]
+63 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm64-gnu
+64 silly reify mark deleted [
+64 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm64-gnu'
+64 silly reify ]
+65 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm-musleabihf
+66 silly reify mark deleted [
+66 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm-musleabihf'
+66 silly reify ]
+67 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm-gnueabihf
+68 silly reify mark deleted [
+68 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-linux-arm-gnueabihf'
+68 silly reify ]
+69 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-freebsd-x64
+70 silly reify mark deleted [
+70 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-freebsd-x64'
+70 silly reify ]
+71 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-freebsd-arm64
+72 silly reify mark deleted [
+72 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-freebsd-arm64'
+72 silly reify ]
+73 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-darwin-x64
+74 silly reify mark deleted [
+74 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-darwin-x64'
+74 silly reify ]
+75 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-android-arm64
+76 silly reify mark deleted [
+76 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-android-arm64'
+76 silly reify ]
+77 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-android-arm-eabi
+78 silly reify mark deleted [
+78 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@rollup/rollup-android-arm-eabi'
+78 silly reify ]
+79 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/win32-x64
+80 silly reify mark deleted [
+80 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/win32-x64'
+80 silly reify ]
+81 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/win32-ia32
+82 silly reify mark deleted [
+82 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/win32-ia32'
+82 silly reify ]
+83 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/win32-arm64
+84 silly reify mark deleted [
+84 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/win32-arm64'
+84 silly reify ]
+85 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/sunos-x64
+86 silly reify mark deleted [
+86 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/sunos-x64'
+86 silly reify ]
+87 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/openbsd-x64
+88 silly reify mark deleted [
+88 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/openbsd-x64'
+88 silly reify ]
+89 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/netbsd-x64
+90 silly reify mark deleted [
+90 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/netbsd-x64'
+90 silly reify ]
+91 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-x64
+92 silly reify mark deleted [
+92 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-x64'
+92 silly reify ]
+93 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-s390x
+94 silly reify mark deleted [
+94 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-s390x'
+94 silly reify ]
+95 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-riscv64
+96 silly reify mark deleted [
+96 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-riscv64'
+96 silly reify ]
+97 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-ppc64
+98 silly reify mark deleted [
+98 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-ppc64'
+98 silly reify ]
+99 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-mips64el
+100 silly reify mark deleted [
+100 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-mips64el'
+100 silly reify ]
+101 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-loong64
+102 silly reify mark deleted [
+102 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-loong64'
+102 silly reify ]
+103 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-ia32
+104 silly reify mark deleted [
+104 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-ia32'
+104 silly reify ]
+105 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-arm64
+106 silly reify mark deleted [
+106 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-arm64'
+106 silly reify ]
+107 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-arm
+108 silly reify mark deleted [
+108 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/linux-arm'
+108 silly reify ]
+109 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/freebsd-x64
+110 silly reify mark deleted [
+110 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/freebsd-x64'
+110 silly reify ]
+111 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/freebsd-arm64
+112 silly reify mark deleted [
+112 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/freebsd-arm64'
+112 silly reify ]
+113 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/darwin-x64
+114 silly reify mark deleted [
+114 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/darwin-x64'
+114 silly reify ]
+115 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/android-x64
+116 silly reify mark deleted [
+116 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/android-x64'
+116 silly reify ]
+117 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/android-arm64
+118 silly reify mark deleted [
+118 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/android-arm64'
+118 silly reify ]
+119 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/android-arm
+120 silly reify mark deleted [
+120 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/android-arm'
+120 silly reify ]
+121 verbose reify failed optional dependency /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/aix-ppc64
+122 silly reify mark deleted [
+122 silly reify   '/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client/node_modules/@esbuild/aix-ppc64'
+122 silly reify ]
+123 http cache @typescript-eslint/utils@https://registry.npmjs.org/@typescript-eslint/utils/-/utils-8.46.2.tgz 0ms (cache hit)
+124 http cache @typescript-eslint/eslint-plugin@https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.46.2.tgz 0ms (cache hit)
+125 http cache @typescript-eslint/visitor-keys@https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.46.2.tgz 0ms (cache hit)
+126 http cache @typescript-eslint/project-service@https://registry.npmjs.org/@typescript-eslint/project-service/-/project-service-8.46.2.tgz 0ms (cache hit)
+127 http cache @typescript-eslint/types@https://registry.npmjs.org/@typescript-eslint/types/-/types-8.46.2.tgz 0ms (cache hit)
+128 http cache @typescript-eslint/scope-manager@https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.46.2.tgz 0ms (cache hit)
+129 http cache @typescript-eslint/typescript-estree@https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.46.2.tgz 0ms (cache hit)
+130 http cache @typescript-eslint/parser@https://registry.npmjs.org/@typescript-eslint/parser/-/parser-8.46.2.tgz 0ms (cache hit)
+131 http cache @typescript-eslint/tsconfig-utils@https://registry.npmjs.org/@typescript-eslint/tsconfig-utils/-/tsconfig-utils-8.46.2.tgz 0ms (cache hit)
+132 http cache @typescript-eslint/type-utils@https://registry.npmjs.org/@typescript-eslint/type-utils/-/type-utils-8.46.2.tgz 0ms (cache hit)
+133 http cache fsevents@https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz 0ms (cache hit)
+134 http cache @rollup/rollup-darwin-arm64@https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.52.5.tgz 0ms (cache hit)
+135 http cache @eslint/js@https://registry.npmjs.org/@eslint/js/-/js-9.39.0.tgz 0ms (cache hit)
+136 http cache rollup@https://registry.npmjs.org/rollup/-/rollup-4.52.5.tgz 0ms (cache hit)
+137 http cache eslint@https://registry.npmjs.org/eslint/-/eslint-9.39.0.tgz 0ms (cache hit)
+138 http cache electron-to-chromium@https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.244.tgz 0ms (cache hit)
+139 http cache axios@https://registry.npmjs.org/axios/-/axios-1.13.1.tgz 0ms (cache hit)
+140 http cache i18next@https://registry.npmjs.org/i18next/-/i18next-25.6.0.tgz 0ms (cache hit)
+141 http cache typescript-eslint@https://registry.npmjs.org/typescript-eslint/-/typescript-eslint-8.46.2.tgz 0ms (cache hit)
+142 http cache baseline-browser-mapping@https://registry.npmjs.org/baseline-browser-mapping/-/baseline-browser-mapping-2.8.23.tgz 0ms (cache hit)
+143 http cache caniuse-lite@https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001753.tgz 0ms (cache hit)
+144 silly tarball no local data for @typescript-eslint/utils@https://registry.npmjs.org/@typescript-eslint/utils/-/utils-8.46.2.tgz. Extracting by manifest.
+145 silly tarball no local data for @typescript-eslint/eslint-plugin@https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.46.2.tgz. Extracting by manifest.
+146 silly tarball no local data for @typescript-eslint/visitor-keys@https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.46.2.tgz. Extracting by manifest.
+147 silly tarball no local data for @typescript-eslint/project-service@https://registry.npmjs.org/@typescript-eslint/project-service/-/project-service-8.46.2.tgz. Extracting by manifest.
+148 silly tarball no local data for @typescript-eslint/types@https://registry.npmjs.org/@typescript-eslint/types/-/types-8.46.2.tgz. Extracting by manifest.
+149 silly tarball no local data for @typescript-eslint/scope-manager@https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.46.2.tgz. Extracting by manifest.
+150 silly tarball no local data for @typescript-eslint/typescript-estree@https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.46.2.tgz. Extracting by manifest.
+151 silly tarball no local data for @typescript-eslint/parser@https://registry.npmjs.org/@typescript-eslint/parser/-/parser-8.46.2.tgz. Extracting by manifest.
+152 silly tarball no local data for @typescript-eslint/tsconfig-utils@https://registry.npmjs.org/@typescript-eslint/tsconfig-utils/-/tsconfig-utils-8.46.2.tgz. Extracting by manifest.
+153 silly tarball no local data for @typescript-eslint/type-utils@https://registry.npmjs.org/@typescript-eslint/type-utils/-/type-utils-8.46.2.tgz. Extracting by manifest.
+154 silly tarball no local data for fsevents@https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz. Extracting by manifest.
+155 silly tarball no local data for @rollup/rollup-darwin-arm64@https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.52.5.tgz. Extracting by manifest.
+156 silly tarball no local data for @eslint/js@https://registry.npmjs.org/@eslint/js/-/js-9.39.0.tgz. Extracting by manifest.
+157 silly tarball no local data for rollup@https://registry.npmjs.org/rollup/-/rollup-4.52.5.tgz. Extracting by manifest.
+158 silly tarball no local data for eslint@https://registry.npmjs.org/eslint/-/eslint-9.39.0.tgz. Extracting by manifest.
+159 silly tarball no local data for electron-to-chromium@https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.244.tgz. Extracting by manifest.
+160 silly tarball no local data for axios@https://registry.npmjs.org/axios/-/axios-1.13.1.tgz. Extracting by manifest.
+161 silly tarball no local data for i18next@https://registry.npmjs.org/i18next/-/i18next-25.6.0.tgz. Extracting by manifest.
+162 silly tarball no local data for typescript-eslint@https://registry.npmjs.org/typescript-eslint/-/typescript-eslint-8.46.2.tgz. Extracting by manifest.
+163 silly tarball no local data for baseline-browser-mapping@https://registry.npmjs.org/baseline-browser-mapping/-/baseline-browser-mapping-2.8.23.tgz. Extracting by manifest.
+164 silly tarball no local data for caniuse-lite@https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001753.tgz. Extracting by manifest.
+165 http fetch GET 200 https://registry.npmjs.org/npm 360ms
+166 http fetch GET 200 https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz 171ms (cache miss)
+167 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/parser/-/parser-8.46.2.tgz 175ms (cache miss)
+168 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/project-service/-/project-service-8.46.2.tgz 177ms (cache miss)
+169 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/types/-/types-8.46.2.tgz 189ms (cache miss)
+170 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/tsconfig-utils/-/tsconfig-utils-8.46.2.tgz 226ms (cache miss)
+171 http fetch GET 200 https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.244.tgz 234ms (cache miss)
+172 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/utils/-/utils-8.46.2.tgz 248ms (cache miss)
+173 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/type-utils/-/type-utils-8.46.2.tgz 248ms (cache miss)
+174 http fetch GET 200 https://registry.npmjs.org/rollup/-/rollup-4.52.5.tgz 262ms (cache miss)
+175 http fetch GET 200 https://registry.npmjs.org/typescript-eslint/-/typescript-eslint-8.46.2.tgz 276ms (cache miss)
+176 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.46.2.tgz 286ms (cache miss)
+177 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.46.2.tgz 379ms (cache miss)
+178 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 424ms
+179 silly audit report {
+179 silly audit report   esbuild: [
+179 silly audit report     {
+179 silly audit report       id: 1102341,
+179 silly audit report       url: 'https://github.com/advisories/GHSA-67mh-4wv8-2f99',
+179 silly audit report       title: 'esbuild enables any website to send any requests to the development server and read the response',
+179 silly audit report       severity: 'moderate',
+179 silly audit report       vulnerable_versions: '<=0.24.2',
+179 silly audit report       cwe: [Array],
+179 silly audit report       cvss: [Object]
+179 silly audit report     }
+179 silly audit report   ]
+179 silly audit report }
+180 silly packumentCache corgi:https://registry.npmjs.org/esbuild cache-miss
+181 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.46.2.tgz 410ms (cache miss)
+182 http fetch GET 200 https://registry.npmjs.org/axios/-/axios-1.13.1.tgz 423ms (cache miss)
+183 http fetch GET 200 https://registry.npmjs.org/i18next/-/i18next-25.6.0.tgz 444ms (cache miss)
+184 http fetch GET 200 https://registry.npmjs.org/eslint/-/eslint-9.39.0.tgz 461ms (cache miss)
+185 http fetch GET 200 https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.46.2.tgz 505ms (cache miss)
+186 http fetch GET 200 https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001753.tgz 515ms (cache miss)
+187 http fetch GET 200 https://registry.npmjs.org/esbuild 156ms (cache miss)
+188 silly packumentCache corgi:https://registry.npmjs.org/esbuild set size:undefined disposed:false
+189 silly packumentCache corgi:https://registry.npmjs.org/vite cache-miss
+190 http fetch GET 200 https://registry.npmjs.org/baseline-browser-mapping/-/baseline-browser-mapping-2.8.23.tgz 619ms (cache miss)
+191 http fetch GET 200 https://registry.npmjs.org/vite 94ms (cache miss)
+192 silly packumentCache corgi:https://registry.npmjs.org/vite set size:undefined disposed:false
+193 silly packumentCache corgi:https://registry.npmjs.org/@vitejs%2fplugin-react cache-miss
+194 http fetch GET 200 https://registry.npmjs.org/@vitejs%2fplugin-react 112ms (cache miss)
+195 silly packumentCache corgi:https://registry.npmjs.org/@vitejs%2fplugin-react set size:undefined disposed:false
+196 http fetch GET 200 https://registry.npmjs.org/@rollup/rollup-darwin-arm64/-/rollup-darwin-arm64-4.52.5.tgz 1155ms (cache miss)
+197 http fetch GET 200 https://registry.npmjs.org/@eslint/js/-/js-9.39.0.tgz 1293ms (cache miss)
+198 silly ADD node_modules/fsevents
+199 silly ADD node_modules/@rollup/rollup-win32-x64-msvc
+200 silly ADD node_modules/@rollup/rollup-win32-x64-gnu
+201 silly ADD node_modules/@rollup/rollup-win32-ia32-msvc
+202 silly ADD node_modules/@rollup/rollup-win32-arm64-msvc
+203 silly ADD node_modules/@rollup/rollup-openharmony-arm64
+204 silly ADD node_modules/@rollup/rollup-linux-x64-musl
+205 silly ADD node_modules/@rollup/rollup-linux-x64-gnu
+206 silly ADD node_modules/@rollup/rollup-linux-s390x-gnu
+207 silly ADD node_modules/@rollup/rollup-linux-riscv64-musl
+208 silly ADD node_modules/@rollup/rollup-linux-riscv64-gnu
+209 silly ADD node_modules/@rollup/rollup-linux-ppc64-gnu
+210 silly ADD node_modules/@rollup/rollup-linux-loong64-gnu
+211 silly ADD node_modules/@rollup/rollup-linux-arm64-musl
+212 silly ADD node_modules/@rollup/rollup-linux-arm64-gnu
+213 silly ADD node_modules/@rollup/rollup-linux-arm-musleabihf
+214 silly ADD node_modules/@rollup/rollup-linux-arm-gnueabihf
+215 silly ADD node_modules/@rollup/rollup-freebsd-x64
+216 silly ADD node_modules/@rollup/rollup-freebsd-arm64
+217 silly ADD node_modules/@rollup/rollup-darwin-x64
+218 silly ADD node_modules/@rollup/rollup-android-arm64
+219 silly ADD node_modules/@rollup/rollup-android-arm-eabi
+220 silly ADD node_modules/@esbuild/win32-x64
+221 silly ADD node_modules/@esbuild/win32-ia32
+222 silly ADD node_modules/@esbuild/win32-arm64
+223 silly ADD node_modules/@esbuild/sunos-x64
+224 silly ADD node_modules/@esbuild/openbsd-x64
+225 silly ADD node_modules/@esbuild/netbsd-x64
+226 silly ADD node_modules/@esbuild/linux-x64
+227 silly ADD node_modules/@esbuild/linux-s390x
+228 silly ADD node_modules/@esbuild/linux-riscv64
+229 silly ADD node_modules/@esbuild/linux-ppc64
+230 silly ADD node_modules/@esbuild/linux-mips64el
+231 silly ADD node_modules/@esbuild/linux-loong64
+232 silly ADD node_modules/@esbuild/linux-ia32
+233 silly ADD node_modules/@esbuild/linux-arm64
+234 silly ADD node_modules/@esbuild/linux-arm
+235 silly ADD node_modules/@esbuild/freebsd-x64
+236 silly ADD node_modules/@esbuild/freebsd-arm64
+237 silly ADD node_modules/@esbuild/darwin-x64
+238 silly ADD node_modules/@esbuild/android-x64
+239 silly ADD node_modules/@esbuild/android-arm64
+240 silly ADD node_modules/@esbuild/android-arm
+241 silly ADD node_modules/@esbuild/aix-ppc64
+242 silly CHANGE node_modules/@typescript-eslint/utils
+243 silly CHANGE node_modules/@typescript-eslint/eslint-plugin
+244 silly CHANGE node_modules/@typescript-eslint/project-service
+245 silly CHANGE node_modules/@typescript-eslint/visitor-keys
+246 silly CHANGE node_modules/@typescript-eslint/typescript-estree
+247 silly CHANGE node_modules/@typescript-eslint/types
+248 silly CHANGE node_modules/@typescript-eslint/scope-manager
+249 silly CHANGE node_modules/@typescript-eslint/parser
+250 silly CHANGE node_modules/@typescript-eslint/tsconfig-utils
+251 silly CHANGE node_modules/@typescript-eslint/type-utils
+252 silly CHANGE node_modules/@rollup/rollup-darwin-arm64
+253 silly CHANGE node_modules/@eslint/js
+254 silly CHANGE node_modules/typescript-eslint
+255 silly CHANGE node_modules/rollup
+256 silly CHANGE node_modules/i18next
+257 silly CHANGE node_modules/eslint
+258 silly CHANGE node_modules/electron-to-chromium
+259 silly CHANGE node_modules/caniuse-lite
+260 silly CHANGE node_modules/baseline-browser-mapping
+261 silly CHANGE node_modules/axios
+262 verbose cwd /Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/client
+263 verbose os Darwin 24.3.0
+264 verbose node v20.19.5
+265 verbose npm  v11.6.1
+266 notice
+266 notice New patch version of npm available! 11.6.1 -> 11.6.2
+266 notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.2
+266 notice To update run: npm install -g npm@11.6.2
+266 notice  { force: true, [Symbol(proc-log.meta)]: true }
+267 verbose exit 0
+268 info ok

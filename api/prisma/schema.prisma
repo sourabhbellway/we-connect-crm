@@ -124,6 +124,12 @@ model User {
   approvedExpenses       Expense[]                 @relation("UserApprovedExpenses")
   rejectedExpenses       Expense[]                 @relation("UserRejectedExpenses")
   createdBudgets         Budget[]                  @relation("UserCreatedBudgets")
+  notifications          Notification[]            @relation("UserNotifications")
+  notificationPreference NotificationPreference?   @relation("UserNotificationPreference")
+  dateOfBirth            DateTime?
+  managerId              Int?
+  manager                User?                     @relation("UserManager", fields: [managerId], references: [id])
+  subordinates           User[]                    @relation("UserManager")
   companies              companies?                @relation(fields: [companyId], references: [id])
 
   @@map("users")
@@ -1425,5 +1431,116 @@ enum BudgetPeriod {
   HALF_YEARLY
   ANNUAL
   CUSTOM
+}
+
+// Automation Workflow Models
+model Workflow {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  description String?
+  isActive    Boolean             @default(true)
+  trigger     WorkflowTrigger
+  triggerData Json?               // Additional trigger configuration
+  conditions  Json                // Array of condition objects
+  actions     Json                // Array of action objects
+  createdBy   Int?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  deletedAt   DateTime?
+  executions  WorkflowExecution[]
+
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          Int                    @id @default(autoincrement())
+  workflowId  Int
+  workflow    Workflow               @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  triggerData Json                   // Data that triggered the workflow
+  status      WorkflowExecutionStatus
+  result      Json?                  // Execution result/output
+  error       String?                // Error message if failed
+  startedAt   DateTime               @default(now())
+  completedAt DateTime?
+  duration    Int?                   // Duration in milliseconds
+
+  @@map("workflow_executions")
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  read      Boolean          @default(false)
+  readAt    DateTime?
+  metadata  Json?            // Additional context data
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @unique
+  inAppEnabled   Boolean  @default(true)
+  emailEnabled   Boolean  @default(false)
+  soundEnabled   Boolean  @default(true)
+  preferences    Json     @default("{\"leadCreated\":true,\"leadUpdated\":true,\"leadAssigned\":true,\"clientReply\":true,\"paymentAdded\":true,\"paymentUpdated\":true,\"taskAssigned\":true,\"taskDue\":true,\"meetingScheduled\":true,\"followUpDue\":true}")
+  doNotDisturbStart Int?  // Hour of day (0-23)
+  doNotDisturbEnd   Int?  // Hour of day (0-23)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation("UserNotificationPreference", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+enum WorkflowTrigger {
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_STATUS_CHANGED
+  LEAD_ASSIGNED
+  DEAL_CREATED
+  DEAL_UPDATED
+  DEAL_STAGE_CHANGED
+  TASK_CREATED
+  TASK_COMPLETED
+}
+
+enum WorkflowExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+enum NotificationType {
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_ASSIGNED
+  LEAD_STATUS_CHANGED
+  CLIENT_REPLY
+  PAYMENT_ADDED
+  PAYMENT_UPDATED
+  TASK_ASSIGNED
+  TASK_DUE
+  MEETING_SCHEDULED
+  FOLLOW_UP_DUE
+  DEAL_CREATED
+  DEAL_WON
+  DEAL_LOST
+  QUOTATION_SENT
+  QUOTATION_ACCEPTED
+  INVOICE_SENT
+  INVOICE_PAID
+  SYSTEM
 }
 

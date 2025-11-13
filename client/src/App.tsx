@@ -18,6 +18,7 @@ import DealStagesPage from "./pages/business-settings/DealStagesPage";
 import CommunicationPage from "./pages/business-settings/CommunicationPage";
 import CommunicationAPIPage from "./pages/business-settings/CommunicationAPIPage";
 import QuotationTemplatesPage from "./pages/business-settings/QuotationTemplatesPage";
+import { NotificationPreferencesPage } from "./pages/business-settings/NotificationPreferencesPage";
 import QuotationsPage from "./pages/quotations/QuotationsPage";
 import CreateQuotationPage from "./pages/quotations/CreateQuotationPage";
 import InvoicesPage from "./pages/invoices/InvoicesPage";
@@ -32,6 +33,7 @@ import LeadProfile from "./components/LeadProfile";
 import Deals from "./components/Deals";
 import DealProfile from "./components/deal/DealProfileEnhanced";
 import DealCreate from "./components/DealCreate";
+import DealEdit from "./components/DealEdit";
 import Users from "./components/Users";
 import UserCreate from "./components/UserCreate";
 import UserEdit from "./components/UserEdit";
@@ -105,11 +107,6 @@ function AppContent() {
 
   return (
     <>
-      <React.Suspense fallback={(
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      )}>
       <Routes>
         <Route
           path="/"
@@ -177,6 +174,16 @@ function AppContent() {
             <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.CREATE}>
               <MainLayout>
                 <DealCreate />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/deals/:id/edit"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.UPDATE}>
+              <MainLayout>
+                <DealEdit />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -274,7 +281,7 @@ function AppContent() {
         <Route
           path="/tasks/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission={PERMISSIONS.ACTIVITY.READ}>
               <MainLayout>
                 <TaskDetailPage />
               </MainLayout>
@@ -284,7 +291,7 @@ function AppContent() {
         <Route
           path="/expense-management"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission={PERMISSIONS.DEAL.READ}>
               <MainLayout>
                 <ExpensesPage />
               </MainLayout>
@@ -294,7 +301,7 @@ function AppContent() {
         <Route
           path="/automation-management"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <AutomationManagementPage />
               </MainLayout>
@@ -364,7 +371,7 @@ function AppContent() {
         <Route
           path="/business-settings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
               <MainLayout>
                 <BusinessSettingsPage />
               </MainLayout>
@@ -472,6 +479,16 @@ function AppContent() {
           }
         />
         <Route
+          path="/business-settings/notifications"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <NotificationPreferencesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/business-settings/integrations/leads"
           element={
             <ProtectedRoute requiredPermission={PERMISSIONS.LEAD.CREATE}>
@@ -497,6 +514,16 @@ function AppContent() {
             <ProtectedRoute>
               <MainLayout>
                 <Profile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute requiredPermission={PERMISSIONS.ACTIVITY.READ}>
+              <MainLayout>
+                <TasksPage />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -543,7 +570,6 @@ function AppContent() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      </React.Suspense>
 
       <TokenExpiryModal isOpen={showExpiryModal} onLogin={handleLoginAgain} title={expiryTitle} message={expiryMessage} />
       <ToastContainer

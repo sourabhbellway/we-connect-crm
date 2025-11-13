@@ -6,15 +6,39 @@ import {
   IsIn,
   IsArray,
   IsDateString,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateLeadDto {
   // Basic
-  @IsString() firstName: string;
-  @IsString() lastName: string;
-  @IsEmail() email: string;
-  @IsOptional() @IsString() phone?: string;
+  @IsNotEmpty({ message: 'First name is required' })
+  @IsString({ message: 'First name must be a string' })
+  @MinLength(2, { message: 'First name must be at least 2 characters' })
+  @MaxLength(50, { message: 'First name must not exceed 50 characters' })
+  @Matches(/^[A-Za-z\s]+$/, { message: 'First name can only contain letters and spaces' })
+  firstName: string;
+
+  @IsNotEmpty({ message: 'Last name is required' })
+  @IsString({ message: 'Last name must be a string' })
+  @MinLength(2, { message: 'Last name must be at least 2 characters' })
+  @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
+  @Matches(/^[A-Za-z\s]+$/, { message: 'Last name can only contain letters and spaces' })
+  lastName: string;
+
+  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail({}, { message: 'Please enter a valid email address' })
+  email: string;
+
+  @IsOptional()
+  @IsString({ message: 'Phone must be a string' })
+  @Matches(/^[0-9+\s()-]+$/, { message: 'Phone can only contain digits, spaces, +, -, (, )' })
+  @MinLength(7, { message: 'Phone must be at least 7 characters' })
+  @MaxLength(15, { message: 'Phone must not exceed 15 characters' })
+  phone?: string;
 
   // Company
   @IsOptional() @IsString() company?: string;

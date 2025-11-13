@@ -307,7 +307,8 @@
       "proposal": "Proposal",
       "negotiation": "Negotiation",
       "closed": "Closed",
-      "lost": "Lost"
+      "lost": "Lost",
+      "converted": "Converted"
     },
     "table": {
       "lead": "Lead",

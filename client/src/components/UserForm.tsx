@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import InputField from "./InputField";
 import { UserPayload, UserEditPayload } from "./UserCreate";
 import { roleService } from "../services/roleService";
+import { userService } from "../services/userService";
 import {
   User,
   Mail,
@@ -46,6 +47,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
     ...(initial || {}),
   } as T);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: number; fullName: string; email: string }[]>([]);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [firstNameError, setFirstNameError] = useState<string | null>(null);
@@ -64,15 +66,29 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
   }, [initial]);
 
   useEffect(() => {
-    const loadRoles = async () => {
+    const loadData = async () => {
       try {
-        const response = await roleService.getRoles();
-        setRoles(response.data.roles || []);
+        const [rolesResp, usersResp] = await Promise.all([
+          roleService.getRoles(),
+          userService.getUsers(),
+        ]);
+        const parsedRoles = (rolesResp as any)?.data?.roles
+          ?? (rolesResp as any)?.roles
+          ?? (rolesResp as any)?.data?.items
+          ?? (rolesResp as any)?.items
+          ?? [];
+        setRoles(Array.isArray(parsedRoles) ? parsedRoles : []);
+        const list = (usersResp as any)?.data?.users ?? (usersResp as any)?.data ?? (usersResp as any)?.users ?? [] as any[];
+        setAllUsers(
+          Array.isArray(list)
+            ? list.map((u: any) => ({ id: u.id, fullName: u.fullName || `${u.firstName} ${u.lastName}`, email: u.email }))
+            : []
+        );
       } catch (e) {
-        console.error("Failed to load roles:", e);
+        console.error("Failed to load roles/users:", e);
       }
     };
-    loadRoles();
+    loadData();
   }, []);
 
   const handleChange = (key: keyof T, value: any) => {
@@ -353,6 +369,27 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Active users can log in and access the system
         </p>
+      </div>
+
+      {/* Reporting Authority (RA) */}
+      <div>
+        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <Shield className="h-4 w-4 mr-1" />
+          Reporting Authority
+        </label>
+        <select
+          className="block w-full px-4 py-3 rounded-lg border text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          value={(form as any).managerId ?? ''}
+          onChange={(e) => handleChange("managerId" as keyof T, e.target.value ? Number(e.target.value) : undefined)}
+        >
+          <option value="">None</option>
+          {allUsers.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.fullName} ({u.email})
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select the user's reporting manager.</p>
       </div>
 
       {/* Roles */}

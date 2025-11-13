@@ -108,22 +108,38 @@ const Users: React.FC = () => {
         page: currentPage,
         limit: pageSize,
       });
-      // API shape: { success, data: User[] } or legacy { users, pagination }
-      const list: User[] = Array.isArray(api?.data)
-        ? (api.data as User[])
-        : (api?.users as User[]) || (api as any[] as User[]) || [];
+
+      // Supported API shapes:
+      // 1) { success, data: { users: User[], pagination: {...} } }
+      // 2) { success, data: User[] }
+      // 3) { users: User[], pagination? }
+      const list: User[] = (api?.data?.users as User[])
+        ?? (Array.isArray(api?.data) ? (api.data as User[]) : undefined)
+        ?? (api?.users as User[])
+        ?? ([] as User[]);
 
       setUsers(list || []);
 
-      // Build client-side pagination fallback when not provided by API
-      const total = Array.isArray(list) ? list.length : 0;
-      setPagination({
-        currentPage: 1,
-        totalPages: 1,
-        totalUsers: total,
-        hasNextPage: false,
-        hasPrevPage: false,
-      });
+      // Prefer server pagination when provided
+      const apiPagination = api?.data?.pagination || api?.pagination;
+      if (apiPagination) {
+        setPagination({
+          currentPage: apiPagination.currentPage ?? currentPage,
+          totalPages: apiPagination.totalPages ?? 1,
+          totalUsers: apiPagination.totalItems ?? list.length ?? 0,
+          hasNextPage: (apiPagination.currentPage ?? 1) < (apiPagination.totalPages ?? 1),
+          hasPrevPage: (apiPagination.currentPage ?? 1) > 1,
+        });
+      } else {
+        // Fallback: single-page
+        setPagination({
+          currentPage: 1,
+          totalPages: 1,
+          totalUsers: list.length,
+          hasNextPage: false,
+          hasPrevPage: false,
+        });
+      }
     } catch (error: any) {
       console.error("Error fetching users:", error);
       const errorMessage = error?.response?.data?.message || "Failed to fetch users";
@@ -168,6 +184,18 @@ const Users: React.FC = () => {
   const handleDeleteUser = (user: User) => {
     setUserToDelete(user);
     setShowDeleteModal(true);
+  };
+
+  const toggleUserStatus = async (u: User) => {
+    try {
+      await userService.updateUser(u.id, { isActive: !u.isActive });
+      toast.success(`User ${!u.isActive ? 'activated' : 'deactivated'} successfully`);
+      await refreshUsersCount();
+      fetchUsers();
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Failed to update user status';
+      toast.error(msg);
+    }
   };
 
   const confirmDeleteUser = async () => {
@@ -443,13 +471,27 @@ const Users: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         {hasPermission("user.update") && (
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                            title="Edit user"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                              title="Edit user"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => toggleUserStatus(user)}
+                              className={[
+                                "p-1 rounded transition-colors",
+                                user.isActive
+                                  ? "text-amber-600 hover:text-amber-900 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                  : "text-green-600 hover:text-green-900 hover:bg-green-50 dark:hover:bg-green-900/20",
+                              ].join(" ")}
+                              title={user.isActive ? "Deactivate user" : "Activate user"}
+                            >
+                              {user.isActive ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                            </button>
+                          </>
                         )}
                         {hasPermission("user.delete") && (
                           <button

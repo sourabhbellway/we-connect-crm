@@ -203,13 +203,6 @@ const Roles: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <div className="flex items-center gap-2">
                   {t("common.search")}
-                  {isSearching && (
-                    <div className="flex items-center gap-1 text-xs text-blue-500">
-                      <Search className="h-3 w-3 animate-pulse" />
-                      <span>Searching...</span>
-                    </div>
-                  )}
-                 
                 </div>
               </label>
               <SearchInput

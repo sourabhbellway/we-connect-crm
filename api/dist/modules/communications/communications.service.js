@@ -8,14 +8,20 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var CommunicationsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommunicationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
-let CommunicationsService = class CommunicationsService {
+const notifications_service_1 = require("../notifications/notifications.service");
+const client_1 = require("@prisma/client");
+let CommunicationsService = CommunicationsService_1 = class CommunicationsService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    logger = new common_1.Logger(CommunicationsService_1.name);
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     async listLeadComms(leadId) {
         const items = await this.prisma.leadCommunication.findMany({
@@ -324,10 +330,210 @@ let CommunicationsService = class CommunicationsService {
             },
         };
     }
+    async handleWhatsAppWebhook(dto) {
+        try {
+            this.logger.log(`Received WhatsApp webhook from: ${dto.from}`);
+            const normalizedPhone = dto.from.replace(/[^0-9]/g, '');
+            const lead = await this.prisma.lead.findFirst({
+                where: {
+                    phone: {
+                        contains: normalizedPhone,
+                    },
+                    deletedAt: null,
+                },
+            });
+            if (!lead) {
+                this.logger.warn(`No lead found for phone: ${dto.from}`);
+                return {
+                    success: false,
+                    message: 'Lead not found for this phone number',
+                    data: { phone: dto.from },
+                };
+            }
+            const message = await this.prisma.communicationMessage.create({
+                data: {
+                    leadId: lead.id,
+                    userId: lead.assignedTo || 1,
+                    type: 'WHATSAPP',
+                    recipient: dto.to || '',
+                    content: dto.content,
+                    status: 'DELIVERED',
+                    sentAt: dto.timestamp ? new Date(dto.timestamp) : new Date(),
+                    deliveredAt: new Date(),
+                    externalId: dto.messageId,
+                    metadata: {
+                        direction: 'inbound',
+                        from: dto.from,
+                        contactName: dto.contactName,
+                        messageType: dto.messageType,
+                        mediaUrls: dto.mediaUrls,
+                        ...dto.metadata,
+                    },
+                },
+            });
+            await this.prisma.activity.create({
+                data: {
+                    title: 'WhatsApp Message Received',
+                    description: `Received message from ${dto.contactName || dto.from}: "${dto.content.substring(0, 100)}${dto.content.length > 100 ? '...' : ''}"`,
+                    type: 'COMMUNICATION_LOGGED',
+                    icon: 'MessageCircle',
+                    iconColor: '#25D366',
+                    metadata: {
+                        leadId: lead.id,
+                        messageId: message.id,
+                        direction: 'inbound',
+                        type: 'WHATSAPP',
+                    },
+                    userId: lead.assignedTo || 1,
+                    leadId: lead.id,
+                },
+            });
+            this.logger.log(`WhatsApp message saved: ${message.id} for lead: ${lead.id}`);
+            if (lead.assignedTo) {
+                try {
+                    await this.notificationsService.create({
+                        userId: lead.assignedTo,
+                        type: client_1.NotificationType.CLIENT_REPLY,
+                        title: 'WhatsApp Reply Received',
+                        message: `${dto.contactName || dto.from} replied: "${dto.content.substring(0, 100)}${dto.content.length > 100 ? '...' : ''}"`,
+                        link: `/leads/${lead.id}`,
+                        metadata: { leadId: lead.id, messageId: message.id, type: 'WHATSAPP' },
+                    });
+                }
+                catch (error) {
+                    this.logger.error('Failed to send notification:', error);
+                }
+            }
+            return {
+                success: true,
+                message: 'WhatsApp message received and saved',
+                data: { messageId: message.id, leadId: lead.id },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error processing WhatsApp webhook:', error);
+            return {
+                success: false,
+                message: 'Failed to process WhatsApp webhook',
+                error: error.message,
+            };
+        }
+    }
+    async handleEmailWebhook(dto) {
+        try {
+            this.logger.log(`Received email webhook from: ${dto.from}`);
+            const lead = await this.prisma.lead.findFirst({
+                where: {
+                    email: {
+                        equals: dto.from,
+                        mode: 'insensitive',
+                    },
+                    deletedAt: null,
+                },
+            });
+            if (!lead) {
+                this.logger.warn(`No lead found for email: ${dto.from}`);
+                return {
+                    success: false,
+                    message: 'Lead not found for this email address',
+                    data: { email: dto.from },
+                };
+            }
+            const emailContent = dto.htmlContent || dto.textContent || dto.content;
+            const message = await this.prisma.communicationMessage.create({
+                data: {
+                    leadId: lead.id,
+                    userId: lead.assignedTo || 1,
+                    type: 'EMAIL',
+                    recipient: dto.to || '',
+                    subject: dto.subject,
+                    content: emailContent,
+                    status: 'DELIVERED',
+                    sentAt: dto.timestamp ? new Date(dto.timestamp) : new Date(),
+                    deliveredAt: new Date(),
+                    externalId: dto.messageId,
+                    metadata: {
+                        direction: 'inbound',
+                        from: dto.from,
+                        fromName: dto.fromName,
+                        inReplyTo: dto.inReplyTo,
+                        references: dto.references,
+                        attachments: dto.attachments,
+                        cc: dto.cc,
+                        bcc: dto.bcc,
+                        textContent: dto.textContent,
+                        htmlContent: dto.htmlContent,
+                        ...dto.metadata,
+                    },
+                },
+            });
+            await this.prisma.activity.create({
+                data: {
+                    title: 'Email Received',
+                    description: `Received email from ${dto.fromName || dto.from}: "${dto.subject}"`,
+                    type: 'COMMUNICATION_LOGGED',
+                    icon: 'Mail',
+                    iconColor: '#3B82F6',
+                    metadata: {
+                        leadId: lead.id,
+                        messageId: message.id,
+                        direction: 'inbound',
+                        type: 'EMAIL',
+                        subject: dto.subject,
+                    },
+                    userId: lead.assignedTo || 1,
+                    leadId: lead.id,
+                },
+            });
+            this.logger.log(`Email message saved: ${message.id} for lead: ${lead.id}`);
+            if (lead.assignedTo) {
+                try {
+                    await this.notificationsService.create({
+                        userId: lead.assignedTo,
+                        type: client_1.NotificationType.CLIENT_REPLY,
+                        title: 'Email Reply Received',
+                        message: `${dto.fromName || dto.from} replied: "${dto.subject}"`,
+                        link: `/leads/${lead.id}`,
+                        metadata: { leadId: lead.id, messageId: message.id, type: 'EMAIL' },
+                    });
+                }
+                catch (error) {
+                    this.logger.error('Failed to send notification:', error);
+                }
+            }
+            return {
+                success: true,
+                message: 'Email received and saved',
+                data: { messageId: message.id, leadId: lead.id },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error processing email webhook:', error);
+            return {
+                success: false,
+                message: 'Failed to process email webhook',
+                error: error.message,
+            };
+        }
+    }
+    getWebhookUrls(baseUrl) {
+        return {
+            success: true,
+            data: {
+                whatsapp: `${baseUrl}/communications/webhooks/whatsapp`,
+                email: `${baseUrl}/communications/webhooks/email`,
+                instructions: {
+                    whatsapp: 'Configure this URL in your WhatsApp Business API provider webhook settings',
+                    email: 'Configure this URL as the inbound webhook in your email provider (e.g., SendGrid, Mailgun)',
+                },
+            },
+        };
+    }
 };
 exports.CommunicationsService = CommunicationsService;
-exports.CommunicationsService = CommunicationsService = __decorate([
+exports.CommunicationsService = CommunicationsService = CommunicationsService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], CommunicationsService);
 //# sourceMappingURL=communications.service.js.map

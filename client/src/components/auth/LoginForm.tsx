@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginRequest } from '../../types/auth';
 
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 64;
+const MAX_EMAIL_LENGTH = 254;
+
 interface LoginFormProps {
   onSuccess?: () => void;
   onError?: (error: string) => void;
@@ -42,22 +46,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
     }
   }, [formData]);
 
-  const validateEmail = (email: string): string | undefined => {
+const validateEmail = (rawEmail: string): string | undefined => {
+    const email = rawEmail.trim();
     if (!email) {
       return 'Email is required';
     }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      return 'Please enter a valid email address';
+    if (email.length > MAX_EMAIL_LENGTH) {
+      return 'Email is too long';
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return 'Enter a valid email address';
     }
     return undefined;
   };
 
-  const validatePassword = (password: string): string | undefined => {
+  const validatePassword = (rawPassword: string): string | undefined => {
+    const password = rawPassword.trim();
     if (!password) {
       return 'Password is required';
     }
-    if (password.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
+      return `Password must be between ${MIN_PASSWORD_LENGTH} and ${MAX_PASSWORD_LENGTH} characters`;
     }
     return undefined;
   };
@@ -85,15 +94,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Trim before validating/submitting
+    const trimmed: LoginRequest = {
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+    };
+    if (trimmed.email !== formData.email || trimmed.password !== formData.password) {
+      setFormData(trimmed);
+    }
+
     if (!validateForm()) {
       return;
     }
 
     try {
-      await login(formData);
+      await login(trimmed);
 
       // Handle remember me functionality
       if (rememberMe) {
@@ -148,14 +166,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
               </label>
-              <input
+<input
                 id="email"
                 name="email"
                 type="email"
+                inputMode="email"
                 autoComplete="email"
                 required
+                maxLength={MAX_EMAIL_LENGTH}
                 value={formData.email}
                 onChange={handleInputChange}
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (v !== e.target.value) setFormData(prev => ({ ...prev, email: v }));
+                }}
                 className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.email
                     ? 'border-red-300 bg-red-50'
@@ -173,14 +197,20 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
                 Password
               </label>
               <div className="relative">
-                <input
+<input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
+                  minLength={MIN_PASSWORD_LENGTH}
+                  maxLength={MAX_PASSWORD_LENGTH}
                   value={formData.password}
                   onChange={handleInputChange}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v !== e.target.value) setFormData(prev => ({ ...prev, password: v }));
+                  }}
                   className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
                     errors.password
                       ? 'border-red-300 bg-red-50'
@@ -235,9 +265,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
               </div>
             </div>
 
-            <button
+<button
               type="submit"
               disabled={isLoading}
+              aria-disabled={isLoading}
+              aria-busy={isLoading}
               className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'

@@ -43,6 +43,8 @@ const integrations_module_1 = require("./modules/integrations/integrations.modul
 const bulk_import_module_1 = require("./modules/bulk-import/bulk-import.module");
 const notes_module_1 = require("./modules/notes/notes.module");
 const expenses_module_1 = require("./modules/expenses/expenses.module");
+const automation_module_1 = require("./modules/automation/automation.module");
+const notifications_module_1 = require("./modules/notifications/notifications.module");
 const core_1 = require("@nestjs/core");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
@@ -82,6 +84,8 @@ exports.AppModule = AppModule = __decorate([
             bulk_import_module_1.BulkImportModule,
             notes_module_1.NotesModule,
             expenses_module_1.ExpensesModule,
+            automation_module_1.AutomationModule,
+            notifications_module_1.NotificationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

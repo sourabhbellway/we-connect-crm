@@ -23,6 +23,7 @@ export declare class AuthController {
                 fullName: string;
                 lastLogin: Date | null;
                 profilePicture: string | undefined;
+                dateOfBirth: Date | undefined;
                 roles: {
                     id: number;
                     name: string;
@@ -48,6 +49,7 @@ export declare class AuthController {
                 fullName: string;
                 lastLogin: Date | null;
                 profilePicture: string | undefined;
+                dateOfBirth: Date | undefined;
                 roles: {
                     id: number;
                     name: string;
@@ -92,6 +94,7 @@ export declare class AuthController {
                 fullName: string;
                 lastLogin: Date | null;
                 profilePicture: string | undefined;
+                dateOfBirth: Date | undefined;
                 roles: {
                     id: number;
                     name: string;

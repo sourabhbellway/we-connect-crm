@@ -1,4 +1,5 @@
 import { CheckSquare, DollarSign, Zap } from 'lucide-react';
+import { PERMISSIONS } from '../constants';
 
 export type NavItem = {
   id: string;
@@ -15,17 +16,20 @@ export const NAV_EXTRA_ITEMS: NavItem[] = [
     name: 'Task Management',
     href: '/task-management',
     icon: CheckSquare,
+    permission: PERMISSIONS.ACTIVITY.READ,
   },
   {
     id: 'expense-management',
     name: 'Expense',
     href: '/expense-management',
     icon: DollarSign,
+    permission: PERMISSIONS.DEAL.READ,
   },
   {
     id: 'automation-management',
     name: 'Automation',
     href: '/automation-management',
     icon: Zap,
+    permission: PERMISSIONS.BUSINESS_SETTINGS.READ,
   },
 ];

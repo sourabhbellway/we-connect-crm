@@ -9,14 +9,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommunicationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const communications_controller_1 = require("./communications.controller");
+const webhooks_controller_1 = require("./webhooks.controller");
 const communications_service_1 = require("./communications.service");
 const prisma_service_1 = require("../../database/prisma.service");
+const notifications_module_1 = require("../notifications/notifications.module");
 let CommunicationsModule = class CommunicationsModule {
 };
 exports.CommunicationsModule = CommunicationsModule;
 exports.CommunicationsModule = CommunicationsModule = __decorate([
     (0, common_1.Module)({
-        controllers: [communications_controller_1.CommunicationsController],
+        imports: [notifications_module_1.NotificationsModule],
+        controllers: [communications_controller_1.CommunicationsController, webhooks_controller_1.WebhooksController],
         providers: [communications_service_1.CommunicationsService, prisma_service_1.PrismaService],
     })
 ], CommunicationsModule);

@@ -70,13 +70,21 @@ export const userService = {
     firstName: string;
     lastName: string;
     email: string;
-    company?: string;
-    industryId?: number;
+    dateOfBirth?: string; // YYYY-MM-DD
   }) => {
     return retryWithBackoff(async () => {
       const response = await apiClient.put("/users/profile", profileData);
       return response.data;
     });
+  },
+
+  uploadProfilePicture: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post("/users/profile/avatar", formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
   },
 
   getProfile: async () => {

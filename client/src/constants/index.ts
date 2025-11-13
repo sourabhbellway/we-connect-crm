@@ -10,7 +10,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
-    REFRESH: '/api/auth/refresh',
+    REFRESH: '/api/auth/refresh-token',
     PROFILE: '/api/auth/profile',
   },
   USERS: {

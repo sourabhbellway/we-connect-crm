@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/env.dart' as env;
 
 class AuthService extends ChangeNotifier {
-  static const String _baseUrl = 'http://31.97.233.21:3001/api';
+  static String get _baseUrl => env.apiBaseUrl;
   static const String _tokenKey = 'auth_token';
   static const String _userKey = 'user_data';
   
@@ -38,6 +39,9 @@ class AuthService extends ChangeNotifier {
   
   Future<bool> login(String email, String password) async {
     try {
+      print('Attempting login to: $_baseUrl/auth/login');
+      print('Email: $email');
+      
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
@@ -47,13 +51,18 @@ class AuthService extends ChangeNotifier {
         }),
       );
       
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         
         if (data['success'] == true) {
-          _token = data['data']['token'];
+          _token = data['data']['accessToken'];
           _user = data['data']['user'];
           _isAuthenticated = true;
+          
+          print('Login successful! Token: ${_token?.substring(0, 20)}...');
           
           // Save to local storage
           final prefs = await SharedPreferences.getInstance();
@@ -62,7 +71,11 @@ class AuthService extends ChangeNotifier {
           
           notifyListeners();
           return true;
+        } else {
+          print('Login failed: success = false');
         }
+      } else {
+        print('Login failed with status: ${response.statusCode}');
       }
       
       return false;

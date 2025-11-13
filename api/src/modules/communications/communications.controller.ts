@@ -17,6 +17,8 @@ import { SendEmailDto } from './dto/send-email.dto';
 import { SendWhatsAppDto } from './dto/send-whatsapp.dto';
 import { SendTemplatedDto } from './dto/send-templated.dto';
 import { ListMessagesQuery } from './dto/list-messages.query';
+import { WhatsAppWebhookDto } from './dto/whatsapp-webhook.dto';
+import { EmailWebhookDto } from './dto/email-webhook.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('communications')

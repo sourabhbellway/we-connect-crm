@@ -26,6 +26,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   leftIcon,
   rightIcon,
   className,
+  required,
   ...rest
 }) => {
   return (
@@ -33,6 +34,11 @@ export const InputField: React.FC<InputFieldProps> = ({
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
+          {required ? (
+            <span className="text-red-500 ml-1">*</span>
+          ) : (
+            <span className="text-gray-500 ml-1">(optional)</span>
+          )}
         </label>
       )}
       <div className="relative">
@@ -46,6 +52,7 @@ export const InputField: React.FC<InputFieldProps> = ({
         )}
         <input
           {...rest}
+          required={required}
           className={[
             "block w-full",
             leftIcon ? "pl-12" : "pl-4",
@@ -78,6 +85,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   className,
   rows = 3,
   onChange,
+  required,
   ...rest
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -103,12 +111,18 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
+          {required ? (
+            <span className="text-red-500 ml-1">*</span>
+          ) : (
+            <span className="text-gray-500 ml-1">(optional)</span>
+          )}
         </label>
       )}
       <textarea
         rows={rows}
         {...rest}
         onChange={handleChange}
+        required={required}
         className={[
           "w-full rounded-lg border p-4 text-sm transition-all duration-200",
           "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
@@ -133,6 +147,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   leftIcon,
   className,
   children,
+  required,
   ...rest
 }) => {
   return (
@@ -140,6 +155,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
+          {required ? (
+            <span className="text-red-500 ml-1">*</span>
+          ) : (
+            <span className="text-gray-500 ml-1">(optional)</span>
+          )}
         </label>
       )}
       <div className="relative">
@@ -153,6 +173,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         )}
         <select
           {...rest}
+          required={required}
           className={[
             "block w-full",
             leftIcon ? "pl-12 pr-4" : "px-4",

@@ -85,6 +85,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     handleLogout();
   };
 
+  // Asset base (for uploads). If API_BASE_URL ends with /api, strip it.
+  const assetBase = (API_BASE_URL || "").replace(/\/api\/?$/, "") || window.location.origin;
+
   const navigation: Array<{
     id: string;
     name: string;
@@ -100,6 +103,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       href: "/",
       icon: Home,
       permission: "dashboard.read",
+    },
+    {
+      id: "profile",
+      name: t("user.profile"),
+      href: "/profile",
+      icon: UserIcon,
     },
     {
       id: "leads",
@@ -313,10 +322,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 >
                   {user?.profilePicture ? (
                     <img
-                      src={`${
-                        API_BASE_URL ||
-                        "http://147.93.27.62:4176/"
-                      }/uploads/${user.profilePicture}`}
+                      src={`${assetBase}/uploads/${user.profilePicture}`}
                       alt="Profile"
                       className="h-8 w-8 rounded-full object-cover"
                     />

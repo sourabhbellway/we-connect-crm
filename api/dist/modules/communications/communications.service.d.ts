@@ -4,9 +4,14 @@ import { UpsertTemplateDto } from './dto/upsert-template.dto';
 import { SendEmailDto } from './dto/send-email.dto';
 import { SendWhatsAppDto } from './dto/send-whatsapp.dto';
 import { SendTemplatedDto } from './dto/send-templated.dto';
+import { WhatsAppWebhookDto } from './dto/whatsapp-webhook.dto';
+import { EmailWebhookDto } from './dto/email-webhook.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class CommunicationsService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly notificationsService;
+    private readonly logger;
+    constructor(prisma: PrismaService, notificationsService: NotificationsService);
     listLeadComms(leadId: number): Promise<{
         success: boolean;
         data: {
@@ -22,13 +27,13 @@ export declare class CommunicationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                leadId: number;
                 type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
+                leadId: number;
+                duration: number | null;
                 subject: string | null;
                 content: string;
                 direction: string;
-                duration: number | null;
                 outcome: string | null;
                 scheduledAt: Date | null;
             })[];
@@ -49,13 +54,13 @@ export declare class CommunicationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                leadId: number;
                 type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
+                leadId: number;
+                duration: number | null;
                 subject: string | null;
                 content: string;
                 direction: string;
-                duration: number | null;
                 outcome: string | null;
                 scheduledAt: Date | null;
             })[];
@@ -82,13 +87,13 @@ export declare class CommunicationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 userId: number;
-                leadId: number;
                 type: import("@prisma/client").$Enums.CommunicationType;
                 completedAt: Date | null;
+                leadId: number;
+                duration: number | null;
                 subject: string | null;
                 content: string;
                 direction: string;
-                duration: number | null;
                 outcome: string | null;
                 scheduledAt: Date | null;
             };
@@ -247,16 +252,16 @@ export declare class CommunicationsService {
                 updatedAt: Date;
                 userId: number;
                 status: import("@prisma/client").$Enums.MessageStatus;
-                leadId: number;
                 type: import("@prisma/client").$Enums.TemplateType;
+                leadId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                readAt: Date | null;
                 sentAt: Date | null;
                 subject: string | null;
                 content: string;
                 templateId: number | null;
                 recipient: string;
                 deliveredAt: Date | null;
-                readAt: Date | null;
                 failedAt: Date | null;
                 errorMessage: string | null;
                 externalId: string | null;
@@ -269,4 +274,63 @@ export declare class CommunicationsService {
             };
         };
     }>;
+    handleWhatsAppWebhook(dto: WhatsAppWebhookDto): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            phone: string;
+            messageId?: undefined;
+            leadId?: undefined;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        data: {
+            messageId: number;
+            leadId: number;
+            phone?: undefined;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        data?: undefined;
+    }>;
+    handleEmailWebhook(dto: EmailWebhookDto): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            email: string;
+            messageId?: undefined;
+            leadId?: undefined;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        data: {
+            messageId: number;
+            leadId: number;
+            email?: undefined;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        data?: undefined;
+    }>;
+    getWebhookUrls(baseUrl: string): {
+        success: boolean;
+        data: {
+            whatsapp: string;
+            email: string;
+            instructions: {
+                whatsapp: string;
+                email: string;
+            };
+        };
+    };
 }
