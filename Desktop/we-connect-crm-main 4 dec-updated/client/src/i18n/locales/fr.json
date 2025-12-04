@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "Tableau de Bord",
+    "users": "Utilisateurs",
+    "leads": "Prospects",
+    "roles": "Rôles",
+    "income": "Revenus"
+  },
+  "common": {
+    "search": "Rechercher",
+    "notifications": "Notifications",
+    "theme": "Thème",
+    "language": "Langue",
+    "logout": "Déconnexion",
+    "active": "Actif",
+    "noRole": "Aucun Rôle",
+    "welcome": "Bienvenue sur WeConnect",
+    "description": "Votre système complet de gestion des prospects"
+  },
+  "user": {
+    "greeting": "Bonjour, {{name}}",
+    "profile": "Profil Utilisateur",
+    "settings": "Paramètres",
+    "help": "Aide et Support"
+  },
+  "sidebar": {
+    "collapse": "Réduire la Barre Latérale",
+    "expand": "Développer la Barre Latérale",
+    "menu": "Menu"
+  },
+  "languages": {
+    "en": "Anglais",
+    "hi": "Hindi",
+    "es": "Espagnol",
+    "fr": "Français",
+    "de": "Allemand",
+    "ar": "Arabe",
+    "zh": "Chinois",
+    "ja": "Japonais",
+    "ko": "Coréen",
+    "pt": "Portugais"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "update": "Mettre à Jour"
+  },
+  "dashboard": {
+    "welcome": "Bon retour !",
+    "totalUsers": "Utilisateurs totaux",
+    "activeUsers": "Utilisateurs actifs",
+    "totalRoles": "Rôles totaux",
+    "recentActivity": "Activité récente"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "userManagement": "Gestion des utilisateurs",
+    "addUser": "Ajouter un utilisateur",
+    "totalUsers": "Utilisateurs totaux",
+    "activeUsers": "Utilisateurs actifs",
+    "newUsers": "Nouveaux utilisateurs",
+    "inactiveUsers": "Utilisateurs inactifs",
+    "allUsers": "Tous les utilisateurs",
+    "manageAndTrack": "Gérez et suivez vos comptes utilisateur",
+    "user": "Utilisateur",
+    "role": "Rôle",
+    "lastLogin": "Dernière connexion",
+    "created": "Créé",
+    "noRoleAssigned": "Aucun rôle attribué",
+    "searchUsers": "Rechercher des utilisateurs..."
+  },
+  "leads": {
+    "title": "Prospects",
+    "leadManagement": "Gestion des prospects",
+    "addLead": "Ajouter un prospect",
+    "totalLeads": "Prospects totaux",
+    "newLeads": "Nouveaux prospects",
+    "qualified": "Qualifiés",
+    "closed": "Fermés",
+    "searchLeads": "Rechercher des prospects...",
+    "status": {
+      "new": "Nouveau",
+      "contacted": "Contacté",
+      "qualified": "Qualifié",
+      "proposal": "Proposition",
+      "negotiation": "Négociation",
+      "closed": "Fermé",
+      "lost": "Perdu"
+    }
+  },
+  "roles": {
+    "title": "Rôles",
+    "permissions": "Autorisations",
+    "roleManagement": "Gestion des rôles",
+    "createRole": "Créer un rôle",
+    "totalRoles": "Rôles totaux",
+    "activeRoles": "Rôles actifs",
+    "inactiveRoles": "Rôles inactifs",
+    "totalPermissions": "Autorisations totales",
+    "searchRoles": "Rechercher des rôles..."
+  },
+  "common": {
+    "filter": "Filtrer",
+    "showFilters": "Afficher les filtres",
+    "hide": "Masquer",
+    "show": "Afficher",
+    "search": "Rechercher",
+    "status": "Statut",
+    "actions": "Actions",
+    "language": "Langue",
+    "logout": "Déconnexion"
+  }
+}

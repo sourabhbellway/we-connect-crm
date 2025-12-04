@@ -1,0 +1,128 @@
+{
+  "navigation": {
+    "dashboard": "仪表板",
+    "users": "用户",
+    "leads": "潜在客户",
+    "roles": "角色",
+    "income": "收入"
+  },
+  "common": {
+    "search": "搜索",
+    "notifications": "通知",
+    "theme": "主题",
+    "language": "语言",
+    "logout": "退出登录",
+    "active": "活跃",
+    "noRole": "无角色",
+    "welcome": "欢迎使用 WeConnect",
+    "description": "您的综合潜在客户管理系统"
+  },
+  "user": {
+    "greeting": "你好，{{name}}",
+    "profile": "用户资料",
+    "settings": "设置",
+    "help": "帮助与支持"
+  },
+  "sidebar": {
+    "collapse": "折叠侧边栏",
+    "expand": "展开侧边栏",
+    "menu": "菜单"
+  },
+  "languages": {
+    "en": "英语",
+    "hi": "印地语",
+    "es": "西班牙语",
+    "fr": "法语",
+    "de": "德语",
+    "ar": "阿拉伯语",
+    "zh": "中文",
+    "ja": "日语",
+    "ko": "韩语",
+    "pt": "葡萄牙语"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "create": "创建",
+    "update": "更新"
+  },
+  "dashboard": {
+    "welcome": "欢迎回来！",
+    "totalUsers": "用户总数",
+    "activeUsers": "活跃用户",
+    "totalRoles": "角色总数",
+    "recentActivity": "最近活动"
+  },
+  "users": {
+    "title": "用户",
+    "userManagement": "用户管理",
+    "addUser": "添加用户",
+    "totalUsers": "用户总数",
+    "activeUsers": "活跃用户",
+    "newUsers": "新用户",
+    "inactiveUsers": "非活跃用户",
+    "allUsers": "所有用户",
+    "manageAndTrack": "管理并跟踪您的用户账户",
+    "user": "用户",
+    "role": "角色",
+    "lastLogin": "上次登录",
+    "created": "创建时间",
+    "noRoleAssigned": "未分配角色",
+    "searchUsers": "搜索用户..."
+  },
+  "leads": {
+    "title": "线索",
+    "leadManagement": "线索管理",
+    "addLead": "添加线索",
+    "totalLeads": "线索总数",
+    "newLeads": "新线索",
+    "qualified": "合格",
+    "closed": "已关闭",
+    "searchLeads": "搜索线索...",
+    "status": {
+      "new": "新建",
+      "contacted": "已联系",
+      "qualified": "合格",
+      "proposal": "提案",
+      "negotiation": "谈判",
+      "closed": "已关闭",
+      "lost": "丢失"
+    },
+    "table": {
+      "lead": "线索",
+      "company": "公司",
+      "status": "状态",
+      "assignedTo": "分配给",
+      "created": "创建时间",
+      "actions": "操作"
+    },
+    "form": {
+      "email": "邮箱",
+      "allLeads": "所有线索"
+    }
+  },
+  "roles": {
+    "title": "角色",
+    "permissions": "权限",
+    "roleManagement": "角色管理",
+    "createRole": "创建角色",
+    "totalRoles": "角色总数",
+    "activeRoles": "活跃角色",
+    "inactiveRoles": "非活跃角色",
+    "totalPermissions": "权限总数",
+    "searchRoles": "搜索角色..."
+  },
+  "common": {
+    "filter": "筛选",
+    "showFilters": "显示筛选",
+    "hide": "隐藏",
+    "show": "显示",
+    "search": "搜索",
+    "status": "状态",
+    "actions": "操作",
+    "language": "语言",
+    "logout": "退出"
+  }
+}
