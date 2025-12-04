@@ -1,0 +1,576 @@
+import { Injectable } from '@nestjs/common';
+import PDFDocument = require('pdfkit');
+import { PrismaService } from '../../database/prisma.service';
+import { CreateInvoiceDto } from './dto/create-invoice.dto';
+import { UpdateInvoiceDto } from './dto/update-invoice.dto';
+import { UpsertInvoiceItemDto } from './dto/upsert-invoice-item.dto';
+import { CreateInvoiceItemDto } from './dto/create-invoice.dto';
+import { RecordPaymentDto } from './dto/record-payment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
+
+const genNumber = (prefix: string) => `${prefix}-${Date.now()}`;
+const pad = (num: number, size: number) => String(num).padStart(size, '0');
+
+@Injectable()
+export class InvoicesService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
+
+  async list({
+    page = 1,
+    limit = 10,
+    search,
+    status,
+    entityType,
+    entityId,
+  }: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    entityType?: string;
+    entityId?: string;
+  }) {
+    const where: any = { deletedAt: null };
+    if (status) where.status = status.toUpperCase();
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { invoiceNumber: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    // Filter by entity type and ID
+    if (entityType && entityId) {
+      const id = Number(entityId);
+      if (entityType.toLowerCase() === 'lead') {
+        where.leadId = id;
+      } else if (entityType.toLowerCase() === 'deal') {
+        where.dealId = id;
+      } else if (entityType.toLowerCase() === 'contact') {
+        // Note: contacts might not have direct relation, adjust if needed
+      }
+    }
+    const [items, total] = await Promise.all([
+      this.prisma.invoice.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { 
+          items: true, 
+          payments: true,
+          lead: {
+            select: { id: true, firstName: true, lastName: true, email: true, company: true },
+          },
+          deal: {
+            select: { id: true, title: true },
+          },
+        },
+      }),
+      this.prisma.invoice.count({ where }),
+    ]);
+    return { success: true, data: { items, total, page, limit } };
+  }
+
+  async getById(id: number) {
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id, deletedAt: null },
+      include: { items: true, payments: true },
+    });
+    if (!invoice) return { success: false, message: 'Invoice not found' };
+    return { success: true, data: { invoice } };
+  }
+
+  private calcTotals(
+    items: {
+      quantity: number;
+      unitPrice: number;
+      taxRate?: number;
+      discountRate?: number;
+    }[],
+  ) {
+    const subtotal = items.reduce(
+      (sum, it) => sum + Number(it.quantity) * Number(it.unitPrice),
+      0,
+    );
+    const taxAmount = items.reduce(
+      (sum, it) =>
+        sum +
+        (Number(it.quantity) * Number(it.unitPrice) * Number(it.taxRate ?? 0)) /
+          100,
+      0,
+    );
+    const discountAmount = items.reduce(
+      (sum, it) =>
+        sum +
+        (Number(it.quantity) *
+          Number(it.unitPrice) *
+          Number(it.discountRate ?? 0)) /
+          100,
+      0,
+    );
+    const totalAmount = subtotal + taxAmount - discountAmount;
+    return { subtotal, taxAmount, discountAmount, totalAmount };
+  }
+
+  async create(dto: CreateInvoiceDto) {
+    const totals = this.calcTotals(dto.items || []);
+    const invoice = await this.prisma.invoice.create({
+      data: {
+        invoiceNumber: dto.invoiceNumber || genNumber('INV'),
+        title: dto.title,
+        description: dto.description ?? null,
+        status: (dto.status as any) ?? 'DRAFT',
+        subtotal: totals.subtotal as any,
+        taxAmount: totals.taxAmount as any,
+        discountAmount:
+          (dto.discountAmount as any) ?? (totals.discountAmount as any),
+        totalAmount: totals.totalAmount as any,
+        currency: dto.currency ?? 'USD',
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
+        notes: dto.notes ?? null,
+        terms: dto.terms ?? null,
+        leadId: dto.leadId ?? null,
+        dealId: dto.dealId ?? null,
+     
+        createdBy: dto.createdBy ?? 1,
+        items: {
+          create: (dto.items || []).map((it, idx) => ({
+            productId: it.productId ?? null,
+            name: it.name,
+            description: it.description ?? null,
+            quantity: it.quantity as any,
+            unit: it.unit ?? 'pcs',
+            unitPrice: it.unitPrice as any,
+            taxRate: (it.taxRate as any) ?? 0,
+            discountRate: (it.discountRate as any) ?? 0,
+            subtotal: (Number(it.quantity) * Number(it.unitPrice)) as any,
+            totalAmount: (Number(it.quantity) *
+              Number(it.unitPrice) *
+              (1 + Number(it.taxRate ?? 0) / 100) *
+              (1 - Number(it.discountRate ?? 0) / 100)) as any,
+            sortOrder: idx,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+
+    // Create activity for invoice creation
+    if (invoice.leadId) {
+      try {
+        await this.prisma.activity.create({
+          data: {
+            title: 'Invoice created',
+            description: `Invoice "${invoice.invoiceNumber}" created with total amount ${invoice.currency} ${Number(invoice.totalAmount).toFixed(2)}`,
+            type: 'COMMUNICATION_LOGGED' as any,
+            icon: 'FileText',
+            iconColor: '#8B5CF6',
+            metadata: {
+              invoiceId: invoice.id,
+              invoiceNumber: invoice.invoiceNumber,
+              totalAmount: invoice.totalAmount,
+              currency: invoice.currency,
+              status: invoice.status,
+            } as any,
+            userId: invoice.createdBy,
+            leadId: invoice.leadId,
+          },
+        });
+      } catch (error) {
+        console.error('Error creating invoice activity:', error);
+      }
+    }
+
+    // Notify assigned user when invoice is created
+    if (invoice.leadId) {
+      try {
+        const lead = await this.prisma.lead.findUnique({
+          where: { id: invoice.leadId },
+          select: { id: true, firstName: true, lastName: true, assignedTo: true },
+        });
+
+        if (lead?.assignedTo) {
+          await this.notificationsService.create({
+            userId: lead.assignedTo,
+            type: NotificationType.INVOICE_SENT,
+            title: 'Invoice Created',
+            message: `Invoice "${invoice.invoiceNumber}" has been created for lead "${lead.firstName} ${lead.lastName}".`,
+            link: `/leads/${lead.id}`,
+            metadata: {
+              invoiceId: invoice.id,
+              invoiceNumber: invoice.invoiceNumber,
+              leadId: lead.id,
+            } as any,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to send invoice created notification:', error);
+      }
+    }
+
+    return { success: true, data: { invoice } };
+  }
+
+  async update(id: number, dto: UpdateInvoiceDto) {
+    const invoice = await this.prisma.invoice.update({
+      where: { id },
+      data: {
+        title: dto.title,
+        description: dto.description,
+        status: dto.status as any,
+        currency: dto.currency,
+        dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+        notes: dto.notes,
+        terms: dto.terms,
+        leadId: dto.leadId ?? undefined,
+        dealId: dto.dealId ?? undefined,
+  
+        updatedAt: new Date(),
+      },
+      include: { items: true },
+    });
+    return { success: true, data: { invoice } };
+  }
+
+  async remove(id: number) {
+    await this.prisma.invoice.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    return { success: true };
+  }
+
+  async addItem(id: number, dto: CreateInvoiceItemDto) {
+    const item = await this.prisma.invoiceItem.create({
+      data: {
+        invoiceId: id,
+        productId: dto.productId ?? null,
+        name: dto.name,
+        description: dto.description ?? null,
+        quantity: dto.quantity as any,
+        unit: dto.unit ?? 'pcs',
+        unitPrice: dto.unitPrice as any,
+        taxRate: (dto.taxRate as any) ?? 0,
+        discountRate: (dto.discountRate as any) ?? 0,
+        subtotal: (Number(dto.quantity) * Number(dto.unitPrice)) as any,
+        totalAmount: (Number(dto.quantity) *
+          Number(dto.unitPrice) *
+          (1 + Number(dto.taxRate ?? 0) / 100) *
+          (1 - Number(dto.discountRate ?? 0) / 100)) as any,
+      },
+    });
+    await this.recalcTotals(id);
+    return { success: true, data: { item } };
+  }
+
+  async updateItem(itemId: number, dto: UpsertInvoiceItemDto) {
+    const item = await this.prisma.invoiceItem.update({
+      where: { id: itemId },
+      data: {
+        productId: dto.productId ?? undefined,
+        name: dto.name,
+        description: dto.description,
+        quantity: dto.quantity as any,
+        unit: dto.unit,
+        unitPrice: dto.unitPrice as any,
+        taxRate: dto.taxRate as any,
+        discountRate: dto.discountRate as any,
+        subtotal:
+          dto.quantity !== undefined && dto.unitPrice !== undefined
+            ? ((Number(dto.quantity) * Number(dto.unitPrice)) as any)
+            : undefined,
+        totalAmount:
+          dto.quantity !== undefined && dto.unitPrice !== undefined
+            ? ((Number(dto.quantity) *
+                Number(dto.unitPrice) *
+                (1 + Number(dto.taxRate ?? 0) / 100) *
+                (1 - Number(dto.discountRate ?? 0) / 100)) as any)
+            : undefined,
+        updatedAt: new Date(),
+      },
+    });
+    await this.recalcTotals(item.invoiceId);
+    return { success: true, data: { item } };
+  }
+
+  async removeItem(itemId: number) {
+    const item = await this.prisma.invoiceItem.delete({
+      where: { id: itemId },
+    });
+    await this.recalcTotals(item.invoiceId);
+    return { success: true };
+  }
+
+  private async recalcTotals(invoiceId: number) {
+    const items = await this.prisma.invoiceItem.findMany({
+      where: { invoiceId },
+    });
+    const totals = this.calcTotals(
+      items.map((i) => ({
+        quantity: Number(i.quantity),
+        unitPrice: Number(i.unitPrice),
+        taxRate: Number(i.taxRate),
+        discountRate: Number(i.discountRate),
+      })),
+    );
+    await this.prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        subtotal: totals.subtotal as any,
+        taxAmount: totals.taxAmount as any,
+        discountAmount: totals.discountAmount as any,
+        totalAmount: totals.totalAmount as any,
+      },
+    });
+  }
+
+  async markSent(id: number) {
+    const invoice = await this.prisma.invoice.update({
+      where: { id },
+      data: { status: 'SENT', sentAt: new Date() },
+    });
+
+    // Notify assigned user that invoice was sent
+    if (invoice.leadId) {
+      try {
+        const lead = await this.prisma.lead.findUnique({
+          where: { id: invoice.leadId },
+          select: { id: true, firstName: true, lastName: true, assignedTo: true },
+        });
+
+        if (lead?.assignedTo) {
+          await this.notificationsService.create({
+            userId: lead.assignedTo,
+            type: NotificationType.INVOICE_SENT,
+            title: 'Invoice Sent',
+            message: `Invoice "${invoice.invoiceNumber}" has been sent for lead "${lead.firstName} ${lead.lastName}".`,
+            link: `/leads/${lead.id}`,
+            metadata: {
+              invoiceId: invoice.id,
+              invoiceNumber: invoice.invoiceNumber,
+              leadId: lead.id,
+            } as any,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to send invoice sent notification:', error);
+      }
+    }
+
+    return { success: true, data: { invoice } };
+  }
+
+  async recordPayment(id: number, dto: RecordPaymentDto) {
+    const invoice = await this.prisma.invoice.findUnique({ where: { id } });
+    if (!invoice) return { success: false, message: 'Invoice not found' };
+    const payment = await this.prisma.payment.create({
+      data: {
+        invoiceId: id,
+        amount: dto.amount as any,
+        currency: dto.currency ?? invoice.currency,
+        paymentMethod: dto.paymentMethod,
+        paymentDate: dto.paymentDate ? new Date(dto.paymentDate) : undefined,
+        referenceNumber: dto.referenceNumber ?? null,
+        notes: dto.notes ?? null,
+        createdBy: dto.createdBy ?? 1,
+      },
+    });
+    const paidAgg = await this.prisma.payment.aggregate({
+      _sum: { amount: true },
+      where: { invoiceId: id },
+    });
+    const paidAmount = Number(paidAgg._sum.amount ?? 0);
+    let status: any = invoice.status;
+    if (paidAmount <= 0) status = 'SENT';
+    else if (paidAmount < Number(invoice.totalAmount))
+      status = 'PARTIALLY_PAID';
+    else status = 'PAID';
+    await this.prisma.invoice.update({
+      where: { id },
+      data: {
+        paidAmount: paidAmount as any,
+        status,
+        paidAt: status === 'PAID' ? new Date() : undefined,
+      },
+    });
+
+    // Notify assigned user about payment events
+    if (invoice.leadId) {
+      try {
+        const lead = await this.prisma.lead.findUnique({
+          where: { id: invoice.leadId },
+          select: { id: true, firstName: true, lastName: true, assignedTo: true },
+        });
+
+        if (lead?.assignedTo) {
+          const type = status === 'PAID'
+            ? NotificationType.PAYMENT_ADDED
+            : NotificationType.PAYMENT_UPDATED;
+
+          await this.notificationsService.create({
+            userId: lead.assignedTo,
+            type,
+            title: status === 'PAID' ? 'Invoice Paid' : 'Payment Recorded',
+            message: status === 'PAID'
+              ? `Invoice "${invoice.invoiceNumber}" has been fully paid.`
+              : `A payment of ${payment.currency || invoice.currency} ${Number(payment.amount).toFixed(2)} has been recorded for invoice "${invoice.invoiceNumber}".`,
+            link: `/leads/${lead.id}`,
+            metadata: {
+              invoiceId: invoice.id,
+              invoiceNumber: invoice.invoiceNumber,
+              paymentId: payment.id,
+              status,
+              leadId: lead.id,
+            } as any,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to send payment notification:', error);
+      }
+    }
+
+    return { success: true, data: { payment } };
+  }
+
+  async buildPdf(id: number): Promise<{ buffer: Buffer; filename: string }> {
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        items: true,
+        lead: true,
+        deal: true,
+      },
+    });
+    if (!invoice) throw new Error('Invoice not found');
+
+    // Define customerName and customerEmail based on lead or deal
+    const customerName = invoice.lead
+      ? `${invoice.lead.firstName || ''} ${invoice.lead.lastName || ''}`.trim() || invoice.lead.company || 'N/A'
+      : invoice.deal
+      ? invoice.deal.title || 'N/A'
+      : 'N/A';
+
+    const customerEmail = invoice.lead?.email || '';
+
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const chunks: Buffer[] = [];
+    doc.on('data', (c) => chunks.push(c));
+
+    // Business settings
+    const bs = await this.prisma.businessSettings.findFirst();
+    let ext: any = {};
+    try {
+      ext = bs?.description ? JSON.parse(bs.description) : {};
+    } catch {}
+
+    const companyName = bs?.companyName || ext.companyName || 'Your Company';
+    const companyAddress = ext.companyAddress || '';
+    const companyEmail = ext.companyEmail || '';
+    const companyPhone = ext.companyPhone || '';
+
+    // Header
+    doc.fontSize(20).text(companyName, { align: 'left' });
+    if (companyAddress) doc.fontSize(10).text(companyAddress, { align: 'left' });
+    if (companyEmail) doc.fontSize(10).text(companyEmail, { align: 'left' });
+    if (companyPhone) doc.fontSize(10).text(companyPhone, { align: 'left' });
+
+    doc.moveDown(2);
+
+    // Invoice Title
+    doc.fontSize(24).text('INVOICE', { align: 'center' });
+    doc.moveDown();
+
+    // Invoice Details
+    doc.fontSize(12);
+    doc.text(`Invoice Number: ${invoice.invoiceNumber}`, { align: 'left' });
+    doc.text(`Date: ${new Date(invoice.createdAt).toLocaleDateString()}`, { align: 'left' });
+    if (invoice.dueDate) {
+      doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, { align: 'left' });
+    }
+    doc.text(`Status: ${invoice.status}`, { align: 'left' });
+    doc.moveDown();
+
+    // Customer Details
+    doc.fontSize(14).text('Bill To:', { align: 'left' });
+    doc.fontSize(12);
+    doc.text(customerName, { align: 'left' });
+    if (customerEmail) doc.text(customerEmail, { align: 'left' });
+    doc.moveDown();
+
+    // Items Table
+    doc.fontSize(12);
+    const tableTop = doc.y;
+    const itemHeight = 20;
+    let y = tableTop;
+
+    // Table Headers
+    doc.font('Helvetica-Bold');
+    doc.text('Item', 50, y);
+    doc.text('Quantity', 200, y);
+    doc.text('Rate', 300, y);
+    doc.text('Amount', 400, y);
+    y += itemHeight;
+
+    // Table Rows
+    doc.font('Helvetica');
+    invoice.items.forEach((item) => {
+      const itemName = item.name || 'Item';
+      const quantity = Number(item.quantity || 0);
+      const rate = Number(item.unitPrice || 0);
+      const amount = Number(item.totalAmount || 0);
+
+      doc.text(itemName, 50, y, { width: 140 });
+      doc.text(String(quantity), 200, y);
+      doc.text(`${invoice.currency} ${rate.toFixed(2)}`, 300, y);
+      doc.text(`${invoice.currency} ${amount.toFixed(2)}`, 400, y);
+      y += itemHeight;
+    });
+
+    // Totals
+    y += 10;
+    doc.font('Helvetica-Bold');
+    doc.text(`Subtotal: ${invoice.currency} ${Number(invoice.subtotal).toFixed(2)}`, 300, y, { align: 'right' });
+    y += itemHeight;
+    if (Number(invoice.taxAmount) > 0) {
+      doc.text(`Tax: ${invoice.currency} ${Number(invoice.taxAmount).toFixed(2)}`, 300, y, { align: 'right' });
+      y += itemHeight;
+    }
+    if (Number(invoice.discountAmount) > 0) {
+      doc.text(`Discount: ${invoice.currency} ${Number(invoice.discountAmount).toFixed(2)}`, 300, y, { align: 'right' });
+      y += itemHeight;
+    }
+    doc.fontSize(14);
+    doc.text(`Total: ${invoice.currency} ${Number(invoice.totalAmount).toFixed(2)}`, 300, y, { align: 'right' });
+
+    if (invoice.notes) {
+      y += itemHeight * 2;
+      doc.fontSize(10);
+      doc.font('Helvetica');
+      doc.text('Notes:', 50, y);
+      doc.text(invoice.notes, 50, y + 15, { width: 500 });
+    }
+
+    if (invoice.terms) {
+      y += itemHeight * 2;
+      doc.fontSize(10);
+      doc.font('Helvetica');
+      doc.text('Terms:', 50, y);
+      doc.text(invoice.terms, 50, y + 15, { width: 500 });
+    }
+
+    doc.end();
+
+    return new Promise((resolve, reject) => {
+      doc.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve({ buffer, filename: `invoice-${invoice.invoiceNumber}.pdf` });
+      });
+      doc.on('error', reject);
+    });
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "users": "Benutzer",
+    "leads": "Leads",
+    "roles": "Rollen",
+    "income": "Einkommen"
+  },
+  "common": {
+    "search": "Suchen",
+    "notifications": "Benachrichtigungen",
+    "theme": "Thema",
+    "language": "Sprache",
+    "logout": "Abmelden",
+    "active": "Aktiv",
+    "noRole": "Keine Rolle",
+    "welcome": "Willkommen bei WeConnect",
+    "description": "Ihr umfassendes Lead-Management-System"
+  },
+  "user": {
+    "greeting": "Hallo, {{name}}",
+    "profile": "Benutzerprofil",
+    "settings": "Einstellungen",
+    "help": "Hilfe & Support"
+  },
+  "sidebar": {
+    "collapse": "Seitenleiste Einklappen",
+    "expand": "Seitenleiste Ausklappen",
+    "menu": "Menü"
+  },
+  "languages": {
+    "en": "Englisch",
+    "hi": "Hindi",
+    "es": "Spanisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "ar": "Arabisch",
+    "zh": "Chinesisch",
+    "ja": "Japanisch",
+    "ko": "Koreanisch",
+    "pt": "Portugiesisch"
+  },
+  "actions": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "create": "Erstellen",
+    "update": "Aktualisieren"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück!",
+    "totalUsers": "Gesamtbenutzer",
+    "activeUsers": "Aktive Benutzer",
+    "totalRoles": "Gesamtrollen",
+    "recentActivity": "Aktuelle Aktivität"
+  },
+  "users": {
+    "title": "Benutzer",
+    "userManagement": "Benutzerverwaltung",
+    "addUser": "Benutzer hinzufügen",
+    "totalUsers": "Gesamtbenutzer",
+    "activeUsers": "Aktive Benutzer",
+    "newUsers": "Neue Benutzer",
+    "inactiveUsers": "Inaktive Benutzer",
+    "allUsers": "Alle Benutzer",
+    "manageAndTrack": "Verwalten und verfolgen Sie Ihre Benutzerkonten",
+    "user": "Benutzer",
+    "role": "Rolle",
+    "lastLogin": "Letzte Anmeldung",
+    "created": "Erstellt",
+    "noRoleAssigned": "Keine Rolle zugewiesen",
+    "searchUsers": "Benutzer suchen..."
+  },
+  "leads": {
+    "title": "Leads",
+    "leadManagement": "Lead-Management",
+    "addLead": "Lead hinzufügen",
+    "totalLeads": "Gesamtleads",
+    "newLeads": "Neue Leads",
+    "qualified": "Qualifiziert",
+    "closed": "Geschlossen",
+    "searchLeads": "Leads suchen...",
+    "status": {
+      "new": "Neu",
+      "contacted": "Kontaktiert",
+      "qualified": "Qualifiziert",
+      "proposal": "Angebot",
+      "negotiation": "Verhandlung",
+      "closed": "Geschlossen",
+      "lost": "Verloren"
+    }
+  },
+  "roles": {
+    "title": "Rollen",
+    "permissions": "Berechtigungen",
+    "roleManagement": "Rollenverwaltung",
+    "createRole": "Rolle erstellen",
+    "totalRoles": "Gesamtrollen",
+    "activeRoles": "Aktive Rollen",
+    "inactiveRoles": "Inaktive Rollen",
+    "totalPermissions": "Gesamtberechtigungen",
+    "searchRoles": "Rollen suchen..."
+  },
+  "common": {
+    "filter": "Filtern",
+    "showFilters": "Filter anzeigen",
+    "hide": "Ausblenden",
+    "show": "Anzeigen",
+    "search": "Suche",
+    "status": "Status",
+    "actions": "Aktionen",
+    "language": "Sprache",
+    "logout": "Abmelden"
+  }
+}

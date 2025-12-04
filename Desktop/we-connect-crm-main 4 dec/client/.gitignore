@@ -1,0 +1,5 @@
+node_modules
+.env 
+# Ignore non-essential markdown docs in client (keep README)
+/*.md
+!README.md

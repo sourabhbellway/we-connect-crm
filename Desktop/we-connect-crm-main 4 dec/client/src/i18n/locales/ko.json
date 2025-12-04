@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "대시보드",
+    "users": "사용자",
+    "leads": "리드",
+    "roles": "역할",
+    "income": "수입"
+  },
+  "common": {
+    "search": "검색",
+    "notifications": "알림",
+    "theme": "테마",
+    "language": "언어",
+    "logout": "로그아웃",
+    "active": "활성",
+    "noRole": "역할 없음",
+    "welcome": "WeConnect에 오신 것을 환영합니다",
+    "description": "포괄적인 리드 관리 시스템"
+  },
+  "user": {
+    "greeting": "안녕하세요, {{name}}",
+    "profile": "사용자 프로필",
+    "settings": "설정",
+    "help": "도움말 및 지원"
+  },
+  "sidebar": {
+    "collapse": "사이드바 접기",
+    "expand": "사이드바 펼치기",
+    "menu": "메뉴"
+  },
+  "languages": {
+    "en": "영어",
+    "hi": "힌디어",
+    "es": "스페인어",
+    "fr": "프랑스어",
+    "de": "독일어",
+    "ar": "아랍어",
+    "zh": "중국어",
+    "ja": "일본어",
+    "ko": "한국어",
+    "pt": "포르투갈어"
+  },
+  "actions": {
+    "save": "저장",
+    "cancel": "취소",
+    "edit": "편집",
+    "delete": "삭제",
+    "create": "생성",
+    "update": "업데이트"
+  },
+  "dashboard": {
+    "welcome": "다시 오신 것을 환영합니다!",
+    "totalUsers": "총 사용자",
+    "activeUsers": "활성 사용자",
+    "totalRoles": "총 역할",
+    "recentActivity": "최근 활동"
+  },
+  "users": {
+    "title": "사용자",
+    "userManagement": "사용자 관리",
+    "addUser": "사용자 추가",
+    "totalUsers": "총 사용자",
+    "activeUsers": "활성 사용자",
+    "newUsers": "신규 사용자",
+    "inactiveUsers": "비활성 사용자",
+    "allUsers": "모든 사용자",
+    "manageAndTrack": "사용자 계정을 관리하고 추적하세요",
+    "user": "사용자",
+    "role": "역할",
+    "lastLogin": "마지막 로그인",
+    "created": "생성일",
+    "noRoleAssigned": "할당된 역할 없음",
+    "searchUsers": "사용자 검색..."
+  },
+  "leads": {
+    "title": "리드",
+    "leadManagement": "리드 관리",
+    "addLead": "리드 추가",
+    "totalLeads": "총 리드",
+    "newLeads": "신규 리드",
+    "qualified": "자격 있음",
+    "closed": "종료됨",
+    "searchLeads": "리드 검색...",
+    "status": {
+      "new": "신규",
+      "contacted": "연락됨",
+      "qualified": "자격 있음",
+      "proposal": "제안",
+      "negotiation": "협상",
+      "closed": "종료",
+      "lost": "실패"
+    }
+  },
+  "roles": {
+    "title": "역할",
+    "permissions": "권한",
+    "roleManagement": "역할 관리",
+    "createRole": "역할 생성",
+    "totalRoles": "총 역할",
+    "activeRoles": "활성 역할",
+    "inactiveRoles": "비활성 역할",
+    "totalPermissions": "총 권한",
+    "searchRoles": "역할 검색..."
+  },
+  "common": {
+    "filter": "필터",
+    "showFilters": "필터 표시",
+    "hide": "숨기기",
+    "show": "표시",
+    "search": "검색",
+    "status": "상태",
+    "actions": "작업",
+    "language": "언어",
+    "logout": "로그아웃"
+  }
+}
