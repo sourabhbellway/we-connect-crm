@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "Painel de Controle",
+    "users": "Usuários",
+    "leads": "Leads",
+    "roles": "Funções",
+    "income": "Receita"
+  },
+  "common": {
+    "search": "Pesquisar",
+    "notifications": "Notificações",
+    "theme": "Tema",
+    "language": "Idioma",
+    "logout": "Sair",
+    "active": "Ativo",
+    "noRole": "Sem Função",
+    "welcome": "Bem-vindo ao WeConnect",
+    "description": "Seu sistema abrangente de gerenciamento de leads"
+  },
+  "user": {
+    "greeting": "Olá, {{name}}",
+    "profile": "Perfil do Usuário",
+    "settings": "Configurações",
+    "help": "Ajuda e Suporte"
+  },
+  "sidebar": {
+    "collapse": "Recolher Barra Lateral",
+    "expand": "Expandir Barra Lateral",
+    "menu": "Menu"
+  },
+  "languages": {
+    "en": "Inglês",
+    "hi": "Hindi",
+    "es": "Espanhol",
+    "fr": "Francês",
+    "de": "Alemão",
+    "ar": "Árabe",
+    "zh": "Chinês",
+    "ja": "Japonês",
+    "ko": "Coreano",
+    "pt": "Português"
+  },
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "create": "Criar",
+    "update": "Atualizar"
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo de volta!",
+    "totalUsers": "Usuários totais",
+    "activeUsers": "Usuários ativos",
+    "totalRoles": "Funções totais",
+    "recentActivity": "Atividade recente"
+  },
+  "users": {
+    "title": "Usuários",
+    "userManagement": "Gerenciamento de usuários",
+    "addUser": "Adicionar usuário",
+    "totalUsers": "Usuários totais",
+    "activeUsers": "Usuários ativos",
+    "newUsers": "Novos usuários",
+    "inactiveUsers": "Usuários inativos",
+    "allUsers": "Todos os usuários",
+    "manageAndTrack": "Gerencie e acompanhe suas contas de usuário",
+    "user": "Usuário",
+    "role": "Função",
+    "lastLogin": "Último acesso",
+    "created": "Criado",
+    "noRoleAssigned": "Nenhuma função atribuída",
+    "searchUsers": "Pesquisar usuários..."
+  },
+  "leads": {
+    "title": "Leads",
+    "leadManagement": "Gerenciamento de leads",
+    "addLead": "Adicionar lead",
+    "totalLeads": "Leads totais",
+    "newLeads": "Novos leads",
+    "qualified": "Qualificados",
+    "closed": "Fechados",
+    "searchLeads": "Pesquisar leads...",
+    "status": {
+      "new": "Novo",
+      "contacted": "Contactado",
+      "qualified": "Qualificado",
+      "proposal": "Proposta",
+      "negotiation": "Negociação",
+      "closed": "Fechado",
+      "lost": "Perdido"
+    }
+  },
+  "roles": {
+    "title": "Funções",
+    "permissions": "Permissões",
+    "roleManagement": "Gerenciamento de funções",
+    "createRole": "Criar função",
+    "totalRoles": "Funções totais",
+    "activeRoles": "Funções ativas",
+    "inactiveRoles": "Funções inativas",
+    "totalPermissions": "Permissões totais",
+    "searchRoles": "Pesquisar funções..."
+  },
+  "common": {
+    "filter": "Filtrar",
+    "showFilters": "Mostrar filtros",
+    "hide": "Ocultar",
+    "show": "Mostrar",
+    "search": "Buscar",
+    "status": "Status",
+    "actions": "Ações",
+    "language": "Idioma",
+    "logout": "Sair"
+  }
+}
