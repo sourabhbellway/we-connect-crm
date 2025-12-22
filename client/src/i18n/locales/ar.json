@@ -1,0 +1,116 @@
+{
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "users": "المستخدمون",
+    "leads": "العملاء المحتملون",
+    "roles": "الأدوار",
+    "income": "الدخل"
+  },
+  "common": {
+    "search": "بحث",
+    "notifications": "الإشعارات",
+    "theme": "المظهر",
+    "language": "اللغة",
+    "logout": "تسجيل الخروج",
+    "active": "نشط",
+    "noRole": "لا توجد دور",
+    "welcome": "مرحباً بك في WeConnect",
+    "description": "نظام إدارة العملاء المحتملين الشامل"
+  },
+  "user": {
+    "greeting": "مرحباً، {{name}}",
+    "profile": "الملف الشخصي للمستخدم",
+    "settings": "الإعدادات",
+    "help": "المساعدة والدعم"
+  },
+  "sidebar": {
+    "collapse": "طي الشريط الجانبي",
+    "expand": "توسيع الشريط الجانبي",
+    "menu": "القائمة"
+  },
+  "languages": {
+    "en": "الإنجليزية",
+    "hi": "الهندية",
+    "es": "الإسبانية",
+    "fr": "الفرنسية",
+    "de": "الألمانية",
+    "ar": "العربية",
+    "zh": "الصينية",
+    "ja": "اليابانية",
+    "ko": "الكورية",
+    "pt": "البرتغالية"
+  },
+  "actions": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "create": "إنشاء",
+    "update": "تحديث"
+  },
+  "dashboard": {
+    "welcome": "مرحبًا بعودتك!",
+    "totalUsers": "إجمالي المستخدمين",
+    "activeUsers": "المستخدمون النشطون",
+    "totalRoles": "إجمالي الأدوار",
+    "recentActivity": "النشاط الأخير"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "userManagement": "إدارة المستخدمين",
+    "addUser": "إضافة مستخدم",
+    "totalUsers": "إجمالي المستخدمين",
+    "activeUsers": "المستخدمون النشطون",
+    "newUsers": "مستخدمون جدد",
+    "inactiveUsers": "مستخدمون غير نشطين",
+    "allUsers": "جميع المستخدمين",
+    "manageAndTrack": "قم بإدارة ومتابعة حسابات المستخدمين",
+    "user": "المستخدم",
+    "role": "الدور",
+    "lastLogin": "آخر تسجيل دخول",
+    "created": "تم الإنشاء",
+    "noRoleAssigned": "لا توجد دور معينة",
+    "searchUsers": "ابحث عن مستخدمين..."
+  },
+  "leads": {
+    "title": "العملاء المحتملون",
+    "leadManagement": "إدارة العملاء المحتملين",
+    "addLead": "إضافة عميل محتمل",
+    "totalLeads": "إجمالي العملاء المحتملين",
+    "newLeads": "عملاء محتملون جدد",
+    "qualified": "مؤهل",
+    "closed": "مغلق",
+    "searchLeads": "ابحث عن العملاء المحتملين...",
+    "status": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "qualified": "مؤهل",
+      "proposal": "عرض",
+      "negotiation": "تفاوض",
+      "closed": "مغلق",
+      "lost": "مفقود"
+    }
+  },
+  "roles": {
+    "title": "الأدوار",
+    "permissions": "الأذونات",
+    "roleManagement": "إدارة الأدوار",
+    "createRole": "إنشاء دور",
+    "totalRoles": "إجمالي الأدوار",
+    "activeRoles": "الأدوار النشطة",
+    "inactiveRoles": "الأدوار غير النشطة",
+    "totalPermissions": "إجمالي الأذونات",
+    "searchRoles": "ابحث عن الأدوار..."
+  },
+  "common": {
+    "filter": "تصفية",
+    "showFilters": "عرض عوامل التصفية",
+    "hide": "إخفاء",
+    "show": "عرض",
+    "search": "بحث",
+    "status": "الحالة",
+    "actions": "إجراءات",
+    "language": "اللغة",
+    "logout": "تسجيل الخروج"
+  }
+}

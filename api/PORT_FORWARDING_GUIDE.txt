@@ -1,0 +1,43 @@
+PORT FORWARDING GUIDE FOR WE-CONNECT CRM
+========================================
+
+To access this application from another system, follow these steps:
+
+1. ON THIS SYSTEM (192.168.1.14):
+   - The application is running on: http://localhost:3010
+   - Make sure the application is running (npm run start:dev)
+
+2. ON ANOTHER SYSTEM (same network):
+   - Open a web browser
+   - Go to: http://192.168.1.14:3010
+   - You should see the application
+
+3. FOR ACCESS FROM OUTSIDE YOUR NETWORK:
+   a) Find your public IP address (search "what is my ip" on Google)
+   b) Set up port forwarding on your router:
+      - Login to your router (usually http://192.168.1.1)
+      - Find the "Port Forwarding" section
+      - Add a new rule:
+        * Service Name: WeConnect CRM
+        * External Port: 3010
+        * Internal IP: 192.168.1.14
+        * Internal Port: 3010
+        * Protocol: TCP
+      - Save the rule
+   c) On the remote system, access: http://<your-public-ip>:3010
+
+4. FIREWALL SETTINGS (if needed):
+   - Open Windows Defender Firewall with Advanced Security
+   - Go to Inbound Rules
+   - Add a new rule for port 3010 TCP
+   - Allow the connection
+
+5. TESTING:
+   - From another computer on the same network, try: http://192.168.1.14:3010
+   - From outside your network, try: http://<your-public-ip>:3010
+
+NOTE: For production use, consider:
+- Using HTTPS instead of HTTP
+- Setting up proper authentication
+- Using a domain name instead of IP address
+- Configuring a reverse proxy like Nginx
