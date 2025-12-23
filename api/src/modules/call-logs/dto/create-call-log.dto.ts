@@ -17,7 +17,8 @@ export class CreateCallLogDto {
   @IsOptional() @IsDateString() endTime?: string;
   @IsOptional() @IsString() notes?: string;
   @IsOptional() @IsString() outcome?: string;
-  @IsOptional() @IsString() recordingUrl?: string;
   @IsOptional() @IsBoolean() isAnswered?: boolean;
   @IsOptional() metadata?: Record<string, unknown>;
+  @IsOptional() @IsString() deviceToken?: string;
+
 }

@@ -1,0 +1,3 @@
+"Invoice #","Title","Customer","Email","Related","Total Amount","Paid Amount","Status","Created","Due Date"
+"INV-002","Consulting Services","","","Deal #2","USD 2,832","USD 0","PAID","22/12/2025","17/12/2025"
+"INV-001","Web Development Services","name name","nonapina@forexzig.com","Lead #1","USD 5,900","USD 0","SENT","22/12/2025","06/01/2026"

@@ -99,7 +99,7 @@ model User {
   teamId                 Int?
   activities             Activity[]                @relation("UserActivities")
   createdBudgets         Budget[]                  @relation("UserCreatedBudgets")
-  callLogs               CallLog[]                 @relation("UserCallLogs")
+
   createdAutomations     CommunicationAutomation[] @relation("UserCreatedAutomations")
   sentMessages           CommunicationMessage[]    @relation("UserMessages")
   createdTemplates       CommunicationTemplate[]   @relation("UserCreatedTemplates")
@@ -136,7 +136,7 @@ model User {
   manager                User?                     @relation("UserManager", fields: [managerId], references: [id])
   subordinates           User[]                    @relation("UserManager")
   team                   Team?                     @relation("TeamMembers", fields: [teamId], references: [id])
-
+ // callLogs    CallLog[] @relation("UserCallLogs", fields: [userId], references: [id])
   @@map("users")
 }
 
@@ -252,7 +252,7 @@ model Lead {
   convertedToDealId      Int?
   createdBy              Int?
   activities             Activity[]             @relation("LeadActivities")
-  callLogs               CallLog[]              @relation("LeadCallLogs")
+
   messages               CommunicationMessage[] @relation("LeadMessages")
   deals                  Deal[]                 @relation("LeadDeals")
   expenses               Expense[]
@@ -269,7 +269,7 @@ model Lead {
   leadNotes              Note[]                 @relation("LeadNotes")
   quotations             Quotation[]            @relation("LeadQuotations")
   tasks                  Task[]                 @relation("LeadTasks")
-
+ // callLogs    CallLog[] @relation("LeadCallLogs", fields: [leadId], references: [id], onDelete: Cascade)
   @@map("leads")
 }
 
@@ -648,12 +648,30 @@ model CallLog {
   metadata     Json?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  lead         Lead       @relation("LeadCallLogs", fields: [leadId], references: [id], onDelete: Cascade)
-  user         User       @relation("UserCallLogs", fields: [userId], references: [id])
+
+  // Relations
 
   @@map("call_logs")
+  @@index([leadId, createdAt])
+  @@index([userId, createdAt])
+  @@index([callStatus])
 }
 
+enum CallType {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallStatus {
+  INITIATED
+  RINGING
+  ANSWERED
+  COMPLETED
+  FAILED
+  BUSY
+  NO_ANSWER
+  CANCELLED
+}
 model CommunicationTemplate {
   id            Int                       @id @default(autoincrement())
   name          String
@@ -1640,21 +1658,8 @@ enum LeadImportStatus {
   PARTIAL
 }
 
-enum CallType {
-  INBOUND
-  OUTBOUND
-}
 
-enum CallStatus {
-  INITIATED
-  RINGING
-  ANSWERED
-  COMPLETED
-  FAILED
-  BUSY
-  NO_ANSWER
-  CANCELLED
-}
+
 
 enum TemplateType {
   EMAIL

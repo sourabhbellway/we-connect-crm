@@ -54,4 +54,20 @@ export class CallLogsController {
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }
+
+@Post('initiate')
+async initiate(@Body() dto: CreateCallLogDto, @Body('deviceToken') deviceToken?: string) {
+
+  const result = await this.service.create(dto);
+  
+  if (deviceToken) {
+    try {
+     
+    } catch (error) {
+      console.error('Failed to send mobile notification:', error);
+    }
+  }
+  
+  return result;
+}
 }
