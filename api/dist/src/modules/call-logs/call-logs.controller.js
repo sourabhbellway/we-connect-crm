@@ -47,6 +47,17 @@ let CallLogsController = class CallLogsController {
     remove(id) {
         return this.service.remove(Number(id));
     }
+    async initiate(dto, deviceToken) {
+        const result = await this.service.create(dto);
+        if (deviceToken) {
+            try {
+            }
+            catch (error) {
+                console.error('Failed to send mobile notification:', error);
+            }
+        }
+        return result;
+    }
 };
 exports.CallLogsController = CallLogsController;
 __decorate([
@@ -96,6 +107,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CallLogsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)('initiate'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Body)('deviceToken')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_call_log_dto_1.CreateCallLogDto, String]),
+    __metadata("design:returntype", Promise)
+], CallLogsController.prototype, "initiate", null);
 exports.CallLogsController = CallLogsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('call-logs'),

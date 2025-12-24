@@ -136,7 +136,7 @@ model User {
   manager                User?                     @relation("UserManager", fields: [managerId], references: [id])
   subordinates           User[]                    @relation("UserManager")
   team                   Team?                     @relation("TeamMembers", fields: [teamId], references: [id])
- // callLogs    CallLog[] @relation("UserCallLogs", fields: [userId], references: [id])
+  callLogs    CallLog[] @relation("UserCallLogs")
   @@map("users")
 }
 
@@ -269,7 +269,7 @@ model Lead {
   leadNotes              Note[]                 @relation("LeadNotes")
   quotations             Quotation[]            @relation("LeadQuotations")
   tasks                  Task[]                 @relation("LeadTasks")
- // callLogs    CallLog[] @relation("LeadCallLogs", fields: [leadId], references: [id], onDelete: Cascade)
+  callLogs    CallLog[] @relation("LeadCallLogs")
   @@map("leads")
 }
 
@@ -650,6 +650,10 @@ model CallLog {
   updatedAt    DateTime   @updatedAt
 
   // Relations
+
+  // Relations
+  user User @relation("UserCallLogs", fields: [userId], references: [id])
+  lead Lead @relation("LeadCallLogs", fields: [leadId], references: [id], onDelete: Cascade)
 
   @@map("call_logs")
   @@index([leadId, createdAt])

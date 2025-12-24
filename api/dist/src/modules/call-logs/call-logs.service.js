@@ -19,97 +19,351 @@ let CallLogsService = class CallLogsService {
         this.prisma = prisma;
     }
     async list({ leadId, userId }, user) {
-        const where = {};
-        if (leadId)
-            where.leadId = leadId;
-        if (userId)
-            where.userId = userId;
-        if (user && user.userId) {
-            const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
-            if (Object.keys(roleBasedWhere).length > 0) {
-                if (where.OR || where.AND) {
-                    where.AND = [
-                        ...(where.AND || []),
-                        roleBasedWhere
-                    ];
+        try {
+            console.log('🔍 Fetching call logs with filters:', { leadId, userId, user });
+            const where = {};
+            if (leadId)
+                where.leadId = leadId;
+            if (userId)
+                where.userId = userId;
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
+                    if (where.OR || where.AND) {
+                        where.AND = [
+                            ...(where.AND || []),
+                            roleBasedWhere
+                        ];
+                    }
+                    else {
+                        Object.assign(where, roleBasedWhere);
+                    }
                 }
-                else {
+            }
+            console.log('📋 Final where clause:', where);
+            const items = await this.prisma.callLog.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true } },
+                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
+                },
+            });
+            console.log('📊 Found call logs:', items.length);
+            return {
+                success: true,
+                data: {
+                    items,
+                    pagination: {
+                        currentPage: 1,
+                        totalPages: Math.ceil(items.length / 10),
+                        totalItems: items.length,
+                        itemsPerPage: 10
+                    }
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error fetching call logs:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to fetch call logs',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
+    }
+    async getById(id, user) {
+        try {
+            console.log('🔍 Fetching call log by ID:', id);
+            const where = { id };
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
                     where.AND = [roleBasedWhere];
                 }
             }
+            console.log('📋 Final where clause:', where);
+            const item = await this.prisma.callLog.findFirst({
+                where,
+            });
+            if (!item) {
+                console.log('❌ Call log not found');
+                return { success: false, message: 'Call log not found' };
+            }
+            console.log('📊 Found call log:', item);
+            return {
+                success: true,
+                data: {
+                    item
+                }
+            };
         }
-        const items = await this.prisma.callLog.findMany({
-            where,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                user: { select: { id: true, firstName: true, lastName: true } },
-                lead: { select: { id: true, firstName: true, lastName: true, company: true } },
-            }
-        });
-        return { success: true, data: { items } };
-    }
-    async getById(id, user) {
-        const where = { id };
-        if (user && user.userId) {
-            const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
-            if (Object.keys(roleBasedWhere).length > 0) {
-                where.AND = [roleBasedWhere];
-            }
+        catch (error) {
+            console.error('❌ Error fetching call log by ID:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to fetch call log',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
         }
-        const item = await this.prisma.callLog.findFirst({
-            where,
-            include: {
-                user: { select: { id: true, firstName: true, lastName: true } },
-                lead: { select: { id: true, firstName: true, lastName: true, company: true } },
-            }
-        });
-        if (!item)
-            return { success: false, message: 'Call log not found' };
-        return { success: true, data: { item } };
     }
     async create(dto) {
-        const item = await this.prisma.callLog.create({
-            data: {
-                leadId: dto.leadId,
-                userId: dto.userId,
-                phoneNumber: dto.phoneNumber,
-                callType: dto.callType ?? 'OUTBOUND',
-                callStatus: dto.callStatus ?? 'INITIATED',
-                duration: dto.duration ?? null,
-                startTime: dto.startTime ? new Date(dto.startTime) : null,
-                endTime: dto.endTime ? new Date(dto.endTime) : null,
-                notes: dto.notes ?? null,
-                outcome: dto.outcome ?? null,
-                recordingUrl: dto.recordingUrl ?? null,
-                isAnswered: dto.isAnswered ?? false,
-                metadata: dto.metadata ?? undefined,
-            },
-        });
-        return { success: true, data: { item } };
+        try {
+            console.log('📝 Creating call log:', dto);
+            const item = await this.prisma.callLog.create({
+                data: {
+                    leadId: dto.leadId,
+                    userId: dto.userId,
+                    phoneNumber: dto.phoneNumber,
+                    callType: dto.callType ?? 'OUTBOUND',
+                    callStatus: dto.callStatus ?? 'INITIATED',
+                    duration: dto.duration ?? null,
+                    startTime: dto.startTime ? new Date(dto.startTime) : null,
+                    endTime: dto.endTime ? new Date(dto.endTime) : null,
+                    notes: dto.notes ?? null,
+                    outcome: dto.outcome ?? null,
+                    recordingUrl: dto.recordingUrl ?? null,
+                    isAnswered: dto.isAnswered ?? false,
+                    metadata: dto.metadata ?? undefined,
+                },
+            });
+            console.log('✅ Call log created successfully:', item);
+            return {
+                success: true,
+                data: {
+                    item
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error creating call log:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to create call log',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
     }
     async update(id, dto) {
-        const item = await this.prisma.callLog.update({
-            where: { id },
-            data: {
-                phoneNumber: dto.phoneNumber,
-                callType: dto.callType,
-                callStatus: dto.callStatus,
-                duration: dto.duration,
-                startTime: dto.startTime ? new Date(dto.startTime) : undefined,
-                endTime: dto.endTime ? new Date(dto.endTime) : undefined,
-                notes: dto.notes,
-                outcome: dto.outcome,
-                recordingUrl: dto.recordingUrl,
-                isAnswered: dto.isAnswered,
-                metadata: dto.metadata,
-                updatedAt: new Date(),
-            },
-        });
-        return { success: true, data: { item } };
+        try {
+            console.log('📝 Updating call log:', { id, dto });
+            const item = await this.prisma.callLog.update({
+                where: { id },
+                data: {
+                    phoneNumber: dto.phoneNumber,
+                    callType: dto.callType,
+                    callStatus: dto.callStatus,
+                    duration: dto.duration,
+                    startTime: dto.startTime ? new Date(dto.startTime) : undefined,
+                    endTime: dto.endTime ? new Date(dto.endTime) : undefined,
+                    notes: dto.notes,
+                    outcome: dto.outcome,
+                    recordingUrl: dto.recordingUrl,
+                    isAnswered: dto.isAnswered,
+                    metadata: dto.metadata,
+                    updatedAt: new Date(),
+                },
+            });
+            console.log('✅ Call log updated successfully:', item);
+            return {
+                success: true,
+                data: {
+                    item
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error updating call log:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to update call log',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
     }
     async remove(id) {
-        await this.prisma.callLog.delete({ where: { id } });
-        return { success: true };
+        try {
+            console.log('🗑️ Deleting call log:', id);
+            await this.prisma.callLog.delete({ where: { id } });
+            console.log('✅ Call log deleted successfully');
+            return {
+                success: true,
+                message: 'Call log deleted successfully'
+            };
+        }
+        catch (error) {
+            console.error('❌ Error deleting call log:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to delete call log',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
+    }
+    async getByLeadId(leadId, user) {
+        try {
+            console.log('🔍 Fetching call logs for lead:', leadId);
+            const where = { leadId };
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
+                    where.AND = [roleBasedWhere];
+                }
+            }
+            console.log('📋 Final where clause:', where);
+            const items = await this.prisma.callLog.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+            });
+            console.log('📊 Found call logs for lead:', items.length);
+            return {
+                success: true,
+                data: {
+                    callLogs: items
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error fetching call logs for lead:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to fetch call logs for lead',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
+    }
+    async getByUserId(userId, user) {
+        try {
+            console.log('🔍 Fetching call logs for user:', userId);
+            const where = { userId };
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
+                    where.AND = [roleBasedWhere];
+                }
+            }
+            console.log('📋 Final where clause:', where);
+            const items = await this.prisma.callLog.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true } },
+                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
+                },
+            });
+            console.log('📊 Found call logs for user:', items.length);
+            return {
+                success: true,
+                data: {
+                    callLogs: items
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error fetching call logs for user:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to fetch call logs for user',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
+    }
+    async getStatistics(user) {
+        try {
+            console.log('📊 Fetching call statistics');
+            const where = {};
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
+                    where.AND = [roleBasedWhere];
+                }
+            }
+            const totalCalls = await this.prisma.callLog.count({ where });
+            const answeredCalls = await this.prisma.callLog.count({
+                where: {
+                    ...where,
+                    isAnswered: true
+                }
+            });
+            const completedCalls = await this.prisma.callLog.count({
+                where: {
+                    ...where,
+                    callStatus: 'COMPLETED'
+                }
+            });
+            const avgDuration = await this.prisma.callLog.aggregate({
+                where: {
+                    ...where,
+                    isAnswered: true
+                },
+                _avg: {
+                    duration: true
+                }
+            });
+            console.log('📊 Call statistics:', {
+                totalCalls,
+                answeredCalls,
+                completedCalls,
+                avgDuration: avgDuration._avg.duration || 0
+            });
+            return {
+                success: true,
+                data: {
+                    totalCalls,
+                    answeredCalls,
+                    completedCalls,
+                    averageCallDuration: avgDuration._avg.duration || 0
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error fetching call statistics:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to fetch call statistics',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
+    }
+    async updateStatus(id, status, user) {
+        try {
+            console.log('📝 Updating call status:', { id, status });
+            const where = { id };
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
+                    where.AND = [roleBasedWhere];
+                }
+            }
+            const item = await this.prisma.callLog.update({
+                where,
+                data: {
+                    callStatus: status,
+                    updatedAt: new Date(),
+                },
+            });
+            console.log('✅ Call status updated successfully:', item);
+            return {
+                success: true,
+                data: {
+                    item
+                }
+            };
+        }
+        catch (error) {
+            console.error('❌ Error updating call status:', error);
+            return {
+                success: false,
+                message: error.message || 'Failed to update call status',
+                error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            };
+        }
     }
 };
 exports.CallLogsService = CallLogsService;

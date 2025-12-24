@@ -556,9 +556,9 @@ const CreateQuotationPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="space-y-6">
                     {/* Left: form sections */}
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-6">
                         <Card padding="lg">
                             <div className="grid grid-cols-12 gap-4">
                                 {/* Quotation Number */}
@@ -845,69 +845,7 @@ const CreateQuotationPage: React.FC = () => {
                                     />
                                 </div>
 
-                                {/* Terms and Conditions */}
-                                <div className="col-span-12">
-                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                        Terms & Conditions
-                                    </label>
-                                    <select
-                                        value={selectedTermsTemplate}
-                                        onChange={(e) => {
-                                            const templateId = e.target.value;
-                                            setSelectedTermsTemplate(templateId);
-                                            if (templateId) {
-                                                const template = termsAndConditions.find(t => t.id.toString() === templateId);
-                                                if (template) {
-                                                    setCustomTerms(template.content);
-                                                }
-                                            } else {
-                                                setCustomTerms('');
-                                            }
-                                        }}
-                                        className="input-base appearance-none"
-                                    >
-                                        <option value="">Select Terms & Conditions Template</option>
-                                        {termsAndConditions
-                                            .filter(template => template.isActive)
-                                            .map((template) => (
-                                                <option key={template.id} value={template.id}>
-                                                    {template.name} {template.isDefault ? '(Default)' : ''}
-                                                </option>
-                                            ))}
-                                    </select>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Choose a template or leave empty to use default terms
-                                    </p>
-                                </div>
 
-                                {/* Custom Terms (if no template selected) */}
-                                {selectedTermsTemplate && (
-                                    <div className="col-span-12">
-                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                            Selected Template Content
-                                        </label>
-                                        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 max-h-32 overflow-y-auto">
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                                                {customTerms}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Allow Comments */}
-                                <div className="col-span-12">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={allowComments}
-                                            onChange={(e) => setAllowComments(e.target.checked)}
-                                            className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Allow Comments
-                                        </span>
-                                    </label>
-                                </div>
                             </div>
                         </Card>
 
@@ -1072,13 +1010,13 @@ const CreateQuotationPage: React.FC = () => {
                                                                                                 <div className="font-semibold text-gray-900 dark:text-white truncate text-sm">
                                                                                                     {getProductName(product)}
                                                                                                 </div>
-                                                                                                <div className="text-gray-600 dark:text-gray-400 text-xs truncate mt-0.5">
+                                                                                                {/* <div className="text-gray-600 dark:text-gray-400 text-xs truncate mt-0.5">
                                                                                                     {getProductDescription(product)}
-                                                                                                </div>
+                                                                                                </div> */}
                                                                                             </div>
-                                                                                            <div className="text-blue-600 dark:text-blue-400 font-bold text-sm shrink-0">
+                                                                                            {/* <div className="text-blue-600 dark:text-blue-400 font-bold text-sm shrink-0">
                                                                                                 {currency} {product.price || product.unitPrice || 0}
-                                                                                            </div>
+                                                                                            </div> */}
                                                                                         </div>
                                                                                     </button>
                                                                                 ))}
@@ -1202,96 +1140,169 @@ const CreateQuotationPage: React.FC = () => {
                         </Card>
                     </div>
 
-                    {/* Right: sticky summary */}
-                    <div className="lg:col-span-1 space-y-6">
-                        <Card padding="lg" className="sticky top-20">
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-gray-700">
-                                    Summary
-                                </h3>
-
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                                        <span className="font-semibold text-gray-900 dark:text-white">${subTotal.toFixed(2)}</span>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2">
+                            <Card padding="lg" className="h-full">
+                                <div className="grid grid-cols-12 gap-4">
+                                    {/* Terms and Conditions */}
+                                    <div className="col-span-12">
+                                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                            Terms & Conditions
+                                        </label>
+                                        <select
+                                            value={selectedTermsTemplate}
+                                            onChange={(e) => {
+                                                const templateId = e.target.value;
+                                                setSelectedTermsTemplate(templateId);
+                                                if (templateId) {
+                                                    const template = termsAndConditions.find(t => t.id.toString() === templateId);
+                                                    if (template) {
+                                                        setCustomTerms(template.content);
+                                                    }
+                                                } else {
+                                                    setCustomTerms('');
+                                                }
+                                            }}
+                                            className="input-base appearance-none"
+                                        >
+                                            <option value="">Select Terms & Conditions Template</option>
+                                            {termsAndConditions
+                                                .filter(template => template.isActive)
+                                                .map((template) => (
+                                                    <option key={template.id} value={template.id}>
+                                                        {template.name} {template.isDefault ? '(Default)' : ''}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            Choose a template or leave empty to use default terms
+                                        </p>
                                     </div>
 
-                                    {taxAmount > 0 && (
+                                    {/* Custom Terms (if no template selected) */}
+                                    {selectedTermsTemplate && (
+                                        <div className="col-span-12">
+                                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                                Selected Template Content
+                                            </label>
+                                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 max-h-32 overflow-y-auto">
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                                    {customTerms}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Allow Comments */}
+                                    <div className="col-span-12">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={allowComments}
+                                                onChange={(e) => setAllowComments(e.target.checked)}
+                                                className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Allow Comments
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </Card>
+                        </div>
+
+                        {/* Right: sticky summary */}
+                        <div className="lg:col-span-1 space-y-6">
+                            <Card padding="lg" className="sticky top-20">
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white pb-3 border-b border-gray-200 dark:border-gray-700">
+                                        Summary
+                                    </h3>
+
+                                    <div className="space-y-3">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-600 dark:text-gray-400">Total Tax</span>
-                                            <span className="font-semibold text-gray-900 dark:text-white">${taxAmount.toFixed(2)}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">${subTotal.toFixed(2)}</span>
                                         </div>
-                                    )}
 
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600 dark:text-gray-400">Discount</span>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={discountValue}
-                                                onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
-                                                min="0"
-                                                step="0.01"
-                                                className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                            />
-                                            <select
-                                                value={discountType}
-                                                onChange={(e) => setDiscountType(e.target.value)}
-                                                className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                <option value="%">%</option>
-                                                <option value="fixed">$</option>
-                                            </select>
+                                        {taxAmount > 0 && (
+                                            <div className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-600 dark:text-gray-400">Total Tax</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">${taxAmount.toFixed(2)}</span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-600 dark:text-gray-400">Discount</span>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={discountValue}
+                                                    onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                                                    min="0"
+                                                    step="0.01"
+                                                    className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                                <select
+                                                    value={discountType}
+                                                    onChange={(e) => setDiscountType(e.target.value)}
+                                                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                    <option value="%">%</option>
+                                                    <option value="fixed">$</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {discount > 0 && (
+                                            <div className="flex items-center justify-end">
+                                                <span className="text-sm text-red-600 dark:text-red-400 font-medium">-${discount.toFixed(2)}</span>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-gray-600 dark:text-gray-400">Adjustment</span>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={adjustmentValue}
+                                                    onChange={(e) => setAdjustmentValue(parseFloat(e.target.value) || 0)}
+                                                    step="0.01"
+                                                    className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">$</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                                            <span className="text-base font-semibold text-gray-900 dark:text-white">Total</span>
+                                            <span className="text-2xl font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
                                         </div>
                                     </div>
 
-                                    {discount > 0 && (
-                                        <div className="flex items-center justify-end">
-                                            <span className="text-sm text-red-600 dark:text-red-400 font-medium">-${discount.toFixed(2)}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-gray-600 dark:text-gray-400">Adjustment</span>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                value={adjustmentValue}
-                                                onChange={(e) => setAdjustmentValue(parseFloat(e.target.value) || 0)}
-                                                step="0.01"
-                                                className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                            />
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">$</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                                        <span className="text-base font-semibold text-gray-900 dark:text-white">Total</span>
-                                        <span className="text-2xl font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
+                                    <div className="flex flex-col gap-2 pt-4">
+                                        <Button
+                                            variant="SECONDARY"
+                                            fullWidth
+                                            onClick={() => handleSubmit(false)}
+                                            disabled={loading}
+                                        >
+                                            Save as Draft
+                                        </Button>
+                                        <Button
+                                            variant="PRIMARY"
+                                            fullWidth
+                                            onClick={() => handleSubmit(true)}
+                                            loading={loading}
+                                            loadingText="Saving..."
+                                        >
+                                            Save & Send
+                                        </Button>
                                     </div>
                                 </div>
-
-                                <div className="flex flex-col gap-2 pt-4">
-                                    <Button
-                                        variant="SECONDARY"
-                                        fullWidth
-                                        onClick={() => handleSubmit(false)}
-                                        disabled={loading}
-                                    >
-                                        Save as Draft
-                                    </Button>
-                                    <Button
-                                        variant="PRIMARY"
-                                        fullWidth
-                                        onClick={() => handleSubmit(true)}
-                                        loading={loading}
-                                        loadingText="Saving..."
-                                    >
-                                        Save & Send
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
+                        </div>
                     </div>
                 </div>
 

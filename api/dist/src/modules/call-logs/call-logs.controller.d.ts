@@ -34,10 +34,23 @@ export declare class CallLogsController {
                 callStatus: import("@prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                recordingUrl: string | null;
                 isAnswered: boolean;
+                recordingUrl: string | null;
             })[];
+            pagination: {
+                currentPage: number;
+                totalPages: number;
+                totalItems: number;
+                itemsPerPage: number;
+            };
         };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+        data?: undefined;
     }>;
     listByLead(leadId: string, user?: any): Promise<{
         success: boolean;
@@ -69,31 +82,33 @@ export declare class CallLogsController {
                 callStatus: import("@prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                recordingUrl: string | null;
                 isAnswered: boolean;
+                recordingUrl: string | null;
             })[];
+            pagination: {
+                currentPage: number;
+                totalPages: number;
+                totalItems: number;
+                itemsPerPage: number;
+            };
         };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+        data?: undefined;
     }>;
     get(id: string, user?: any): Promise<{
         success: boolean;
         message: string;
         data?: undefined;
+        error?: undefined;
     } | {
         success: boolean;
         data: {
             item: {
-                user: {
-                    firstName: string;
-                    lastName: string;
-                    id: number;
-                };
-                lead: {
-                    firstName: string | null;
-                    lastName: string | null;
-                    id: number;
-                    company: string | null;
-                };
-            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
@@ -108,11 +123,17 @@ export declare class CallLogsController {
                 callStatus: import("@prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                recordingUrl: string | null;
                 isAnswered: boolean;
+                recordingUrl: string | null;
             };
         };
         message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+        data?: undefined;
     }>;
     create(dto: CreateCallLogDto): Promise<{
         success: boolean;
@@ -132,10 +153,17 @@ export declare class CallLogsController {
                 callStatus: import("@prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                recordingUrl: string | null;
                 isAnswered: boolean;
+                recordingUrl: string | null;
             };
         };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+        data?: undefined;
     }>;
     update(id: string, dto: UpdateCallLogDto): Promise<{
         success: boolean;
@@ -155,12 +183,55 @@ export declare class CallLogsController {
                 callStatus: import("@prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                recordingUrl: string | null;
                 isAnswered: boolean;
+                recordingUrl: string | null;
             };
         };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+        data?: undefined;
     }>;
     remove(id: string): Promise<{
         success: boolean;
+        message: string;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+    }>;
+    initiate(dto: CreateCallLogDto, deviceToken?: string): Promise<{
+        success: boolean;
+        data: {
+            item: {
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
+                id: number;
+                userId: number;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                leadId: number;
+                duration: number | null;
+                outcome: string | null;
+                phoneNumber: string;
+                callType: import("@prisma/client").$Enums.CallType;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
+                startTime: Date | null;
+                endTime: Date | null;
+                isAnswered: boolean;
+                recordingUrl: string | null;
+            };
+        };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: any;
+        error: any;
+        data?: undefined;
     }>;
 }

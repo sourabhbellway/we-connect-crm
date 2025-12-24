@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  CreditCard, DollarSign, Calendar, CheckCircle, Clock, AlertCircle, 
-  Download, Eye, Plus, Search, Filter, MoreVertical, FileText, 
-  TrendingUp, TrendingDown, Receipt, Banknote
+import {
+  CreditCard, DollarSign, Calendar, CheckCircle, Clock, AlertCircle,
+  Download, Eye, Plus, Search, Filter, MoreVertical, FileText,
+  TrendingUp, TrendingDown, Receipt, Banknote, Trash2
 } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
@@ -54,12 +54,12 @@ interface PaymentTrackerProps {
   currency?: string; // preferred currency from parent (e.g., deal currency)
 }
 
-const PaymentTracker: React.FC<PaymentTrackerProps> = ({ 
-  entityType, 
-  entityId, 
+const PaymentTracker: React.FC<PaymentTrackerProps> = ({
+  entityType,
+  entityId,
   payments: initialPayments,
   invoices: initialInvoices,
-  currency: preferredCurrency 
+  currency: preferredCurrency
 }) => {
   const { user, hasPermission } = useAuth();
   const { formatCurrency, getCurrency } = useBusinessSettings();
@@ -72,6 +72,30 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
   const [statusFilter, setStatusFilter] = useState('all');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isSavingPayment, setIsSavingPayment] = useState(false);
+  const [activeActionId, setActiveActionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPayments(initialPayments);
+  }, [initialPayments]);
+
+  useEffect(() => {
+    setInvoices(initialInvoices);
+  }, [initialInvoices]);
+
+
+  const handleDeletePayment = async (paymentId: string) => {
+    if (!window.confirm('Are you sure you want to delete this payment? This action cannot be undone.')) return;
+    try {
+      await apiClient.delete(`/payments/${paymentId}`);
+      setPayments(prev => prev.filter(p => p.id !== paymentId));
+      toast.success('Payment deleted successfully');
+    } catch (error: any) {
+      console.error('Failed to delete payment:', error);
+      toast.error(error?.response?.data?.message || 'Failed to delete payment');
+    } finally {
+      setActiveActionId(null);
+    }
+  };
 
   // Determine display currency preference: parent -> invoices -> business default
   const displayCurrency = preferredCurrency || invoices?.[0]?.currency || getCurrency();
@@ -80,7 +104,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
     amount: '',
     currency: displayCurrency,
     paymentMethod: 'CASH',
-    paymentDate: new Date().toISOString().slice(0,10),
+    paymentDate: new Date().toISOString().slice(0, 10),
     reference: '',
     notes: '',
     invoiceId: '',
@@ -90,8 +114,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
   const totalInvoiced = invoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
   const totalPaid = invoices.reduce((sum, invoice) => sum + invoice.paidAmount, 0);
   const totalOutstanding = invoices.reduce((sum, invoice) => sum + invoice.dueAmount, 0);
-  const overdueInvoices = invoices.filter(invoice => 
-    invoice.dueDate && new Date(invoice.dueDate) < new Date() && 
+  const overdueInvoices = invoices.filter(invoice =>
+    invoice.dueDate && new Date(invoice.dueDate) < new Date() &&
     ['SENT', 'VIEWED', 'PARTIALLY_PAID'].includes(invoice.status)
   );
 
@@ -168,7 +192,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
   };
 
   const filteredPayments = payments.filter(payment => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       payment.paymentNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.reference?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
@@ -176,7 +200,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
   });
 
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
@@ -193,8 +217,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
         <div className="flex items-center space-x-3">
           {hasPermission(`${entityType}.create`) && (
             <>
-              <Button 
-                variant="OUTLINE" 
+              <Button
+                variant="OUTLINE"
                 className="flex items-center gap-2"
                 onClick={() => navigate(`/invoices/new?entityType=${entityType}&entityId=${entityId}`)}
               >
@@ -282,11 +306,10 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-weconnect-red text-weconnect-red'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                }`}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${activeTab === tab.id
+                  ? 'border-weconnect-red text-weconnect-red'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  }`}
               >
                 <Icon size={16} />
                 {tab.label}
@@ -310,7 +333,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                   <span>{Math.round((totalPaid / totalInvoiced) * 100)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
+                  <div
                     className="h-2 bg-green-600 rounded-full transition-all duration-300"
                     style={{ width: `${(totalPaid / totalInvoiced) * 100}%` }}
                   ></div>
@@ -339,10 +362,9 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
               {payments.slice(0, 5).map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      payment.status === 'COMPLETED' ? 'bg-green-500' : 
+                    <div className={`w-2 h-2 rounded-full ${payment.status === 'COMPLETED' ? 'bg-green-500' :
                       payment.status === 'FAILED' ? 'bg-red-500' : 'bg-yellow-500'
-                    }`}></div>
+                      }`}></div>
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
                         Payment {payment.paymentNumber}
@@ -442,7 +464,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                           {formatCurrency(invoice.totalAmount, invoice.currency)}
                         </span>
                       </div>
-                      
+
                       {invoice.status === 'PARTIALLY_PAID' && (
                         <div className="text-sm">
                           <span className="text-green-600">Paid: {formatCurrency(invoice.paidAmount, invoice.currency)}</span>
@@ -547,7 +569,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                             {formatCurrency(payment.amount, payment.currency)}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2">
                           {payment.receiptUrl && (
                             <Button size="SM" variant="GHOST">
@@ -557,9 +579,26 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                           <Button size="SM" variant="GHOST">
                             <Eye size={14} />
                           </Button>
-                          <Button size="SM" variant="GHOST">
-                            <MoreVertical size={14} />
-                          </Button>
+                          <div className="relative">
+                            <Button
+                              size="SM"
+                              variant="GHOST"
+                              onClick={() => setActiveActionId(activeActionId === payment.id ? null : payment.id)}
+                            >
+                              <MoreVertical size={14} />
+                            </Button>
+                            {activeActionId === payment.id && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-10 overflow-hidden">
+                                <button
+                                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors"
+                                  onClick={() => handleDeletePayment(payment.id)}
+                                >
+                                  <Trash2 size={14} />
+                                  Delete Payment
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -578,8 +617,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Amount</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={paymentForm.amount}
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -588,8 +627,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
               </div>
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Currency</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={paymentForm.currency}
                   onChange={(e) => setPaymentForm({ ...paymentForm, currency: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -616,8 +655,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
               </div>
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Payment Date</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={paymentForm.paymentDate}
                   onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -625,8 +664,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Reference</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={paymentForm.reference}
                   onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -635,7 +674,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Notes</label>
-                <textarea 
+                <textarea
                   rows={3}
                   value={paymentForm.notes}
                   onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
@@ -674,7 +713,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
             </div>
 
             <div className="mt-6 flex items-center gap-3 justify-end">
-              <Button 
+              <Button
                 onClick={async () => {
                   try {
                     if (invoices.length > 0 && !paymentForm.invoiceId) {
@@ -718,7 +757,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                       }, ...prev]);
                       toast.success('Payment recorded');
                       setShowPaymentModal(false);
-                      setPaymentForm({ amount: '', currency: displayCurrency, paymentMethod: 'CASH', paymentDate: new Date().toISOString().slice(0,10), reference: '', notes: '', invoiceId: '' });
+                      setPaymentForm({ amount: '', currency: displayCurrency, paymentMethod: 'CASH', paymentDate: new Date().toISOString().slice(0, 10), reference: '', notes: '', invoiceId: '' });
                     }
                   } catch (e: any) {
                     toast.error(e?.response?.data?.message || 'Failed to record payment');

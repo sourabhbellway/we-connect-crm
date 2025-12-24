@@ -22,9 +22,10 @@ class CreateCallLogDto {
     endTime;
     notes;
     outcome;
-    recordingUrl;
     isAnswered;
     metadata;
+    deviceToken;
+    recordingUrl;
 }
 exports.CreateCallLogDto = CreateCallLogDto;
 __decorate([
@@ -76,11 +77,6 @@ __decorate([
 ], CreateCallLogDto.prototype, "outcome", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CreateCallLogDto.prototype, "recordingUrl", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
 ], CreateCallLogDto.prototype, "isAnswered", void 0);
@@ -88,4 +84,14 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], CreateCallLogDto.prototype, "metadata", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCallLogDto.prototype, "deviceToken", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateCallLogDto.prototype, "recordingUrl", void 0);
 //# sourceMappingURL=create-call-log.dto.js.map

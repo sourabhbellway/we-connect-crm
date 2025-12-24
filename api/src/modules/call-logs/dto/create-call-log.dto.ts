@@ -20,5 +20,6 @@ export class CreateCallLogDto {
   @IsOptional() @IsBoolean() isAnswered?: boolean;
   @IsOptional() metadata?: Record<string, unknown>;
   @IsOptional() @IsString() deviceToken?: string;
+  @IsOptional() @IsString() recordingUrl?: string;
 
 }

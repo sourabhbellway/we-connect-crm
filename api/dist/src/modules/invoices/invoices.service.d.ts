@@ -56,10 +56,10 @@ export declare class InvoicesService {
                     currency: string;
                     createdBy: number;
                     amount: import("@prisma/client/runtime/library").Decimal;
-                    invoiceId: number;
                     paymentMethod: string;
                     paymentDate: Date;
                     referenceNumber: string | null;
+                    invoiceId: number;
                 }[];
             } & {
                 createdAt: Date;
@@ -126,10 +126,10 @@ export declare class InvoicesService {
                     currency: string;
                     createdBy: number;
                     amount: import("@prisma/client/runtime/library").Decimal;
-                    invoiceId: number;
                     paymentMethod: string;
                     paymentDate: Date;
                     referenceNumber: string | null;
+                    invoiceId: number;
                 }[];
             } & {
                 createdAt: Date;
@@ -366,10 +366,10 @@ export declare class InvoicesService {
                 currency: string;
                 createdBy: number;
                 amount: import("@prisma/client/runtime/library").Decimal;
-                invoiceId: number;
                 paymentMethod: string;
                 paymentDate: Date;
                 referenceNumber: string | null;
+                invoiceId: number;
             };
         };
         message?: undefined;

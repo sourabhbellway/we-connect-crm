@@ -477,19 +477,33 @@ const DealProfileEnhanced: React.FC = () => {
     try {
       setPaymentsLoading(true);
       const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const response = await fetch(`/api/payments?entityType=deal&entityId=${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
 
-      if (response.ok) {
-        const data = await response.json();
+      const [paymentsResponse, invoicesResponse] = await Promise.all([
+        fetch(`/api/payments?entityType=deal&entityId=${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }),
+        fetch(`/api/invoices?entityType=deal&entityId=${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+      ]);
+
+      if (paymentsResponse.ok) {
+        const data = await paymentsResponse.json();
         setPayments(data.data?.payments || data.payments || []);
       }
+
+      if (invoicesResponse.ok) {
+        const data = await invoicesResponse.json();
+        setInvoices(data.data?.invoices || data.invoices || []);
+      }
     } catch (error) {
-      console.error('Failed to fetch payments:', error);
+      console.error('Failed to fetch payments or invoices:', error);
     } finally {
       setPaymentsLoading(false);
     }

@@ -9,7 +9,8 @@ export declare class CreateCallLogDto {
     endTime?: string;
     notes?: string;
     outcome?: string;
-    recordingUrl?: string;
     isAnswered?: boolean;
     metadata?: Record<string, unknown>;
+    deviceToken?: string;
+    recordingUrl?: string;
 }
