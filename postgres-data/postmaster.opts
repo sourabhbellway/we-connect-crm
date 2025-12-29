@@ -1,1 +1,0 @@
-/opt/homebrew/Cellar/postgresql@14/14.19/bin/postgres "-D" "/Users/abhishek/Desktop/we-connect-crm-7-NOV-2025 2/postgres-data" "-p" "5434"
