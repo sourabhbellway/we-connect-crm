@@ -128,15 +128,23 @@ export declare class ActivitiesService {
             };
         };
     }>;
-    list({ page, limit, type, search, }: {
+    list({ page, limit, type, search, userId, }: {
         page?: number;
         limit?: number;
         type?: string;
         search?: string;
+        userId?: number;
     }, user?: any): Promise<{
         success: boolean;
         data: {
-            items: {
+            items: ({
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
@@ -150,7 +158,7 @@ export declare class ActivitiesService {
                 icon: string;
                 iconColor: string;
                 superAdminId: number | null;
-            }[];
+            })[];
             total: number;
             page: number;
             limit: number;

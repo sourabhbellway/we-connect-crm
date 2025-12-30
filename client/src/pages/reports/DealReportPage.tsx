@@ -5,7 +5,6 @@ import {
     Percent,
     DollarSign,
     ArrowLeft,
-    Filter,
     Download,
     Loader2,
     Activity,
@@ -15,6 +14,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button } from '../../components/ui';
 import { Pagination } from '../../components/ui/Pagination';
 import { analyticsService } from '../../services/analyticsService';
+import HorizontalFilters, { FilterField } from '../../components/reports/HorizontalFilters';
+import { userService } from '../../services/userService';
 import {
     BarChart,
     Bar,
@@ -39,6 +40,56 @@ const DealReportPage: React.FC = () => {
     const [reportData, setReportData] = useState<any>(null);
     const [dateRange, setDateRange] = useState('6months');
     const [chartType, setChartType] = useState('area');
+    const [filters, setFilters] = useState<any>({
+        search: '',
+        status: '',
+        priority: '',
+        assignedTo: ''
+    });
+    const [filterFields, setFilterFields] = useState<FilterField[]>([
+        { key: 'search', label: 'Search', type: 'text', placeholder: 'Search deals...' },
+        {
+            key: 'status', label: 'Status', type: 'select', options: [
+                { label: 'Won', value: 'WON' },
+                { label: 'Lost', value: 'LOST' },
+                { label: 'Proposal', value: 'PROPOSAL' },
+                { label: 'Negotiation', value: 'NEGOTIATION' },
+                { label: 'Draft', value: 'DRAFT' }
+            ]
+        },
+        {
+            key: 'probability', label: 'Probability', type: 'select', options: [
+                { label: 'High (75%+)', value: '75' },
+                { label: 'Medium (50%+)', value: '50' },
+                { label: 'Low (25%+)', value: '25' },
+                { label: 'Initial (0%+)', value: '0' }
+            ]
+        },
+        { key: 'assignedTo', label: 'Assigned To', type: 'select', options: [] },
+    ]);
+
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const usersRes = await userService.getUsers();
+                if (usersRes.success) {
+                    const updatedFields = [...filterFields];
+                    const userField = updatedFields.find(f => f.key === 'assignedTo');
+                    if (userField) {
+                        userField.options = usersRes.data.map((u: any) => ({ label: `${u.firstName} ${u.lastName}`, value: u.id }));
+                        setFilterFields(updatedFields);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching users for filters:', error);
+            }
+        };
+        fetchMetadata();
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -49,7 +100,8 @@ const DealReportPage: React.FC = () => {
                     undefined,
                     'all',
                     currentPage,
-                    itemsPerPage
+                    itemsPerPage,
+                    filters
                 );
                 if (response.success) {
                     setReportData(response.data);
@@ -62,7 +114,7 @@ const DealReportPage: React.FC = () => {
         };
 
         fetchData();
-    }, [dateRange, currentPage, itemsPerPage]);
+    }, [dateRange, currentPage, itemsPerPage, filters]);
 
     const stats = [
         {
@@ -118,7 +170,7 @@ const DealReportPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="h-full w-full flex items-center justify-center">
+            <div className="h-full w-full flex items-center justify-center min-h-[400px]">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
@@ -156,14 +208,20 @@ const DealReportPage: React.FC = () => {
                             </button>
                         ))}
                     </div>
-                    <Button variant="OUTLINE" className="flex items-center gap-2">
-                        <Filter className="w-4 h-4" /> Filter
-                    </Button>
+
                     <Button variant="PRIMARY" className="flex items-center gap-2">
                         <Download className="w-4 h-4" /> Export
                     </Button>
                 </div>
             </div>
+
+            <HorizontalFilters
+                fields={filterFields}
+                values={filters}
+                onChange={handleFilterChange}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (
@@ -300,7 +358,7 @@ const DealReportPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    {(reportData?.recentClosedDeals || []).length > 0 && (
+                    {reportData?.pagination && (
                         <div className="p-4 border-t border-gray-100 dark:border-slate-800">
                             <Pagination
                                 currentPage={currentPage}

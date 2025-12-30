@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  CreditCard, DollarSign, Calendar, CheckCircle, Clock, AlertCircle,
-  Download, Eye, Plus, Search, Filter, MoreVertical, FileText,
-  TrendingUp, TrendingDown, Receipt, Banknote, Trash2
+  CreditCard, DollarSign, CheckCircle, Clock, AlertCircle,
+  Download, Eye, Plus, Search, MoreVertical, FileText,
+  TrendingUp, Receipt, Banknote, Trash2
 } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
@@ -52,6 +52,7 @@ interface PaymentTrackerProps {
   payments: Payment[];
   invoices: Invoice[];
   currency?: string; // preferred currency from parent (e.g., deal currency)
+  onPaymentSaved?: () => void;
 }
 
 const PaymentTracker: React.FC<PaymentTrackerProps> = ({
@@ -67,7 +68,6 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
   const [payments, setPayments] = useState<Payment[]>(initialPayments);
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -614,164 +614,192 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Record Payment</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Amount</label>
-                <input
-                  type="number"
-                  value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Currency</label>
-                <input
-                  type="text"
-                  value={paymentForm.currency}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, currency: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Method</label>
-                <select
-                  value={paymentForm.paymentMethod}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                >
-                  <option value="CASH">Cash</option>
-                  <option value="BANK_TRANSFER">Bank Transfer</option>
-                  <option value="CREDIT_CARD">Credit Card</option>
-                  <option value="DEBIT_CARD">Debit Card</option>
-                  <option value="PAYPAL">PayPal</option>
-                  <option value="STRIPE">Stripe</option>
-                  <option value="RAZORPAY">Razorpay</option>
-                  <option value="UPI">UPI</option>
-                  <option value="CHEQUE">Cheque</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Payment Date</label>
-                <input
-                  type="date"
-                  value={paymentForm.paymentDate}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Reference</label>
-                <input
-                  type="text"
-                  value={paymentForm.reference}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                  placeholder="Transaction ID, cheque no, etc."
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Notes</label>
-                <textarea
-                  rows={3}
-                  value={paymentForm.notes}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                  placeholder="Optional notes"
-                />
-              </div>
 
-              {/* Invoice selection */}
-              {invoices.length > 0 && (
-                <div className="md:col-span-2">
-                  <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Invoice Number {invoices.length > 0 && <span className="text-red-500">*</span>}</label>
-                  <select
-                    value={paymentForm.invoiceId}
-                    onChange={(e) => {
-                      const invoiceId = e.target.value;
-                      setPaymentForm({ ...paymentForm, invoiceId });
-                      const inv = invoices.find(i => String(i.id) === invoiceId);
-                      if (inv && inv.dueAmount > 0 && (!paymentForm.amount || Number(paymentForm.amount) <= 0)) {
-                        setPaymentForm(prev => ({ ...prev, amount: String(inv.dueAmount) }));
+            {invoices.length === 0 ? (
+              <div className="text-center py-8">
+                <AlertCircle size={48} className="mx-auto text-yellow-500 mb-4" />
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Invoices Found</h4>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  You need to create an invoice before you can record a payment.
+                  Payments must be linked to a specific invoice.
+                </p>
+                <div className="flex justify-center gap-3">
+                  <Button variant="OUTLINE" onClick={() => setShowPaymentModal(false)}>Close</Button>
+                  <Button onClick={() => {
+                    setShowPaymentModal(false);
+                    navigate(`/invoices/new?entityType=${entityType}&entityId=${entityId}`);
+                  }}>
+                    Create Invoice
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Amount</label>
+                    <input
+                      type="number"
+                      value={paymentForm.amount}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Currency</label>
+                    <input
+                      type="text"
+                      value={paymentForm.currency}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, currency: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Method</label>
+                    <select
+                      value={paymentForm.paymentMethod}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    >
+                      <option value="CASH">Cash</option>
+                      <option value="BANK_TRANSFER">Bank Transfer</option>
+                      <option value="CREDIT_CARD">Credit Card</option>
+                      <option value="DEBIT_CARD">Debit Card</option>
+                      <option value="PAYPAL">PayPal</option>
+                      <option value="STRIPE">Stripe</option>
+                      <option value="RAZORPAY">Razorpay</option>
+                      <option value="UPI">UPI</option>
+                      <option value="CHEQUE">Cheque</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Payment Date</label>
+                    <input
+                      type="date"
+                      value={paymentForm.paymentDate}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Reference</label>
+                    <input
+                      type="text"
+                      value={paymentForm.reference}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="Transaction ID, cheque no, etc."
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Notes</label>
+                    <textarea
+                      rows={3}
+                      value={paymentForm.notes}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                      placeholder="Optional notes"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Invoice Number <span className="text-red-500">*</span></label>
+                    <select
+                      value={paymentForm.invoiceId}
+                      onChange={(e) => {
+                        const invoiceId = e.target.value;
+                        setPaymentForm({ ...paymentForm, invoiceId });
+                        const inv = invoices.find(i => String(i.id) === invoiceId);
+                        if (inv && inv.dueAmount > 0 && (!paymentForm.amount || Number(paymentForm.amount) <= 0)) {
+                          setPaymentForm(prev => ({ ...prev, amount: String(inv.dueAmount) }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    >
+                      <option value="">-- Select invoice --</option>
+                      {invoices
+                        .filter(inv => (inv.dueAmount ?? Math.max(inv.totalAmount - (inv.paidAmount || 0), 0)) > 0)
+                        .map((inv) => (
+                          <option key={String(inv.id)} value={String(inv.id)}>
+                            {inv.invoiceNumber} • Due {formatCurrency(inv.dueAmount ?? Math.max(inv.totalAmount - (inv.paidAmount || 0), 0), inv.currency)}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex items-center gap-3 justify-end">
+                  <Button
+                    variant="OUTLINE"
+                    onClick={() => setShowPaymentModal(false)}
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        if (!paymentForm.invoiceId) {
+                          toast.error('Please select an invoice number');
+                          return;
+                        }
+                        if (!paymentForm.amount || Number(paymentForm.amount) <= 0) {
+                          toast.error('Enter a valid amount');
+                          return;
+                        }
+                        setIsSavingPayment(true);
+                        const payload: any = {
+                          amount: Number(paymentForm.amount),
+                          currency: paymentForm.currency,
+                          paymentMethod: paymentForm.paymentMethod,
+                          paymentDate: new Date(paymentForm.paymentDate).toISOString(),
+                          reference: paymentForm.reference || undefined,
+                          notes: paymentForm.notes || undefined,
+                          entityType,
+                          entityId: Number(entityId),
+                          invoiceId: Number(paymentForm.invoiceId)
+                        };
+                        if (entityType === 'deal') payload.dealId = Number(entityId);
+                        if (entityType === 'lead') payload.leadId = Number(entityId);
+
+                        const res = await apiClient.post('/payments', payload);
+                        const created = res?.data?.data?.payment || res?.data?.payment || res?.data;
+                        if (created) {
+                          setPayments(prev => [{
+                            id: String(created.id || Date.now()),
+                            paymentNumber: created.paymentNumber || `PMT-${created.id || Date.now()}`,
+                            amount: Number(created.amount),
+                            currency: created.currency || paymentForm.currency,
+                            paymentMethod: created.paymentMethod || paymentForm.paymentMethod,
+                            paymentDate: created.paymentDate || new Date().toISOString(),
+                            status: created.status || 'COMPLETED',
+                            reference: created.reference,
+                            notes: created.notes,
+                            receiptUrl: created.receiptUrl,
+                            createdBy: created.createdBy || { id: String(user?.id || '0'), firstName: user?.firstName || '', lastName: user?.lastName || '' },
+                            createdAt: created.createdAt || new Date().toISOString(),
+                          }, ...prev]);
+                          toast.success('Payment recorded');
+                          onPaymentSaved?.();
+                          setShowPaymentModal(false);
+                          setPaymentForm({ amount: '', currency: displayCurrency, paymentMethod: 'CASH', paymentDate: new Date().toISOString().slice(0, 10), reference: '', notes: '', invoiceId: '' });
+                        }
+                      } catch (e: any) {
+                        toast.error(e?.response?.data?.message || 'Failed to record payment');
+                      } finally {
+                        setIsSavingPayment(false);
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    disabled={isSavingPayment}
+                    className="bg-weconnect-red hover:bg-red-600 text-white"
                   >
-                    <option value="">-- Select invoice --</option>
-                    {invoices
-                      .filter(inv => (inv.dueAmount ?? Math.max(inv.totalAmount - (inv.paidAmount || 0), 0)) > 0)
-                      .map((inv) => (
-                        <option key={String(inv.id)} value={String(inv.id)}>
-                          {inv.invoiceNumber} • Due {formatCurrency(inv.dueAmount ?? Math.max(inv.totalAmount - (inv.paidAmount || 0), 0), inv.currency)}
-                        </option>
-                      ))}
-                  </select>
+                    {isSavingPayment ? 'Saving...' : 'Save Payment'}
+                  </Button>
                 </div>
-              )}
-            </div>
-
-            <div className="mt-6 flex items-center gap-3 justify-end">
-              <Button
-                onClick={async () => {
-                  try {
-                    if (invoices.length > 0 && !paymentForm.invoiceId) {
-                      toast.error('Please select an invoice number');
-                      return;
-                    }
-                    if (!paymentForm.amount || Number(paymentForm.amount) <= 0) {
-                      toast.error('Enter a valid amount');
-                      return;
-                    }
-                    setIsSavingPayment(true);
-                    const payload: any = {
-                      amount: Number(paymentForm.amount),
-                      currency: paymentForm.currency,
-                      paymentMethod: paymentForm.paymentMethod,
-                      paymentDate: new Date(paymentForm.paymentDate).toISOString(),
-                      reference: paymentForm.reference || undefined,
-                      notes: paymentForm.notes || undefined,
-                      entityType,
-                      entityId: Number(entityId),
-                    };
-                    if (entityType === 'deal') payload.dealId = Number(entityId);
-                    if (entityType === 'lead') payload.leadId = Number(entityId);
-                    if (paymentForm.invoiceId) payload.invoiceId = Number(paymentForm.invoiceId);
-                    const res = await apiClient.post('/payments', payload);
-                    const created = res?.data?.data?.payment || res?.data?.payment || res?.data;
-                    if (created) {
-                      setPayments(prev => [{
-                        id: String(created.id || Date.now()),
-                        paymentNumber: created.paymentNumber || `PMT-${created.id || Date.now()}`,
-                        amount: Number(created.amount),
-                        currency: created.currency || paymentForm.currency,
-                        paymentMethod: created.paymentMethod || paymentForm.paymentMethod,
-                        paymentDate: created.paymentDate || new Date().toISOString(),
-                        status: created.status || 'COMPLETED',
-                        reference: created.reference,
-                        notes: created.notes,
-                        receiptUrl: created.receiptUrl,
-                        createdBy: created.createdBy || { id: String(user?.id || '0'), firstName: user?.firstName || '', lastName: user?.lastName || '' },
-                        createdAt: created.createdAt || new Date().toISOString(),
-                      }, ...prev]);
-                      toast.success('Payment recorded');
-                      setShowPaymentModal(false);
-                      setPaymentForm({ amount: '', currency: displayCurrency, paymentMethod: 'CASH', paymentDate: new Date().toISOString().slice(0, 10), reference: '', notes: '', invoiceId: '' });
-                    }
-                  } catch (e: any) {
-                    toast.error(e?.response?.data?.message || 'Failed to record payment');
-                  } finally {
-                    setIsSavingPayment(false);
-                  }
-                }}
-                disabled={isSavingPayment}
-                className="bg-weconnect-red hover:bg-red-600"
-              >
-                {isSavingPayment ? 'Saving...' : 'Save Payment'}
-              </Button>
-              <Button variant="OUTLINE" onClick={() => setShowPaymentModal(false)}>Cancel</Button>
-            </div>
+              </>
+            )}
           </div>
         </div>
       )}

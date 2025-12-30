@@ -4,13 +4,14 @@ import {
     Clock,
     AlertTriangle,
     ArrowLeft,
-    Filter,
     Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button } from '../../components/ui';
 import { Pagination } from '../../components/ui/Pagination';
 import analyticsService from '../../services/analyticsService';
+import HorizontalFilters, { FilterField } from '../../components/reports/HorizontalFilters';
+import { userService } from '../../services/userService';
 import {
     LineChart,
     Line,
@@ -33,6 +34,55 @@ const TaskReportPage: React.FC = () => {
     const [itemsPerPage, setItemsPerPage] = React.useState(10);
     const [loading, setLoading] = React.useState(true);
     const [reportData, setReportData] = React.useState<any>(null);
+    const [filters, setFilters] = React.useState<any>({
+        search: '',
+        status: '',
+        priority: '',
+        assignedTo: ''
+    });
+    const [filterFields, setFilterFields] = React.useState<FilterField[]>([
+        { key: 'search', label: 'Search', type: 'text', placeholder: 'Search tasks...' },
+        {
+            key: 'status', label: 'Status', type: 'select', options: [
+                { label: 'Pending', value: 'PENDING' },
+                { label: 'In Progress', value: 'IN_PROGRESS' },
+                { label: 'Completed', value: 'COMPLETED' },
+                { label: 'Cancelled', value: 'CANCELLED' }
+            ]
+        },
+        {
+            key: 'priority', label: 'Priority', type: 'select', options: [
+                { label: 'Low', value: 'LOW' },
+                { label: 'Medium', value: 'MEDIUM' },
+                { label: 'High', value: 'HIGH' },
+                { label: 'Urgent', value: 'URGENT' }
+            ]
+        },
+        { key: 'assignedTo', label: 'Assigned To', type: 'select', options: [] },
+    ]);
+
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    React.useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const usersRes = await userService.getUsers();
+                if (usersRes.success) {
+                    const updatedFields = [...filterFields];
+                    const userField = updatedFields.find(f => f.key === 'assignedTo');
+                    if (userField) {
+                        userField.options = usersRes.data.map((u: any) => ({ label: `${u.firstName} ${u.lastName}`, value: u.id }));
+                        setFilterFields(updatedFields);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching users for filters:', error);
+            }
+        };
+        fetchMetadata();
+    }, []);
 
     React.useEffect(() => {
         const fetchReportData = async () => {
@@ -43,7 +93,8 @@ const TaskReportPage: React.FC = () => {
                     undefined,
                     'all',
                     currentPage,
-                    itemsPerPage
+                    itemsPerPage,
+                    filters
                 );
                 if (response.success) {
                     setReportData(response.data);
@@ -56,7 +107,7 @@ const TaskReportPage: React.FC = () => {
         };
 
         fetchReportData();
-    }, [currentPage, itemsPerPage]);
+    }, [currentPage, itemsPerPage, filters]);
 
     const stats = [
         {
@@ -153,14 +204,19 @@ const TaskReportPage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button variant="OUTLINE" className="flex items-center gap-2">
-                        <Filter className="w-4 h-4" /> Filter
-                    </Button>
                     <Button variant="PRIMARY" className="flex items-center gap-2">
                         <Download className="w-4 h-4" /> Export PDF
                     </Button>
                 </div>
             </div>
+
+            <HorizontalFilters
+                fields={filterFields}
+                values={filters}
+                onChange={handleFilterChange}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (

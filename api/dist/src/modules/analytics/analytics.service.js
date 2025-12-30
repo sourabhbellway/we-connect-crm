@@ -57,6 +57,41 @@ let AnalyticsService = class AnalyticsService {
             currency: currency.code,
         }).format(amount);
     }
+    buildDynamicFilters(filters) {
+        if (!filters || typeof filters !== 'object')
+            return {};
+        const prismaFilters = {};
+        for (const [key, value] of Object.entries(filters)) {
+            if (value === undefined || value === null || value === '')
+                continue;
+            if (Array.isArray(value)) {
+                if (value.length > 0) {
+                    prismaFilters[key] = { in: value };
+                }
+            }
+            else if (typeof value === 'object') {
+                prismaFilters[key] = value;
+            }
+            else if (typeof value === 'string') {
+                if (value.includes('*')) {
+                    prismaFilters[key] = { contains: value.replace(/\*/g, ''), mode: 'insensitive' };
+                }
+                else if (value === 'true' || value === 'false') {
+                    prismaFilters[key] = value === 'true';
+                }
+                else if (!isNaN(Number(value)) && key.toLowerCase().includes('id')) {
+                    prismaFilters[key] = Number(value);
+                }
+                else {
+                    prismaFilters[key] = value;
+                }
+            }
+            else {
+                prismaFilters[key] = value;
+            }
+        }
+        return prismaFilters;
+    }
     async kpis(startDate, endDate, userId, includeTeamData = false, currentUser) {
         const dateFilter = {};
         if (startDate)
@@ -594,7 +629,7 @@ let AnalyticsService = class AnalyticsService {
         data.sort((a, b) => b.total - a.total);
         return { success: true, data };
     }
-    async getTaskReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10) {
+    async getTaskReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
         const endDate = new Date();
         const startDate = new Date();
@@ -606,6 +641,10 @@ let AnalyticsService = class AnalyticsService {
         };
         if (authorizedUserIds !== null) {
             taskWhereBase.assignedTo = { in: authorizedUserIds };
+        }
+        if (filters) {
+            const dynamicFilters = this.buildDynamicFilters(filters);
+            Object.assign(taskWhereBase, dynamicFilters);
         }
         const [totalTasks, completedTasks, overdueTasks] = await Promise.all([
             this.prisma.task.count({ where: taskWhereBase }),
@@ -736,7 +775,7 @@ let AnalyticsService = class AnalyticsService {
             }
         };
     }
-    async getLeadReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10) {
+    async getLeadReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
         const endDate = new Date();
         const startDate = new Date();
@@ -757,6 +796,10 @@ let AnalyticsService = class AnalyticsService {
         if (authorizedUserIds !== null) {
             leadWhereBase.assignedTo = { in: authorizedUserIds };
             prevLeadWhereBase.assignedTo = { in: authorizedUserIds };
+        }
+        if (filters) {
+            const dynamicFilters = this.buildDynamicFilters(filters);
+            Object.assign(leadWhereBase, dynamicFilters);
         }
         const [totalLeads, convertedLeads, leadsWithResponse, prevTotalLeads, prevConvertedLeads, prevLeadsWithResponse] = await Promise.all([
             this.prisma.lead.count({ where: leadWhereBase }),
@@ -874,7 +917,7 @@ let AnalyticsService = class AnalyticsService {
             }
         };
     }
-    async getDealReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10) {
+    async getDealReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
         const endDate = new Date();
         const startDate = new Date();
@@ -886,6 +929,10 @@ let AnalyticsService = class AnalyticsService {
         };
         if (authorizedUserIds !== null) {
             dealWhereBase.assignedTo = { in: authorizedUserIds };
+        }
+        if (filters) {
+            const dynamicFilters = this.buildDynamicFilters(filters);
+            Object.assign(dealWhereBase, dynamicFilters);
         }
         const [totalDeals, wonDeals, lostDeals, allDealsInRange] = await Promise.all([
             this.prisma.deal.count({ where: dealWhereBase }),
@@ -981,7 +1028,7 @@ let AnalyticsService = class AnalyticsService {
             }
         };
     }
-    async getExpenseReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10) {
+    async getExpenseReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
         const endDate = new Date();
         const startDate = new Date();
@@ -993,6 +1040,10 @@ let AnalyticsService = class AnalyticsService {
         };
         if (authorizedUserIds !== null) {
             expenseWhereBase.submittedBy = { in: authorizedUserIds };
+        }
+        if (filters) {
+            const dynamicFilters = this.buildDynamicFilters(filters);
+            Object.assign(expenseWhereBase, dynamicFilters);
         }
         const { currencies, defaultCurrency } = await this.getCurrencyData();
         const allExpensesInRange = await this.prisma.expense.findMany({
@@ -1114,7 +1165,7 @@ let AnalyticsService = class AnalyticsService {
             }
         };
     }
-    async getInvoiceReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10) {
+    async getInvoiceReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
         const endDate = new Date();
         const startDate = new Date();
@@ -1125,6 +1176,10 @@ let AnalyticsService = class AnalyticsService {
         };
         if (authorizedUserIds !== null) {
             invoiceWhereBase.createdBy = { in: authorizedUserIds };
+        }
+        if (filters) {
+            const dynamicFilters = this.buildDynamicFilters(filters);
+            Object.assign(invoiceWhereBase, dynamicFilters);
         }
         const { currencies, defaultCurrency } = await this.getCurrencyData();
         const allInvoicesInRange = await this.prisma.invoice.findMany({
@@ -1229,7 +1284,7 @@ let AnalyticsService = class AnalyticsService {
             }
         };
     }
-    async getQuotationReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10) {
+    async getQuotationReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
         const endDate = new Date();
         const startDate = new Date();
@@ -1240,6 +1295,10 @@ let AnalyticsService = class AnalyticsService {
         };
         if (authorizedUserIds !== null) {
             quotationWhereBase.createdBy = { in: authorizedUserIds };
+        }
+        if (filters) {
+            const dynamicFilters = this.buildDynamicFilters(filters);
+            Object.assign(quotationWhereBase, dynamicFilters);
         }
         const { currencies, defaultCurrency } = await this.getCurrencyData();
         const [totalCount, acceptedCount, waitingCount, rejectedCount, allQuotationsInRange] = await Promise.all([

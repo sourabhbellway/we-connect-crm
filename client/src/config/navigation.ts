@@ -1,4 +1,4 @@
-import { CheckSquare, DollarSign, Zap, Package, BarChart3 } from 'lucide-react';
+import { CheckSquare, DollarSign, Zap, Package, BarChart3, History } from 'lucide-react';
 import { PERMISSIONS } from '../constants';
 
 export type NavItem = {
@@ -7,6 +7,7 @@ export type NavItem = {
   href: string;
   icon: any;
   permission?: string;
+  adminOnly?: boolean;
   children?: NavItem[];
 };
 
@@ -90,6 +91,14 @@ export const NAV_EXTRA_ITEMS: NavItem[] = [
     href: '/automation-management',
     icon: Zap,
     permission: PERMISSIONS.AUTOMATION.READ,
+  },
+  {
+    id: 'logs',
+    name: 'Logs',
+    href: '/logs',
+    icon: History,
+    permission: PERMISSIONS.ACTIVITY.READ,
+    adminOnly: true,
   },
   // {
   //   id: 'trash',

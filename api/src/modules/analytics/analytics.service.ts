@@ -60,6 +60,38 @@ export class AnalyticsService {
     }).format(amount);
   }
 
+  private buildDynamicFilters(filters: any) {
+    if (!filters || typeof filters !== 'object') return {};
+
+    const prismaFilters: any = {};
+
+    for (const [key, value] of Object.entries(filters)) {
+      if (value === undefined || value === null || value === '') continue;
+
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          prismaFilters[key] = { in: value };
+        }
+      } else if (typeof value === 'object') {
+        prismaFilters[key] = value;
+      } else if (typeof value === 'string') {
+        if (value.includes('*')) {
+          prismaFilters[key] = { contains: value.replace(/\*/g, ''), mode: 'insensitive' };
+        } else if (value === 'true' || value === 'false') {
+          prismaFilters[key] = value === 'true';
+        } else if (!isNaN(Number(value)) && key.toLowerCase().includes('id')) {
+          prismaFilters[key] = Number(value);
+        } else {
+          prismaFilters[key] = value;
+        }
+      } else {
+        prismaFilters[key] = value;
+      }
+    }
+
+    return prismaFilters;
+  }
+
   async kpis(startDate?: string, endDate?: string, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
     const dateFilter: any = {};
     if (startDate) dateFilter.gte = new Date(startDate);
@@ -717,7 +749,7 @@ export class AnalyticsService {
     return { success: true, data };
   }
 
-  async getTaskReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10) {
+  async getTaskReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
     const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
 
     const endDate = new Date();
@@ -732,6 +764,11 @@ export class AnalyticsService {
 
     if (authorizedUserIds !== null) {
       taskWhereBase.assignedTo = { in: authorizedUserIds };
+    }
+
+    if (filters) {
+      const dynamicFilters = this.buildDynamicFilters(filters);
+      Object.assign(taskWhereBase, dynamicFilters);
     }
 
     // 1. KPIs
@@ -882,7 +919,7 @@ export class AnalyticsService {
     };
   }
 
-  async getLeadReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10) {
+  async getLeadReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
     const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
 
     const endDate = new Date();
@@ -908,6 +945,11 @@ export class AnalyticsService {
     if (authorizedUserIds !== null) {
       leadWhereBase.assignedTo = { in: authorizedUserIds };
       prevLeadWhereBase.assignedTo = { in: authorizedUserIds };
+    }
+
+    if (filters) {
+      const dynamicFilters = this.buildDynamicFilters(filters);
+      Object.assign(leadWhereBase, dynamicFilters);
     }
 
     // 1. KPIs (Current vs Previous)
@@ -1057,7 +1099,7 @@ export class AnalyticsService {
     };
   }
 
-  async getDealReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10) {
+  async getDealReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
     const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
 
     const endDate = new Date();
@@ -1072,6 +1114,11 @@ export class AnalyticsService {
 
     if (authorizedUserIds !== null) {
       dealWhereBase.assignedTo = { in: authorizedUserIds };
+    }
+
+    if (filters) {
+      const dynamicFilters = this.buildDynamicFilters(filters);
+      Object.assign(dealWhereBase, dynamicFilters);
     }
 
     // 1. KPIs
@@ -1182,7 +1229,7 @@ export class AnalyticsService {
     };
   }
 
-  async getExpenseReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10) {
+  async getExpenseReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
     const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
 
     const endDate = new Date();
@@ -1197,6 +1244,11 @@ export class AnalyticsService {
 
     if (authorizedUserIds !== null) {
       expenseWhereBase.submittedBy = { in: authorizedUserIds };
+    }
+
+    if (filters) {
+      const dynamicFilters = this.buildDynamicFilters(filters);
+      Object.assign(expenseWhereBase, dynamicFilters);
     }
 
     const { currencies, defaultCurrency } = await this.getCurrencyData();
@@ -1335,7 +1387,7 @@ export class AnalyticsService {
     };
   }
 
-  async getInvoiceReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10) {
+  async getInvoiceReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
     const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
 
     const endDate = new Date();
@@ -1349,6 +1401,11 @@ export class AnalyticsService {
 
     if (authorizedUserIds !== null) {
       invoiceWhereBase.createdBy = { in: authorizedUserIds };
+    }
+
+    if (filters) {
+      const dynamicFilters = this.buildDynamicFilters(filters);
+      Object.assign(invoiceWhereBase, dynamicFilters);
     }
 
     const { currencies, defaultCurrency } = await this.getCurrencyData();
@@ -1472,7 +1529,7 @@ export class AnalyticsService {
     };
   }
 
-  async getQuotationReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10) {
+  async getQuotationReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
     const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
 
     const endDate = new Date();
@@ -1486,6 +1543,11 @@ export class AnalyticsService {
 
     if (authorizedUserIds !== null) {
       quotationWhereBase.createdBy = { in: authorizedUserIds };
+    }
+
+    if (filters) {
+      const dynamicFilters = this.buildDynamicFilters(filters);
+      Object.assign(quotationWhereBase, dynamicFilters);
     }
 
     const { currencies, defaultCurrency } = await this.getCurrencyData();

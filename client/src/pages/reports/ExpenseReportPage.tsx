@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    PieChart,
+    PieChart as PieChartIcon,
     Briefcase,
     AlertTriangle,
     ArrowLeft,
     Download,
     TrendingUp,
-    BarChart3
+    BarChart3,
+    Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button } from '../../components/ui';
 import { Pagination } from '../../components/ui/Pagination';
 import { analyticsService } from '../../services/analyticsService';
-import { Loader2 } from 'lucide-react';
+import HorizontalFilters, { FilterField } from '../../components/reports/HorizontalFilters';
+import { userService } from '../../services/userService';
 import {
     BarChart,
     Bar,
@@ -30,13 +32,75 @@ import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 
 const ExpenseReportPage: React.FC = () => {
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage] = React.useState(1);
-    const [itemsPerPage, setItemsPerPage] = React.useState(10);
-    const [loading, setLoading] = React.useState(true);
-    const [reportData, setReportData] = React.useState<any>(null);
-    const [dateRange, setDateRange] = React.useState('6months');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [loading, setLoading] = useState(true);
+    const [reportData, setReportData] = useState<any>(null);
+    const [dateRange, setDateRange] = useState('6months');
+    const [filters, setFilters] = useState<any>({
+        search: '',
+        category: '',
+        type: '',
+        status: '',
+        submittedBy: ''
+    });
+    const [filterFields, setFilterFields] = useState<FilterField[]>([
+        { key: 'search', label: 'Search', type: 'text', placeholder: 'Search expenses...' },
+        {
+            key: 'status', label: 'Status', type: 'select', options: [
+                { label: 'Pending', value: 'PENDING' },
+                { label: 'Approved', value: 'APPROVED' },
+                { label: 'Rejected', value: 'REJECTED' },
+                { label: 'Reimbursed', value: 'REIMBURSED' }
+            ]
+        },
+        {
+            key: 'type', label: 'Type', type: 'select', options: [
+                { label: 'Travel', value: 'TRAVEL' },
+                { label: 'Meals', value: 'MEALS' },
+                { label: 'Accommodation', value: 'ACCOMMODATION' },
+                { label: 'Office Supplies', value: 'OFFICE_SUPPLIES' },
+                { label: 'Utilities', value: 'UTILITIES' },
+                { label: 'Marketing', value: 'MARKETING' },
+                { label: 'Entertainment', value: 'ENTERTAINMENT' },
+                { label: 'Training', value: 'TRAINING' },
+                { label: 'Equipment', value: 'EQUIPMENT' },
+                { label: 'Software', value: 'SOFTWARE' },
+                { label: 'Consulting', value: 'CONSULTING' },
+                { label: 'Miscellaneous', value: 'MISCELLANEOUS' },
+                { label: 'Other', value: 'OTHER' }
+            ]
+        },
+        { key: 'category', label: 'Category', type: 'text', placeholder: 'Category...' },
+        { key: 'submittedBy', label: 'Submitted By', type: 'select', options: [] },
+    ]);
 
-    React.useEffect(() => {
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    const { formatCurrency } = useBusinessSettings();
+
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const usersRes = await userService.getUsers();
+                if (usersRes.success) {
+                    const updatedFields = [...filterFields];
+                    const userField = updatedFields.find(f => f.key === 'submittedBy');
+                    if (userField) {
+                        userField.options = usersRes.data.map((u: any) => ({ label: `${u.firstName} ${u.lastName}`, value: u.id }));
+                        setFilterFields(updatedFields);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching users for filters:', error);
+            }
+        };
+        fetchMetadata();
+    }, []);
+
+    useEffect(() => {
         const fetchReportData = async () => {
             try {
                 setLoading(true);
@@ -45,7 +109,8 @@ const ExpenseReportPage: React.FC = () => {
                     undefined,
                     'all',
                     currentPage,
-                    itemsPerPage
+                    itemsPerPage,
+                    filters
                 );
                 if (response.success) {
                     setReportData(response.data);
@@ -58,20 +123,20 @@ const ExpenseReportPage: React.FC = () => {
         };
 
         fetchReportData();
-    }, [dateRange, currentPage, itemsPerPage]);
+    }, [dateRange, currentPage, itemsPerPage, filters]);
 
     const stats = [
         {
             label: 'Total Expenses',
             value: reportData?.stats?.totalAmount || '0',
-            icon: PieChart, // Changed from IndianRupee as that's hardcoded
+            icon: PieChartIcon,
             color: 'text-red-500',
             bg: 'bg-red-50'
         },
         {
             label: 'Approved',
             value: reportData?.stats?.approvedAmount || '0',
-            icon: PieChart,
+            icon: PieChartIcon,
             color: 'text-green-500',
             bg: 'bg-green-50'
         },
@@ -91,7 +156,16 @@ const ExpenseReportPage: React.FC = () => {
         },
     ];
 
-    // Custom tooltip for charts
+    const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+
+    if (loading) {
+        return (
+            <div className="p-6 flex items-center justify-center min-h-[400px]">
+                <Loader2 className="animate-spin h-10 w-10 text-indigo-600" />
+            </div>
+        );
+    }
+
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
@@ -111,7 +185,6 @@ const ExpenseReportPage: React.FC = () => {
         return null;
     };
 
-    // Custom label for pie chart
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
         const RADIAN = Math.PI / 180;
         const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -132,18 +205,6 @@ const ExpenseReportPage: React.FC = () => {
         );
     };
 
-    const { formatCurrency } = useBusinessSettings();
-
-    const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
-
-    if (loading) {
-        return (
-            <div className="p-6 flex items-center justify-center min-h-[400px]">
-                <Loader2 className="animate-spin h-10 w-10 text-indigo-600" />
-            </div>
-        );
-    }
-
     return (
         <div className="p-4 sm:p-6 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -162,20 +223,33 @@ const ExpenseReportPage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <select
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="3months">Last 3 Months</option>
-                        <option value="6months">Last 6 Months</option>
-                        <option value="12months">Last 12 Months</option>
-                    </select>
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-1">
+                        {['3months', '6months', '12months'].map((range) => (
+                            <button
+                                key={range}
+                                onClick={() => setDateRange(range)}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateRange === range
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                    }`}
+                            >
+                                {range === '3months' ? '3M' : range === '6months' ? '6M' : '1Y'}
+                            </button>
+                        ))}
+                    </div>
                     <Button variant="PRIMARY" className="flex items-center gap-2">
                         <Download className="w-4 h-4" /> Export
                     </Button>
                 </div>
             </div>
+
+            <HorizontalFilters
+                fields={filterFields}
+                values={filters}
+                onChange={handleFilterChange}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (

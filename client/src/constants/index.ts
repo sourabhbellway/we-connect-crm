@@ -181,6 +181,9 @@ export const PERMISSIONS = {
     REVENUE_METRICS: 'dashboard.revenue_metrics',
     ACTIVITY_ENGAGEMENT: 'dashboard.activity_engagement',
   },
+  CALL_LOG: {
+    READ: 'call_log.read',
+  },
 } as const;
 
 // Lead Statuses

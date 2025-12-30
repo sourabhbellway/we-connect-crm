@@ -43,12 +43,14 @@ export class ActivitiesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('type') type?: string,
+    @Query('userId') userId?: string,
     @User() user?: any,
   ) {
     return this.service.list({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
       type,
+      userId: userId ? parseInt(userId) : undefined,
     }, user);
   }
 

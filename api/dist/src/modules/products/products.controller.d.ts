@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -137,5 +138,28 @@ export declare class ProductsController {
     remove(id: string): Promise<{
         success: boolean;
         message: string;
+    }>;
+    bulkDelete(dto: {
+        ids: number[];
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    bulkExport(res: Response, search?: string): Promise<void>;
+    bulkImport(file: Express.Multer.File): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            imported: number;
+            failed: number;
+            errors: {
+                row: number;
+                error: string;
+            }[];
+        };
+    } | {
+        success: boolean;
+        message: any;
+        data?: undefined;
     }>;
 }

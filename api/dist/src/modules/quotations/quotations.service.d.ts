@@ -520,11 +520,11 @@ export declare class QuotationsService {
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
+                    invoiceId: number;
                     productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
-                    invoiceId: number;
                 }[];
             } & {
                 createdAt: Date;
@@ -555,5 +555,31 @@ export declare class QuotationsService {
             };
         };
         message?: undefined;
+    }>;
+    bulkAssign(dto: {
+        quotationIds: number[];
+        userId: number | null;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    bulkExport(opts?: {
+        search?: string;
+        status?: string;
+    }, user?: any): Promise<string>;
+    bulkImportFromCsv(file: Express.Multer.File, userId?: number): Promise<{
+        success: boolean;
+        data: {
+            imported: number;
+            failed: number;
+            errors: {
+                row: number;
+                error: string;
+            }[];
+            message: string;
+        };
+    } | {
+        success: boolean;
+        message: any;
     }>;
 }

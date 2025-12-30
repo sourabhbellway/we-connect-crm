@@ -1,3 +1,4 @@
+import type { Response } from 'express';
 import { DealsService } from './deals.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { UpdateDealDto } from './dto/update-deal.dto';
@@ -79,4 +80,27 @@ export declare class DealsController {
         success: boolean;
         message: string;
     }>;
+    bulkAssign(dto: {
+        dealIds: number[];
+        userId: number | null;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    bulkImportDeals(file: Express.Multer.File, user?: any): Promise<{
+        success: boolean;
+        data: {
+            imported: number;
+            failed: number;
+            errors: {
+                row: number;
+                error: string;
+            }[];
+            message: string;
+        };
+    } | {
+        success: boolean;
+        message: any;
+    }>;
+    bulkExport(res: Response, search?: string, user?: any): Promise<void>;
 }

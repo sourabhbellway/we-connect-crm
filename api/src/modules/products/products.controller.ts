@@ -10,8 +10,14 @@ import {
   UseGuards,
   HttpException,
   HttpStatus,
+  Res,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -19,7 +25,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 @UseGuards(AuthGuard('jwt'))
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly service: ProductsService) {}
+  constructor(private readonly service: ProductsService) { }
 
   @Get()
   list(
@@ -91,5 +97,35 @@ export class ProductsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
+  }
+
+  @Delete('bulk/delete')
+  async bulkDelete(@Body() dto: { ids: number[] }) {
+    if (!dto.ids || !Array.isArray(dto.ids) || dto.ids.length === 0) {
+      throw new BadRequestException('Product IDs are required');
+    }
+    return this.service.bulkDelete(dto.ids.map(Number));
+  }
+
+  @Get('bulk/export')
+  async bulkExport(
+    @Res() res: Response,
+    @Query('search') search?: string,
+  ) {
+    const csv = await this.service.bulkExport({ search });
+    const filename = `products_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    const bom = '\uFEFF';
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(Buffer.from(bom + csv, 'utf8'));
+  }
+
+  @Post('bulk/import')
+  @UseInterceptors(FileInterceptor('csvFile'))
+  async bulkImport(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('CSV file is required');
+    }
+    return this.service.bulkImportFromCsv(file);
   }
 }

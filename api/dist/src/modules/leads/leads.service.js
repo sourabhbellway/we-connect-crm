@@ -112,7 +112,7 @@ let LeadsService = class LeadsService {
             },
         };
     }
-    async list({ page, limit, status, search, isDeleted, assignedTo, }, user) {
+    async list({ page, limit, status, search, email, isDeleted, assignedTo, }, user) {
         try {
             const pageNum = Math.max(1, Number(page) || 1);
             const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
@@ -139,6 +139,9 @@ let LeadsService = class LeadsService {
             }
             if (status && String(status).trim() !== '') {
                 where.status = String(status).toUpperCase();
+            }
+            if (email && String(email).trim() !== '') {
+                where.email = { contains: String(email).trim(), mode: 'insensitive' };
             }
             if (search && String(search).trim() !== '') {
                 const q = String(search).trim();
@@ -278,10 +281,19 @@ let LeadsService = class LeadsService {
                 source: {
                     select: { id: true, name: true, description: true },
                 },
+                invoices: {
+                    include: {
+                        payments: {
+                            include: { createdByUser: { select: { id: true, firstName: true, lastName: true } } }
+                        }
+                    }
+                },
+                quotations: true,
             },
         });
         if (!leadRow)
             return { success: false, message: 'Lead not found' };
+        const payments = leadRow.invoices?.flatMap((inv) => inv.payments?.map((p) => ({ ...p, invoiceNumber: inv.invoiceNumber })) || []) || [];
         const lead = {
             ...leadRow,
             status: String(leadRow.status || '').toLowerCase(),
@@ -295,6 +307,7 @@ let LeadsService = class LeadsService {
                     color: lt.tag.color,
                 }))
                 : [],
+            payments,
         };
         return { success: true, data: { lead } };
     }
@@ -488,6 +501,20 @@ let LeadsService = class LeadsService {
         }
         catch (error) {
             console.error('Failed to execute automation for LEAD_CREATED:', error);
+        }
+        try {
+            await this.prisma.activity.create({
+                data: {
+                    type: 'LEAD_CREATED',
+                    title: 'New Lead Created',
+                    description: `Lead ${lead.firstName} ${lead.lastName} was created.`,
+                    userId: userId || 1,
+                    leadId: lead.id,
+                }
+            });
+        }
+        catch (error) {
+            console.error('Failed to log lead creation activity:', error);
         }
         if (dto.assignedTo) {
             try {

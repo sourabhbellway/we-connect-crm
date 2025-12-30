@@ -19,11 +19,12 @@ let TeamsService = class TeamsService {
     }
     async create(createTeamDto) {
         const { memberIds, ...rest } = createTeamDto;
+        const filteredMemberIds = memberIds?.filter(id => id !== rest.managerId);
         return this.prisma.team.create({
             data: {
                 ...rest,
-                members: memberIds ? {
-                    connect: memberIds.map((id) => ({ id })),
+                members: filteredMemberIds && filteredMemberIds.length > 0 ? {
+                    connect: filteredMemberIds.map((id) => ({ id })),
                 } : undefined,
             },
             include: {
@@ -57,12 +58,13 @@ let TeamsService = class TeamsService {
     }
     async update(id, updateTeamDto) {
         const { memberIds, ...rest } = updateTeamDto;
+        const filteredMemberIds = memberIds?.filter(mid => mid !== (rest.managerId || undefined));
         return this.prisma.team.update({
             where: { id },
             data: {
                 ...rest,
                 members: memberIds ? {
-                    set: memberIds.map((id) => ({ id })),
+                    set: filteredMemberIds?.map((id) => ({ id })) || [],
                 } : undefined,
             },
             include: {

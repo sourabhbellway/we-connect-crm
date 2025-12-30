@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 import { leadService } from '../../services/leadService';
 import { dealService } from '../../services/dealService';
 import { taxesService, Tax } from '../../services/taxesService';
+import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
+import { getCurrencyByCountry } from '../../utils/countryUtils';
 
 interface QuotationItem {
     description: string;
@@ -22,6 +24,7 @@ interface QuotationItem {
 
 const CreateQuotationPage: React.FC = () => {
     const navigate = useNavigate();
+    const { currencySettings, formatCurrency } = useBusinessSettings();
     const [searchParams] = useSearchParams();
     const { id: editId } = useParams();
     const isEdit = Boolean(editId);
@@ -67,7 +70,7 @@ const CreateQuotationPage: React.FC = () => {
     const [phone, setPhone] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [openTill, setOpenTill] = useState('');
-    const [currency, setCurrency] = useState('USD');
+    const [currency, setCurrency] = useState(currencySettings?.primary || 'USD');
     const [discountType, setDiscountType] = useState('none');
     const [tags, setTags] = useState('');
     const [allowComments, setAllowComments] = useState(true);
@@ -248,6 +251,22 @@ const CreateQuotationPage: React.FC = () => {
         }, 300);
         return () => clearTimeout(debounceTimer);
     }, [searchQuery, relatedType, allLeads]);
+
+    useEffect(() => {
+        if (currencySettings?.primary && !isEdit && (currency === 'USD' || !currency)) {
+            setCurrency(currencySettings.primary);
+        }
+    }, [currencySettings, isEdit]);
+
+    // Auto-select currency when country changes
+    useEffect(() => {
+        if (country) {
+            const newCurrency = getCurrencyByCountry(country);
+            if (newCurrency) {
+                setCurrency(newCurrency);
+            }
+        }
+    }, [country]);
 
     const fetchInitialData = async () => {
         try {
@@ -807,11 +826,21 @@ const CreateQuotationPage: React.FC = () => {
                                     <select
                                         value={currency}
                                         onChange={(e) => setCurrency(e.target.value)}
-                                        className="input-base appearance-none"
+                                        className="input-base cursor-pointer"
+                                        required
                                     >
-                                        <option value="USD">USD $</option>
-                                        <option value="EUR">EUR €</option>
-                                        <option value="GBP">GBP £</option>
+                                        {currencySettings?.supportedCurrencies?.length ? (
+                                            currencySettings.supportedCurrencies.map(code => (
+                                                <option key={code} value={code}>{code}</option>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <option value="USD">USD $</option>
+                                                <option value="INR">INR ₹</option>
+                                                <option value="EUR">EUR €</option>
+                                                <option value="GBP">GBP £</option>
+                                            </>
+                                        )}
                                     </select>
                                 </div>
 
@@ -1105,7 +1134,7 @@ const CreateQuotationPage: React.FC = () => {
                                                         </td>
                                                         <td className="px-4 py-3 text-right">
                                                             <span className="text-sm font-bold text-gray-900 dark:text-white">
-                                                                ${item.amount.toFixed(2)}
+                                                                {formatCurrency(item.amount, currency)}
                                                             </span>
                                                         </td>
                                                         <td className="px-4 py-3 text-center">
@@ -1223,13 +1252,13 @@ const CreateQuotationPage: React.FC = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
-                                            <span className="font-semibold text-gray-900 dark:text-white">${subTotal.toFixed(2)}</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(subTotal, currency)}</span>
                                         </div>
 
                                         {taxAmount > 0 && (
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="text-gray-600 dark:text-gray-400">Total Tax</span>
-                                                <span className="font-semibold text-gray-900 dark:text-white">${taxAmount.toFixed(2)}</span>
+                                                <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(taxAmount, currency)}</span>
                                             </div>
                                         )}
 
@@ -1250,14 +1279,14 @@ const CreateQuotationPage: React.FC = () => {
                                                     className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 >
                                                     <option value="%">%</option>
-                                                    <option value="fixed">$</option>
+                                                    <option value="fixed">{currency}</option>
                                                 </select>
                                             </div>
                                         </div>
 
                                         {discount > 0 && (
                                             <div className="flex items-center justify-end">
-                                                <span className="text-sm text-red-600 dark:text-red-400 font-medium">-${discount.toFixed(2)}</span>
+                                                <span className="text-sm text-red-600 dark:text-red-400 font-medium">-{formatCurrency(discount, currency)}</span>
                                             </div>
                                         )}
 
@@ -1271,13 +1300,13 @@ const CreateQuotationPage: React.FC = () => {
                                                     step="0.01"
                                                     className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
-                                                <span className="text-xs text-gray-500 dark:text-gray-400">$</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">{currency}</span>
                                             </div>
                                         </div>
 
                                         <div className="pt-3 mt-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
                                             <span className="text-base font-semibold text-gray-900 dark:text-white">Total</span>
-                                            <span className="text-2xl font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
+                                            <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(total, currency)}</span>
                                         </div>
                                     </div>
 

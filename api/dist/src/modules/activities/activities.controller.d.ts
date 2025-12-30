@@ -125,10 +125,17 @@ export declare class ActivitiesController {
             };
         };
     }>;
-    list(page?: string, limit?: string, type?: string, user?: any): Promise<{
+    list(page?: string, limit?: string, type?: string, userId?: string, user?: any): Promise<{
         success: boolean;
         data: {
-            items: {
+            items: ({
+                user: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
@@ -142,7 +149,7 @@ export declare class ActivitiesController {
                 icon: string;
                 iconColor: string;
                 superAdminId: number | null;
-            }[];
+            })[];
             total: number;
             page: number;
             limit: number;

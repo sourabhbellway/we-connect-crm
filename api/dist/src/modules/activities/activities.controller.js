@@ -35,11 +35,12 @@ let ActivitiesController = class ActivitiesController {
             limit: limit ? parseInt(limit) : 10,
         });
     }
-    list(page, limit, type, user) {
+    list(page, limit, type, userId, user) {
         return this.service.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             type,
+            userId: userId ? parseInt(userId) : undefined,
         }, user);
     }
     create(dto, user) {
@@ -90,9 +91,10 @@ __decorate([
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('type')),
-    __param(3, (0, user_decorator_1.User)()),
+    __param(3, (0, common_1.Query)('userId')),
+    __param(4, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ActivitiesController.prototype, "list", null);
 __decorate([

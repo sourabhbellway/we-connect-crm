@@ -505,11 +505,11 @@ export declare class QuotationsController {
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
+                    invoiceId: number;
                     productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
-                    invoiceId: number;
                 }[];
             } & {
                 createdAt: Date;

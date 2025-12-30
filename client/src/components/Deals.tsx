@@ -5,6 +5,7 @@ import { useCounts } from '../contexts/CountsContext';
 import { Button } from './ui';
 import { PERMISSIONS } from '../constants';
 import { dealService, Deal } from '../services/dealService';
+import { userService } from '../services/userService';
 import {
   DollarSign,
   Calendar,
@@ -19,7 +20,8 @@ import {
   Paperclip,
   MoreVertical,
   FileDown,
-  FileText,
+  Upload,
+  FileSpreadsheet,
 } from 'lucide-react';
 import SearchInput from './SearchInput';
 import NoResults from './NoResults';
@@ -33,7 +35,7 @@ import { toast } from 'react-toastify';
 import MetaBar from './list/MetaBar';
 import ListToolbar from './list/ListToolbar';
 import TableSortHeader from './list/TableSortHeader';
-import { exportToCsv, exportTableToPrintPdf } from '../utils/exportUtils';
+import { exportToCsv } from '../utils/exportUtils';
 
 // Helper to get stage pill class from its color
 
@@ -61,6 +63,11 @@ const Deals: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
 
   const { hasPermission } = useAuth();
   const { refreshDealsCount } = useCounts();
@@ -99,7 +106,17 @@ const Deals: React.FC = () => {
 
   useEffect(() => {
     fetchDeals();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await userService.getUsers({ limit: 100 });
+      setUsers(response.data.users || []);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -159,6 +176,80 @@ const Deals: React.FC = () => {
     } catch (e) {
       toast.error('Failed to update status');
       setDeals(prev); // revert
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    const headers = ['title', 'description', 'value', 'currency', 'status', 'probability', 'expectedCloseDate'];
+    const rows = [['Sample Deal', 'Sample Description', '1000', 'USD', 'DRAFT', '50', '2023-12-31']];
+    exportToCsv('deals_template.csv', headers, rows);
+    toast.success('Template downloaded');
+  };
+
+  const handleExportDeals = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await dealService.bulkExportDeals(debouncedSearchValue);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `deals_export_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Deals exported successfully');
+    } catch (error) {
+      toast.error('Failed to export deals');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.name.endsWith('.csv')) {
+        toast.error('Please select a CSV file');
+        return;
+      }
+      setImportFile(file);
+    }
+  };
+
+  const handleBulkImport = async () => {
+    if (!importFile) {
+      toast.error('Please select a file');
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const result = await dealService.bulkImportDeals(importFile);
+      if (result.success) {
+        toast.success(result.data?.message || 'Import successful');
+        setShowImportModal(false);
+        setImportFile(null);
+        fetchDeals();
+      } else {
+        toast.error(result.message || 'Import failed');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Import failed');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleBulkAssign = async (userId: string) => {
+    if (!userId) return;
+    const targetUserId = userId === 'unassigned' ? null : parseInt(userId);
+    try {
+      await dealService.bulkAssignDeals(selectedIds, targetUserId);
+      setDeals(prev => prev.map(d => selectedIds.includes(d.id) ? { ...d, assignedTo: targetUserId ?? undefined } : d));
+      setSelectedIds([]);
+      toast.success('Deals assigned successfully');
+    } catch (error) {
+      toast.error('Failed to assign deals');
     }
   };
 
@@ -300,116 +391,20 @@ const Deals: React.FC = () => {
           onAdd={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/leads/new') : undefined}
           bulkActions={[
             {
-              label: 'Export Deals (Excel)',
-              icon: <FileDown className="w-4 h-4" />,
-              onClick: () => {
-                const cols = [
-                  {
-                    id: 'title',
-                    label: 'Title',
-                    value: (deal: Deal) => deal.title || '',
-                  },
-                  {
-                    id: 'value',
-                    label: 'Value',
-                    value: (deal: Deal) => deal.value ?? 0,
-                  },
-                  {
-                    id: 'company',
-                    label: 'Company',
-                    value: (deal: Deal) => deal.companies?.name || (deal.lead as any)?.company || '',
-                  },
-                  {
-                    id: 'contact',
-                    label: 'Contact',
-                    value: (deal: Deal) =>
-                      deal.lead ? `${deal.lead.firstName} ${deal.lead.lastName}` : '',
-                  },
-                  {
-                    id: 'phone',
-                    label: 'Phone',
-                    value: (deal: Deal) => deal.lead?.phone || '',
-                  },
-                  {
-                    id: 'stage',
-                    label: 'Stage',
-                    value: (deal: Deal) => deal.stage || '',
-                  },
-                  {
-                    id: 'status',
-                    label: 'Status',
-                    value: (deal: Deal) => deal.status || '',
-                  },
-                  {
-                    id: 'expectedCloseDate',
-                    label: 'Expected Close',
-                    value: (deal: Deal) =>
-                      deal.expectedCloseDate
-                        ? new Date(deal.expectedCloseDate).toLocaleDateString()
-                        : '',
-                  },
-                ];
-                const activeCols = cols.filter((c) => visibleColumns.includes(c.id));
-                const headers = activeCols.map((c) => c.label);
-                const rows = sorted.map((deal) => activeCols.map((c) => c.value(deal)));
-                exportToCsv('deals_export.csv', headers, rows);
-              },
+              label: 'Download Template',
+              icon: <FileSpreadsheet className="w-4 h-4" />,
+              onClick: handleDownloadTemplate,
             },
             {
-              label: 'Export Deals (PDF)',
-              icon: <FileText className="w-4 h-4" />,
-              onClick: () => {
-                const cols = [
-                  {
-                    id: 'title',
-                    label: 'Title',
-                    value: (deal: Deal) => deal.title || '',
-                  },
-                  {
-                    id: 'value',
-                    label: 'Value',
-                    value: (deal: Deal) => deal.value ?? 0,
-                  },
-                  {
-                    id: 'company',
-                    label: 'Company',
-                    value: (deal: Deal) => deal.companies?.name || (deal.lead as any)?.company || '',
-                  },
-                  {
-                    id: 'contact',
-                    label: 'Contact',
-                    value: (deal: Deal) =>
-                      deal.lead ? `${deal.lead.firstName} ${deal.lead.lastName}` : '',
-                  },
-                  {
-                    id: 'phone',
-                    label: 'Phone',
-                    value: (deal: Deal) => deal.lead?.phone || '',
-                  },
-                  {
-                    id: 'stage',
-                    label: 'Stage',
-                    value: (deal: Deal) => deal.stage || '',
-                  },
-                  {
-                    id: 'status',
-                    label: 'Status',
-                    value: (deal: Deal) => deal.status || '',
-                  },
-                  {
-                    id: 'expectedCloseDate',
-                    label: 'Expected Close',
-                    value: (deal: Deal) =>
-                      deal.expectedCloseDate
-                        ? new Date(deal.expectedCloseDate).toLocaleDateString()
-                        : '',
-                  },
-                ];
-                const activeCols = cols.filter((c) => visibleColumns.includes(c.id));
-                const headers = activeCols.map((c) => c.label);
-                const rows = sorted.map((deal) => activeCols.map((c) => c.value(deal)));
-                exportTableToPrintPdf('Deals', headers, rows);
-              },
+              label: 'Import Deals',
+              icon: <Upload className="w-4 h-4" />,
+              onClick: () => setShowImportModal(true),
+            },
+            {
+              label: 'Export Deals (CSV)',
+              icon: <FileDown className="w-4 h-4" />,
+              onClick: handleExportDeals,
+              disabled: isExporting,
             },
           ]}
         />
@@ -772,6 +767,15 @@ const Deals: React.FC = () => {
                     }}
                     options={stages.map(s => ({ value: s.name, label: s.name }))}
                   />
+                  <DropdownFilter
+                    label="Assign to"
+                    value={''}
+                    onChange={(v) => handleBulkAssign(v as string)}
+                    options={[
+                      { value: 'unassigned', label: 'Unassigned' },
+                      ...users.map(u => ({ value: String(u.id), label: `${u.firstName} ${u.lastName}` }))
+                    ]}
+                  />
                   {hasPermission(PERMISSIONS.DEAL.DELETE) && (
                     <Button
                       variant="DESTRUCTIVE"
@@ -994,6 +998,91 @@ const Deals: React.FC = () => {
           showClearButton={!!searchValue}
           onClear={() => setSearch('')}
         />
+      )}
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Import Deals</h3>
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
+              >
+                <div className="h-6 w-6 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <span className="text-xl">×</span>
+                </div>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <p>Upload a CSV file with your deals data. Make sure it contains at least <strong>title</strong> and <strong>value</strong> columns.</p>
+                <button
+                  onClick={handleDownloadTemplate}
+                  className="mt-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 font-medium"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  Download CSV Template
+                </button>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select CSV File
+                </label>
+                <div
+                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${importFile
+                    ? 'border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/10'
+                    : 'border-gray-300 hover:border-blue-400 dark:border-gray-600'
+                    }`}
+                >
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleImportFile}
+                    className="hidden"
+                    id="deal-import-input"
+                  />
+                  <label htmlFor="deal-import-input" className="cursor-pointer group">
+                    <Upload className={`mx-auto h-12 w-12 mb-3 transition-colors ${importFile ? 'text-green-500' : 'text-gray-400 group-hover:text-blue-500'}`} />
+                    <span className="mt-2 block text-sm font-medium text-gray-900 dark:text-white">
+                      {importFile ? importFile.name : 'Click to upload or drag and drop'}
+                    </span>
+                    <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                      CSV files only (max. 10MB)
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 dark:bg-gray-800/50 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkImport}
+                disabled={!importFile || isImporting}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-sm shadow-blue-200 dark:shadow-none disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isImporting ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Importing...
+                  </>
+                ) : (
+                  'Import Deals'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

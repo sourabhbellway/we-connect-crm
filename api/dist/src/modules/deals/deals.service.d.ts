@@ -87,4 +87,29 @@ export declare class DealsService {
         success: boolean;
         message: string;
     }>;
+    bulkAssign(dto: {
+        dealIds: number[];
+        userId: number | null;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    bulkImportFromCsv(file: Express.Multer.File, userId?: number): Promise<{
+        success: boolean;
+        data: {
+            imported: number;
+            failed: number;
+            errors: {
+                row: number;
+                error: string;
+            }[];
+            message: string;
+        };
+    } | {
+        success: boolean;
+        message: any;
+    }>;
+    bulkExport(opts?: {
+        search?: string;
+    }, user?: any): Promise<string>;
 }

@@ -31,13 +31,14 @@ let LeadsController = class LeadsController {
     getStats() {
         return this.leads.getStats();
     }
-    list(page, limit, status, search, isDeleted, assignedTo, user) {
+    list(page, limit, status, search, email, isDeleted, assignedTo, user) {
         const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
         return this.leads.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             status,
             search,
+            email,
             isDeleted: isDeletedBool,
             assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
         }, user);
@@ -103,11 +104,12 @@ __decorate([
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('status')),
     __param(3, (0, common_1.Query)('search')),
-    __param(4, (0, common_1.Query)('isDeleted')),
-    __param(5, (0, common_1.Query)('assignedTo')),
-    __param(6, (0, user_decorator_1.User)()),
+    __param(4, (0, common_1.Query)('email')),
+    __param(5, (0, common_1.Query)('isDeleted')),
+    __param(6, (0, common_1.Query)('assignedTo')),
+    __param(7, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "list", null);
 __decorate([

@@ -152,8 +152,14 @@ export class TasksService {
       data: {
         title: dto.title,
         description: dto.description ?? null,
-        status: (dto.status as any) ?? 'PENDING',
-        priority: (dto.priority as any) ?? 'MEDIUM',
+        // Sanitize status - default to PENDING if invalid or empty
+        status: (['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'MEDIUM'].includes((dto.status || '').toUpperCase())
+          ? (dto.status!.toUpperCase() as any)
+          : 'PENDING'),
+        // Sanitize priority - default to MEDIUM if invalid or empty
+        priority: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes((dto.priority || '').toUpperCase())
+          ? (dto.priority!.toUpperCase() as any)
+          : 'MEDIUM'),
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         assignedTo: dto.assignedTo ?? null,
         createdBy: dto.createdBy,

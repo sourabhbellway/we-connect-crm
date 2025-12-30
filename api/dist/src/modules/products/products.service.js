@@ -208,10 +208,148 @@ let ProductsService = class ProductsService {
         });
         return { success: true, message: 'Product deleted' };
     }
+    async bulkExport(opts = {}) {
+        const where = { deletedAt: null };
+        if (opts.search) {
+            const q = opts.search.trim();
+            where.OR = [
+                { name: { contains: q, mode: 'insensitive' } },
+                { sku: { contains: q, mode: 'insensitive' } },
+                { category: { contains: q, mode: 'insensitive' } },
+            ];
+        }
+        const products = await this.prisma.product.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+        });
+        const headers = [
+            'name',
+            'sku',
+            'type',
+            'category',
+            'price',
+            'cost',
+            'currency',
+            'unit',
+            'taxRate',
+            'stockQuantity',
+            'minStockLevel',
+            'isActive',
+        ];
+        const rows = [headers.join(',')];
+        for (const p of products) {
+            const row = [
+                escapeCsv(p.name),
+                escapeCsv(p.sku || ''),
+                escapeCsv(p.type),
+                escapeCsv(p.category || ''),
+                escapeCsv(Number(p.price)),
+                escapeCsv(p.cost ? Number(p.cost) : ''),
+                escapeCsv(p.currency),
+                escapeCsv(p.unit || ''),
+                escapeCsv(p.taxRate ? Number(p.taxRate) : ''),
+                escapeCsv(p.stockQuantity || 0),
+                escapeCsv(p.minStockLevel || 0),
+                escapeCsv(p.isActive ? 'YES' : 'NO'),
+            ];
+            rows.push(row.join(','));
+        }
+        return rows.join('\r\n');
+    }
+    async bulkImportFromCsv(file) {
+        try {
+            if (!file || !file.buffer) {
+                return { success: false, message: 'Invalid file' };
+            }
+            const csvContent = file.buffer.toString('utf-8');
+            const lines = csvContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length < 2) {
+                return { success: false, message: 'CSV file must contain headers and at least one row of data' };
+            }
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const requiredFields = ['name', 'price'];
+            const missingFields = requiredFields.filter(f => !headers.includes(f));
+            if (missingFields.length > 0) {
+                return { success: false, message: `CSV must contain these columns: ${missingFields.join(', ')}` };
+            }
+            const results = {
+                imported: 0,
+                failed: 0,
+                errors: [],
+            };
+            for (let i = 1; i < lines.length; i++) {
+                try {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    const row = {};
+                    headers.forEach((h, idx) => (row[h] = values[idx] || ''));
+                    if (!row.name || !row.price) {
+                        results.errors.push({ row: i + 1, error: 'Missing name or price' });
+                        results.failed++;
+                        continue;
+                    }
+                    if (row.sku) {
+                        const existing = await this.prisma.product.findFirst({
+                            where: { sku: row.sku, deletedAt: null },
+                        });
+                        if (existing) {
+                            results.errors.push({ row: i + 1, error: `SKU "${row.sku}" already exists` });
+                            results.failed++;
+                            continue;
+                        }
+                    }
+                    await this.create({
+                        name: row.name,
+                        sku: row.sku || undefined,
+                        price: parseFloat(row.price),
+                        description: row.description || undefined,
+                        category: row.category || undefined,
+                        type: row.type?.toUpperCase() || 'PHYSICAL',
+                        cost: row.cost ? parseFloat(row.cost) : undefined,
+                        currency: row.currency || 'USD',
+                        unit: row.unit || 'pcs',
+                        taxRate: row.taxrate ? parseFloat(row.taxrate) : undefined,
+                        stockQuantity: row.stockquantity ? parseInt(row.stockquantity) : 0,
+                        minStockLevel: row.minstocklevel ? parseInt(row.minstocklevel) : 0,
+                        isActive: row.isactive?.toUpperCase() === 'YES' || row.isactive?.toUpperCase() === 'TRUE',
+                    });
+                    results.imported++;
+                }
+                catch (err) {
+                    results.errors.push({ row: i + 1, error: err.message });
+                    results.failed++;
+                }
+            }
+            return {
+                success: true,
+                message: `Import completed. Imported: ${results.imported}, Failed: ${results.failed}`,
+                data: results,
+            };
+        }
+        catch (error) {
+            return { success: false, message: error.message || 'Failed to import products' };
+        }
+    }
+    async bulkDelete(ids) {
+        await this.prisma.product.updateMany({
+            where: { id: { in: ids } },
+            data: { deletedAt: new Date(), isActive: false },
+        });
+        return { success: true, message: 'Products deleted successfully' };
+    }
 };
 exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])
 ], ProductsService);
+function escapeCsv(val) {
+    if (val === null || val === undefined)
+        return '""';
+    let s = String(val);
+    if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
+        s = s.replace(/"/g, '""');
+        return `"${s}"`;
+    }
+    return s;
+}
 //# sourceMappingURL=products.service.js.map

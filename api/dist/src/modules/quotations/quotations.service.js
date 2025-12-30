@@ -720,6 +720,152 @@ let QuotationsService = class QuotationsService {
         });
         return { success: true, data: { invoice } };
     }
+    async bulkAssign(dto) {
+        await this.prisma.quotation.updateMany({
+            where: { id: { in: dto.quotationIds } },
+            data: { createdBy: dto.userId || 1 },
+        });
+        return { success: true, message: 'Quotations reassigned successfully' };
+    }
+    async bulkExport(opts = {}, user) {
+        const where = { deletedAt: null };
+        if (user && user.userId) {
+            const accessibleIds = await (0, permission_util_1.getAccessibleUserIds)(user.userId, this.prisma);
+            if (accessibleIds) {
+                where.AND = [
+                    {
+                        OR: [
+                            { createdBy: { in: accessibleIds } },
+                            { lead: { assignedTo: { in: accessibleIds } } },
+                            { deal: { assignedTo: { in: accessibleIds } } },
+                        ],
+                    },
+                ];
+            }
+        }
+        if (opts.status)
+            where.status = opts.status.toUpperCase();
+        if (opts.search) {
+            const s = String(opts.search).trim();
+            const searchConditions = [
+                { title: { contains: s, mode: 'insensitive' } },
+                { quotationNumber: { contains: s, mode: 'insensitive' } },
+            ];
+            if (where.AND) {
+                where.AND.push({ OR: searchConditions });
+            }
+            else {
+                where.OR = searchConditions;
+            }
+        }
+        const quotations = await this.prisma.quotation.findMany({
+            where,
+            include: { lead: true, deal: true, companies: true },
+            orderBy: { createdAt: 'desc' },
+        });
+        const headers = [
+            'quotationNumber',
+            'title',
+            'description',
+            'status',
+            'totalAmount',
+            'currency',
+            'validUntil',
+            'lead',
+            'deal',
+            'company',
+            'createdAt',
+        ];
+        const rows = [headers.join(',')];
+        for (const q of quotations) {
+            const row = [
+                escapeCsv(q.quotationNumber),
+                escapeCsv(q.title),
+                escapeCsv(q.description || ''),
+                escapeCsv(q.status),
+                escapeCsv(Number(q.totalAmount)),
+                escapeCsv(q.currency),
+                escapeCsv(q.validUntil ? new Date(q.validUntil).toISOString() : ''),
+                escapeCsv(q.lead ? `${q.lead.firstName} ${q.lead.lastName}` : ''),
+                escapeCsv(q.deal ? q.deal.title : ''),
+                escapeCsv(q.companies ? q.companies.name : ''),
+                escapeCsv(q.createdAt ? new Date(q.createdAt).toISOString() : ''),
+            ];
+            rows.push(row.join(','));
+        }
+        return rows.join('\r\n');
+    }
+    async bulkImportFromCsv(file, userId) {
+        try {
+            if (!file || !file.buffer) {
+                return { success: false, message: 'Invalid file' };
+            }
+            const csvContent = file.buffer.toString('utf-8');
+            const rawLines = csvContent.split('\n');
+            const lines = rawLines.map(line => line.trim()).filter(line => line.length > 0);
+            if (lines.length < 2) {
+                return { success: false, message: 'CSV file must contain headers and at least one row of data' };
+            }
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const requiredFields = ['title', 'totalamount'];
+            const missingFields = requiredFields.filter(field => !headers.includes(field));
+            if (missingFields.length > 0) {
+                return { success: false, message: `CSV must contain these columns: ${missingFields.join(', ')}` };
+            }
+            const results = {
+                success: true,
+                data: {
+                    imported: 0,
+                    failed: 0,
+                    errors: [],
+                    message: '',
+                },
+            };
+            for (let i = 1; i < lines.length; i++) {
+                try {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    if (!row.title || !row.totalamount) {
+                        results.data.errors.push({ row: i + 1, error: 'Missing required fields: title or totalAmount' });
+                        results.data.failed++;
+                        continue;
+                    }
+                    const totalAmountVal = parseFloat(row.totalamount) || 0;
+                    await this.create({
+                        title: row.title,
+                        description: row.description || null,
+                        status: row.status ? row.status.toUpperCase() : 'DRAFT',
+                        currency: row.currency || 'USD',
+                        validUntil: row.validuntil || null,
+                        createdBy: userId || 1,
+                        items: [
+                            {
+                                name: 'General Items',
+                                quantity: 1,
+                                unitPrice: totalAmountVal,
+                                taxRate: 0,
+                                discountRate: 0,
+                            },
+                        ],
+                        quotationNumber: row.quotationnumber || undefined,
+                    });
+                    results.data.imported++;
+                }
+                catch (error) {
+                    results.data.errors.push({ row: i + 1, error: error.message || 'Unknown error' });
+                    results.data.failed++;
+                }
+            }
+            results.data.message = `Import completed. Imported: ${results.data.imported}, Failed: ${results.data.failed}`;
+            return results;
+        }
+        catch (error) {
+            return { success: false, message: error.message || 'Failed to import quotations from CSV' };
+        }
+    }
 };
 exports.QuotationsService = QuotationsService;
 exports.QuotationsService = QuotationsService = __decorate([
@@ -727,4 +873,14 @@ exports.QuotationsService = QuotationsService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         notifications_service_1.NotificationsService])
 ], QuotationsService);
+function escapeCsv(val) {
+    if (val === null || val === undefined)
+        return '""';
+    let s = String(val);
+    if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
+        s = s.replace(/"/g, '""');
+        return `"${s}"`;
+    }
+    return s;
+}
 //# sourceMappingURL=quotations.service.js.map

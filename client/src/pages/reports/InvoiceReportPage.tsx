@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     DollarSign,
     CheckCircle,
@@ -7,13 +7,14 @@ import {
     ArrowLeft,
     Download,
     TrendingUp,
-    PieChart
+    PieChart,
+    Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button } from '../../components/ui';
 import { Pagination } from '../../components/ui/Pagination';
 import { analyticsService } from '../../services/analyticsService';
-import { Loader2 } from 'lucide-react';
+import HorizontalFilters, { FilterField } from '../../components/reports/HorizontalFilters';
 import {
     BarChart,
     Bar,
@@ -30,13 +31,34 @@ import {
 
 const InvoiceReportPage: React.FC = () => {
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage] = React.useState(1);
-    const [itemsPerPage, setItemsPerPage] = React.useState(10);
-    const [loading, setLoading] = React.useState(true);
-    const [reportData, setReportData] = React.useState<any>(null);
-    const [dateRange, setDateRange] = React.useState('6months');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [loading, setLoading] = useState(true);
+    const [reportData, setReportData] = useState<any>(null);
+    const [dateRange, setDateRange] = useState('6months');
+    const [filters, setFilters] = useState<any>({
+        search: '',
+        status: ''
+    });
+    const [filterFields] = useState<FilterField[]>([
+        { key: 'search', label: 'Search', type: 'text', placeholder: 'Search invoices...' },
+        {
+            key: 'status', label: 'Status', type: 'select', options: [
+                { label: 'Paid', value: 'PAID' },
+                { label: 'Pending', value: 'PENDING' },
+                { label: 'Overdue', value: 'OVERDUE' },
+                { label: 'Partial', value: 'PARTIAL' },
+                { label: 'Draft', value: 'DRAFT' },
+                { label: 'Cancelled', value: 'CANCELLED' }
+            ]
+        }
+    ]);
 
-    React.useEffect(() => {
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    useEffect(() => {
         const fetchReportData = async () => {
             try {
                 setLoading(true);
@@ -45,7 +67,8 @@ const InvoiceReportPage: React.FC = () => {
                     undefined,
                     'all',
                     currentPage,
-                    itemsPerPage
+                    itemsPerPage,
+                    filters
                 );
                 if (response.success) {
                     setReportData(response.data);
@@ -58,7 +81,7 @@ const InvoiceReportPage: React.FC = () => {
         };
 
         fetchReportData();
-    }, [dateRange, currentPage, itemsPerPage]);
+    }, [dateRange, currentPage, itemsPerPage, filters]);
 
     const stats = [
         { label: 'Total Invoiced', value: reportData?.stats?.totalBilled || '0', icon: DollarSign, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -131,7 +154,7 @@ const InvoiceReportPage: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Button
                         variant="GHOST"
@@ -147,20 +170,33 @@ const InvoiceReportPage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <select
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        <option value="3months">Last 3 Months</option>
-                        <option value="6months">Last 6 Months</option>
-                        <option value="12months">Last 12 Months</option>
-                    </select>
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-1">
+                        {['3months', '6months', '12months'].map((range) => (
+                            <button
+                                key={range}
+                                onClick={() => setDateRange(range)}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateRange === range
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                    }`}
+                            >
+                                {range === '3months' ? '3M' : range === '6months' ? '6M' : '1Y'}
+                            </button>
+                        ))}
+                    </div>
                     <Button variant="PRIMARY" className="flex items-center gap-2" onClick={exportToCSV}>
-                        <Download className="w-4 h-4" /> Export Report
+                        <Download className="w-4 h-4" /> Export
                     </Button>
                 </div>
             </div>
+
+            <HorizontalFilters
+                fields={filterFields}
+                values={filters}
+                onChange={handleFilterChange}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (

@@ -42,6 +42,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TeamsModule } from './modules/teams/teams.module';
 import { TaxesModule } from './modules/taxes/taxes.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { CurrenciesModule } from './modules/currencies/currencies.module';
     TeamsModule,
     TaxesModule,
     CurrenciesModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [

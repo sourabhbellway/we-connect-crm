@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductsController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
+const platform_express_1 = require("@nestjs/platform-express");
 const products_service_1 = require("./products.service");
 const create_product_dto_1 = require("./dto/create-product.dto");
 const update_product_dto_1 = require("./dto/update-product.dto");
@@ -71,6 +72,26 @@ let ProductsController = class ProductsController {
     remove(id) {
         return this.service.remove(Number(id));
     }
+    async bulkDelete(dto) {
+        if (!dto.ids || !Array.isArray(dto.ids) || dto.ids.length === 0) {
+            throw new common_1.BadRequestException('Product IDs are required');
+        }
+        return this.service.bulkDelete(dto.ids.map(Number));
+    }
+    async bulkExport(res, search) {
+        const csv = await this.service.bulkExport({ search });
+        const filename = `products_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        const bom = '\uFEFF';
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(Buffer.from(bom + csv, 'utf8'));
+    }
+    async bulkImport(file) {
+        if (!file) {
+            throw new common_1.BadRequestException('CSV file is required');
+        }
+        return this.service.bulkImportFromCsv(file);
+    }
 };
 exports.ProductsController = ProductsController;
 __decorate([
@@ -111,6 +132,29 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Delete)('bulk/delete'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "bulkDelete", null);
+__decorate([
+    (0, common_1.Get)('bulk/export'),
+    __param(0, (0, common_1.Res)()),
+    __param(1, (0, common_1.Query)('search')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "bulkExport", null);
+__decorate([
+    (0, common_1.Post)('bulk/import'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('csvFile')),
+    __param(0, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductsController.prototype, "bulkImport", null);
 exports.ProductsController = ProductsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('products'),

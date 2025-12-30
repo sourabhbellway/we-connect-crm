@@ -142,4 +142,27 @@ export declare class ProductsService {
         success: boolean;
         message: string;
     }>;
+    bulkExport(opts?: {
+        search?: string;
+    }): Promise<string>;
+    bulkImportFromCsv(file: Express.Multer.File): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            imported: number;
+            failed: number;
+            errors: {
+                row: number;
+                error: string;
+            }[];
+        };
+    } | {
+        success: boolean;
+        message: any;
+        data?: undefined;
+    }>;
+    bulkDelete(ids: number[]): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

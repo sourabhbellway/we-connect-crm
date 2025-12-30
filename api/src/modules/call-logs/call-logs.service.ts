@@ -9,19 +9,18 @@ import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
 export class CallLogsService {
     constructor(private readonly prisma: PrismaService) { }
 
-    async list({ leadId, userId }: { leadId?: number; userId?: number }, user?: any) {
+    async list({ leadId, userId, page = 1, limit = 10 }: { leadId?: number; userId?: number; page?: number; limit?: number }, user?: any) {
         try {
-            console.log('🔍 Fetching call logs with filters:', { leadId, userId, user });
+            console.log('🔍 Fetching call logs with filters:', { leadId, userId, page, limit, user });
 
             const where: any = {};
             if (leadId) where.leadId = leadId;
             if (userId) where.userId = userId;
 
-            // Role-based filtering - यह सुनिश्चित है कि user केवल user की call logs ही दिखानी चाहिए
+            // Role-based filtering
             if (user && user.userId) {
                 const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['userId']);
                 if (Object.keys(roleBasedWhere).length > 0) {
-                    console.log('🔐 Applying role-based filtering:', roleBasedWhere);
                     if (where.OR || where.AND) {
                         where.AND = [
                             ...(where.AND || []),
@@ -33,28 +32,29 @@ export class CallLogsService {
                 }
             }
 
-            console.log('📋 Final where clause:', where);
-
-            const items = await this.prisma.callLog.findMany({
-                where,
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    user: { select: { id: true, firstName: true, lastName: true } },
-                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
-                },
-            });
-
-            console.log('📊 Found call logs:', items.length);
+            const [items, totalItems] = await Promise.all([
+                this.prisma.callLog.findMany({
+                    where,
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        user: { select: { id: true, firstName: true, lastName: true } },
+                        lead: { select: { id: true, firstName: true, lastName: true, company: true } },
+                    },
+                }),
+                this.prisma.callLog.count({ where })
+            ]);
 
             return {
                 success: true,
                 data: {
                     items,
                     pagination: {
-                        currentPage: 1,
-                        totalPages: Math.ceil(items.length / 10),
-                        totalItems: items.length,
-                        itemsPerPage: 10
+                        currentPage: page,
+                        totalPages: Math.ceil(totalItems / limit),
+                        totalItems: totalItems,
+                        itemsPerPage: limit
                     }
                 }
             };
@@ -135,6 +135,22 @@ export class CallLogsService {
             });
 
             console.log('✅ Call log created successfully:', item);
+
+            // Log Activity
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        type: 'COMMUNICATION_LOGGED',
+                        title: 'Call Logged',
+                        description: `A call to ${item.phoneNumber} was logged.`,
+                        userId: item.userId || 1,
+                        leadId: item.leadId,
+                        metadata: { callId: item.id } as any,
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to log call activity:', error);
+            }
 
             return {
                 success: true,
@@ -389,6 +405,22 @@ export class CallLogsService {
                     updatedAt: new Date(),
                 },
             });
+
+            // Log Activity
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        type: 'COMMUNICATION_LOGGED',
+                        title: 'Call Status Updated',
+                        description: `Call status to ${item.phoneNumber} updated to ${status}.`,
+                        userId: item.userId || 1,
+                        leadId: item.leadId,
+                        metadata: { callId: item.id, status } as any,
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to log call status activity:', error);
+            }
 
             console.log('✅ Call status updated successfully:', item);
 

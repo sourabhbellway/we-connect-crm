@@ -130,6 +130,7 @@ export class LeadsService {
     limit,
     status,
     search,
+    email,
     isDeleted,
     assignedTo,
   }: {
@@ -137,6 +138,7 @@ export class LeadsService {
     limit: number;
     status?: string;
     search?: string;
+    email?: string;
     isDeleted?: boolean;
     assignedTo?: number;
   }, user?: any) {
@@ -173,6 +175,11 @@ export class LeadsService {
       // Status filter
       if (status && String(status).trim() !== '') {
         where.status = String(status).toUpperCase();
+      }
+
+      // Email filter
+      if (email && String(email).trim() !== '') {
+        where.email = { contains: String(email).trim(), mode: 'insensitive' };
       }
 
       // Search filter - must be combined with role-based filter using AND
@@ -326,9 +333,20 @@ export class LeadsService {
         source: {
           select: { id: true, name: true, description: true },
         },
+        invoices: {
+          include: {
+            payments: {
+              include: { createdByUser: { select: { id: true, firstName: true, lastName: true } } }
+            }
+          }
+        },
+        quotations: true,
       },
     });
     if (!leadRow) return { success: false, message: 'Lead not found' };
+
+    // Flatten payments from invoices
+    const payments = leadRow.invoices?.flatMap((inv: any) => inv.payments?.map((p: any) => ({ ...p, invoiceNumber: inv.invoiceNumber })) || []) || [];
 
     const lead = {
       ...leadRow,
@@ -343,6 +361,7 @@ export class LeadsService {
           color: lt.tag.color,
         }))
         : [],
+      payments,
     };
 
     return { success: true, data: { lead } };
@@ -583,6 +602,21 @@ export class LeadsService {
       );
     } catch (error) {
       console.error('Failed to execute automation for LEAD_CREATED:', error);
+    }
+
+    // Log Activity
+    try {
+      await this.prisma.activity.create({
+        data: {
+          type: 'LEAD_CREATED',
+          title: 'New Lead Created',
+          description: `Lead ${lead.firstName} ${lead.lastName} was created.`,
+          userId: userId || 1,
+          leadId: lead.id,
+        }
+      });
+    } catch (error) {
+      console.error('Failed to log lead creation activity:', error);
     }
 
     // Send notification if lead is assigned

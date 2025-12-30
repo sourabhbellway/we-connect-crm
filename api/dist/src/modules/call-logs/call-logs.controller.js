@@ -24,10 +24,12 @@ let CallLogsController = class CallLogsController {
     constructor(service) {
         this.service = service;
     }
-    list(leadId, userId, user) {
+    list(leadId, userId, page, limit, user) {
         return this.service.list({
             leadId: leadId ? parseInt(leadId) : undefined,
             userId: userId ? parseInt(userId) : undefined,
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
         }, user);
     }
     listByLead(leadId, user) {
@@ -64,9 +66,11 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('leadId')),
     __param(1, (0, common_1.Query)('userId')),
-    __param(2, (0, user_decorator_1.User)()),
+    __param(2, (0, common_1.Query)('page')),
+    __param(3, (0, common_1.Query)('limit')),
+    __param(4, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], CallLogsController.prototype, "list", null);
 __decorate([

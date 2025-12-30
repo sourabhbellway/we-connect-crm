@@ -21,7 +21,6 @@ import {
   ChevronDown,
   ChevronLeft,
   Home,
-  Users as AudienceIcon,
   FileText,
   Sun,
   Moon,
@@ -32,7 +31,6 @@ import {
   DollarSign,
   FileCheck,
   Receipt,
-  Package,
 } from 'lucide-react';
 import { NAV_EXTRA_ITEMS } from '../config/navigation';
 import WeConnectLogo from '../assets/WeConnect_Logo_C2C.svg';
@@ -141,8 +139,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ];
 
   const filterNavItems = (items: any[]): any[] => {
+    const isAdmin = user?.roles?.some((role: any) => {
+      const name = (role.name || '').toLowerCase();
+      return name === 'admin' || name === 'super_admin' || name === 'super admin';
+    });
+
     return items
-      .filter(item => (item.permission ? hasPermission(item.permission) : true))
+      .filter(item => {
+        // Check permission
+        const hasPerm = item.permission ? hasPermission(item.permission) : true;
+        // Check adminOnly
+        const hasAdminAccess = item.adminOnly ? isAdmin : true;
+
+        return hasPerm && hasAdminAccess;
+      })
       .map(item => ({
         ...item,
         children: item.children ? filterNavItems(item.children) : undefined

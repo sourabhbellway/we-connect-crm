@@ -100,73 +100,79 @@ class AnalyticsService {
     return response.data;
   }
 
-  async getTaskReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10) {
+  async getTaskReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10, filters?: any) {
     const params = new URLSearchParams();
     params.append('months', months.toString());
     if (userId) params.append('userId', userId.toString());
     params.append('scope', scope);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (filters) params.append('filters', JSON.stringify(filters));
 
     const response = await apiClient.get(`/analytics/reports/task?${params}`);
     return response.data;
   }
 
-  async getLeadReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10) {
+  async getLeadReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10, filters?: any) {
     const params = new URLSearchParams();
     params.append('months', months.toString());
     if (userId) params.append('userId', userId.toString());
     params.append('scope', scope);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (filters) params.append('filters', JSON.stringify(filters));
 
     const response = await apiClient.get(`/analytics/reports/lead?${params}`);
     return response.data;
   }
 
-  async getDealReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10) {
+  async getDealReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10, filters?: any) {
     const params = new URLSearchParams();
     params.append('months', months.toString());
     if (userId) params.append('userId', userId.toString());
     params.append('scope', scope);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (filters) params.append('filters', JSON.stringify(filters));
 
     const response = await apiClient.get(`/analytics/reports/deal?${params}`);
     return response.data;
   }
 
-  async getExpenseReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10) {
+  async getExpenseReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10, filters?: any) {
     const params = new URLSearchParams();
     params.append('months', months.toString());
     if (userId) params.append('userId', userId.toString());
     params.append('scope', scope);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (filters) params.append('filters', JSON.stringify(filters));
 
     const response = await apiClient.get(`/analytics/reports/expense?${params}`);
     return response.data;
   }
 
-  async getInvoiceReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10) {
+  async getInvoiceReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10, filters?: any) {
     const params = new URLSearchParams();
     params.append('months', months.toString());
     if (userId) params.append('userId', userId.toString());
     params.append('scope', scope);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (filters) params.append('filters', JSON.stringify(filters));
 
     const response = await apiClient.get(`/analytics/reports/invoice?${params}`);
     return response.data;
   }
 
-  async getQuotationReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10) {
+  async getQuotationReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', page: number = 1, limit: number = 10, filters?: any) {
     const params = new URLSearchParams();
     params.append('months', months.toString());
     if (userId) params.append('userId', userId.toString());
     params.append('scope', scope);
     params.append('page', page.toString());
     params.append('limit', limit.toString());
+    if (filters) params.append('filters', JSON.stringify(filters));
 
     const response = await apiClient.get(`/analytics/reports/quotation?${params}`);
     return response.data;

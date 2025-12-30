@@ -6,6 +6,7 @@ export declare class AnalyticsService {
     private getCurrencyData;
     private convertToDefault;
     private formatCurrency;
+    private buildDynamicFilters;
     kpis(startDate?: string, endDate?: string, userId?: number, includeTeamData?: boolean, currentUser?: any): Promise<{
         success: boolean;
         data: {
@@ -114,7 +115,7 @@ export declare class AnalyticsService {
             rate: string;
         }[];
     }>;
-    getTaskReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number): Promise<{
+    getTaskReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -154,7 +155,7 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getLeadReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number): Promise<{
+    getLeadReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -191,7 +192,7 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getDealReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number): Promise<{
+    getDealReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -225,7 +226,7 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getExpenseReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number): Promise<{
+    getExpenseReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -269,7 +270,7 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getInvoiceReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number): Promise<{
+    getInvoiceReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -308,7 +309,7 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getQuotationReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number): Promise<{
+    getQuotationReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
         success: boolean;
         data: {
             stats: {

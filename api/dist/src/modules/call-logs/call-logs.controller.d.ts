@@ -4,7 +4,7 @@ import { UpdateCallLogDto } from './dto/update-call-log.dto';
 export declare class CallLogsController {
     private readonly service;
     constructor(service: CallLogsService);
-    list(leadId?: string, userId?: string, user?: any): Promise<{
+    list(leadId?: string, userId?: string, page?: string, limit?: string, user?: any): Promise<{
         success: boolean;
         data: {
             items: ({

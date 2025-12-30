@@ -117,42 +117,74 @@ let ActivitiesService = class ActivitiesService {
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async list({ page = 1, limit = 10, type, search, }, user) {
-        const where = {};
-        if (type)
-            where.type = type;
+    async list({ page = 1, limit = 10, type, search, userId, }, user) {
+        const andConditions = [];
+        if (type && type !== 'ALL') {
+            let typeCondition;
+            switch (type) {
+                case 'LOGIN':
+                    typeCondition = { type: { in: ['USER_LOGIN', 'USER_LOGOUT'] } };
+                    break;
+                case 'LEAD':
+                    typeCondition = { type: { in: ['LEAD_CREATED', 'LEAD_UPDATED', 'LEAD_DELETED', 'LEAD_ASSIGNED', 'LEAD_STATUS_CHANGED', 'LEAD_CONVERTED', 'LEAD_FOLLOW_UP_CREATED', 'LEAD_FOLLOW_UP_COMPLETED'] } };
+                    break;
+                case 'QUOTATION':
+                    typeCondition = { type: { in: ['QUOTATION_CREATED', 'QUOTATION_UPDATED', 'QUOTATION_SENT'] } };
+                    break;
+                case 'INVOICE':
+                    typeCondition = { type: { in: ['INVOICE_CREATED', 'INVOICE_UPDATED', 'INVOICE_SENT'] } };
+                    break;
+                case 'TASK':
+                    typeCondition = { type: { in: ['TASK_CREATED', 'TASK_UPDATED', 'TASK_COMPLETED'] } };
+                    break;
+                case 'CALL':
+                    typeCondition = { type: 'COMMUNICATION_LOGGED' };
+                    break;
+                default:
+                    typeCondition = { type: type };
+            }
+            andConditions.push(typeCondition);
+        }
+        if (userId) {
+            andConditions.push({ userId });
+        }
         if (user && user.userId) {
             const accessibleIds = await (0, permission_util_1.getAccessibleUserIds)(user.userId, this.prisma);
             if (accessibleIds) {
-                where.OR = [
-                    { userId: { in: accessibleIds } },
-                    { lead: { assignedTo: { in: accessibleIds } } },
-                ];
+                andConditions.push({
+                    OR: [
+                        { userId: { in: accessibleIds } },
+                        { lead: { assignedTo: { in: accessibleIds } } },
+                    ]
+                });
             }
         }
         if (search && search.trim()) {
             const q = search.trim();
-            const searchConditions = [
-                { title: { contains: q, mode: 'insensitive' } },
-                { description: { contains: q, mode: 'insensitive' } },
-            ];
-            if (where.OR) {
-                where.AND = [
-                    { OR: where.OR },
-                    { OR: searchConditions }
-                ];
-                delete where.OR;
-            }
-            else {
-                where.OR = searchConditions;
-            }
+            andConditions.push({
+                OR: [
+                    { title: { contains: q, mode: 'insensitive' } },
+                    { description: { contains: q, mode: 'insensitive' } },
+                ]
+            });
         }
+        const where = andConditions.length > 0 ? { AND: andConditions } : {};
         const [items, total] = await Promise.all([
             this.prisma.activity.findMany({
                 where,
                 skip: (page - 1) * limit,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                        },
+                    },
+                },
             }),
             this.prisma.activity.count({ where }),
         ]);

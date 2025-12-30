@@ -63,8 +63,8 @@ export declare class ExpensesService {
                 approvedBy: number | null;
                 leadId: number | null;
                 dealId: number | null;
-                expenseDate: Date;
                 amount: import("@prisma/client/runtime/library").Decimal;
+                expenseDate: Date;
                 remarks: string | null;
                 receiptUrl: string | null;
                 submittedBy: number;
@@ -114,8 +114,8 @@ export declare class ExpensesService {
                 approvedBy: number | null;
                 leadId: number | null;
                 dealId: number | null;
-                expenseDate: Date;
                 amount: import("@prisma/client/runtime/library").Decimal;
+                expenseDate: Date;
                 remarks: string | null;
                 receiptUrl: string | null;
                 submittedBy: number;
@@ -177,8 +177,8 @@ export declare class ExpensesService {
                 approvedBy: number | null;
                 leadId: number | null;
                 dealId: number | null;
-                expenseDate: Date;
                 amount: import("@prisma/client/runtime/library").Decimal;
+                expenseDate: Date;
                 remarks: string | null;
                 receiptUrl: string | null;
                 submittedBy: number;
@@ -214,8 +214,8 @@ export declare class ExpensesService {
                 approvedBy: number | null;
                 leadId: number | null;
                 dealId: number | null;
-                expenseDate: Date;
                 amount: import("@prisma/client/runtime/library").Decimal;
+                expenseDate: Date;
                 remarks: string | null;
                 receiptUrl: string | null;
                 submittedBy: number;
@@ -250,8 +250,8 @@ export declare class ExpensesService {
                 approvedBy: number | null;
                 leadId: number | null;
                 dealId: number | null;
-                expenseDate: Date;
                 amount: import("@prisma/client/runtime/library").Decimal;
+                expenseDate: Date;
                 remarks: string | null;
                 receiptUrl: string | null;
                 submittedBy: number;
@@ -296,8 +296,8 @@ export declare class ExpensesService {
                 approvedBy: number | null;
                 leadId: number | null;
                 dealId: number | null;
-                expenseDate: Date;
                 amount: import("@prisma/client/runtime/library").Decimal;
+                expenseDate: Date;
                 remarks: string | null;
                 receiptUrl: string | null;
                 submittedBy: number;

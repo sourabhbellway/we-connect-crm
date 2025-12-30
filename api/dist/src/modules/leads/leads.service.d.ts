@@ -15,11 +15,12 @@ export declare class LeadsService {
         success: boolean;
         data: any;
     }>;
-    list({ page, limit, status, search, isDeleted, assignedTo, }: {
+    list({ page, limit, status, search, email, isDeleted, assignedTo, }: {
         page: number;
         limit: number;
         status?: string;
         search?: string;
+        email?: string;
         isDeleted?: boolean;
         assignedTo?: number;
     }, user?: any): Promise<{

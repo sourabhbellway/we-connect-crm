@@ -136,8 +136,12 @@ let TasksService = class TasksService {
             data: {
                 title: dto.title,
                 description: dto.description ?? null,
-                status: dto.status ?? 'PENDING',
-                priority: dto.priority ?? 'MEDIUM',
+                status: (['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'MEDIUM'].includes((dto.status || '').toUpperCase())
+                    ? dto.status.toUpperCase()
+                    : 'PENDING'),
+                priority: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes((dto.priority || '').toUpperCase())
+                    ? dto.priority.toUpperCase()
+                    : 'MEDIUM'),
                 dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
                 assignedTo: dto.assignedTo ?? null,
                 createdBy: dto.createdBy,

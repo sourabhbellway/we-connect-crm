@@ -52,6 +52,7 @@ const logging_interceptor_1 = require("./common/interceptors/logging.interceptor
 const teams_module_1 = require("./modules/teams/teams.module");
 const taxes_module_1 = require("./modules/taxes/taxes.module");
 const currencies_module_1 = require("./modules/currencies/currencies.module");
+const payments_module_1 = require("./modules/payments/payments.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -94,6 +95,7 @@ exports.AppModule = AppModule = __decorate([
             teams_module_1.TeamsModule,
             taxes_module_1.TaxesModule,
             currencies_module_1.CurrenciesModule,
+            payments_module_1.PaymentsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

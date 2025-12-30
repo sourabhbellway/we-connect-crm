@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DealsController = void 0;
 const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
+const platform_express_1 = require("@nestjs/platform-express");
 const deals_service_1 = require("./deals.service");
 const create_deal_dto_1 = require("./dto/create-deal.dto");
 const update_deal_dto_1 = require("./dto/update-deal.dto");
@@ -42,6 +43,23 @@ let DealsController = class DealsController {
     }
     remove(id) {
         return this.deals.remove(Number(id));
+    }
+    bulkAssign(dto) {
+        return this.deals.bulkAssign(dto);
+    }
+    async bulkImportDeals(file, user) {
+        if (!file) {
+            throw new common_1.BadRequestException('CSV file is required');
+        }
+        return this.deals.bulkImportFromCsv(file, user?.userId);
+    }
+    async bulkExport(res, search, user) {
+        const csv = await this.deals.bulkExport({ search }, user);
+        const filename = `deals_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        const bom = '\uFEFF';
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(Buffer.from(bom + csv, 'utf8'));
     }
 };
 exports.DealsController = DealsController;
@@ -86,6 +104,38 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], DealsController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Put)('bulk/assign'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], DealsController.prototype, "bulkAssign", null);
+__decorate([
+    (0, common_1.Post)('bulk/import'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('csvFile', {
+        fileFilter: (req, file, cb) => {
+            if (!file.originalname.endsWith('.csv')) {
+                return cb(new common_1.BadRequestException('Only CSV files are allowed'), false);
+            }
+            cb(null, true);
+        },
+    })),
+    __param(0, (0, common_1.UploadedFile)()),
+    __param(1, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], DealsController.prototype, "bulkImportDeals", null);
+__decorate([
+    (0, common_1.Get)('bulk/export'),
+    __param(0, (0, common_1.Res)()),
+    __param(1, (0, common_1.Query)('search')),
+    __param(2, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], DealsController.prototype, "bulkExport", null);
 exports.DealsController = DealsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('deals'),

@@ -236,7 +236,7 @@ let InvoicesService = class InvoicesService {
                         data: {
                             title: 'Invoice created',
                             description: `Invoice "${invoice.invoiceNumber}" created with total amount ${invoice.currency} ${Number(invoice.totalAmount).toFixed(2)}`,
-                            type: 'COMMUNICATION_LOGGED',
+                            type: 'INVOICE_CREATED',
                             icon: 'FileText',
                             iconColor: '#8B5CF6',
                             metadata: {
@@ -419,6 +419,28 @@ let InvoicesService = class InvoicesService {
                 console.error('Failed to send invoice sent notification:', error);
             }
         }
+        if (invoice.leadId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'Invoice Sent',
+                        description: `Invoice "${invoice.invoiceNumber}" has been sent.`,
+                        type: 'INVOICE_SENT',
+                        icon: 'Send',
+                        iconColor: '#10B981',
+                        metadata: {
+                            invoiceId: invoice.id,
+                            invoiceNumber: invoice.invoiceNumber,
+                        },
+                        userId: invoice.createdBy,
+                        leadId: invoice.leadId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating invoice sent activity:', error);
+            }
+        }
         return { success: true, data: { invoice } };
     }
     async recordPayment(id, dto) {
@@ -487,6 +509,30 @@ let InvoicesService = class InvoicesService {
             }
             catch (error) {
                 console.error('Failed to send payment notification:', error);
+            }
+        }
+        if (invoice.leadId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: status === 'PAID' ? 'Invoice Paid' : 'Payment Recorded',
+                        description: `Payment of ${payment.currency} ${Number(payment.amount).toFixed(2)} recorded for Invoice "${invoice.invoiceNumber}".`,
+                        type: 'INVOICE_UPDATED',
+                        icon: 'CreditCard',
+                        iconColor: '#F59E0B',
+                        metadata: {
+                            invoiceId: invoice.id,
+                            invoiceNumber: invoice.invoiceNumber,
+                            paymentId: payment.id,
+                            amount: payment.amount,
+                        },
+                        userId: dto.createdBy ?? invoice.createdBy,
+                        leadId: invoice.leadId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating payment activity:', error);
             }
         }
         return { success: true, data: { payment } };

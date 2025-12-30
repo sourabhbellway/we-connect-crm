@@ -141,6 +141,7 @@ export class AnalyticsController {
     @Query('scope') scope?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('filters') filters?: string,
     @User() user?: any,
   ) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -148,7 +149,8 @@ export class AnalyticsController {
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-    return this.service.getTaskReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit);
+    const parsedFilters = filters ? JSON.parse(filters) : undefined;
+    return this.service.getTaskReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
   }
 
   @Get('reports/lead')
@@ -158,6 +160,7 @@ export class AnalyticsController {
     @Query('scope') scope?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('filters') filters?: string,
     @User() user?: any,
   ) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -165,7 +168,8 @@ export class AnalyticsController {
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-    return this.service.getLeadReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit);
+    const parsedFilters = filters ? JSON.parse(filters) : undefined;
+    return this.service.getLeadReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
   }
 
   @Get('reports/deal')
@@ -175,6 +179,7 @@ export class AnalyticsController {
     @Query('scope') scope?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('filters') filters?: string,
     @User() user?: any,
   ) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -182,7 +187,8 @@ export class AnalyticsController {
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-    return this.service.getDealReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit);
+    const parsedFilters = filters ? JSON.parse(filters) : undefined;
+    return this.service.getDealReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
   }
 
   @Get('reports/expense')
@@ -192,6 +198,7 @@ export class AnalyticsController {
     @Query('scope') scope?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('filters') filters?: string,
     @User() user?: any,
   ) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -199,7 +206,8 @@ export class AnalyticsController {
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-    return this.service.getExpenseReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit);
+    const parsedFilters = filters ? JSON.parse(filters) : undefined;
+    return this.service.getExpenseReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
   }
 
   @Get('reports/invoice')
@@ -209,6 +217,7 @@ export class AnalyticsController {
     @Query('scope') scope?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('filters') filters?: string,
     @User() user?: any,
   ) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -216,7 +225,8 @@ export class AnalyticsController {
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-    return this.service.getInvoiceReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit);
+    const parsedFilters = filters ? JSON.parse(filters) : undefined;
+    return this.service.getInvoiceReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
   }
 
   @Get('reports/quotation')
@@ -226,6 +236,7 @@ export class AnalyticsController {
     @Query('scope') scope?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('filters') filters?: string,
     @User() user?: any,
   ) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -233,6 +244,7 @@ export class AnalyticsController {
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-    return this.service.getQuotationReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit);
+    const parsedFilters = filters ? JSON.parse(filters) : undefined;
+    return this.service.getQuotationReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
   }
 }

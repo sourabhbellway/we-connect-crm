@@ -2625,6 +2625,7 @@ import {
     Trash2, Eye, Plus, PhoneCall
 } from 'lucide-react';
 import { leadService, Lead } from '../services/leadService';
+
 import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
@@ -2712,6 +2713,8 @@ const LeadProfile: React.FC = () => {
     const [invoices, setInvoices] = useState<any[]>([]);
     const [invoicesLoading, setInvoicesLoading] = useState(false);
 
+
+
     // Meetings states
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [meetingsLoading, setMeetingsLoading] = useState(false);
@@ -2764,6 +2767,7 @@ const LeadProfile: React.FC = () => {
                 fetchQuotations(parseInt(id));
                 fetchInvoices(parseInt(id));
             }
+
             if (activeTab === 'meetings') {
                 fetchMeetings(parseInt(id));
             }
@@ -2915,11 +2919,15 @@ const LeadProfile: React.FC = () => {
 
             const data = await response.json();
             console.log('Fetched call logs:', data); // Added logging
-            setCallLogs(data.data?.callLogs || data.callLogs || []);
+
+            const logs = data.data?.callLogs || data.callLogs || [];
+            // Sort by createdAt desc to show newest first
+            const sortedLogs = logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+            setCallLogs(sortedLogs);
 
             // Log the count
-            const logsCount = data.data?.callLogs?.length || data.callLogs?.length || 0;
-            console.log(`Found ${logsCount} call logs`);
+            console.log(`Found ${sortedLogs.length} call logs`);
         } catch (err: any) {
             console.error('Error fetching call logs:', err);
             toast.error('Failed to load call logs');
@@ -3007,6 +3015,9 @@ const LeadProfile: React.FC = () => {
             setInvoicesLoading(false);
         }
     };
+
+    // Fetch payments for the lead
+
 
     const fetchLead = async (leadId: number) => {
         try {
@@ -3385,7 +3396,7 @@ const LeadProfile: React.FC = () => {
                 },
                 body: JSON.stringify({
                     leadId: lead?.id,
-                    userId: user?.id, // यह भी जरूर जोड़ें
+                    userId: user?.id,
                     phoneNumber: callLogForm.phoneNumber,
                     callType: callLogForm.callType,
                     notes: callLogForm.notes,
@@ -3398,15 +3409,30 @@ const LeadProfile: React.FC = () => {
             }
 
             const responseData = await response.json();
-            console.log('Manual call log saved:', responseData); // यह लॉग देखें
+            console.log('Manual call log saved:', responseData);
 
             toast.success('Call log added successfully');
             setShowAddCallLog(false);
             setCallLogForm({ phoneNumber: '', callType: 'OUTBOUND', notes: '', outcome: '' });
 
-            // Refresh call logs
-            if (lead?.id) {
+            // Optimistic / Immediate Update
+            if (responseData.success && responseData.data?.item) {
+                const newLog = {
+                    ...responseData.data.item,
+                    user: {
+                        id: user?.id,
+                        firstName: user?.firstName || '',
+                        lastName: user?.lastName || '',
+                    }
+                };
+                setCallLogs(prevLogs => [newLog, ...prevLogs]);
+            } else if (lead?.id) {
                 fetchCallLogs(lead.id);
+            }
+
+            // Always refresh activities
+            if (lead?.id) {
+                fetchLeadActivities(lead.id);
             }
 
         } catch (error: any) {
@@ -3738,6 +3764,7 @@ const LeadProfile: React.FC = () => {
         { id: 'notes', label: 'Notes', icon: FileText },
         { id: 'files', label: 'Files', icon: LinkIcon },
         { id: 'proposals', label: 'Proposals', icon: FileText },
+
         { id: 'call-logs', label: 'Call Logs', icon: PhoneCall },
         { id: 'meetings', label: 'Meetings', icon: Calendar },
         { id: 'tasks', label: 'Tasks', icon: CheckCircle },
@@ -4441,7 +4468,7 @@ const LeadProfile: React.FC = () => {
                                                         by {callLog.user.firstName} {callLog.user.lastName}
                                                     </span>
                                                     <span>
-                                                        {callLog.startTime && new Date(callLog.startTime).toLocaleTimeString()}
+                                                        {new Date(callLog.startTime || callLog.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </span>
                                                 </div>
                                             </div>
@@ -4480,6 +4507,8 @@ const LeadProfile: React.FC = () => {
                                 )}
                             </div>
                         )}
+
+
 
                         {activeTab === 'meetings' && (
                             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">

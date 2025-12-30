@@ -49,6 +49,7 @@ export class LeadsController {
     @Query('limit') limit?: string,
     @Query('status') status?: string,
     @Query('search') search?: string,
+    @Query('email') email?: string,
     @Query('isDeleted') isDeleted?: string, // Query parameter to filter by deletion status
     @Query('assignedTo') assignedTo?: string,
     @User() user?: any,
@@ -61,6 +62,7 @@ export class LeadsController {
       limit: limit ? parseInt(limit) : 10,
       status,
       search,
+      email,
       isDeleted: isDeletedBool,
       assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
     }, user);

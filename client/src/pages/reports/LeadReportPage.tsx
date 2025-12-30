@@ -3,31 +3,23 @@ import {
     Users,
     Activity,
     ArrowLeft,
-    Filter,
     Download,
     Target,
     PieChart as PieChartIcon,
     Loader2,
     TrendingUp,
-    Calendar,
-    BarChart3,
-    TrendingDown,
-    ArrowRight,
-    Eye,
-    MousePointer,
-    Layers,
-    Info,
-    Zap,
     ChevronUp,
     ChevronDown,
     MoreHorizontal,
-    Clock,
-    UserCheck
+    Clock
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button } from '../../components/ui';
 import { Pagination } from '../../components/ui/Pagination';
 import { analyticsService } from '../../services/analyticsService';
+import HorizontalFilters, { FilterField } from '../../components/reports/HorizontalFilters';
+import { leadSourceService } from '../../services/leadSourceService';
+import { userService } from '../../services/userService';
 import {
     BarChart,
     Bar,
@@ -43,20 +35,7 @@ import {
     LineChart,
     Line,
     Area,
-    AreaChart,
-    RadarChart,
-    PolarGrid,
-    PolarAngleAxis,
-    PolarRadiusAxis,
-    Radar,
-    ComposedChart,
-    ReferenceLine,
-    Treemap,
-    ScatterChart,
-    Scatter,
-    FunnelChart,
-    Funnel,
-    LabelList
+    AreaChart
 } from 'recharts';
 
 const LeadReportPage: React.FC = () => {
@@ -67,7 +46,80 @@ const LeadReportPage: React.FC = () => {
     const [reportData, setReportData] = useState<any>(null);
     const [dateRange, setDateRange] = useState('6months');
     const [chartType, setChartType] = useState('area');
-    const [funnelView, setFunnelView] = useState('horizontal'); // New state for funnel view
+    const [funnelView, setFunnelView] = useState('horizontal');
+    const [filters, setFilters] = useState<any>({
+        search: '',
+        email: '',
+        status: '',
+        assignedTo: ''
+    });
+    const [filterFields, setFilterFields] = useState<FilterField[]>([
+        { key: 'search', label: 'Search', type: 'text', placeholder: 'Search leads...' },
+        { key: 'email', label: 'Email Search', type: 'text', placeholder: 'Search by email...' },
+        {
+            key: 'status', label: 'Status', type: 'select', options: [
+                { label: 'New', value: 'NEW' },
+                { label: 'Contacted', value: 'CONTACTED' },
+                { label: 'Qualified', value: 'QUALIFIED' },
+                { label: 'Proposal', value: 'PROPOSAL' },
+                { label: 'Negotiation', value: 'NEGOTIATION' },
+                { label: 'Closed', value: 'CLOSED' },
+                { label: 'Lost', value: 'LOST' },
+                { label: 'Converted', value: 'CONVERTED' }
+            ]
+        },
+        { key: 'assignedTo', label: 'Assigned To', type: 'select', options: [] },
+        { key: 'sourceId', label: 'Source', type: 'select', options: [] },
+        {
+            key: 'priority', label: 'Priority', type: 'select', options: [
+                { label: 'Low', value: 'LOW' },
+                { label: 'Medium', value: 'MEDIUM' },
+                { label: 'High', value: 'HIGH' },
+                { label: 'Urgent', value: 'URGENT' }
+            ]
+        },
+        { key: 'industry', label: 'Industry', type: 'text', placeholder: 'Industry...' },
+        { key: 'company', label: 'Company', type: 'text', placeholder: 'Company...' },
+        { key: 'city', label: 'City', type: 'text', placeholder: 'City...' },
+        { key: 'state', label: 'State', type: 'text', placeholder: 'State...' },
+        { key: 'country', label: 'Country', type: 'text', placeholder: 'Country...' }
+    ]);
+
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    useEffect(() => {
+        const fetchMetadata = async () => {
+            try {
+                const [sourcesRes, usersRes] = await Promise.all([
+                    leadSourceService.getLeadSources(),
+                    userService.getUsers()
+                ]);
+
+                const updatedFields = [...filterFields];
+
+                if (Array.isArray(sourcesRes)) {
+                    const sourceField = updatedFields.find(f => f.key === 'sourceId');
+                    if (sourceField) {
+                        sourceField.options = sourcesRes.map((s: any) => ({ label: s.name, value: s.id }));
+                    }
+                }
+
+                if (Array.isArray(usersRes)) {
+                    const userField = updatedFields.find(f => f.key === 'assignedTo');
+                    if (userField) {
+                        userField.options = usersRes.map((u: any) => ({ label: `${u.firstName} ${u.lastName}`, value: u.id }));
+                    }
+                }
+
+                setFilterFields(updatedFields);
+            } catch (error) {
+                console.error('Error fetching metadata for filters:', error);
+            }
+        };
+        fetchMetadata();
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -78,7 +130,8 @@ const LeadReportPage: React.FC = () => {
                     undefined,
                     'all',
                     currentPage,
-                    itemsPerPage
+                    itemsPerPage,
+                    filters
                 );
                 if (response.success) {
                     setReportData(response.data);
@@ -91,7 +144,7 @@ const LeadReportPage: React.FC = () => {
         };
 
         fetchData();
-    }, [dateRange, currentPage, itemsPerPage]);
+    }, [dateRange, currentPage, itemsPerPage, filters]);
 
     const stats = [
         {
@@ -408,14 +461,20 @@ const LeadReportPage: React.FC = () => {
                             1Y
                         </button>
                     </div>
-                    <Button variant="OUTLINE" className="flex items-center gap-2">
-                        <Filter className="w-4 h-4" /> Filter
-                    </Button>
+
                     <Button variant="PRIMARY" className="flex items-center gap-2">
                         <Download className="w-4 h-4" /> Export Excel
                     </Button>
                 </div>
             </div>
+
+            <HorizontalFilters
+                fields={filterFields}
+                values={filters}
+                onChange={handleFilterChange}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (

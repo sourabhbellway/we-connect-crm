@@ -12,7 +12,7 @@ export declare class LeadsController {
         success: boolean;
         data: any;
     }>;
-    list(page?: string, limit?: string, status?: string, search?: string, isDeleted?: string, assignedTo?: string, user?: any): Promise<{
+    list(page?: string, limit?: string, status?: string, search?: string, email?: string, isDeleted?: string, assignedTo?: string, user?: any): Promise<{
         success: boolean;
         data: {
             leads: {

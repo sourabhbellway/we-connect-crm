@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     CheckCircle,
     Clock,
@@ -7,13 +7,14 @@ import {
     Download,
     TrendingUp,
     FileText,
-    FileSearch
+    FileSearch,
+    Loader2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button } from '../../components/ui';
 import { Pagination } from '../../components/ui/Pagination';
 import { analyticsService } from '../../services/analyticsService';
-import { Loader2 } from 'lucide-react';
+import HorizontalFilters, { FilterField } from '../../components/reports/HorizontalFilters';
 import {
     LineChart,
     Line,
@@ -26,13 +27,35 @@ import {
 
 const QuotationReportPage: React.FC = () => {
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage] = React.useState(1);
-    const [itemsPerPage, setItemsPerPage] = React.useState(10);
-    const [loading, setLoading] = React.useState(true);
-    const [reportData, setReportData] = React.useState<any>(null);
-    const [dateRange, setDateRange] = React.useState('6months');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [loading, setLoading] = useState(true);
+    const [reportData, setReportData] = useState<any>(null);
+    const [dateRange, setDateRange] = useState('6months');
+    const [filters, setFilters] = useState<any>({
+        search: '',
+        status: ''
+    });
+    const [filterFields] = useState<FilterField[]>([
+        { key: 'search', label: 'Search', type: 'text', placeholder: 'Search quotations...' },
+        {
+            key: 'status', label: 'Status', type: 'select', options: [
+                { label: 'Draft', value: 'DRAFT' },
+                { label: 'Sent', value: 'SENT' },
+                { label: 'Viewed', value: 'VIEWED' },
+                { label: 'Accepted', value: 'ACCEPTED' },
+                { label: 'Rejected', value: 'REJECTED' },
+                { label: 'Expired', value: 'EXPIRED' },
+                { label: 'Cancelled', value: 'CANCELLED' }
+            ]
+        }
+    ]);
 
-    React.useEffect(() => {
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev: any) => ({ ...prev, [key]: value }));
+    };
+
+    useEffect(() => {
         const fetchReportData = async () => {
             try {
                 setLoading(true);
@@ -41,7 +64,8 @@ const QuotationReportPage: React.FC = () => {
                     undefined,
                     'all',
                     currentPage,
-                    itemsPerPage
+                    itemsPerPage,
+                    filters
                 );
                 if (response.success) {
                     setReportData(response.data);
@@ -54,7 +78,7 @@ const QuotationReportPage: React.FC = () => {
         };
 
         fetchReportData();
-    }, [dateRange, currentPage, itemsPerPage]);
+    }, [dateRange, currentPage, itemsPerPage, filters]);
 
     const stats = [
         { label: 'Total Quotes', value: reportData?.stats?.total.toString() || '0', icon: FileSearch, color: 'text-purple-500', bg: 'bg-purple-50' },
@@ -99,7 +123,7 @@ const QuotationReportPage: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Button
                         variant="GHOST"
@@ -115,20 +139,33 @@ const QuotationReportPage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <select
-                        value={dateRange}
-                        onChange={(e) => setDateRange(e.target.value)}
-                        className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                    >
-                        <option value="3months">Last 3 Months</option>
-                        <option value="6months">Last 6 Months</option>
-                        <option value="12months">Last 12 Months</option>
-                    </select>
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-1">
+                        {['3months', '6months', '12months'].map((range) => (
+                            <button
+                                key={range}
+                                onClick={() => setDateRange(range)}
+                                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${dateRange === range
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                    }`}
+                            >
+                                {range === '3months' ? '3M' : range === '6months' ? '6M' : '1Y'}
+                            </button>
+                        ))}
+                    </div>
                     <Button variant="PRIMARY" className="flex items-center gap-2" onClick={exportToCSV}>
-                        <Download className="w-4 h-4" /> Export Report
+                        <Download className="w-4 h-4" /> Export
                     </Button>
                 </div>
             </div>
+
+            <HorizontalFilters
+                fields={filterFields}
+                values={filters}
+                onChange={handleFilterChange}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={setItemsPerPage}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat, i) => (
@@ -241,16 +278,18 @@ const QuotationReportPage: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                    <div className="p-4 border-t border-gray-100 dark:border-slate-800">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={reportData?.pagination?.pages || 1}
-                            totalItems={reportData?.pagination?.total || 0}
-                            itemsPerPage={itemsPerPage}
-                            onPageChange={setCurrentPage}
-                            onItemsPerPageChange={setItemsPerPage}
-                        />
-                    </div>
+                    {reportData?.pagination && (
+                        <div className="p-4 border-t border-gray-100 dark:border-slate-800">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={reportData?.pagination?.pages || 1}
+                                totalItems={reportData?.pagination?.total || 0}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                onItemsPerPageChange={setItemsPerPage}
+                            />
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

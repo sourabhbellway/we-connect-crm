@@ -472,9 +472,9 @@ const DealProfile: React.FC = () => {
                   )}
                   {deal.priority && (
                     <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${deal.priority === 'URGENT' ? 'bg-red-100 text-red-800' :
-                        al.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
-                          de.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-ay-100 text-gray-800'
+                      al.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                        de.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-ay-100 text-gray-800'
                       }`}>
                       {deal.priority}
                     </span>
@@ -524,8 +524,8 @@ const DealProfile: React.FC = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                        ? 'border-weconnect-red text-weconnect-red'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-weconnect-red text-weconnect-red'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                   >
                     <Icon className="h-4 w-4 mr-2" />
@@ -847,6 +847,7 @@ const DealProfile: React.FC = () => {
               entityId={deal.id}
               quotations={deal.quotations || []}
               invoices={deal.invoices || []}
+              onRefresh={fetchDeal}
             />
           )}
 
@@ -856,6 +857,7 @@ const DealProfile: React.FC = () => {
               entityId={deal.id}
               payments={deal.payments || []}
               invoices={deal.invoices || []}
+              onPaymentSaved={fetchDeal}
             />
           )}
 

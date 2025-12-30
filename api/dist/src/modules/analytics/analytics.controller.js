@@ -76,47 +76,53 @@ let AnalyticsController = class AnalyticsController {
         const includeTeamData = scope === 'all';
         return this.service.getLeadSourceDistribution(parsedUserId, includeTeamData, user);
     }
-    getTaskReport(months, userId, scope, page, limit, user) {
+    getTaskReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-        return this.service.getTaskReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit);
+        const parsedFilters = filters ? JSON.parse(filters) : undefined;
+        return this.service.getTaskReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
-    getLeadReport(months, userId, scope, page, limit, user) {
+    getLeadReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-        return this.service.getLeadReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit);
+        const parsedFilters = filters ? JSON.parse(filters) : undefined;
+        return this.service.getLeadReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
-    getDealReport(months, userId, scope, page, limit, user) {
+    getDealReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-        return this.service.getDealReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit);
+        const parsedFilters = filters ? JSON.parse(filters) : undefined;
+        return this.service.getDealReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
-    getExpenseReport(months, userId, scope, page, limit, user) {
+    getExpenseReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-        return this.service.getExpenseReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit);
+        const parsedFilters = filters ? JSON.parse(filters) : undefined;
+        return this.service.getExpenseReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
-    getInvoiceReport(months, userId, scope, page, limit, user) {
+    getInvoiceReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-        return this.service.getInvoiceReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit);
+        const parsedFilters = filters ? JSON.parse(filters) : undefined;
+        return this.service.getInvoiceReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
-    getQuotationReport(months, userId, scope, page, limit, user) {
+    getQuotationReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
-        return this.service.getQuotationReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit);
+        const parsedFilters = filters ? JSON.parse(filters) : undefined;
+        return this.service.getQuotationReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
 };
 exports.AnalyticsController = AnalyticsController;
@@ -222,9 +228,10 @@ __decorate([
     __param(2, (0, common_1.Query)('scope')),
     __param(3, (0, common_1.Query)('page')),
     __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, user_decorator_1.User)()),
+    __param(5, (0, common_1.Query)('filters')),
+    __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getTaskReport", null);
 __decorate([
@@ -234,9 +241,10 @@ __decorate([
     __param(2, (0, common_1.Query)('scope')),
     __param(3, (0, common_1.Query)('page')),
     __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, user_decorator_1.User)()),
+    __param(5, (0, common_1.Query)('filters')),
+    __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getLeadReport", null);
 __decorate([
@@ -246,9 +254,10 @@ __decorate([
     __param(2, (0, common_1.Query)('scope')),
     __param(3, (0, common_1.Query)('page')),
     __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, user_decorator_1.User)()),
+    __param(5, (0, common_1.Query)('filters')),
+    __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getDealReport", null);
 __decorate([
@@ -258,9 +267,10 @@ __decorate([
     __param(2, (0, common_1.Query)('scope')),
     __param(3, (0, common_1.Query)('page')),
     __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, user_decorator_1.User)()),
+    __param(5, (0, common_1.Query)('filters')),
+    __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getExpenseReport", null);
 __decorate([
@@ -270,9 +280,10 @@ __decorate([
     __param(2, (0, common_1.Query)('scope')),
     __param(3, (0, common_1.Query)('page')),
     __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, user_decorator_1.User)()),
+    __param(5, (0, common_1.Query)('filters')),
+    __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getInvoiceReport", null);
 __decorate([
@@ -282,9 +293,10 @@ __decorate([
     __param(2, (0, common_1.Query)('scope')),
     __param(3, (0, common_1.Query)('page')),
     __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, user_decorator_1.User)()),
+    __param(5, (0, common_1.Query)('filters')),
+    __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getQuotationReport", null);
 exports.AnalyticsController = AnalyticsController = __decorate([

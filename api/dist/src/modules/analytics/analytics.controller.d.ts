@@ -110,7 +110,7 @@ export declare class AnalyticsController {
             rate: string;
         }[];
     }>;
-    getTaskReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, user?: any): Promise<{
+    getTaskReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -150,7 +150,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getLeadReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, user?: any): Promise<{
+    getLeadReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -187,7 +187,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getDealReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, user?: any): Promise<{
+    getDealReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -221,7 +221,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getExpenseReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, user?: any): Promise<{
+    getExpenseReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -265,7 +265,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getInvoiceReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, user?: any): Promise<{
+    getInvoiceReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -304,7 +304,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getQuotationReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, user?: any): Promise<{
+    getQuotationReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {

@@ -24,7 +24,7 @@ interface InvoiceItem {
 
 const CreateInvoicePage: React.FC = () => {
     const navigate = useNavigate();
-    const { currencySettings } = useBusinessSettings();
+    const { currencySettings, formatCurrency } = useBusinessSettings();
     const [searchParams] = useSearchParams();
     const { id: editId } = useParams();
     const isEdit = Boolean(editId);
@@ -214,6 +214,12 @@ const CreateInvoicePage: React.FC = () => {
         })();
     }, [searchParams, isEdit]);
 
+
+    useEffect(() => {
+        if (currencySettings?.primary && !isEdit && (currency === 'USD' || !currency)) {
+            setCurrency(currencySettings.primary);
+        }
+    }, [currencySettings, isEdit]);
 
     const fetchInitialData = async () => {
         try {
@@ -749,18 +755,25 @@ const CreateInvoicePage: React.FC = () => {
                                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                                         <span className="text-red-500">*</span> Currency
                                     </label>
-                                    {currencySettings?.supportedCurrencies?.length ? (
-                                        currencySettings.supportedCurrencies.map(code => (
-                                            <option key={code} value={code}>{code}</option>
-                                        ))
-                                    ) : (
-                                        <>
-                                            <option value="USD">USD $</option>
-                                            <option value="INR">INR ₹</option>
-                                            <option value="EUR">EUR €</option>
-                                            <option value="GBP">GBP £</option>
-                                        </>
-                                    )}
+                                    <select
+                                        value={currency}
+                                        onChange={(e) => setCurrency(e.target.value)}
+                                        className="input-base cursor-pointer"
+                                        required
+                                    >
+                                        {currencySettings?.supportedCurrencies?.length ? (
+                                            currencySettings.supportedCurrencies.map(code => (
+                                                <option key={code} value={code}>{code}</option>
+                                            ))
+                                        ) : (
+                                            <>
+                                                <option value="USD">USD $</option>
+                                                <option value="INR">INR ₹</option>
+                                                <option value="EUR">EUR €</option>
+                                                <option value="GBP">GBP £</option>
+                                            </>
+                                        )}
+                                    </select>
                                 </div>
 
                                 {/* Discount Type */}
@@ -1001,7 +1014,7 @@ const CreateInvoicePage: React.FC = () => {
                                                         </select>
                                                     </td>
                                                     <td className="px-4 py-3 align-top text-right font-medium text-gray-900 dark:text-white pt-3">
-                                                        {currency} {item.amount.toFixed(2)}
+                                                        {formatCurrency(item.amount, currency)}
                                                     </td>
                                                     <td className="px-4 py-3 align-top text-center pt-3">
                                                         <button
@@ -1102,13 +1115,13 @@ const CreateInvoicePage: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-gray-600 dark:text-gray-400">Sub total</span>
-                                        <span className="font-semibold text-gray-900 dark:text-white">{currency} {subTotal.toFixed(2)}</span>
+                                        <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(subTotal, currency)}</span>
                                     </div>
 
                                     {taxAmount > 0 && (
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-600 dark:text-gray-400">Total Tax</span>
-                                            <span className="font-semibold text-gray-900 dark:text-white">{currency} {taxAmount.toFixed(2)}</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(taxAmount, currency)}</span>
                                         </div>
                                     )}
                                     <div className="flex items-center justify-between text-sm">
@@ -1130,7 +1143,7 @@ const CreateInvoicePage: React.FC = () => {
                                                 <option value="%">%</option>
                                                 <option value="fixed">{currency}</option>
                                             </select>
-                                            <span className="text-red-600 dark:text-red-400 font-medium">-{currency} {discount.toFixed(2)}</span>
+                                            <span className="text-red-600 dark:text-red-400 font-medium">-{formatCurrency(discount, currency)}</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
@@ -1143,12 +1156,12 @@ const CreateInvoicePage: React.FC = () => {
                                                 step="0.01"
                                                 className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
                                             />
-                                            <span className="font-medium text-gray-900 dark:text-white">{currency} {adjustmentValue.toFixed(2)}</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(adjustmentValue, currency)}</span>
                                         </div>
                                     </div>
                                     <div className="pt-3 mt-1 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
                                         <span className="font-semibold text-gray-900 dark:text-white">Total</span>
-                                        <span className="text-2xl font-bold text-gray-900 dark:text-white">{currency} {total.toFixed(2)}</span>
+                                        <span className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(total, currency)}</span>
                                     </div>
                                     <div className="flex gap-2 pt-2">
                                         <Button variant="SECONDARY" fullWidth onClick={() => handleSubmit(false)} disabled={loading}>

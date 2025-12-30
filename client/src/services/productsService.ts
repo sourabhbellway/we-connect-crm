@@ -37,7 +37,7 @@ export interface CreateProductDto {
   isActive?: boolean;
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 class ProductsService {
   async list(params?: {
@@ -68,6 +68,33 @@ class ProductsService {
     const response = await apiClient.delete(`/products/${id}`);
     return response.data;
   }
+
+  async bulkExport(params?: { search?: string }) {
+    const response = await apiClient.get('/products/bulk/export', {
+      params,
+      responseType: 'blob',
+    });
+    return response.data;
+  }
+
+  async bulkImport(file: File) {
+    const formData = new FormData();
+    formData.append('csvFile', file);
+    const response = await apiClient.post('/products/bulk/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async bulkDelete(ids: number[]) {
+    const response = await apiClient.delete('/products/bulk/delete', {
+      data: { ids },
+    });
+    return response.data;
+  }
 }
+
 
 export const productsService = new ProductsService();

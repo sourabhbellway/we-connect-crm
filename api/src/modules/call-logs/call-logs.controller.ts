@@ -21,10 +21,18 @@ export class CallLogsController {
   constructor(private readonly service: CallLogsService) { }
 
   @Get()
-  list(@Query('leadId') leadId?: string, @Query('userId') userId?: string, @User() user?: any) {
+  list(
+    @Query('leadId') leadId?: string,
+    @Query('userId') userId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @User() user?: any
+  ) {
     return this.service.list({
       leadId: leadId ? parseInt(leadId) : undefined,
       userId: userId ? parseInt(userId) : undefined,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
     }, user);
   }
 
@@ -55,19 +63,19 @@ export class CallLogsController {
     return this.service.remove(Number(id));
   }
 
-@Post('initiate')
-async initiate(@Body() dto: CreateCallLogDto, @Body('deviceToken') deviceToken?: string) {
+  @Post('initiate')
+  async initiate(@Body() dto: CreateCallLogDto, @Body('deviceToken') deviceToken?: string) {
 
-  const result = await this.service.create(dto);
-  
-  if (deviceToken) {
-    try {
-     
-    } catch (error) {
-      console.error('Failed to send mobile notification:', error);
+    const result = await this.service.create(dto);
+
+    if (deviceToken) {
+      try {
+
+      } catch (error) {
+        console.error('Failed to send mobile notification:', error);
+      }
     }
+
+    return result;
   }
-  
-  return result;
-}
 }

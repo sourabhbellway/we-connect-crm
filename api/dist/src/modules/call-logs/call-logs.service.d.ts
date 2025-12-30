@@ -4,9 +4,11 @@ import { UpdateCallLogDto } from './dto/update-call-log.dto';
 export declare class CallLogsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ leadId, userId }: {
+    list({ leadId, userId, page, limit }: {
         leadId?: number;
         userId?: number;
+        page?: number;
+        limit?: number;
     }, user?: any): Promise<{
         success: boolean;
         data: {

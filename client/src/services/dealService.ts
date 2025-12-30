@@ -138,6 +138,48 @@ class DealService {
       throw error;
     }
   }
+
+  async bulkExportDeals(search?: string): Promise<Blob> {
+    try {
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+
+      const response = await apiClient.get(`${API_ENDPOINTS.DEALS.BASE}/bulk/export?${params.toString()}`, {
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting deals:', error);
+      throw error;
+    }
+  }
+
+  async bulkImportDeals(file: File): Promise<any> {
+    try {
+      const formData = new FormData();
+      formData.append('csvFile', file);
+
+      const response = await apiClient.post(`${API_ENDPOINTS.DEALS.BASE}/bulk/import`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error importing deals:', error);
+      throw error;
+    }
+  }
+
+  async bulkAssignDeals(dealIds: number[], userId: number | null): Promise<any> {
+    try {
+      const response = await apiClient.put(`${API_ENDPOINTS.DEALS.BASE}/bulk/assign`, { dealIds, userId });
+      return response.data;
+    } catch (error) {
+      console.error('Error bulk assigning deals:', error);
+      throw error;
+    }
+  }
 }
 
 export const dealService = new DealService();

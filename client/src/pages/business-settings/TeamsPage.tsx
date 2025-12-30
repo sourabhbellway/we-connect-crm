@@ -51,7 +51,7 @@ const TeamsPage = () => {
                 name: team.name,
                 description: team.description || '',
                 managerId: team.managerId?.toString() || '',
-                memberIds: team.members?.map(m => m.id.toString()) || [],
+                memberIds: team.members?.map(m => m.id.toString()).filter(id => id !== team.managerId?.toString()) || [],
             });
         } else {
             setEditTeam(null);
@@ -261,7 +261,14 @@ const TeamsPage = () => {
                                 </label>
                                 <select
                                     value={formData.managerId}
-                                    onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                                    onChange={(e) => {
+                                        const newManagerId = e.target.value;
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            managerId: newManagerId,
+                                            memberIds: prev.memberIds.filter(id => id !== newManagerId)
+                                        }));
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Select Manager</option>
@@ -279,7 +286,7 @@ const TeamsPage = () => {
                                 </label>
                                 <div className="border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
                                     {users
-                                        .filter(user => !user.teamId || (editTeam && user.teamId === editTeam.id))
+                                        .filter(user => (!user.teamId || (editTeam && user.teamId === editTeam.id)) && user.id.toString() !== formData.managerId)
                                         .map(user => (
                                             <div key={user.id} className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 gap-3">
                                                 <input

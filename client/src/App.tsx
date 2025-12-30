@@ -73,6 +73,7 @@ import TaskDetailPage from "./pages/tasks/TaskDetailPage";
 import ExpensesPage from "./pages/expenses/ExpensesPage";
 import AutomationManagementPage from "./pages/automation/AutomationManagementPage";
 import ActivitiesPage from "./pages/ActivitiesPage";
+import LogsPage from "./pages/LogsPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -784,6 +785,16 @@ function AppContent() {
               <ProtectedRoute>
                 <MainLayout>
                   <TrashRoles />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/logs"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.ACTIVITY.READ}>
+                <MainLayout>
+                  <LogsPage />
                 </MainLayout>
               </ProtectedRoute>
             }

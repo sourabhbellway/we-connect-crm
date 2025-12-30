@@ -187,6 +187,7 @@ export interface LeadFilters {
   limit?: number;
   status?: string;
   search?: string;
+  email?: string;
   assignedTo?: number;
 }
 
@@ -228,6 +229,7 @@ export const leadService = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
     if (filters.status) params.append("status", filters.status);
+    if (filters.email) params.append("email", filters.email);
     if (typeof filters.assignedTo === 'number') params.append('assignedTo', String(filters.assignedTo));
     if (filters.search && filters.search.toString().trim() !== "") {
       params.append("search", filters.search.toString().trim());
