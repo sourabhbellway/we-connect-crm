@@ -878,7 +878,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
               value: city.name,
               label: city.name,
             }))}
-            onChange={(v) => handleChange(field.fieldName, v || "")}
+            onChange={(v) => {
+              handleChange(field.fieldName, v || "");
+              handleChange("zipCode", "");
+            }}
             searchable={true}
             disabled={!formState.form.state}
             required={field.isRequired}
