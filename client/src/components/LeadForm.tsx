@@ -10,6 +10,7 @@ import { industryService, Industry } from "../services/industryService";
 import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 import { countries } from "../data/countries";
 import { countryToCurrency } from "../utils/countryUtils";
+import { Country as CSCCountry, State, City } from 'country-state-city';
 import apiClient from "../services/apiClient";
 import {
   Mail,
@@ -132,14 +133,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const [industries, setIndustries] = useState<Industry[]>([]);
   const [showOtherIndustryInput, setShowOtherIndustryInput] = useState(false);
   const [fieldConfigs, setFieldConfigs] = useState<FieldConfig[]>([]);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
 
   // Country to Currency mapping
   // Imported from utils/countryUtils
-
-  // All countries list
-  const getAllCountries = () => {
-    return Object.keys(countryToCurrency).sort();
-  };
 
   // Currency options with symbols and descriptions
   const getCurrencyOptions = () => {
@@ -274,6 +272,37 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }
   }, [currencySettings, initial]);
 
+  // Fetch states based on country
+  useEffect(() => {
+    if (formState.form.country) {
+      const countryObj = CSCCountry.getAllCountries().find(c => c.name === formState.form.country);
+      if (countryObj) {
+        const fetchedStates = State.getStatesOfCountry(countryObj.isoCode);
+        setStates(fetchedStates);
+      } else {
+        setStates([]);
+      }
+    } else {
+      setStates([]);
+    }
+  }, [formState.form.country]);
+
+  // Fetch cities based on state
+  useEffect(() => {
+    if (formState.form.country && formState.form.state) {
+      const countryObj = CSCCountry.getAllCountries().find(c => c.name === formState.form.country);
+      const stateObj = states.find(s => s.name === formState.form.state);
+      if (countryObj && stateObj) {
+        const fetchedCities = City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
+        setCities(fetchedCities);
+      } else {
+        setCities([]);
+      }
+    } else {
+      setCities([]);
+    }
+  }, [formState.form.country, formState.form.state, states]);
+
   // Auto-select currency when country changes
   useEffect(() => {
     if (formState.form.country && countryToCurrency[formState.form.country]) {
@@ -289,7 +318,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         }));
       }
     }
-  }, [formState.form.country]);
+  }, [formState.form.country, currencySettings]);
 
   useEffect(() => {
     const load = async () => {
@@ -800,15 +829,15 @@ const LeadForm: React.FC<LeadFormProps> = ({
             leftIcon={<Flag className="h-4 w-4 text-gray-400" />}
             value={value || ""}
             placeholder={field.placeholder || "Select country"}
-            options={[
-              { value: "", label: "Select country" },
-              ...getAllCountries().map((country) => ({
-                value: country,
-                label: country,
-                description: countryToCurrency[country] ? `Currency: ${countryToCurrency[country]}` : undefined
-              }))
-            ]}
-            onChange={(v) => handleChange(field.fieldName, v || "")}
+            options={CSCCountry.getAllCountries().map((country) => ({
+              value: country.name,
+              label: `${country.flag} ${country.name}`,
+            }))}
+            onChange={(v) => {
+              handleChange(field.fieldName, v || "");
+              handleChange("state", "");
+              handleChange("city", "");
+            }}
             searchable={true}
             clearable={true}
             required={field.isRequired}
@@ -817,26 +846,41 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
       case 'state':
         return (
-          <InputField
+          <EnhancedSelectField
             key={field.fieldName}
             label={field.label}
             leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
             value={value || ""}
-            onChange={(e) => handleChange(field.fieldName, e.target.value)}
-            placeholder={field.placeholder || "State/Province"}
+            placeholder={field.placeholder || "Select state"}
+            options={states.map((state) => ({
+              value: state.name,
+              label: state.name,
+            }))}
+            onChange={(v) => {
+              handleChange(field.fieldName, v || "");
+              handleChange("city", "");
+            }}
+            searchable={true}
+            disabled={!formState.form.country}
             required={field.isRequired}
           />
         );
 
       case 'city':
         return (
-          <InputField
+          <EnhancedSelectField
             key={field.fieldName}
             label={field.label}
             leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
             value={value || ""}
-            onChange={(e) => handleChange(field.fieldName, e.target.value)}
-            placeholder={field.placeholder || "City"}
+            placeholder={field.placeholder || "Select city"}
+            options={cities.map((city) => ({
+              value: city.name,
+              label: city.name,
+            }))}
+            onChange={(v) => handleChange(field.fieldName, v || "")}
+            searchable={true}
+            disabled={!formState.form.state}
             required={field.isRequired}
           />
         );
