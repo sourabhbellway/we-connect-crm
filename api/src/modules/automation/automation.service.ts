@@ -247,7 +247,7 @@ export class AutomationService {
           title: `Automation Executed: ${workflow.name}`,
           description: `Workflow "${workflow.name}" was triggered and executed successfully.`,
           type: 'AUTOMATION_EXECUTED' as any,
-          userId: workflow.createdBy,
+          userId: workflow.createdBy ?? undefined,
           icon: 'FiZap',
           iconColor: 'text-yellow-600',
           metadata: {
@@ -299,7 +299,7 @@ export class AutomationService {
           title: `Automation Failed: ${workflow.name}`,
           description: `Workflow "${workflow.name}" failed: ${error.message}`,
           type: 'AUTOMATION_FAILED' as any,
-          userId: workflow.createdBy,
+          userId: workflow.createdBy ?? undefined,
           icon: 'FiZap',
           iconColor: 'text-red-600',
           metadata: {

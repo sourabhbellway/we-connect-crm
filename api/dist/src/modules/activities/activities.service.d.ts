@@ -231,7 +231,7 @@ export declare class ActivitiesService {
                 type: import("@prisma/client").$Enums.ActivityType;
                 date: Date | null;
                 leadId: number | null;
-                userId: number | null;
+                userId: number | undefined;
                 user: {
                     email: string;
                     firstName: string;

@@ -206,6 +206,27 @@ const CreateInvoicePage: React.FC = () => {
                     const deal = res?.data?.deal || res?.data || res;
                     if (deal) {
                         setDealId(String(deal.id));
+                        if (deal.currency) setCurrency(deal.currency);
+
+                        // If deal has a lead associated, fetch lead data for full details
+                        if (deal.leadId) {
+                            try {
+                                const leadRes = await leadService.getLeadById(deal.leadId);
+                                const lead = leadRes?.data?.lead || leadRes?.data || leadRes;
+                                if (lead) {
+                                    setCustomerId(String(lead.id));
+                                    setEmail(lead.email || '');
+                                    setPhone(lead.phone || '');
+                                    setAddress(lead.address || '');
+                                    setCity(lead.city || '');
+                                    setState(lead.state || '');
+                                    setCountry(lead.country || '');
+                                    setZipCode(lead.zipCode || '');
+                                }
+                            } catch (err) {
+                                console.error('Error fetching lead details for deal:', err);
+                            }
+                        }
                     }
                 }
             } catch (e) {

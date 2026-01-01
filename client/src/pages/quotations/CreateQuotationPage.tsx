@@ -203,20 +203,34 @@ const CreateQuotationPage: React.FC = () => {
                     const deal = (res as any)?.data || res;
                     if (deal) {
                         setDealId(String(deal.id));
-                        // Use lead if present
-                        if (deal.lead) {
-                            setRelatedType('lead');
-                            setRelatedId(String(deal.lead.id));
-                            const fullName = `${deal.lead.firstName || ''} ${deal.lead.lastName || ''}`.trim();
-                            setSubject(deal.title ? `${deal.title}` : `Proposal for ${fullName || 'Lead'}`);
-                            setToField(fullName);
-                            setSearchQuery(fullName);
-                            setEmail(deal.lead.email || '');
-                            setPhone('');
+                        if (deal.currency) setCurrency(deal.currency);
+
+                        // If deal has a lead associated, fetch lead data for full details
+                        if (deal.leadId) {
+                            try {
+                                const leadRes = await leadService.getLeadById(deal.leadId);
+                                const lead = leadRes?.data?.lead || leadRes?.data || leadRes;
+                                if (lead) {
+                                    setRelatedType('lead');
+                                    setRelatedId(String(lead.id));
+                                    const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
+                                    setSubject(deal.title ? `${deal.title}` : `Proposal for ${fullName || 'Lead'}`);
+                                    setToField(fullName);
+                                    setSearchQuery(fullName);
+                                    setEmail(lead.email || '');
+                                    setPhone(lead.phone || '');
+                                    setAddress(lead.address || '');
+                                    setCity(lead.city || '');
+                                    setState(lead.state || '');
+                                    setCountry(lead.country || '');
+                                    setZipCode(lead.zipCode || '');
+                                }
+                            } catch (err) {
+                                console.error('Error fetching lead details for deal:', err);
+                            }
                         } else {
                             setSubject(deal.title || 'Proposal');
                         }
-                        if (deal.currency) setCurrency(deal.currency);
                     }
                 }
             } catch (e) {
@@ -348,6 +362,7 @@ const CreateQuotationPage: React.FC = () => {
         setState(entity.state || '');
         setCountry(entity.country || '');
         setZipCode(entity.zipCode || '');
+        if ((entity as any)?.currency) setCurrency((entity as any).currency);
         setShowSearchDropdown(false);
         toast.success('Lead selected and details auto-filled');
     };

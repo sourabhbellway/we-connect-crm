@@ -134,13 +134,25 @@ const DealEdit: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Currency</label>
-            <input
+            <select
               name="currency"
               value={form.currency}
               onChange={handleChange}
               className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-              placeholder="USD"
-            />
+            >
+              {currencySettings?.supportedCurrencies?.length ? (
+                currencySettings.supportedCurrencies.map(code => (
+                  <option key={code} value={code}>{code}</option>
+                ))
+              ) : (
+                <>
+                  <option value="USD">USD</option>
+                  <option value="INR">INR</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </>
+              )}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>

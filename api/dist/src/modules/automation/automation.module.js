@@ -12,12 +12,13 @@ const automation_service_1 = require("./automation.service");
 const automation_controller_1 = require("./automation.controller");
 const prisma_service_1 = require("../../database/prisma.service");
 const notifications_module_1 = require("../notifications/notifications.module");
+const activities_module_1 = require("../activities/activities.module");
 let AutomationModule = class AutomationModule {
 };
 exports.AutomationModule = AutomationModule;
 exports.AutomationModule = AutomationModule = __decorate([
     (0, common_1.Module)({
-        imports: [notifications_module_1.NotificationsModule],
+        imports: [notifications_module_1.NotificationsModule, activities_module_1.ActivitiesModule],
         controllers: [automation_controller_1.AutomationController],
         providers: [automation_service_1.AutomationService, prisma_service_1.PrismaService],
         exports: [automation_service_1.AutomationService],

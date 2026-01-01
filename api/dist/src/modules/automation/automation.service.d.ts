@@ -3,11 +3,13 @@ import { CreateWorkflowDto, WorkflowTrigger } from './dto/create-workflow.dto';
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { Prisma } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ActivitiesService } from '../activities/activities.service';
 export declare class AutomationService {
     private prisma;
     private readonly notificationsService;
+    private readonly activitiesService;
     private readonly logger;
-    constructor(prisma: PrismaService, notificationsService: NotificationsService);
+    constructor(prisma: PrismaService, notificationsService: NotificationsService, activitiesService: ActivitiesService);
     create(createWorkflowDto: CreateWorkflowDto, userId?: number): Promise<{
         isActive: boolean;
         createdAt: Date;

@@ -57,7 +57,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
   lead,
   isConverting,
 }) => {
-  const { dealStatuses } = useBusinessSettings();
+  const { dealStatuses, currencySettings } = useBusinessSettings();
 
   const [conversionData, setConversionData] = useState<ConversionData>({
     createContact: false, // Always false - contact creation removed
@@ -248,9 +248,25 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Currency
                       </label>
-                      <div className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 flex items-center">
-                        <span className="font-medium">{conversionData.dealData.currency || "USD"}</span>
-                      </div>
+                      <select
+                        value={conversionData.dealData.currency || "USD"}
+                        onChange={(e) => handleInputChange('dealData', 'currency', e.target.value)}
+                        disabled={isConverting}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-white"
+                      >
+                        {currencySettings?.supportedCurrencies?.length ? (
+                          currencySettings.supportedCurrencies.map((code: string) => (
+                            <option key={code} value={code}>{code}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="USD">USD</option>
+                            <option value="INR">INR</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                          </>
+                        )}
+                      </select>
                     </div>
                   </div>
                   <div>

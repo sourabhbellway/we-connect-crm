@@ -140,6 +140,9 @@ let ActivitiesService = class ActivitiesService {
                 case 'CALL':
                     typeCondition = { type: 'COMMUNICATION_LOGGED' };
                     break;
+                case 'AUTOMATION':
+                    typeCondition = { type: { in: ['AUTOMATION_EXECUTED', 'AUTOMATION_FAILED', 'AUTOMATION_CREATED', 'AUTOMATION_UPDATED', 'AUTOMATION_DELETED'] } };
+                    break;
                 default:
                     typeCondition = { type: type };
             }
@@ -306,7 +309,7 @@ let ActivitiesService = class ActivitiesService {
                         type: activity.type,
                         date: metadata?.scheduledAt ? new Date(metadata.scheduledAt) : null,
                         leadId: activity.leadId,
-                        userId: activity.userId,
+                        userId: activity.userId ?? undefined,
                         user: activity.user,
                         source: 'activity',
                     };
