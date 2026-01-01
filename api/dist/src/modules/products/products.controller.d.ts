@@ -18,8 +18,8 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                category: string | null;
                 type: import("@prisma/client").$Enums.ProductType;
+                category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
                 cost: import("@prisma/client/runtime/library").Decimal | null;
@@ -53,8 +53,8 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                category: string | null;
                 type: import("@prisma/client").$Enums.ProductType;
+                category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
                 cost: import("@prisma/client/runtime/library").Decimal | null;
@@ -83,8 +83,8 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                category: string | null;
                 type: import("@prisma/client").$Enums.ProductType;
+                category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
                 cost: import("@prisma/client/runtime/library").Decimal | null;
@@ -116,8 +116,8 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                category: string | null;
                 type: import("@prisma/client").$Enums.ProductType;
+                category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
                 cost: import("@prisma/client/runtime/library").Decimal | null;

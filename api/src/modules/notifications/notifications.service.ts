@@ -5,6 +5,7 @@ import { QueryNotificationsDto } from './dto/query-notifications.dto';
 import { UpdateNotificationPreferenceDto } from './dto/notification-preference.dto';
 import { NotificationType } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class NotificationsService {
@@ -13,7 +14,25 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) {
+    // Initialize Firebase Admin SDK if not already initialized
+    if (!admin.apps.length) {
+      try {
+        // Check if Firebase credentials are provided in environment
+        const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+        if (serviceAccount) {
+          admin.initializeApp({
+            credential: admin.credential.cert(JSON.parse(serviceAccount)),
+          });
+          this.logger.log('Firebase Admin SDK initialized successfully');
+        } else {
+          this.logger.warn('Firebase service account not configured. FCM push notifications will not work.');
+        }
+      } catch (error) {
+        this.logger.error('Failed to initialize Firebase Admin SDK:', error);
+      }
+    }
+  }
 
   // Create single notification
   async create(dto: CreateNotificationDto) {
@@ -345,5 +364,42 @@ export class NotificationsService {
       link: `/leads/${leadId}`,
       metadata: { leadId, leadName },
     });
+  }
+
+  /**
+   * Send FCM Push Notification to a device token
+   * @param deviceToken - FCM device token
+   * @param title - Notification title
+   * @param body - Notification body
+   * @param data - Optional data payload
+   */
+  async sendPushNotification(
+    deviceToken: string,
+    title: string,
+    body: string,
+    data?: Record<string, string>
+  ): Promise<boolean> {
+    try {
+      if (!admin.apps.length) {
+        this.logger.warn('Firebase not initialized. Cannot send push notification.');
+        return false;
+      }
+
+      const message: admin.messaging.Message = {
+        notification: {
+          title,
+          body,
+        },
+        data: data || {},
+        token: deviceToken,
+      };
+
+      const response = await admin.messaging().send(message);
+      this.logger.log(`Push notification sent successfully: ${response}`);
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to send push notification:', error);
+      return false;
+    }
   }
 }

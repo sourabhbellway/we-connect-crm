@@ -182,110 +182,126 @@ let QuotationsService = class QuotationsService {
         return { subtotal, taxAmount, discountAmount, totalAmount };
     }
     async create(dto) {
-        const totals = this.calcTotals(dto.items || []);
-        const bs = await this.prisma.businessSettings.findFirst();
-        let ext = {};
         try {
-            ext = bs?.description ? JSON.parse(bs.description) : {};
-        }
-        catch { }
-        let number = dto.quotationNumber;
-        if (!number) {
-            const prefix = (ext.quotePrefix ?? 'Q-');
-            const width = Number(ext.quotePad ?? 6);
-            const lastQuotation = await this.prisma.quotation.findFirst({ orderBy: { id: 'desc' } });
-            const nextId = (lastQuotation?.id || 0) + 1;
-            number = `${prefix}${pad(nextId, width)}`;
-        }
-        const termsFinal = dto.terms ?? ext.defaultTerms ?? '';
-        const quotation = await this.prisma.quotation.create({
-            data: {
-                quotationNumber: number,
-                title: dto.title,
-                description: dto.description ?? null,
-                status: dto.status ?? 'DRAFT',
-                subtotal: totals.subtotal,
-                taxAmount: totals.taxAmount,
-                discountAmount: dto.discountAmount ?? totals.discountAmount,
-                totalAmount: totals.totalAmount,
-                currency: dto.currency ?? 'USD',
-                validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
-                notes: dto.notes ?? null,
-                terms: termsFinal,
-                leadId: dto.leadId ?? null,
-                dealId: dto.dealId ?? null,
-                companyId: dto.companyId ?? null,
-                createdBy: dto.createdBy ?? 1,
-                items: {
-                    create: (dto.items || []).map((it, idx) => ({
-                        productId: it.productId ?? null,
-                        name: it.name,
-                        description: it.description ?? null,
-                        quantity: it.quantity,
-                        unit: it.unit ?? 'pcs',
-                        unitPrice: it.unitPrice,
-                        taxRate: it.taxRate ?? 0,
-                        discountRate: it.discountRate ?? 0,
-                        subtotal: (Number(it.quantity) * Number(it.unitPrice)),
-                        totalAmount: (Number(it.quantity) * Number(it.unitPrice) *
-                            (1 + Number(it.taxRate ?? 0) / 100) *
-                            (1 - Number(it.discountRate ?? 0) / 100)),
-                        sortOrder: idx,
-                    })),
-                },
-            },
-            include: { items: true },
-        });
-        if (quotation.leadId) {
+            console.log('--- START QUOTATION CREATION ---');
+            console.log('DTO:', JSON.stringify(dto, null, 2));
+            const totals = this.calcTotals(dto.items || []);
+            console.log('Calculated Totals:', totals);
+            const bs = await this.prisma.businessSettings.findFirst();
+            let ext = {};
             try {
-                await this.prisma.activity.create({
-                    data: {
-                        title: 'Quotation created',
-                        description: `Quotation "${quotation.quotationNumber}" created with total amount ${quotation.currency} ${Number(quotation.totalAmount).toFixed(2)}`,
-                        type: 'COMMUNICATION_LOGGED',
-                        icon: 'FileText',
-                        iconColor: '#10B981',
-                        metadata: {
-                            quotationId: quotation.id,
-                            quotationNumber: quotation.quotationNumber,
-                            totalAmount: quotation.totalAmount,
-                            currency: quotation.currency,
-                        },
-                        userId: quotation.createdBy,
-                        leadId: quotation.leadId,
+                ext = bs?.description ? JSON.parse(bs.description) : {};
+            }
+            catch { }
+            let number = dto.quotationNumber;
+            if (!number) {
+                const prefix = (ext.quotePrefix ?? 'Q-');
+                const width = Number(ext.quotePad ?? 6);
+                const lastQuotation = await this.prisma.quotation.findFirst({ orderBy: { id: 'desc' } });
+                const nextId = (lastQuotation?.id || 0) + 1;
+                number = `${prefix}${pad(nextId, width)}`;
+            }
+            console.log('Quotation Number:', number);
+            const termsFinal = dto.terms ?? ext.defaultTerms ?? '';
+            console.log('Creating quotation record...');
+            const quotation = await this.prisma.quotation.create({
+                data: {
+                    quotationNumber: number,
+                    title: dto.title,
+                    description: dto.description ?? null,
+                    status: dto.status ?? 'DRAFT',
+                    subtotal: totals.subtotal,
+                    taxAmount: totals.taxAmount,
+                    discountAmount: dto.discountAmount ?? totals.discountAmount,
+                    totalAmount: totals.totalAmount,
+                    currency: dto.currency ?? 'USD',
+                    validUntil: dto.validUntil ? new Date(dto.validUntil) : null,
+                    notes: dto.notes ?? null,
+                    terms: termsFinal,
+                    leadId: dto.leadId ?? null,
+                    dealId: dto.dealId ?? null,
+                    companyId: dto.companyId ?? null,
+                    createdBy: dto.createdBy ?? 1,
+                    items: {
+                        create: (dto.items || []).map((it, idx) => ({
+                            productId: it.productId ? Number(it.productId) : null,
+                            name: it.name,
+                            description: it.description ?? null,
+                            quantity: it.quantity,
+                            unit: it.unit ?? 'pcs',
+                            unitPrice: it.unitPrice,
+                            taxRate: it.taxRate ?? 0,
+                            discountRate: it.discountRate ?? 0,
+                            subtotal: (Number(it.quantity) * Number(it.unitPrice)),
+                            totalAmount: (Number(it.quantity) * Number(it.unitPrice) *
+                                (1 + Number(it.taxRate ?? 0) / 100) *
+                                (1 - Number(it.discountRate ?? 0) / 100)),
+                            sortOrder: idx,
+                        })),
                     },
-                });
-            }
-            catch (error) {
-                console.error('Error creating quotation activity:', error);
-            }
-        }
-        if (quotation.leadId) {
-            try {
-                const lead = await this.prisma.lead.findUnique({
-                    where: { id: quotation.leadId },
-                    select: { id: true, firstName: true, lastName: true, assignedTo: true },
-                });
-                if (lead?.assignedTo) {
-                    await this.notificationsService.create({
-                        userId: lead.assignedTo,
-                        type: client_1.NotificationType.QUOTATION_SENT,
-                        title: 'Quotation Created',
-                        message: `Quotation "${quotation.quotationNumber}" has been created for lead "${lead.firstName} ${lead.lastName}".`,
-                        link: `/leads/${lead.id}`,
-                        metadata: {
-                            quotationId: quotation.id,
-                            quotationNumber: quotation.quotationNumber,
-                            leadId: lead.id,
+                },
+                include: { items: true },
+            });
+            console.log('Quotation record created successfully:', quotation.id);
+            if (quotation.leadId) {
+                try {
+                    await this.prisma.activity.create({
+                        data: {
+                            title: 'Quotation created',
+                            description: `Quotation "${quotation.quotationNumber}" created with total amount ${quotation.currency} ${Number(quotation.totalAmount).toFixed(2)}`,
+                            type: 'QUOTATION_CREATED',
+                            icon: 'FileText',
+                            iconColor: '#10B981',
+                            metadata: {
+                                quotationId: quotation.id,
+                                quotationNumber: quotation.quotationNumber,
+                                totalAmount: Number(quotation.totalAmount),
+                                currency: quotation.currency,
+                            },
+                            userId: quotation.createdBy,
+                            leadId: quotation.leadId,
                         },
                     });
+                    console.log('Activity record created');
+                }
+                catch (err) {
+                    console.error('Failed to create quotation activity:', err);
                 }
             }
-            catch (error) {
-                console.error('Failed to send quotation created notification:', error);
+            if (quotation.leadId) {
+                try {
+                    const lead = await this.prisma.lead.findUnique({
+                        where: { id: quotation.leadId },
+                        select: { id: true, firstName: true, lastName: true, assignedTo: true },
+                    });
+                    if (lead?.assignedTo) {
+                        await this.notificationsService.create({
+                            userId: lead.assignedTo,
+                            type: client_1.NotificationType.QUOTATION_SENT,
+                            title: 'Quotation Created',
+                            message: `Quotation "${quotation.quotationNumber}" has been created for lead "${lead.firstName} ${lead.lastName}".`,
+                            link: `/leads/${lead.id}`,
+                            metadata: {
+                                quotationId: quotation.id,
+                                quotationNumber: quotation.quotationNumber,
+                                leadId: lead.id,
+                            },
+                        });
+                        console.log('Notification sent to user:', lead.assignedTo);
+                    }
+                }
+                catch (err) {
+                    console.error('Failed to send quotation notification:', err);
+                }
             }
+            console.log('--- END QUOTATION CREATION (SUCCESS) ---');
+            return { success: true, data: quotation };
         }
-        return { success: true, data: { quotation } };
+        catch (error) {
+            console.error('--- CRITICAL ERROR IN QUOTATION CREATION ---');
+            console.error(error);
+            throw error;
+        }
     }
     async update(id, dto) {
         const quotation = await this.prisma.quotation.update({
@@ -311,7 +327,7 @@ let QuotationsService = class QuotationsService {
                     data: {
                         title: 'Quotation updated',
                         description: `Quotation "${quotation.quotationNumber}" updated. Status: ${quotation.status}`,
-                        type: 'COMMUNICATION_LOGGED',
+                        type: 'QUOTATION_UPDATED',
                         icon: 'Edit',
                         iconColor: '#F59E0B',
                         metadata: {
@@ -341,7 +357,7 @@ let QuotationsService = class QuotationsService {
         const item = await this.prisma.quotationItem.create({
             data: {
                 quotationId: id,
-                productId: dto.productId ?? null,
+                productId: dto.productId ? Number(dto.productId) : null,
                 name: dto.name,
                 description: dto.description ?? null,
                 quantity: dto.quantity,
@@ -363,7 +379,7 @@ let QuotationsService = class QuotationsService {
         const item = await this.prisma.quotationItem.update({
             where: { id: itemId },
             data: {
-                productId: dto.productId ?? undefined,
+                productId: dto.productId ? Number(dto.productId) : undefined,
                 name: dto.name,
                 description: dto.description,
                 quantity: dto.quantity,
@@ -418,6 +434,28 @@ let QuotationsService = class QuotationsService {
             where: { id },
             data: { status: 'SENT', sentAt: new Date() },
         });
+        if (quotation.leadId) {
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        title: 'Quotation sent',
+                        description: `Quotation "${quotation.quotationNumber}" sent to customer.`,
+                        type: 'QUOTATION_SENT',
+                        icon: 'Send',
+                        iconColor: '#3B82F6',
+                        metadata: {
+                            quotationId: quotation.id,
+                            quotationNumber: quotation.quotationNumber,
+                        },
+                        userId: quotation.createdBy,
+                        leadId: quotation.leadId,
+                    },
+                });
+            }
+            catch (error) {
+                console.error('Error creating quotation sent activity:', error);
+            }
+        }
         if (quotation.leadId) {
             try {
                 const lead = await this.prisma.lead.findUnique({

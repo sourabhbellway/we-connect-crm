@@ -16,10 +16,10 @@ export declare class PaymentsService {
                     companyId: number | null;
                     description: string | null;
                     currency: string;
-                    status: import("@prisma/client").$Enums.InvoiceStatus;
-                    createdBy: number;
                     title: string;
                     leadId: number | null;
+                    createdBy: number;
+                    status: import("@prisma/client").$Enums.InvoiceStatus;
                     dueDate: Date | null;
                     dealId: number | null;
                     invoiceNumber: string;

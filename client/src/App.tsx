@@ -50,10 +50,6 @@ import UserEdit from "./components/UserEdit";
 import Roles from "./components/Roles";
 import RoleCreate from "./components/RoleCreate";
 import RoleEdit from "./components/RoleEdit";
-import Trash from "./components/Trash";
-import TrashUsers from "./components/TrashUsers";
-import TrashLeads from "./components/TrashLeads";
-import TrashRoles from "./components/TrashRoles";
 import IntegrationSettings from "./components/IntegrationSettings";
 import LeadSettings from "./components/LeadSettings";
 import Profile from "./components/Profile";
@@ -74,6 +70,7 @@ import ExpensesPage from "./pages/expenses/ExpensesPage";
 import AutomationManagementPage from "./pages/automation/AutomationManagementPage";
 import ActivitiesPage from "./pages/ActivitiesPage";
 import LogsPage from "./pages/LogsPage";
+import TrashPage from "./pages/TrashPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -561,7 +558,7 @@ function AppContent() {
           <Route
             path="/business-settings/lead-statuses"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
                 <MainLayout>
                   <LeadStatusesPage />
                 </MainLayout>
@@ -754,37 +751,7 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <MainLayout>
-                  <Trash />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trash/users"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <TrashUsers />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trash/leads"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <TrashLeads />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trash/roles"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <TrashRoles />
+                  <TrashPage />
                 </MainLayout>
               </ProtectedRoute>
             }

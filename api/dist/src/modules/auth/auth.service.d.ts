@@ -3,10 +3,12 @@ import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { ActivitiesService } from '../activities/activities.service';
 export declare class AuthService {
     private readonly prisma;
     private readonly jwt;
-    constructor(prisma: PrismaService, jwt: JwtService);
+    private readonly activitiesService;
+    constructor(prisma: PrismaService, jwt: JwtService, activitiesService: ActivitiesService);
     private tokenExpiryISO;
     private buildUserWithRoles;
     login(dto: LoginDto): Promise<{

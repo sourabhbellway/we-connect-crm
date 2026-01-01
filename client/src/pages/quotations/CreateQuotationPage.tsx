@@ -490,7 +490,10 @@ const CreateQuotationPage: React.FC = () => {
                 adjustmentValue,
                 tags,
                 allowComments,
-                items,
+                items: items.map(it => ({
+                    ...it,
+                    productId: it.productId ? parseInt(it.productId) : undefined,
+                })),
                 terms: customTerms || undefined,
             };
 

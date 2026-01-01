@@ -18,6 +18,7 @@ exports.ActivitiesModule = ActivitiesModule = __decorate([
     (0, common_1.Module)({
         controllers: [activities_controller_1.ActivitiesController],
         providers: [activities_service_1.ActivitiesService, prisma_service_1.PrismaService],
+        exports: [activities_service_1.ActivitiesService],
     })
 ], ActivitiesModule);
 //# sourceMappingURL=activities.module.js.map

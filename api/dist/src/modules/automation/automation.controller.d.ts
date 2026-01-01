@@ -42,10 +42,10 @@ export declare class AutomationController {
             id: number;
             result: import("@prisma/client/runtime/library").JsonValue | null;
             status: import("@prisma/client").$Enums.WorkflowExecutionStatus;
+            duration: number | null;
+            completedAt: Date | null;
             triggerData: import("@prisma/client/runtime/library").JsonValue;
             startedAt: Date;
-            completedAt: Date | null;
-            duration: number | null;
             workflowId: number;
         }[];
     } & {
@@ -184,10 +184,10 @@ export declare class AutomationController {
         id: number;
         result: import("@prisma/client/runtime/library").JsonValue | null;
         status: import("@prisma/client").$Enums.WorkflowExecutionStatus;
+        duration: number | null;
+        completedAt: Date | null;
         triggerData: import("@prisma/client/runtime/library").JsonValue;
         startedAt: Date;
-        completedAt: Date | null;
-        duration: number | null;
         workflowId: number;
     })[]>;
 }

@@ -10,6 +10,7 @@ import {
 import { UpdateWorkflowDto } from './dto/update-workflow.dto';
 import { Prisma, WorkflowExecutionStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { ActivitiesService } from '../activities/activities.service';
 
 @Injectable()
 export class AutomationService {
@@ -18,11 +19,12 @@ export class AutomationService {
   constructor(
     private prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly activitiesService: ActivitiesService,
   ) { }
 
   // CRUD Operations
   async create(createWorkflowDto: CreateWorkflowDto, userId?: number) {
-    return this.prisma.workflow.create({
+    const workflow = await this.prisma.workflow.create({
       data: {
         name: createWorkflowDto.name,
         description: createWorkflowDto.description,
@@ -34,6 +36,23 @@ export class AutomationService {
         createdBy: userId,
       },
     });
+
+    // Log Activity
+    try {
+      await this.activitiesService.create({
+        title: `Automation Created: ${workflow.name}`,
+        description: `New workflow "${workflow.name}" was created.`,
+        type: 'AUTOMATION_CREATED' as any,
+        userId: userId,
+        icon: 'FiPlus',
+        iconColor: 'text-green-600',
+        metadata: { workflowId: workflow.id } as any,
+      });
+    } catch (error) {
+      this.logger.error('Failed to log automation creation activity:', error);
+    }
+
+    return workflow;
   }
 
   async findAll(includeInactive = false) {
@@ -77,7 +96,7 @@ export class AutomationService {
   async update(id: number, updateWorkflowDto: UpdateWorkflowDto) {
     const workflow = await this.findOne(id);
 
-    return this.prisma.workflow.update({
+    const updatedWorkflow = await this.prisma.workflow.update({
       where: { id: workflow.id },
       data: {
         name: updateWorkflowDto.name,
@@ -89,15 +108,49 @@ export class AutomationService {
         actions: updateWorkflowDto.actions as any,
       },
     });
+
+    // Log Activity
+    try {
+      await this.activitiesService.create({
+        title: `Automation Updated: ${updatedWorkflow.name}`,
+        description: `Workflow "${updatedWorkflow.name}" was updated.`,
+        type: 'AUTOMATION_UPDATED' as any,
+        userId: updatedWorkflow.createdBy ?? undefined, // Use updated value
+        icon: 'FiEdit',
+        iconColor: 'text-blue-600',
+        metadata: { workflowId: updatedWorkflow.id } as any,
+      });
+    } catch (error) {
+      this.logger.error('Failed to log automation update activity:', error);
+    }
+
+    return updatedWorkflow;
   }
 
   async remove(id: number) {
     const workflow = await this.findOne(id);
 
-    return this.prisma.workflow.update({
+    const deletedWorkflow = await this.prisma.workflow.update({
       where: { id: workflow.id },
       data: { deletedAt: new Date() },
     });
+
+    // Log Activity
+    try {
+      await this.activitiesService.create({
+        title: `Automation Deleted: ${deletedWorkflow.name}`,
+        description: `Workflow "${deletedWorkflow.name}" was deleted.`,
+        type: 'AUTOMATION_DELETED' as any,
+        userId: deletedWorkflow.createdBy ?? undefined,
+        icon: 'FiTrash2',
+        iconColor: 'text-red-600',
+        metadata: { workflowId: deletedWorkflow.id } as any,
+      });
+    } catch (error) {
+      this.logger.error('Failed to log automation deletion activity:', error);
+    }
+
+    return deletedWorkflow;
   }
 
   async toggleActive(id: number, isActive: boolean) {
@@ -188,6 +241,26 @@ export class AutomationService {
 
       this.logger.log(`Workflow ${workflowId} executed successfully`);
 
+      // Log Activity
+      try {
+        await this.activitiesService.create({
+          title: `Automation Executed: ${workflow.name}`,
+          description: `Workflow "${workflow.name}" was triggered and executed successfully.`,
+          type: 'AUTOMATION_EXECUTED' as any,
+          userId: workflow.createdBy,
+          icon: 'FiZap',
+          iconColor: 'text-yellow-600',
+          metadata: {
+            workflowId: workflow.id,
+            executionId: execution.id,
+            trigger: workflow.trigger,
+            actionResults
+          } as any,
+        });
+      } catch (activityError) {
+        this.logger.error('Failed to create automation activity:', activityError);
+      }
+
       // Optional: send a SYSTEM notification to the workflow creator if configured
       try {
         if (workflow.createdBy) {
@@ -222,6 +295,21 @@ export class AutomationService {
 
       // Notify workflow creator about failure
       try {
+        await this.activitiesService.create({
+          title: `Automation Failed: ${workflow.name}`,
+          description: `Workflow "${workflow.name}" failed: ${error.message}`,
+          type: 'AUTOMATION_FAILED' as any,
+          userId: workflow.createdBy,
+          icon: 'FiZap',
+          iconColor: 'text-red-600',
+          metadata: {
+            workflowId: workflow.id,
+            executionId: execution.id,
+            trigger: workflow.trigger,
+            error: error.message
+          } as any,
+        });
+
         if (workflow.createdBy) {
           await this.notificationsService.create({
             userId: workflow.createdBy,
@@ -236,7 +324,7 @@ export class AutomationService {
           });
         }
       } catch (notifyError) {
-        this.logger.error('Failed to send automation failure notification:', notifyError);
+        this.logger.error('Failed to send automation failure notification/activity:', notifyError);
       }
 
       throw error;

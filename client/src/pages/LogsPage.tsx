@@ -13,24 +13,29 @@ import {
     ArrowLeft,
     ArrowRight,
     PhoneCall,
-    ChevronDown,
     LogIn,
     FileText,
     FileCheck,
     CheckSquare,
     UserPlus,
+    Calendar,
+    Search,
+    X,
+    Zap,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import Pagination from '../components/Pagination';
 
+// Fix: remove extra spaces in label
 const LOG_CATEGORIES = [
     { label: 'All Activities', value: 'ALL', icon: History },
     { label: 'Call Logs', value: 'CALL', icon: PhoneCall },
     { label: 'Login Logs', value: 'LOGIN', icon: LogIn },
     { label: 'Lead Logs', value: 'LEAD', icon: UserPlus },
-    { label: 'Quotation Logs', value: 'QUOTATION', icon: FileText },
+    { label: 'Quotation Logs', value: 'QUOTATION', icon: FileText }, // ← Fixed spacing
     { label: 'Invoice Logs', value: 'INVOICE', icon: FileCheck },
     { label: 'Task Logs', value: 'TASK', icon: CheckSquare },
+    { label: 'Automation Logs', value: 'AUTOMATION', icon: Zap },
 ];
 
 const LogsPage: React.FC = () => {
@@ -51,6 +56,14 @@ const LogsPage: React.FC = () => {
 
     const [limit] = useState(10);
 
+    // 🔍 Filters
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dateFrom, setDateFrom] = useState<string | null>(null);
+    const [dateTo, setDateTo] = useState<string | null>(null);
+
+    // Local filtered activities (for frontend search)
+    const [filteredActivities, setFilteredActivities] = useState<any[]>([]);
+
     const fetchActivities = async () => {
         try {
             setActivityLoading(true);
@@ -61,8 +74,12 @@ const LogsPage: React.FC = () => {
             const items = response?.items || response?.data?.items || response?.data || [];
             const total = response?.total || response?.data?.total || items.length;
 
-            setActivities(items.map(transformActivityData));
+            const transformed = items.map(transformActivityData);
+            setActivities(transformed);
             setActivityTotal(total);
+
+            // Also apply local filters
+            applyLocalFilters(transformed);
         } catch (err) {
             console.error('Error fetching activities:', err);
         } finally {
@@ -75,7 +92,9 @@ const LogsPage: React.FC = () => {
             setCallLoading(true);
             const params: any = {
                 page: callPage,
-                limit: limit
+                limit: limit,
+                ...(dateFrom && { dateFrom }),
+                ...(dateTo && { dateTo }),
             };
 
             const response = await callLogService.getCallLogs(params);
@@ -92,13 +111,57 @@ const LogsPage: React.FC = () => {
         }
     };
 
+    // Apply local search & date filters
+    const applyLocalFilters = (data: any[]) => {
+        let filtered = data;
+
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(item =>
+                item.user?.firstName?.toLowerCase().includes(term) ||
+                item.user?.lastName?.toLowerCase().includes(term) ||
+                item.user?.email?.toLowerCase().includes(term) ||
+                item.title?.toLowerCase().includes(term) ||
+                item.description?.toLowerCase().includes(term)
+            );
+        }
+
+        if (dateFrom) {
+            const from = new Date(dateFrom);
+            filtered = filtered.filter(item => new Date(item.createdAt) >= from);
+        }
+
+        if (dateTo) {
+            const to = new Date(dateTo);
+            filtered = filtered.filter(item => new Date(item.createdAt) <= to);
+        }
+
+        setFilteredActivities(filtered);
+    };
+
+    useEffect(() => {
+        if (selectedType === 'CALL') {
+            setCallPage(1);
+            fetchCallLogs();
+        } else {
+            setActivityPage(1);
+            fetchActivities();
+        }
+    }, [selectedType]);
+
+    useEffect(() => {
+        if (selectedType !== 'CALL') {
+            applyLocalFilters(activities);
+        }
+    }, [searchTerm, dateFrom, dateTo, activities]);
+
     useEffect(() => {
         if (selectedType === 'CALL') {
             fetchCallLogs();
         } else {
             fetchActivities();
         }
-    }, [activityPage, callPage, selectedType]);
+    }, [activityPage, callPage]);
 
     if (!hasPermission(PERMISSIONS.ACTIVITY.READ)) {
         return (
@@ -124,8 +187,30 @@ const LogsPage: React.FC = () => {
         }
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handleClearFilters = () => {
+        setSearchTerm('');
+        setDateFrom(null);
+        setDateTo(null);
+    };
+
+    // Reset filters when switching tabs
+    const handleTabChange = (value: string) => {
+        setSelectedType(value);
+        setActivityPage(1);
+        setCallPage(1);
+        if (value === 'CALL') {
+            setSearchTerm('');
+            setDateFrom(null);
+            setDateTo(null);
+        }
+    };
+
     return (
-        <div className="p-6 max-w-7xl mx-auto space-y-6">
+        <div className="w-full px-0 space-y-6"> {/* ← REMOVED SIDE PADDING */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -140,6 +225,78 @@ const LogsPage: React.FC = () => {
                 </div>
             </div>
 
+            {/* Filters Section */}
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                    {/* Search Input */}
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                            Search by Email / User
+                        </label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                placeholder="Enter email or user name..."
+                                className="w-full pl-10 pr-10 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-weconnect-red/30"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Date From */}
+                    <div className="min-w-[140px]">
+                        <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                            From
+                        </label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="date"
+                                value={dateFrom || ''}
+                                onChange={(e) => setDateFrom(e.target.value)}
+                                className="w-full pl-10 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-weconnect-red/30"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Date To */}
+                    <div className="min-w-[140px]">
+                        <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                            To
+                        </label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="date"
+                                value={dateTo || ''}
+                                onChange={(e) => setDateTo(e.target.value)}
+                                className="w-full pl-10 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-weconnect-red/30"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Clear Button */}
+                    {(searchTerm || dateFrom || dateTo) && (
+                        <button
+                            onClick={handleClearFilters}
+                            className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl font-medium text-gray-700 dark:text-gray-300 transition-colors"
+                        >
+                            Clear Filters
+                        </button>
+                    )}
+                </div>
+            </div>
+
             {/* Dynamic Tabs */}
             <div className="flex flex-wrap gap-2 p-1.5 bg-gray-100/50 dark:bg-slate-900/50 rounded-2xl w-full border border-gray-200/60 dark:border-slate-800 shadow-sm overflow-x-auto no-scrollbar">
                 {LOG_CATEGORIES.map((cat) => {
@@ -148,11 +305,7 @@ const LogsPage: React.FC = () => {
                     return (
                         <button
                             key={cat.value}
-                            onClick={() => {
-                                setSelectedType(cat.value);
-                                setActivityPage(1);
-                                setCallPage(1);
-                            }}
+                            onClick={() => handleTabChange(cat.value)}
                             className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${isActive
                                 ? 'bg-white dark:bg-slate-800 text-weconnect-red shadow-md scale-[1.02]'
                                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -174,7 +327,7 @@ const LogsPage: React.FC = () => {
                                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-weconnect-red/20 border-t-weconnect-red"></div>
                                 <p className="text-sm font-medium text-gray-500">Fetching activities...</p>
                             </div>
-                        ) : activities.length === 0 ? (
+                        ) : filteredActivities.length === 0 ? (
                             <div className="text-center py-32">
                                 <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <History size={40} className="text-gray-300" />
@@ -185,7 +338,7 @@ const LogsPage: React.FC = () => {
                         ) : (
                             <>
                                 <div className="divide-y divide-gray-50 dark:divide-slate-800">
-                                    {activities.map((activity) => {
+                                    {filteredActivities.map((activity) => {
                                         const Icon = activity.icon;
                                         return (
                                             <div key={activity.id} className="p-6 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-all group">
@@ -232,8 +385,8 @@ const LogsPage: React.FC = () => {
                                 <div className="p-6 bg-gray-50/50 dark:bg-slate-800/30 border-t border-gray-100 dark:border-slate-800">
                                     <Pagination
                                         currentPage={activityPage}
-                                        totalPages={Math.ceil(activityTotal / limit)}
-                                        totalItems={activityTotal}
+                                        totalPages={Math.ceil(filteredActivities.length / limit)} // Use filtered count
+                                        totalItems={filteredActivities.length}
                                         onPageChange={setActivityPage}
                                         itemsPerPage={limit}
                                     />

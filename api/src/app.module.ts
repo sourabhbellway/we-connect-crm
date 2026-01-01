@@ -43,6 +43,7 @@ import { TeamsModule } from './modules/teams/teams.module';
 import { TaxesModule } from './modules/taxes/taxes.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { TrashModule } from './modules/trash/trash.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     TaxesModule,
     CurrenciesModule,
     PaymentsModule,
+    TrashModule,
   ],
   controllers: [AppController],
   providers: [

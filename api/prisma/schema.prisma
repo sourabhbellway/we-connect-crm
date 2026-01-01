@@ -137,6 +137,7 @@ model User {
   subordinates           User[]                    @relation("UserManager")
   team                   Team?                     @relation("TeamMembers", fields: [teamId], references: [id])
   callLogs    CallLog[] @relation("UserCallLogs")
+  fcmToken               String?                   @map("deviceToken")
   @@map("users")
 }
 
@@ -1592,6 +1593,11 @@ enum ActivityType {
   INVOICE_SENT
   NOTE_ADDED
   NOTE_UPDATED
+  AUTOMATION_EXECUTED
+  AUTOMATION_FAILED
+  AUTOMATION_CREATED
+  AUTOMATION_UPDATED
+  AUTOMATION_DELETED
 }
 
 enum LeadPriority {

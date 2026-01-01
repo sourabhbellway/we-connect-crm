@@ -1,16 +1,17 @@
 import React from 'react';
-import { Plus, Share2, CheckSquare, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import SimpleHeaderSearch from './SimpleHeaderSearch';
 import { Button } from './ui';
 import { NotificationBell } from './NotificationBell';
+import LanguageSelector from './LanguageSelector';
 import { PERMISSIONS } from '../constants';
 
 const TopHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { user, hasPermission } = useAuth();
+  const { hasPermission } = useAuth();
   const { t } = useTranslation();
 
   // Keyboard shortcut for search (Cmd/Ctrl + K)
@@ -58,9 +59,9 @@ const TopHeader: React.FC = () => {
           )}
 
           {/* Customers Area */}
-          {/* <button 
-            className="hidden xl:flex items-center gap-2 px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 text-sm text-gray-700 dark:text-gray-300" 
-            style={{ 
+          {/* <button
+            className="hidden xl:flex items-center gap-2 px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200 text-sm text-gray-700 dark:text-gray-300"
+            style={{
               lineHeight: 1,
               display: 'flex',
               alignItems: 'center',
@@ -88,6 +89,9 @@ const TopHeader: React.FC = () => {
           {/* <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400" title="Timer">
             <Clock className="w-5 h-5" />
           </button> */}
+
+          {/* Language Selector */}
+          <LanguageSelector />
 
           {/* Notifications */}
           <NotificationBell />

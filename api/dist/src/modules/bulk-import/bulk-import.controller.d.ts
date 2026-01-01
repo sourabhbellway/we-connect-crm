@@ -10,8 +10,8 @@ export declare class BulkImportController {
                 records: {
                     createdAt: Date;
                     id: number;
-                    status: import("@prisma/client").$Enums.LeadImportStatus;
                     leadId: number | null;
+                    status: import("@prisma/client").$Enums.LeadImportStatus;
                     errors: import("@prisma/client/runtime/library").JsonValue | null;
                     rowIndex: number;
                     rawData: import("@prisma/client/runtime/library").JsonValue;
@@ -21,8 +21,8 @@ export declare class BulkImportController {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
-                status: import("@prisma/client").$Enums.LeadImportStatus;
                 createdBy: number;
+                status: import("@prisma/client").$Enums.LeadImportStatus;
                 errorDetails: import("@prisma/client/runtime/library").JsonValue | null;
                 fileName: string;
                 totalRows: number;
@@ -38,8 +38,8 @@ export declare class BulkImportController {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
-                status: import("@prisma/client").$Enums.LeadImportStatus;
                 createdBy: number;
+                status: import("@prisma/client").$Enums.LeadImportStatus;
                 errorDetails: import("@prisma/client/runtime/library").JsonValue | null;
                 fileName: string;
                 totalRows: number;
@@ -57,8 +57,8 @@ export declare class BulkImportController {
             items: {
                 createdAt: Date;
                 id: number;
-                status: import("@prisma/client").$Enums.LeadImportStatus;
                 leadId: number | null;
+                status: import("@prisma/client").$Enums.LeadImportStatus;
                 errors: import("@prisma/client/runtime/library").JsonValue | null;
                 rowIndex: number;
                 rawData: import("@prisma/client/runtime/library").JsonValue;

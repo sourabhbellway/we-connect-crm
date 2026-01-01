@@ -11,11 +11,13 @@ const common_1 = require("@nestjs/common");
 const call_logs_controller_1 = require("./call-logs.controller");
 const call_logs_service_1 = require("./call-logs.service");
 const prisma_service_1 = require("../../database/prisma.service");
+const notifications_module_1 = require("../notifications/notifications.module");
 let CallLogsModule = class CallLogsModule {
 };
 exports.CallLogsModule = CallLogsModule;
 exports.CallLogsModule = CallLogsModule = __decorate([
     (0, common_1.Module)({
+        imports: [notifications_module_1.NotificationsModule],
         controllers: [call_logs_controller_1.CallLogsController],
         providers: [call_logs_service_1.CallLogsService, prisma_service_1.PrismaService],
     })

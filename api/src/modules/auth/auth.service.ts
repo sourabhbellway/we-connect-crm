@@ -5,6 +5,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import * as bcrypt from 'bcryptjs';
+import { ActivitiesService } from '../activities/activities.service';
 
 const REFRESH_LIFETIME_DAYS = 7;
 const ACCESS_LIFETIME_HOURS = 24;
@@ -14,6 +15,7 @@ export class AuthService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly jwt: JwtService,
+        private readonly activitiesService: ActivitiesService,
     ) { }
 
     private tokenExpiryISO(hours: number) {
@@ -285,6 +287,33 @@ export class AuthService {
                 });
             } catch (e) {
                 console.error('[Auth] Failed to update lastLogin (non-fatal)', e);
+            }
+
+            // Update FCM token if provided (for push notifications)
+            if (dto.fcm) {
+                try {
+                    await this.prisma.user.update({
+                        where: { id: user.id },
+                        data: { fcmToken: dto.fcm },
+                    });
+                    console.log('[Auth] FCM token updated for user', user.id);
+                } catch (e) {
+                    console.error('[Auth] Failed to update FCM token (non-fatal)', e);
+                }
+            }
+
+            // Log Login Activity
+            try {
+                await this.activitiesService.create({
+                    title: 'User Login',
+                    description: `${user.firstName} ${user.lastName} logged in successfully`,
+                    type: 'USER_LOGIN', // Matches the LOGIN type mapping in activities service
+                    userId: user.id,
+                    icon: 'LogIn',
+                    iconColor: 'text-green-500',
+                });
+            } catch (e) {
+                console.error('[Auth] Failed to log login activity (non-fatal)', e);
             }
 
             const enrichedUser = await this.buildUserWithRoles(user.id);

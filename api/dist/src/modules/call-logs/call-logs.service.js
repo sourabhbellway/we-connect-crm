@@ -13,10 +13,13 @@ exports.CallLogsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
 const permission_util_1 = require("../../common/utils/permission.util");
+const notifications_service_1 = require("../notifications/notifications.service");
 let CallLogsService = class CallLogsService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     async list({ leadId, userId, page = 1, limit = 10 }, user) {
         try {
@@ -130,6 +133,10 @@ let CallLogsService = class CallLogsService {
                     isAnswered: dto.isAnswered ?? false,
                     metadata: dto.metadata ?? undefined,
                 },
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true } },
+                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
+                },
             });
             console.log('✅ Call log created successfully:', item);
             try {
@@ -146,6 +153,32 @@ let CallLogsService = class CallLogsService {
             }
             catch (error) {
                 console.error('Failed to log call activity:', error);
+            }
+            if (dto.callStatus === 'INITIATED' && dto.userId) {
+                try {
+                    const user = await this.prisma.user.findUnique({
+                        where: { id: dto.userId },
+                        select: { fcmToken: true, firstName: true },
+                    });
+                    if (user?.fcmToken) {
+                        const leadName = item.lead
+                            ? `${item.lead.firstName || ''} ${item.lead.lastName || ''}`.trim()
+                            : 'Unknown Lead';
+                        await this.notificationsService.sendPushNotification(user.fcmToken, '📞 Outgoing Call', `Calling ${leadName} at ${item.phoneNumber}`, {
+                            callId: String(item.id),
+                            leadId: String(item.leadId),
+                            phoneNumber: item.phoneNumber,
+                            type: 'OUTGOING_CALL',
+                        });
+                        console.log('✅ Push notification sent to user:', dto.userId);
+                    }
+                    else {
+                        console.log('ℹ️ No FCM token found for user:', dto.userId);
+                    }
+                }
+                catch (error) {
+                    console.error('❌ Failed to send push notification:', error);
+                }
             }
             return {
                 success: true,
@@ -181,6 +214,10 @@ let CallLogsService = class CallLogsService {
                     isAnswered: dto.isAnswered,
                     metadata: dto.metadata,
                     updatedAt: new Date(),
+                },
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true } },
+                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
                 },
             });
             console.log('✅ Call log updated successfully:', item);
@@ -401,6 +438,7 @@ let CallLogsService = class CallLogsService {
 exports.CallLogsService = CallLogsService;
 exports.CallLogsService = CallLogsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], CallLogsService);
 //# sourceMappingURL=call-logs.service.js.map

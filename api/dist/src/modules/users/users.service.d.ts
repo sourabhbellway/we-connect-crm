@@ -185,6 +185,7 @@ export declare class UsersService {
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
                 mustChangePassword: boolean;
+                fcmToken: string | null;
                 id: number;
                 companyId: number | null;
                 managerId: number | null;
@@ -225,6 +226,7 @@ export declare class UsersService {
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
                 mustChangePassword: boolean;
+                fcmToken: string | null;
                 id: number;
                 companyId: number | null;
                 managerId: number | null;
@@ -257,6 +259,7 @@ export declare class UsersService {
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
                 mustChangePassword: boolean;
+                fcmToken: string | null;
                 id: number;
                 companyId: number | null;
                 managerId: number | null;
@@ -288,6 +291,7 @@ export declare class UsersService {
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
                 mustChangePassword: boolean;
+                fcmToken: string | null;
                 id: number;
                 companyId: number | null;
                 managerId: number | null;
@@ -323,6 +327,7 @@ export declare class UsersService {
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
                 mustChangePassword: boolean;
+                fcmToken: string | null;
                 id: number;
                 companyId: number | null;
                 managerId: number | null;

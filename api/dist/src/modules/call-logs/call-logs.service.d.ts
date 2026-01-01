@@ -1,9 +1,11 @@
 import { PrismaService } from '../../database/prisma.service';
 import { CreateCallLogDto } from './dto/create-call-log.dto';
 import { UpdateCallLogDto } from './dto/update-call-log.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class CallLogsService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly notificationsService;
+    constructor(prisma: PrismaService, notificationsService: NotificationsService);
     list({ leadId, userId, page, limit }: {
         leadId?: number;
         userId?: number;
@@ -29,8 +31,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -70,8 +72,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -96,12 +98,24 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             item: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    firstName: string | null;
+                    lastName: string | null;
+                    id: number;
+                    company: string | null;
+                };
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -126,12 +140,24 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             item: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    firstName: string | null;
+                    lastName: string | null;
+                    id: number;
+                    company: string | null;
+                };
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -169,8 +195,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -211,8 +237,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -257,8 +283,8 @@ export declare class CallLogsService {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;

@@ -20,9 +20,9 @@ export declare class ProposalTemplatesService {
                 description: string | null;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
+                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 headerHtml: string | null;
                 footerHtml: string | null;
                 previewImage: string | null;
@@ -49,9 +49,9 @@ export declare class ProposalTemplatesService {
                 description: string | null;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
+                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 headerHtml: string | null;
                 footerHtml: string | null;
                 previewImage: string | null;
@@ -72,9 +72,9 @@ export declare class ProposalTemplatesService {
                 description: string | null;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
+                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 headerHtml: string | null;
                 footerHtml: string | null;
                 previewImage: string | null;
@@ -94,9 +94,9 @@ export declare class ProposalTemplatesService {
                 description: string | null;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
+                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 headerHtml: string | null;
                 footerHtml: string | null;
                 previewImage: string | null;

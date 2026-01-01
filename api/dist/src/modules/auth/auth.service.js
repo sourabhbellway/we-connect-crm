@@ -47,14 +47,17 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const prisma_service_1 = require("../../database/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
+const activities_service_1 = require("../activities/activities.service");
 const REFRESH_LIFETIME_DAYS = 7;
 const ACCESS_LIFETIME_HOURS = 24;
 let AuthService = class AuthService {
     prisma;
     jwt;
-    constructor(prisma, jwt) {
+    activitiesService;
+    constructor(prisma, jwt, activitiesService) {
         this.prisma = prisma;
         this.jwt = jwt;
+        this.activitiesService = activitiesService;
     }
     tokenExpiryISO(hours) {
         const d = new Date();
@@ -281,6 +284,31 @@ let AuthService = class AuthService {
             catch (e) {
                 console.error('[Auth] Failed to update lastLogin (non-fatal)', e);
             }
+            if (dto.fcm) {
+                try {
+                    await this.prisma.user.update({
+                        where: { id: user.id },
+                        data: { fcmToken: dto.fcm },
+                    });
+                    console.log('[Auth] FCM token updated for user', user.id);
+                }
+                catch (e) {
+                    console.error('[Auth] Failed to update FCM token (non-fatal)', e);
+                }
+            }
+            try {
+                await this.activitiesService.create({
+                    title: 'User Login',
+                    description: `${user.firstName} ${user.lastName} logged in successfully`,
+                    type: 'USER_LOGIN',
+                    userId: user.id,
+                    icon: 'LogIn',
+                    iconColor: 'text-green-500',
+                });
+            }
+            catch (e) {
+                console.error('[Auth] Failed to log login activity (non-fatal)', e);
+            }
             const enrichedUser = await this.buildUserWithRoles(user.id);
             return {
                 success: true,
@@ -356,6 +384,7 @@ exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        activities_service_1.ActivitiesService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

@@ -24,8 +24,8 @@ export declare class CallLogsController {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -72,8 +72,8 @@ export declare class CallLogsController {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -113,8 +113,8 @@ export declare class CallLogsController {
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -139,12 +139,24 @@ export declare class CallLogsController {
         success: boolean;
         data: {
             item: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    firstName: string | null;
+                    lastName: string | null;
+                    id: number;
+                    company: string | null;
+                };
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -169,12 +181,24 @@ export declare class CallLogsController {
         success: boolean;
         data: {
             item: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    firstName: string | null;
+                    lastName: string | null;
+                    id: number;
+                    company: string | null;
+                };
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;
@@ -204,16 +228,28 @@ export declare class CallLogsController {
         message: any;
         error: any;
     }>;
-    initiate(dto: CreateCallLogDto, deviceToken?: string): Promise<{
+    initiate(dto: CreateCallLogDto, fcm?: string): Promise<{
         success: boolean;
         data: {
             item: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                };
+                lead: {
+                    firstName: string | null;
+                    lastName: string | null;
+                    id: number;
+                    company: string | null;
+                };
+            } & {
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
                 id: number;
-                userId: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
                 leadId: number;
                 duration: number | null;
                 outcome: string | null;

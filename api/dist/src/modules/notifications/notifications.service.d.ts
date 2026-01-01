@@ -21,10 +21,10 @@ export declare class NotificationsService {
             id: number;
             link: string | null;
             message: string;
-            userId: number;
+            title: string;
             type: import("@prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            title: string;
+            userId: number;
             read: boolean;
             readAt: Date | null;
         };
@@ -45,10 +45,10 @@ export declare class NotificationsService {
                 id: number;
                 link: string | null;
                 message: string;
-                userId: number;
+                title: string;
                 type: import("@prisma/client").$Enums.NotificationType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
-                title: string;
+                userId: number;
                 read: boolean;
                 readAt: Date | null;
             }[];
@@ -69,10 +69,10 @@ export declare class NotificationsService {
             id: number;
             link: string | null;
             message: string;
-            userId: number;
+            title: string;
             type: import("@prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            title: string;
+            userId: number;
             read: boolean;
             readAt: Date | null;
         };
@@ -137,13 +137,14 @@ export declare class NotificationsService {
             id: number;
             link: string | null;
             message: string;
-            userId: number;
+            title: string;
             type: import("@prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
-            title: string;
+            userId: number;
             read: boolean;
             readAt: Date | null;
         };
         skipped?: undefined;
     } | undefined>;
+    sendPushNotification(deviceToken: string, title: string, body: string, data?: Record<string, string>): Promise<boolean>;
 }

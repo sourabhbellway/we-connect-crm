@@ -49,9 +49,9 @@ let CallLogsController = class CallLogsController {
     remove(id) {
         return this.service.remove(Number(id));
     }
-    async initiate(dto, deviceToken) {
+    async initiate(dto, fcm) {
         const result = await this.service.create(dto);
-        if (deviceToken) {
+        if (fcm) {
             try {
             }
             catch (error) {
@@ -114,7 +114,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)('initiate'),
     __param(0, (0, common_1.Body)()),
-    __param(1, (0, common_1.Body)('deviceToken')),
+    __param(1, (0, common_1.Body)('fcm')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_call_log_dto_1.CreateCallLogDto, String]),
     __metadata("design:returntype", Promise)

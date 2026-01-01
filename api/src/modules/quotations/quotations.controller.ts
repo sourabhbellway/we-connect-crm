@@ -68,7 +68,7 @@ export class QuotationsController {
 
     const items = Array.isArray(body.items)
       ? body.items.map((it: any) => ({
-        productId: it.productId ?? undefined,
+        productId: it.productId ? Number(it.productId) : undefined,
         name: it.name ?? it.description ?? 'Item',
         description: it.longDescription ?? it.description ?? undefined,
         quantity: Number(it.quantity ?? 1),
@@ -97,11 +97,11 @@ export class QuotationsController {
       validUntil: body.validUntil ?? body.openTill,
       notes: body.notes,
       terms: body.terms,
-      companyId: body.companyId,
-      leadId: body.relatedType === 'lead' ? Number(body.relatedId) : body.leadId,
-      dealId: body.dealId,
-      contactId: body.relatedType === 'contact' ? Number(body.relatedId) : body.contactId,
-      createdBy: user?.userId || body.createdBy,
+      companyId: body.companyId ? Number(body.companyId) : undefined,
+      leadId: body.relatedType === 'lead' && body.relatedId ? Number(body.relatedId) : (body.leadId ? Number(body.leadId) : undefined),
+      dealId: body.dealId ? Number(body.dealId) : undefined,
+      contactId: body.relatedType === 'contact' && body.relatedId ? Number(body.relatedId) : (body.contactId ? Number(body.contactId) : undefined),
+      createdBy: (user?.userId ? Number(user.userId) : undefined) || (body.createdBy ? Number(body.createdBy) : undefined),
       items,
     } as CreateQuotationDto;
 

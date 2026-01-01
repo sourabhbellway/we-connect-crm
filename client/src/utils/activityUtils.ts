@@ -14,6 +14,7 @@ import {
   FiTrash2,
   FiPlus,
   FiMinus,
+  FiZap,
 } from "react-icons/fi";
 
 // Map activity types to icons
@@ -57,6 +58,8 @@ export const getActivityIcon = (type: string) => {
     DATABASE_MIGRATION: FiDatabase,
     API_CALL: FiActivity,
     ERROR_LOG: FiAlertCircle,
+    AUTOMATION_EXECUTED: FiZap,
+    AUTOMATION_FAILED: FiAlertCircle,
   };
 
   return iconMap[type] || FiActivity;
@@ -79,6 +82,8 @@ export const getActivityIconColor = (type: string) => {
     DATABASE_MIGRATION: "text-purple-600",
     API_CALL: "text-blue-600",
     ERROR_LOG: "text-red-600",
+    AUTOMATION_EXECUTED: "text-yellow-600",
+    AUTOMATION_FAILED: "text-red-600",
   };
 
   return colorMap[type] || "text-gray-600";

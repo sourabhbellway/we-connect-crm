@@ -7,7 +7,7 @@ export interface Deal {
   description?: string;
   value: number;
   currency: string;
-  status: 'DRAFT' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST';
+  status: string;
   probability: number;
   expectedCloseDate?: string;
   assignedTo?: number;

@@ -53,6 +53,7 @@ const teams_module_1 = require("./modules/teams/teams.module");
 const taxes_module_1 = require("./modules/taxes/taxes.module");
 const currencies_module_1 = require("./modules/currencies/currencies.module");
 const payments_module_1 = require("./modules/payments/payments.module");
+const trash_module_1 = require("./modules/trash/trash.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -96,6 +97,7 @@ exports.AppModule = AppModule = __decorate([
             taxes_module_1.TaxesModule,
             currencies_module_1.CurrenciesModule,
             payments_module_1.PaymentsModule,
+            trash_module_1.TrashModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

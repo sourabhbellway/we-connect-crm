@@ -522,61 +522,91 @@ const QuotationsPage: React.FC = () => {
                               e.stopPropagation();
                               toggleDropdown(quotation.id);
                             }}
-                            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+                            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           >
-                            <MoreHorizontal size={16} />
+                            <MoreHorizontal size={18} />
                           </button>
                           {dropdownOpen === quotation.id && (
-                            <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 py-1 border border-gray-200 dark:border-gray-700">
-                              <button
+                            <>
+                              <div
+                                className="fixed inset-0 z-10"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  toggleDropdown(quotation.id);
-                                  handlePreviewPDF(quotation.id);
+                                  setDropdownOpen(null);
                                 }}
-                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Eye size={16} />
-                                Preview
-                              </button>
-                              {hasPermission('deal.update') && (
+                              ></div>
+                              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl z-20 py-1.5 border border-gray-200 dark:border-gray-700 overflow-hidden">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleDropdown(quotation.id);
-                                    handleEdit(quotation.id);
+                                    setDropdownOpen(null);
+                                    handlePreviewPDF(quotation.id);
                                   }}
-                                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                 >
-                                  <Edit size={16} />
-                                  Edit
+                                  <Eye size={16} className="text-gray-400" />
+                                  Preview PDF
                                 </button>
-                              )}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleDropdown(quotation.id);
-                                  handleDownloadPDF(quotation.id);
-                                }}
-                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                <Download size={16} />
-                                Download
-                              </button>
-                              {hasPermission('deal.delete') && (
+
+                                {hasPermission('deal.update') && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDropdownOpen(null);
+                                      handleEdit(quotation.id);
+                                    }}
+                                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                  >
+                                    <Edit size={16} className="text-gray-400" />
+                                    Edit Quotation
+                                  </button>
+                                )}
+
+                                {quotation.status === 'ACCEPTED' && hasPermission('deal.update') && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDropdownOpen(null);
+                                      handleBookOrder(quotation.id, e);
+                                    }}
+                                    disabled={processingInvoice === quotation.id}
+                                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                                  >
+                                    <Send size={16} className="text-green-500" />
+                                    Book Sales Order
+                                  </button>
+                                )}
+
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleDropdown(quotation.id);
-                                    handleDelete(quotation.id);
+                                    setDropdownOpen(null);
+                                    handleDownloadPDF(quotation.id);
                                   }}
-                                  className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                 >
-                                  <Trash2 size={16} />
-                                  Delete
+                                  <Download size={16} className="text-gray-400" />
+                                  Download PDF
                                 </button>
-                              )}
-                            </div>
+
+                                {hasPermission('deal.delete') && (
+                                  <>
+                                    <div className="h-px bg-gray-100 dark:bg-gray-700 my-1"></div>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDropdownOpen(null);
+                                        handleDelete(quotation.id);
+                                      }}
+                                      className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                    >
+                                      <Trash2 size={16} />
+                                      Delete Quotation
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
@@ -806,67 +836,101 @@ const QuotationsPage: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Actions - Wider column with proper spacing */}
+                        {/* Actions - Three dot dropdown */}
                         <div
-                          className="col-span-2 flex items-center justify-end gap-1 flex-shrink-0"
+                          className="col-span-2 flex items-center justify-end flex-shrink-0"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePreviewPDF(quotation.id);
-                            }}
-                            className="p-1.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                            title="Preview"
-                          >
-                            <Eye size={14} />
-                          </button>
-                          {hasPermission('deal.update') && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEdit(quotation.id);
-                                }}
-                                className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                title="Edit"
-                              >
-                                <Edit size={14} />
-                              </button>
-                              {quotation.status === 'ACCEPTED' && (
-                                <button
-                                  onClick={(e) => handleBookOrder(quotation.id, e)}
-                                  disabled={processingInvoice === quotation.id}
-                                  className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  title="Book Sales Order & Create Invoice"
-                                >
-                                  <Send size={14} />
-                                </button>
-                              )}
-                            </>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadPDF(quotation.id);
-                            }}
-                            className="p-1.5 text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                            title="Download"
-                          >
-                            <Download size={14} />
-                          </button>
-                          {hasPermission('deal.delete') && (
+                          <div className="relative">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDelete(quotation.id);
+                                toggleDropdown(quotation.id);
                               }}
-                              className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                              title="Delete"
+                              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                             >
-                              <Trash2 size={14} />
+                              <MoreHorizontal size={20} />
                             </button>
-                          )}
+                            {dropdownOpen === quotation.id && (
+                              <>
+                                <div
+                                  className="fixed inset-0 z-10"
+                                  onClick={() => setDropdownOpen(null)}
+                                ></div>
+                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl z-20 py-1.5 border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDropdownOpen(null);
+                                      handlePreviewPDF(quotation.id);
+                                    }}
+                                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                  >
+                                    <Eye size={16} className="text-gray-400" />
+                                    Preview PDF
+                                  </button>
+
+                                  {hasPermission('deal.update') && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDropdownOpen(null);
+                                        handleEdit(quotation.id);
+                                      }}
+                                      className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                      <Edit size={16} className="text-gray-400" />
+                                      Edit Quotation
+                                    </button>
+                                  )}
+
+                                  {quotation.status === 'ACCEPTED' && hasPermission('deal.update') && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDropdownOpen(null);
+                                        handleBookOrder(quotation.id, e);
+                                      }}
+                                      disabled={processingInvoice === quotation.id}
+                                      className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                                    >
+                                      <Send size={16} className="text-green-500" />
+                                      Book Sales Order
+                                    </button>
+                                  )}
+
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDropdownOpen(null);
+                                      handleDownloadPDF(quotation.id);
+                                    }}
+                                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                  >
+                                    <Download size={16} className="text-gray-400" />
+                                    Download PDF
+                                  </button>
+
+                                  {hasPermission('deal.delete') && (
+                                    <>
+                                      <div className="h-px bg-gray-100 dark:bg-gray-700 my-1"></div>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setDropdownOpen(null);
+                                          handleDelete(quotation.id);
+                                        }}
+                                        className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                      >
+                                        <Trash2 size={16} />
+                                        Delete Quotation
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

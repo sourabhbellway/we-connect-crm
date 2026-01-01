@@ -29,7 +29,7 @@ import DropdownFilter from './DropdownFilter';
 import Pagination from './Pagination';
 import { useDebouncedSearch } from '../hooks/useDebounce';
 import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
-import type { LeadStatus } from '../features/business-settings/types';
+import type { DealStatus } from '../features/business-settings/types';
 
 import { toast } from 'react-toastify';
 import MetaBar from './list/MetaBar';
@@ -41,8 +41,8 @@ import { exportToCsv } from '../utils/exportUtils';
 
 
 // Deal status helpers - will be used inside component to access context
-const getStatusStyles = (statusName: string, leadStatuses: any[]) => {
-  const status = leadStatuses.find(s => s.name.toUpperCase() === (statusName || '').toUpperCase());
+const getStatusStyles = (statusName: string, dealStatuses: DealStatus[]) => {
+  const status = dealStatuses.find(s => s.name.toUpperCase() === (statusName || '').toUpperCase());
   if (status && status.color) {
     return {
       backgroundColor: `${status.color}20`, // 20% opacity for bg
@@ -71,7 +71,7 @@ const Deals: React.FC = () => {
 
   const { hasPermission } = useAuth();
   const { refreshDealsCount } = useCounts();
-  const { getDealStages, leadStatuses } = useBusinessSettings();
+  const { dealStatuses } = useBusinessSettings();
 
   // Debounced search and local sort/filter/pagination
   const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch('', 500);
@@ -79,7 +79,6 @@ const Deals: React.FC = () => {
     | 'createdAt'
     | 'title'
     | 'value'
-    | 'stage'
     | 'expectedCloseDate'
     | 'company'
     | 'contact'
@@ -88,7 +87,6 @@ const Deals: React.FC = () => {
   type SortOrder = 'asc' | 'desc';
   const [sortBy, setSortBy] = useState<SortBy>('createdAt');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [stageFilter, setStageFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -98,11 +96,9 @@ const Deals: React.FC = () => {
     'company',
     'contact',
     'phone',
-    'stage',
     'status',
     'expectedCloseDate',
   ]);
-  const stages = useMemo<LeadStatus[]>(() => getDealStages(), [getDealStages]);
 
   useEffect(() => {
     fetchDeals();
@@ -120,7 +116,7 @@ const Deals: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchValue, sortBy, sortOrder, stageFilter, statusFilter, itemsPerPage]);
+  }, [debouncedSearchValue, sortBy, sortOrder, statusFilter, itemsPerPage]);
 
   // Load column visibility preferences
   useEffect(() => {
@@ -265,9 +261,10 @@ const Deals: React.FC = () => {
       ((deal.lead?.phone || '').toLowerCase().includes(term)) ||
       companyName.toLowerCase().includes(term);
 
-    const matchesStage = stageFilter === 'ALL' || (deal.stage || '') === stageFilter;
+    companyName.toLowerCase().includes(term);
+
     const matchesStatus = statusFilter === 'ALL' || (deal.status || '') === statusFilter;
-    return matchesSearch && matchesStage && matchesStatus;
+    return matchesSearch && matchesStatus;
   });
 
   // Sort
@@ -279,8 +276,6 @@ const Deals: React.FC = () => {
           return d.title || '';
         case 'value':
           return d.value || 0;
-        case 'stage':
-          return d.stage || '';
         case 'expectedCloseDate':
           return d.expectedCloseDate || '';
         case 'company': {
@@ -333,11 +328,7 @@ const Deals: React.FC = () => {
 
   const isColumnVisible = (id: string) => visibleColumns.includes(id);
 
-  const getStageColor = (stageName?: string) => {
-    if (!stageName) return '#6B7280';
-    const s = stages.find(s => s.name === stageName);
-    return s?.color || '#6B7280';
-  };
+
 
   const getPriorityColor = (priority?: string) => {
     switch (priority?.toLowerCase()) {
@@ -433,15 +424,7 @@ const Deals: React.FC = () => {
             />
           </div>
 
-          {/* Stage Filter */}
-          <div className="w-full sm:w-48 sm:min-w-[220px]">
-            <DropdownFilter
-              label="Stage"
-              value={stageFilter}
-              onChange={(v) => setStageFilter((v as string))}
-              options={[{ value: 'ALL', label: 'All stages' }, ...stages.map(s => ({ value: s.name, label: s.name }))]}
-            />
-          </div>
+
 
           {/* Status Filter */}
           <div className="w-full sm:w-48 sm:min-w-[220px]">
@@ -449,7 +432,7 @@ const Deals: React.FC = () => {
               label="Status"
               value={statusFilter}
               onChange={(v) => setStatusFilter((v as string))}
-              options={[{ value: 'ALL', label: 'All statuses' }, ...(leadStatuses || []).map(s => ({ value: s.name, label: s.name }))]}
+              options={[{ value: 'ALL', label: 'All statuses' }, ...(dealStatuses || []).map(s => ({ value: s.name, label: s.name }))]}
             />
           </div>
 
@@ -463,7 +446,6 @@ const Deals: React.FC = () => {
                 { value: 'createdAt', label: 'Created date' },
                 { value: 'title', label: 'Title' },
                 { value: 'value', label: 'Value' },
-                { value: 'stage', label: 'Stage' },
                 { value: 'expectedCloseDate', label: 'Expected close' },
               ]}
             />
@@ -555,7 +537,7 @@ const Deals: React.FC = () => {
                       </span>
                       <span
                         className="px-2 py-1 rounded-full text-xs font-medium"
-                        style={getStatusStyles(deal.status || '', leadStatuses)}
+                        style={getStatusStyles(deal.status || '', dealStatuses)}
                       >
                         {deal.status || 'DRAFT'}
                       </span>
@@ -751,21 +733,21 @@ const Deals: React.FC = () => {
                 <div className="text-sm text-blue-800 dark:text-blue-200">{selectedIds.length} selected</div>
                 <div className="flex items-center gap-2">
                   <DropdownFilter
-                    label="Move to stage"
+                    label="Move to status"
                     value={''}
                     onChange={async (v) => {
                       const target = v as string;
                       if (!target) return;
                       try {
-                        setDeals(prev => prev.map(d => selectedIds.includes(d.id) ? { ...d, stage: target } : d));
-                        await Promise.all(selectedIds.map(id => dealService.updateDeal(id, { stage: target })));
+                        setDeals(prev => prev.map(d => selectedIds.includes(d.id) ? { ...d, status: target as any } : d));
+                        await Promise.all(selectedIds.map(id => dealService.updateDeal(id, { status: target as any })));
                         toast.success('Updated selected deals');
                         setSelectedIds([]);
                       } catch (e) {
                         toast.error('Failed to update selected deals');
                       }
                     }}
-                    options={stages.map(s => ({ value: s.name, label: s.name }))}
+                    options={dealStatuses.map(s => ({ value: s.name, label: s.name }))}
                   />
                   <DropdownFilter
                     label="Assign to"
@@ -829,9 +811,7 @@ const Deals: React.FC = () => {
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('phone') ? 'hidden' : ''}`}>
                         <TableSortHeader label="Phone" column={'phone'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('stage') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Stage" column={'stage'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
-                      </th>
+
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''}`}>
                         Status
                       </th>
@@ -896,27 +876,23 @@ const Deals: React.FC = () => {
                         <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('phone') ? 'hidden' : ''}`} data-label="Phone">
                           <div className="text-sm text-gray-900 dark:text-white">{deal.lead?.phone || '-'}</div>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('stage') ? 'hidden' : ''}`} data-label="Stage">
-                          <span className={`px-2 py-1 text-xs rounded-full text-white`} style={{ backgroundColor: getStageColor(deal.stage) }}>
-                            {deal.stage || '-'}
-                          </span>
-                        </td>
+
                         <td className={`px-6 py-4 whitespace-nowrap text-sm ${!isColumnVisible('status') ? 'hidden' : ''}`} data-label="Status">
                           {hasPermission(PERMISSIONS.DEAL.UPDATE) ? (
                             <select
                               className={`text-xs px-2 py-1 rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                              style={getStatusStyles(deal.status || '', leadStatuses)}
+                              style={getStatusStyles(deal.status || '', dealStatuses)}
                               value={deal.status}
                               onChange={(e) => updateStatusInline(deal.id, e.target.value as Deal['status'])}
                             >
-                              {(leadStatuses || []).filter(s => s.isActive).map(s => (
+                              {(dealStatuses || []).filter(s => s.isActive).map(s => (
                                 <option key={s.id} value={s.name}>{s.name}</option>
                               ))}
                             </select>
                           ) : (
                             <span
                               className={`px-2 py-1 text-xs rounded-full`}
-                              style={getStatusStyles(deal.status || '', leadStatuses)}
+                              style={getStatusStyles(deal.status || '', dealStatuses)}
                             >
                               {deal.status}
                             </span>

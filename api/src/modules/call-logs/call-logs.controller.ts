@@ -64,11 +64,11 @@ export class CallLogsController {
   }
 
   @Post('initiate')
-  async initiate(@Body() dto: CreateCallLogDto, @Body('deviceToken') deviceToken?: string) {
+  async initiate(@Body() dto: CreateCallLogDto, @Body('fcm') fcm?: string) {
 
     const result = await this.service.create(dto);
 
-    if (deviceToken) {
+    if (fcm) {
       try {
 
       } catch (error) {

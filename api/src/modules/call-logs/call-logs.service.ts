@@ -4,10 +4,14 @@ import { CallStatus } from '@prisma/client';
 import { CreateCallLogDto } from './dto/create-call-log.dto';
 import { UpdateCallLogDto } from './dto/update-call-log.dto';
 import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CallLogsService {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly notificationsService: NotificationsService,
+    ) { }
 
     async list({ leadId, userId, page = 1, limit = 10 }: { leadId?: number; userId?: number; page?: number; limit?: number }, user?: any) {
         try {
@@ -132,6 +136,10 @@ export class CallLogsService {
                     isAnswered: dto.isAnswered ?? false,
                     metadata: (dto.metadata as any) ?? undefined,
                 },
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true } },
+                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
+                },
             });
 
             console.log('✅ Call log created successfully:', item);
@@ -150,6 +158,40 @@ export class CallLogsService {
                 });
             } catch (error) {
                 console.error('Failed to log call activity:', error);
+            }
+
+            // Send FCM Push Notification if call is INITIATED
+            if (dto.callStatus === 'INITIATED' && dto.userId) {
+                try {
+                    const user = await this.prisma.user.findUnique({
+                        where: { id: dto.userId },
+                        select: { fcmToken: true, firstName: true },
+                    });
+
+                    if (user?.fcmToken) {
+                        const leadName = item.lead
+                            ? `${item.lead.firstName || ''} ${item.lead.lastName || ''}`.trim()
+                            : 'Unknown Lead';
+
+                        await this.notificationsService.sendPushNotification(
+                            user.fcmToken,
+                            '📞 Outgoing Call',
+                            `Calling ${leadName} at ${item.phoneNumber}`,
+                            {
+                                callId: String(item.id),
+                                leadId: String(item.leadId),
+                                phoneNumber: item.phoneNumber,
+                                type: 'OUTGOING_CALL',
+                            }
+                        );
+
+                        console.log('✅ Push notification sent to user:', dto.userId);
+                    } else {
+                        console.log('ℹ️ No FCM token found for user:', dto.userId);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to send push notification:', error);
+                }
             }
 
             return {
@@ -187,6 +229,10 @@ export class CallLogsService {
                     isAnswered: dto.isAnswered,
                     metadata: dto.metadata as any,
                     updatedAt: new Date(),
+                },
+                include: {
+                    user: { select: { id: true, firstName: true, lastName: true } },
+                    lead: { select: { id: true, firstName: true, lastName: true, company: true } },
                 },
             });
 
