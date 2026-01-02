@@ -4,10 +4,12 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export declare class ProductsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list({ page, limit, search, }: {
+    list({ page, limit, search, status, category, }: {
         page?: number;
         limit?: number;
         search?: string;
+        status?: string;
+        category?: string;
     }): Promise<{
         success: boolean;
         data: {

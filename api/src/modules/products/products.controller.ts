@@ -32,11 +32,15 @@ export class ProductsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('category') category?: string,
   ) {
     return this.service.list({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
       search,
+      status,
+      category,
     });
   }
 

@@ -14,8 +14,8 @@ export class PaymentsController {
     }
 
     @Get()
-    findAll(@Query() query: any) {
-        return this.paymentsService.findAll(query);
+    findAll(@Query() query: any, @Req() req: any) {
+        return this.paymentsService.findAll(query, req.user);
     }
 
     @Delete(':id')

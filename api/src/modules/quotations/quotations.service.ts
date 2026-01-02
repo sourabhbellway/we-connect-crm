@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import PDFDocument = require('pdfkit');
+const PDFDocument = require('pdfkit');
 import { PrismaService } from '../../database/prisma.service';
 import { CreateQuotationDto } from './dto/create-quotation.dto';
 import { UpdateQuotationDto } from './dto/update-quotation.dto';
@@ -19,6 +19,45 @@ export class QuotationsService {
         private readonly prisma: PrismaService,
         private readonly notificationsService: NotificationsService,
     ) { }
+
+    private numberToWords(num: number): string {
+        const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        if (num === 0) return 'Zero';
+        if (num < 0) return 'Minus ' + this.numberToWords(Math.abs(num));
+
+        let words = '';
+
+        if (num >= 10000000) {
+            words += this.numberToWords(Math.floor(num / 10000000)) + ' Crore ';
+            num %= 10000000;
+        }
+        if (num >= 100000) {
+            words += this.numberToWords(Math.floor(num / 100000)) + ' Lakh ';
+            num %= 100000;
+        }
+        if (num >= 1000) {
+            words += this.numberToWords(Math.floor(num / 1000)) + ' Thousand ';
+            num %= 1000;
+        }
+        if (num >= 100) {
+            words += this.numberToWords(Math.floor(num / 100)) + ' Hundred ';
+            num %= 100;
+        }
+        if (num > 0) {
+            if (num < 20) {
+                words += a[num];
+            } else {
+                words += b[Math.floor(num / 10)];
+                if (num % 10 > 0) {
+                    words += ' ' + a[num % 10];
+                }
+            }
+        }
+
+        return words.trim() + ' Only';
+    }
 
     async getTemplate() {
         const users = await this.prisma.user.findMany({
@@ -555,7 +594,6 @@ export class QuotationsService {
         });
         return { success: true, data: { quotation } };
     }
-
     async buildPdf(id: number): Promise<{ buffer: Buffer; filename: string }> {
         const quotation = await this.prisma.quotation.findFirst({
             where: { id, deletedAt: null },
@@ -568,220 +606,427 @@ export class QuotationsService {
         });
         if (!quotation) throw new Error('Quotation not found');
 
-        const doc = new PDFDocument({ size: 'A4', margin: 40 });
-        const chunks: Buffer[] = [];
-        doc.on('data', (c) => chunks.push(c));
-
-        // Colors
-        const colors = {
-            primary: '#4f46e5', // Indigo 600
-            text: '#1e293b',    // Slate 800
-            lightText: '#64748b', // Slate 500
-            border: '#e2e8f0',  // Slate 200
-            bg: '#f8fafc',      // Slate 50
-            white: '#ffffff',
-            accent: '#4338ca'   // Indigo 700
-        };
-
-        // Business settings
+        // Initialize PDF Document
         const bs = await this.prisma.businessSettings.findFirst();
         const companyName = bs?.companyName || 'WE-CONNECT';
 
-        // Customer Details
-        const customerName = quotation.lead
-            ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
-            : quotation.companies ? quotation.companies.name : 'N/A';
-        const customerCompany = quotation.lead?.company || '';
-        const customerEmail = quotation.lead?.email || '';
-        const customerAddress = quotation.lead?.address || '';
+        return new Promise((resolve, reject) => {
+            const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });
+            const chunks: Buffer[] = [];
+            doc.on('data', (c: any) => chunks.push(c));
+            doc.on('error', (err: any) => reject(err));
+            doc.on('end', () => {
+                const buffer = Buffer.concat(chunks);
+                resolve({ buffer, filename: `${quotation.quotationNumber}.pdf` });
+            });
 
-        // --- LOGO & HEADER ---
-        let y = 40;
+            // Professional Color Palette
+            const colors = {
+                primary: '#1E3A8A',      // Deep Blue
+                secondary: '#F97316',    // Orange Accent
+                tertiary: '#10B981',     // Green for totals
+                light: '#F8FAFC',        // Light Background
+                text: '#1E293B',         // Dark Text
+                lightText: '#64748B',    // Light Text
+                border: '#E2E8F0',       // Border Color
+                white: '#FFFFFF',
+                lightOrange: '#FFF7ED'   // Light Orange Background
+            };
 
-        // Attempt to draw logo
-        let logoWidth = 120;
-        let hasLogo = false;
-        if (bs?.companyLogo) {
-            try {
-                if (bs.companyLogo.startsWith('data:image')) {
-                    const base64Data = bs.companyLogo.split(';base64,').pop();
-                    if (base64Data) {
-                        const imgBuffer = Buffer.from(base64Data, 'base64');
-                        doc.image(imgBuffer, 40, y, { width: logoWidth });
+            // --- HEADER SECTION ---
+            // Top border with primary color
+            doc.rect(0, 0, 595, 15).fill(colors.primary);
+
+            let y = 35;
+            const leftCol = 40;
+            const rightCol = 340;
+
+            // Company Logo and Name (Single Column - Left Side)
+            let hasLogo = false;
+            if (bs?.companyLogo) {
+                try {
+                    const logoPath = bs.companyLogo.startsWith('data:image')
+                        ? Buffer.from(bs.companyLogo.split(';base64,').pop()!, 'base64')
+                        : path.join(process.cwd(), 'uploads', bs.companyLogo);
+
+                    if (typeof logoPath === 'string' ? fs.existsSync(logoPath) : true) {
+                        doc.image(logoPath, leftCol, y, { width: 80, height: 50, fit: [80, 50] });
                         hasLogo = true;
                     }
-                } else {
-                    const uploadsDir = path.join(process.cwd(), 'uploads');
-                    const logoPath = path.join(uploadsDir, bs.companyLogo);
-                    if (fs.existsSync(logoPath)) {
-                        doc.image(logoPath, 40, y, { width: logoWidth });
-                        hasLogo = true;
-                    }
+                } catch (e) {
+                    console.error('PDF Logo Error:', e);
                 }
-            } catch (e) {
-                console.error('Error drawing PDF logo:', e);
             }
-        }
 
-        if (!hasLogo) {
-            doc.fontSize(24).font('Helvetica-Bold').fillColor(colors.primary).text(companyName, 40, y);
-        }
+            // Company Name below logo (same column)
+            if (hasLogo) {
+                y += 60; // Space below logo
+            }
+            doc.fontSize(18).font('Helvetica-Bold').fillColor(colors.primary).text(companyName, leftCol, y);
+            y += 25;
 
-        // QUOTATION LABEL (Top Right)
-        doc.fontSize(40).font('Helvetica-Bold').fillColor(colors.text).opacity(0.1)
-            .text('QUOTATION', 300, y - 5, { align: 'right' }).opacity(1);
+            // Company Contact Details (Below Name - Same Column)
+            doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+            if (bs?.companyAddress) {
+                const addressLines = bs.companyAddress.split(',').map((line: string) => line.trim());
+                addressLines.forEach((line: string) => {
+                    doc.text(line, leftCol, y);
+                    y += 10;
+                });
+            }
 
-        // QUOTATION NO
-        y = 80;
-        doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.lightText).text('QUOTATION NUMBER', 400, y, { align: 'right' });
-        doc.fontSize(18).font('Helvetica-Bold').fillColor(colors.primary).text(quotation.quotationNumber, 400, y + 12, { align: 'right' });
+            if (bs?.companyPhone) {
+                doc.text(`Phone: ${bs.companyPhone}`, leftCol, y);
+                y += 10;
+            }
+            if (bs?.companyEmail) {
+                doc.text(`Email: ${bs.companyEmail}`, leftCol, y);
+                y += 10;
+            }
+            if (bs?.gstNumber) {
+                doc.text(`GSTIN: ${bs.gstNumber}`, leftCol, y);
+                y += 10;
+            }
+            if (bs?.panNumber) {
+                doc.text(`PAN: ${bs.panNumber}`, leftCol, y);
+                y += 10;
+            }
+            if (bs?.cinNumber) {
+                doc.text(`CIN: ${bs.cinNumber}`, leftCol, y);
+                y += 10;
+            }
 
-        y = hasLogo ? 130 : 110;
+            // Quotation Details (Right Side - Aligned with top)
+            let rightY = 35;
 
-        // --- COMPANY & INFO GRID ---
-        const leftCol = 40;
-        const rightCol = 350;
+            // Quotation Title with Background
+            doc.rect(rightCol - 10, rightY - 5, 230, 30).fill(colors.primary);
+            doc.fontSize(16).font('Helvetica-Bold').fillColor(colors.white).text('QUOTATION', rightCol, rightY + 5);
 
-        // Company Details
-        doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.text).text(companyName, leftCol, y);
-        doc.font('Helvetica').fillColor(colors.lightText);
-        if (bs?.companyAddress) doc.text(bs.companyAddress, leftCol, y + 14, { width: 200 });
-        if (bs?.companyPhone) doc.text(`Phone: ${bs.companyPhone}`, leftCol, y + 42);
-        if (bs?.companyEmail) doc.text(`Email: ${bs.companyEmail}`, leftCol, y + 54);
+            rightY += 40;
 
-        // Meta Details (Right)
-        doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('DATE', rightCol, y);
-        doc.fillColor(colors.text).text(new Date(quotation.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), rightCol + 80, y, { align: 'right', width: 120 });
+            // Quotation Details in Boxes
+            const detailsBoxHeight = 25;
+            const detailsBoxSpacing = 5;
 
-        const validUntil = quotation.validUntil ? new Date(quotation.validUntil) : null;
-        if (validUntil) {
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('VALID UNTIL', rightCol, y + 18);
-            doc.fillColor(colors.text).text(validUntil.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), rightCol + 80, y + 18, { align: 'right', width: 120 });
-        }
+            // Quotation Number
+            doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).fill(colors.light);
+            doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).lineWidth(1).strokeColor(colors.border).stroke();
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('Quotation No:', rightCol, rightY + 8);
+            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.text).text(quotation.quotationNumber, rightCol + 80, rightY + 8);
 
-        y += 100;
+            rightY += detailsBoxHeight + detailsBoxSpacing;
 
-        // --- RECIPIENT BOX ---
-        doc.rect(40, y, 515, 80).fill(colors.bg);
-        doc.fillColor(colors.primary).font('Helvetica-Bold').fontSize(8).text('RECIPIENT', 55, y + 15);
+            // Quotation Date
+            doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).fill(colors.light);
+            doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).lineWidth(1).strokeColor(colors.border).stroke();
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('Quotation Date:', rightCol, rightY + 8);
+            doc.fontSize(10).font('Helvetica').fillColor(colors.text).text(
+                new Date(quotation.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                rightCol + 80, rightY + 8
+            );
 
-        doc.fontSize(14).font('Helvetica-Bold').fillColor(colors.text).text(customerName, 55, y + 30);
-        if (customerCompany) {
-            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.lightText).text(customerCompany, 55, y + 48);
-        }
+            rightY += detailsBoxHeight + detailsBoxSpacing;
 
-        let contactInfo = customerEmail;
-        if (quotation.lead?.phone) contactInfo += `  |  ${quotation.lead.phone}`;
-        doc.fontSize(9).font('Helvetica').fillColor(colors.lightText).text(contactInfo, 55, y + 62);
+            // Valid Until
+            doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).fill(colors.light);
+            doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).lineWidth(1).strokeColor(colors.border).stroke();
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('Valid Until:', rightCol, rightY + 8);
+            const validDate = quotation.validUntil
+                ? new Date(quotation.validUntil).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                : 'N/A';
+            doc.fontSize(10).font('Helvetica').fillColor(colors.text).text(validDate, rightCol + 80, rightY + 8);
 
-        // Title / Subject
-        y += 105;
-        doc.fontSize(11).font('Helvetica-Bold').fillColor(colors.text).text(quotation.title, 40, y);
-        if (quotation.description) {
-            doc.fontSize(9).font('Helvetica').fillColor(colors.lightText).text(quotation.description, 40, y + 16, { width: 515 });
+            // Set y to the maximum of both columns
+            y = Math.max(y, rightY) + 20;
+
+            // Divider Line
+            doc.moveTo(leftCol, y).lineTo(555, y).lineWidth(1).strokeColor(colors.border).stroke();
+            y += 15;
+
+            // --- BILLING SECTION ---
+            // Section Header with Background
+            doc.rect(leftCol, y, 515, 25).fill(colors.lightOrange);
+            doc.fontSize(11).font('Helvetica-Bold').fillColor(colors.primary).text('BILLING DETAILS', leftCol + 10, y + 8);
+            y += 30;
+
+            // Two Column Layout
+            const billingLeftCol = leftCol;
+            const billingRightCol = leftCol + 270;
+
+            // Left Column: Quotation By
+            let leftY = y;
+            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Quotation By:', billingLeftCol, leftY);
+            leftY += 15;
+
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.text).text(companyName, billingLeftCol, leftY);
+            leftY += 12;
+
+            doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+            if (bs?.companyAddress) {
+                const addressLines = bs.companyAddress.split(',').map((line: string) => line.trim());
+                addressLines.forEach((line: string) => {
+                    doc.text(line, billingLeftCol, leftY);
+                    leftY += 10;
+                });
+            }
+
+            if (bs?.companyPhone) {
+                doc.text(`Phone: ${bs.companyPhone}`, billingLeftCol, leftY);
+                leftY += 10;
+            }
+            if (bs?.companyEmail) {
+                doc.text(`Email: ${bs.companyEmail}`, billingLeftCol, leftY);
+                leftY += 10;
+            }
+
+            // Right Column: Quotation To
+            let customerY = y;
+            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Quotation To:', billingRightCol, customerY);
+            customerY += 15;
+
+            const customerName = quotation.lead
+                ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
+                : quotation.companies?.name || 'Valued Customer';
+
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.text).text(customerName, billingRightCol, customerY);
+            customerY += 12;
+
+            doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+            if (quotation.lead?.company) {
+                doc.text(quotation.lead.company, billingRightCol, customerY);
+                customerY += 10;
+            }
+            if (quotation.lead?.address) {
+                const custAddressLines = quotation.lead.address.split(',').map((line: string) => line.trim());
+                custAddressLines.forEach((line: string) => {
+                    doc.text(line, billingRightCol, customerY);
+                    customerY += 10;
+                });
+            }
+            if (quotation.lead?.city) {
+                doc.text(quotation.lead.city, billingRightCol, customerY);
+                customerY += 10;
+            }
+            if (quotation.lead?.phone) {
+                doc.text(`Phone: ${quotation.lead.phone}`, billingRightCol, customerY);
+                customerY += 10;
+            }
+            if (quotation.lead?.email) {
+                doc.text(`Email: ${quotation.lead.email}`, billingRightCol, customerY);
+                customerY += 10;
+            }
+
+            // Update y position for next section
+            y = Math.max(leftY, customerY) + 20;
+
+            // Divider Line
+            doc.moveTo(leftCol, y).lineTo(555, y).lineWidth(1).strokeColor(colors.border).stroke();
+            y += 15;
+
+            // --- SUBJECT LINE ---
+            if (quotation.title) {
+                doc.rect(leftCol, y, 515, 20).fill(colors.lightOrange);
+                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.text).text(
+                    `Subject: ${quotation.title}`,
+                    leftCol + 10, y + 5
+                );
+                y += 30;
+            }
+
+            // --- ITEMS TABLE ---
+            // Table Header
+            const tableTop = y;
+            doc.rect(leftCol, tableTop, 515, 25).fill(colors.primary);
+
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.white);
+            doc.text('S.No', leftCol + 5, tableTop + 8, { width: 25, align: 'center' });
+            doc.text('Item Description', leftCol + 40, tableTop + 8);
+            doc.text('Qty', leftCol + 285, tableTop + 8, { width: 35, align: 'center' });
+            doc.text('Unit Price', leftCol + 325, tableTop + 8, { width: 90, align: 'right' });
+            doc.text('Amount', leftCol + 420, tableTop + 8, { width: 90, align: 'right' });
+
+            y = tableTop + 25;
+
+            // Table Rows with alternating background
+            quotation.items.forEach((item, index) => {
+                if (y > 650) {
+                    doc.addPage();
+                    y = 50;
+
+                    // Repeat table header on new page
+                    doc.rect(leftCol, y, 515, 25).fill(colors.primary);
+                    doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.white);
+                    doc.text('S.No', leftCol + 5, y + 8, { width: 25, align: 'center' });
+                    doc.text('Item Description', leftCol + 40, y + 8);
+                    doc.text('Qty', leftCol + 285, y + 8, { width: 35, align: 'center' });
+                    doc.text('Unit Price', leftCol + 325, y + 8, { width: 90, align: 'right' });
+                    doc.text('Amount', leftCol + 420, y + 8, { width: 90, align: 'right' });
+                    y += 25;
+                }
+
+                const rowHeight = 25;
+
+                // Alternating row background
+                if (index % 2 === 0) {
+                    doc.rect(leftCol, y, 515, rowHeight).fill(colors.light);
+                }
+
+                // Row border
+                doc.rect(leftCol, y, 515, rowHeight).lineWidth(0.5).strokeColor(colors.border).stroke();
+
+                doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+                doc.text(String(index + 1), leftCol + 5, y + 8, { width: 25, align: 'center' });
+                doc.text(item.name, leftCol + 40, y + 8, { width: 240 });
+                doc.text(String(item.quantity), leftCol + 285, y + 8, { width: 35, align: 'center' });
+                doc.text(
+                    `${quotation.currency} ${Number(item.unitPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                    leftCol + 325, y + 8, { width: 90, align: 'right' }
+                );
+                doc.text(
+                    `${quotation.currency} ${Number(item.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                    leftCol + 420, y + 8, { width: 90, align: 'right' }
+                );
+
+                y += rowHeight;
+            });
+
+            // Table bottom border
+            doc.rect(leftCol, y, 515, 0.5).fill(colors.border);
             y += 20;
-        }
-        y += 15;
 
-        // --- TABLE HEADER ---
-        doc.rect(40, y, 515, 30).fill(colors.text);
-        doc.fontSize(8).font('Helvetica-Bold').fillColor(colors.white);
-        doc.text('#', 50, y + 11);
-        doc.text('DESCRIPTION', 80, y + 11);
-        doc.text('QTY', 350, y + 11, { width: 40, align: 'center' });
-        doc.text('PRICE', 400, y + 11, { width: 70, align: 'right' });
-        doc.text('AMOUNT', 480, y + 11, { width: 65, align: 'right' });
+            // --- TOTALS SECTION ---
+            const totalsX = 350;
+            const totalsLabelWidth = 90;
+            const totalsValueWidth = 115;
 
-        y += 30;
+            // Background for totals section
+            doc.rect(totalsX - 15, y - 10, totalsLabelWidth + totalsValueWidth + 25, 110).fill(colors.light);
+            doc.rect(totalsX - 15, y - 10, totalsLabelWidth + totalsValueWidth + 25, 110).lineWidth(1).strokeColor(colors.border).stroke();
 
-        // --- TABLE ROWS ---
-        quotation.items.forEach((item, i) => {
-            // Background for alternate rows
-            if (i % 2 === 1) {
-                doc.rect(40, y, 515, 40).fill(colors.bg);
+            // Subtotal
+            doc.fontSize(9).font('Helvetica').fillColor(colors.text);
+            doc.text('Sub Total', totalsX, y);
+            doc.text(
+                `${quotation.currency} ${Number(quotation.subtotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                totalsX + totalsLabelWidth, y, { width: totalsValueWidth, align: 'right' }
+            );
+            y += 20;
+
+            // Tax amount if applicable
+            if (Number(quotation.taxAmount) > 0) {
+                doc.text('Tax', totalsX, y);
+                doc.text(
+                    `${quotation.currency} ${Number(quotation.taxAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                    totalsX + totalsLabelWidth, y, { width: totalsValueWidth, align: 'right' }
+                );
+                y += 20;
             }
 
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text(String(i + 1).padStart(2, '0'), 50, y + 15);
-            doc.fillColor(colors.text).text(item.name, 80, y + 10, { width: 260 });
-            if (item.description) {
-                doc.fontSize(7).font('Helvetica').fillColor(colors.lightText).text(item.description, 80, y + 22, { width: 260, height: 15, ellipsis: true });
+            // Discount amount if applicable
+            if (Number(quotation.discountAmount) > 0) {
+                doc.text('Discount', totalsX, y);
+                doc.text(
+                    `- ${quotation.currency} ${Number(quotation.discountAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                    totalsX + totalsLabelWidth, y, { width: totalsValueWidth, align: 'right' }
+                );
+                y += 20;
             }
 
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.text);
-            doc.text(String(item.quantity), 350, y + 15, { width: 40, align: 'center' });
-            doc.text(`${quotation.currency} ${Number(item.unitPrice).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 400, y + 15, { width: 70, align: 'right' });
-            doc.text(`${quotation.currency} ${Number(item.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 480, y + 15, { width: 65, align: 'right' });
+            // Divider line before total
+            doc.moveTo(totalsX - 10, y).lineTo(totalsX + totalsLabelWidth + totalsValueWidth + 10, y).lineWidth(0.5).strokeColor(colors.border).stroke();
+            y += 10;
 
-            // Border bottom
-            doc.moveTo(40, y + 40).lineTo(555, y + 40).lineWidth(0.5).strokeColor(colors.border).stroke();
+            // Total with highlighted background
+            doc.rect(totalsX - 10, y - 5, totalsLabelWidth + totalsValueWidth + 20, 25).fill(colors.tertiary);
+            doc.fontSize(11).font('Helvetica-Bold').fillColor(colors.white);
+            doc.text('Total', totalsX, y + 2);
+            doc.text(
+                `${quotation.currency} ${Number(quotation.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                totalsX + totalsLabelWidth, y + 2, { width: totalsValueWidth, align: 'right' }
+            );
 
             y += 40;
 
-            // Page break if needed
+            // Amount in words
+            const amountInWords = this.numberToWords(Number(quotation.totalAmount));
+            doc.fontSize(8).font('Helvetica-Oblique').fillColor(colors.text).text(
+                `Amount in Words: ${amountInWords}`,
+                leftCol, y
+            );
+
+            y += 30;
+
+            // --- TERMS & CONDITIONS ---
+            if (quotation.terms) {
+                // Section Header with Background
+                doc.rect(leftCol, y, 515, 20).fill(colors.lightOrange);
+                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Terms and Conditions', leftCol + 10, y + 5);
+                y += 25;
+
+                const termsLines = quotation.terms.split('\n');
+                doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+                termsLines.forEach((line: string, idx: number) => {
+                    doc.text(`${idx + 1}. ${line}`, leftCol + 10, y, { width: 515 });
+                    y += 12;
+                });
+                y += 15;
+            }
+
+            // --- ADDITIONAL NOTES ---
+            if (quotation.notes) {
+                // Section Header with Background
+                doc.rect(leftCol, y, 515, 20).fill(colors.lightOrange);
+                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Additional Notes', leftCol + 10, y + 5);
+                y += 25;
+
+                doc.fontSize(8).font('Helvetica').fillColor(colors.text).text(quotation.notes, leftCol + 10, y, { width: 515, lineGap: 2 });
+                y += doc.heightOfString(quotation.notes, { width: 515 }) + 20;
+            }
+
+            // --- FOOTER ---
+            // Add a new page if needed for footer
             if (y > 700) {
                 doc.addPage();
-                y = 40;
+                y = 50;
             }
+
+            // Footer Section
+            y = Math.max(y, 700);
+
+            // Footer Background
+            doc.rect(0, y + 20, 595, 60).fill(colors.light);
+
+            // Contact Information
+            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.primary).text('Contact Information', leftCol, y + 30);
+            doc.fontSize(8).font('Helvetica').fillColor(colors.text).text(
+                `Email: ${bs?.companyEmail || 'info@company.com'} | Phone: ${bs?.companyPhone || '+91-XXXXXXXXXX'}`,
+                leftCol, y + 45
+            );
+            doc.text(`Website: ${bs?.companyWebsite || 'www.example.com'}`, leftCol, y + 60);
+
+            // Thank You Note - Centered
+            doc.fontSize(12).font('Helvetica-Bold').fillColor(colors.secondary).text(
+                'Thank you for your business!',
+                0, y + 45,
+                { align: 'center', width: 595 }
+            );
+
+            // Page Number
+            const range = doc.bufferedPageRange();
+            for (let i = range.start; i <= range.start + range.count - 1; i++) {
+                doc.switchToPage(i);
+                doc.fontSize(8).font('Helvetica').fillColor(colors.lightText).text(
+                    `Page ${i + 1} of ${range.start + range.count}`,
+                    0, 820, { align: 'center', width: 595 }
+                );
+            }
+
+            doc.end();
         });
-
-        // --- SUMMARY SECTION ---
-        y += 20;
-        const summaryWidth = 200;
-        const summaryX = 355;
-
-        const drawSummaryRow = (label: string, value: string, isTotal = false) => {
-            if (isTotal) {
-                doc.rect(summaryX, y, summaryWidth, 35).fill(colors.primary);
-                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.white).text(label, summaryX + 10, y + 13);
-                doc.fontSize(14).text(value, summaryX + 10, y + 10, { width: summaryWidth - 20, align: 'right' });
-                y += 45;
-            } else {
-                doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text(label, summaryX + 10, y);
-                doc.fillColor(colors.text).text(value, summaryX + 10, y, { width: summaryWidth - 20, align: 'right' });
-                y += 18;
-            }
-        };
-
-        drawSummaryRow('Subtotal', `${quotation.currency} ${Number(quotation.subtotal).toLocaleString('en-US', { minimumFractionDigits: 2 })}`);
-
-        if (Number(quotation.taxAmount) > 0) {
-            drawSummaryRow('Tax Amount', `+ ${quotation.currency} ${Number(quotation.taxAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`);
-        }
-
-        if (Number(quotation.discountAmount) > 0) {
-            doc.fillColor('#ef4444');
-            drawSummaryRow('Discount', `- ${quotation.currency} ${Number(quotation.discountAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`);
-        }
-
-        y += 5;
-        drawSummaryRow('TOTAL AMOUNT', `${quotation.currency} ${Number(quotation.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, true);
-
-        // --- TERMS & NOTES ---
-        let footerY = y;
-        if (quotation.notes) {
-            doc.fontSize(8).font('Helvetica-Bold').fillColor(colors.lightText).text('ADDITIONAL NOTES', 40, footerY);
-            doc.fontSize(8).font('Helvetica').fillColor(colors.text).text(quotation.notes, 40, footerY + 12, { width: 300 });
-            footerY += 45;
-        }
-
-        if (quotation.terms) {
-            doc.fontSize(8).font('Helvetica-Bold').fillColor(colors.lightText).text('TERMS & CONDITIONS', 40, footerY);
-            doc.fontSize(7).font('Helvetica').fillColor(colors.text).text(quotation.terms, 40, footerY + 12, { width: 300 });
-        }
-
-        // --- FOOTER ---
-        const pageCount = doc.bufferedPageRange().count;
-        for (let i = 0; i < pageCount; i++) {
-            doc.switchToPage(i);
-            doc.fontSize(8).font('Helvetica').fillColor(colors.lightText);
-            doc.text(`Thank you for your business!  |  Page ${i + 1} of ${pageCount}`, 0, 800, { align: 'center', width: 595 });
-        }
-
-        doc.end();
-
-        const buffer = Buffer.concat(chunks);
-        return { buffer, filename: `Quotation_${quotation.quotationNumber}.pdf` };
     }
+
+
 
     async generateInvoice(id: number) {
         const quotation = await this.prisma.quotation.findUnique({

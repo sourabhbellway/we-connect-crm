@@ -1,0 +1,11 @@
+Create new debit() method inside AdminWalletController
+
+Handle multiple file uploads (store and convert to public URLs)
+
+Check balance before debit — return “Insufficient balance” if low
+
+create WalletTransaction record with type -> debit
+
+update models
+
+update wallet_transactions schema

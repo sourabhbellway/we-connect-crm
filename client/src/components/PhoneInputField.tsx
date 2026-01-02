@@ -19,7 +19,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   onChange,
   error,
   required,
-  placeholder = "Enter phone number",
+  placeholder = "Enter  number",
   disabled,
   className
 }) => {
@@ -28,7 +28,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
   const [phoneNumber, setPhoneNumber] = useState('');
   const [inputColor, setInputColor] = useState<string>('#111827');
-  
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -51,14 +51,14 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
       // Find the longest matching country code
       let matchedCountry: Country | undefined;
       let matchedPhoneCode = '';
-      
+
       for (const country of countries) {
         if (value.startsWith(country.phoneCode) && country.phoneCode.length > matchedPhoneCode.length) {
           matchedCountry = country;
           matchedPhoneCode = country.phoneCode;
         }
       }
-      
+
       if (matchedCountry) {
         setSelectedCountry(matchedCountry);
         setPhoneNumber(value.slice(matchedCountry.phoneCode.length));
@@ -104,11 +104,11 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
     setSelectedCountry(country);
     setIsOpen(false);
     setSearchTerm('');
-    
+
     // Update the full phone number
     const fullNumber = country.phoneCode + phoneNumber;
     onChange(fullNumber);
-    
+
     // Focus back to phone input
     setTimeout(() => {
       phoneInputRef.current?.focus();
@@ -173,7 +173,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      
+
       <div className="relative flex">
         {/* Country Code Selector */}
         <div className="relative" ref={dropdownRef}>
@@ -188,8 +188,8 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                 ? 'border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500'
                 : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }
-              ${isOpen 
-                ? 'ring-2 ring-blue-500 border-blue-500' 
+              ${isOpen
+                ? 'ring-2 ring-blue-500 border-blue-500'
                 : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               }
               ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : 'cursor-pointer'}
@@ -201,7 +201,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
               isOpen ? 'transform rotate-180' : ''
             }`} />
           </button>
-          
+
           {/* Country Dropdown */}
           {isOpen && (
             <div className="absolute z-50 left-0 mt-1 w-80 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-hidden">
@@ -219,7 +219,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                   />
                 </div>
               </div>
-              
+
               {/* Country List */}
               <div className="max-h-48 overflow-y-auto">
                 {filteredCountries.length === 0 ? (
@@ -235,8 +235,8 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                       className={`
                         w-full text-left px-4 py-3 text-sm transition-colors duration-150
                         flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-600
-                        ${country.code === selectedCountry.code 
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' 
+                        ${country.code === selectedCountry.code
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                           : 'text-gray-900 dark:text-gray-100'
                         }
                       `}
@@ -258,7 +258,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
             </div>
           )}
         </div>
-        
+
         {/* Phone Number Input */}
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -289,7 +289,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
             `}
             style={{ color: inputColor, WebkitTextFillColor: inputColor, caretColor: inputColor }}
           />
-          
+
           {/* Clear Button */}
           {phoneNumber && !disabled && (
             <button
@@ -302,7 +302,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
           )}
         </div>
       </div>
-      
+
       {error && (
         <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
       )}

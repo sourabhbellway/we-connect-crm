@@ -44,6 +44,8 @@ class ProductsService {
     page?: number;
     limit?: number;
     search?: string;
+    status?: string;
+    category?: string;
   }) {
     const response = await apiClient.get('/products', { params });
     return response.data;

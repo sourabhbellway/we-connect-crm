@@ -18,7 +18,9 @@ import {
   FileDown,
   FileText,
   CreditCard as DollarSign,
+  MoreVertical,
 } from 'lucide-react';
+import ReactDOM from 'react-dom';
 import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 import SearchInput from '../../components/SearchInput';
 import NoResults from '../../components/NoResults';
@@ -75,6 +77,159 @@ interface Expense {
     company: string;
   };
 }
+
+const ExpenseActionMenu = ({
+  expense,
+  hasPermission,
+  hasRole,
+  onView,
+  onEdit,
+  onDelete,
+  onApprove,
+  onReject
+}: {
+  expense: Expense;
+  hasPermission: (p: string) => boolean;
+  hasRole: (r: string) => boolean;
+  onView: (expense: Expense) => void;
+  onEdit: (expense: Expense) => void;
+  onDelete: (expense: Expense) => void;
+  onApprove: (expense: Expense) => void;
+  onReject: (expense: Expense) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        const target = event.target as Element;
+        if (!target.closest('.action-menu-dropdown')) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', () => setIsOpen(false), true);
+      window.addEventListener('resize', () => setIsOpen(false));
+    }
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', () => setIsOpen(false), true);
+      window.removeEventListener('resize', () => setIsOpen(false));
+    };
+  }, [isOpen]);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuWidth = 160;
+      let left = rect.right - menuWidth;
+      let top = rect.bottom + 4;
+
+      if (left < 0) left = rect.left;
+      if (top + 200 > window.innerHeight) {
+        top = rect.top - 200;
+      }
+
+      setMenuStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        left: `${left}px`,
+        zIndex: 9999,
+        width: `${menuWidth}px`
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </button>
+
+      {isOpen && ReactDOM.createPortal(
+        <div
+          className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+          style={menuStyle}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {(hasPermission('expense.read') || hasRole('Admin')) && (
+            <button
+              onClick={() => { onView(expense); setIsOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4 text-gray-400" />
+              View
+            </button>
+          )}
+
+          {expense.receiptUrl && (
+            <button
+              onClick={() => { window.open(expense.receiptUrl, '_blank'); setIsOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Receipt className="h-4 w-4 text-emerald-500" />
+              Receipt
+            </button>
+          )}
+
+          {(hasPermission('expense.approve') || hasRole('Admin')) && expense.status === 'PENDING' && (
+            <>
+              <button
+                onClick={() => { onApprove(expense); setIsOpen(false); }}
+                className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2"
+              >
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                Approve
+              </button>
+              <button
+                onClick={() => { onReject(expense); setIsOpen(false); }}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+              >
+                <XCircle className="h-4 w-4 text-red-500" />
+                Reject
+              </button>
+            </>
+          )}
+
+          {(hasPermission('expense.update') || hasRole('Admin')) && expense.status === 'PENDING' && (
+            <button
+              onClick={() => { onEdit(expense); setIsOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4 text-blue-500" />
+              Edit
+            </button>
+          )}
+
+          <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+          {(hasPermission('expense.delete') || hasRole('Admin')) && (
+            <button
+              onClick={() => { onDelete(expense); setIsOpen(false); }}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+              Delete
+            </button>
+          )}
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
 
 const ExpensesPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -140,6 +295,16 @@ const ExpensesPage: React.FC = () => {
   useEffect(() => {
     fetchExpenses();
   }, []);
+
+  // Update default currency when settings load
+  useEffect(() => {
+    if (currencySettings?.primary) {
+      setForm(prev => ({
+        ...prev,
+        currency: prev.currency === 'USD' ? currencySettings.primary : prev.currency
+      }));
+    }
+  }, [currencySettings]);
 
   // Load column visibility preferences
   useEffect(() => {
@@ -372,7 +537,7 @@ const ExpensesPage: React.FC = () => {
         remarks: '',
         receiptUrl: '',
         submittedBy: user.id,
-        currency: 'USD',
+        currency: currencySettings?.primary || 'USD',
       });
       fetchExpenses();
     } catch (e: any) {
@@ -602,10 +767,18 @@ const ExpensesPage: React.FC = () => {
                     onChange={(e) => setForm({ ...form, currency: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
                   >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                    <option value="GBP">GBP</option>
-                    <option value="INR">INR</option>
+                    {currencySettings?.supportedCurrencies?.length ? (
+                      currencySettings.supportedCurrencies.map(code => (
+                        <option key={code} value={code}>{code}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="INR">INR</option>
+                      </>
+                    )}
                   </select>
                 </div>
                 <div className="md:col-span-2">
@@ -708,10 +881,10 @@ const ExpensesPage: React.FC = () => {
               onChange={(v) => setCurrencyFilter((v as string))}
               options={[
                 { value: 'ALL', label: 'All currencies' },
-                { value: 'USD', label: 'USD' },
-                { value: 'EUR', label: 'EUR' },
-                { value: 'GBP', label: 'GBP' },
-                { value: 'INR', label: 'INR' },
+                ...(currencySettings?.supportedCurrencies || ['USD', 'EUR', 'GBP', 'INR']).map(code => ({
+                  value: code,
+                  label: code
+                }))
               ]}
             />
           </div>
@@ -860,103 +1033,45 @@ const ExpensesPage: React.FC = () => {
 
                     {/* Partition 3: Actions */}
                     <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                      <div className="flex items-center justify-between">
-                        {/* Left: Receipt */}
-                        {expense.receiptUrl && (
-                          <button
-                            onClick={() => window.open(expense.receiptUrl, '_blank')}
-                            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                            title="View Receipt"
-                          >
-                            <Receipt className="h-4 w-4" />
-                          </button>
-                        )}
-
-                        {/* Right: Action Buttons */}
-                        <div className="flex items-center gap-1 ml-auto">
-                          {(hasPermission('expense.read') || hasRole('Admin')) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openView(expense);
-                              }}
-                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                              title="View Expense"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                          )}
-                          {(hasPermission('expense.approve') || hasRole('Admin')) && expense.status === 'PENDING' && (
-                            <>
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  const remarks = prompt('Approval remarks');
-                                  try {
-                                    await expenseService.approve(expense.id, { status: 'APPROVED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                                    toast.success('Expense approved');
-                                    fetchExpenses();
-                                  } catch (e: any) {
-                                    toast.error(e?.response?.data?.message || 'Approval failed');
-                                  }
-                                }}
-                                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                title="Approve"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  const remarks = prompt('Rejection remarks');
-                                  try {
-                                    await expenseService.approve(expense.id, { status: 'REJECTED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                                    toast.success('Expense rejected');
-                                    fetchExpenses();
-                                  } catch (e: any) {
-                                    toast.error(e?.response?.data?.message || 'Rejection failed');
-                                  }
-                                }}
-                                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                title="Reject"
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                          {(hasPermission('expense.update') || hasRole('Admin')) && expense.status === 'PENDING' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openView(expense);
-                                setEditing(true);
-                              }}
-                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                              title="Edit Expense"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                          )}
-                          {(hasPermission('expense.delete') || hasRole('Admin')) && (
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (!confirm('Delete this expense?')) return;
-                                try {
-                                  await expenseService.remove(expense.id);
-                                  setExpenses(prev => prev.filter(e => e.id !== expense.id));
-                                  toast.success('Expense deleted');
-                                } catch (e) {
-                                  toast.error('Failed to delete');
-                                }
-                              }}
-                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                              title="Delete Expense"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
+                      {/* Right: Action Buttons */}
+                      <div className="flex items-center gap-1 ml-auto">
+                        <ExpenseActionMenu
+                          expense={expense}
+                          hasPermission={hasPermission}
+                          hasRole={hasRole}
+                          onView={openView}
+                          onEdit={(e) => { openView(e); setEditing(true); }}
+                          onDelete={async (e) => {
+                            if (!confirm('Delete this expense?')) return;
+                            try {
+                              await expenseService.remove(e.id);
+                              setExpenses(prev => prev.filter(item => item.id !== e.id));
+                              toast.success('Expense deleted');
+                            } catch (err) {
+                              toast.error('Failed to delete');
+                            }
+                          }}
+                          onApprove={async (e) => {
+                            const remarks = prompt('Approval remarks');
+                            try {
+                              await expenseService.approve(e.id, { status: 'APPROVED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
+                              toast.success('Expense approved');
+                              fetchExpenses();
+                            } catch (err: any) {
+                              toast.error(err?.response?.data?.message || 'Approval failed');
+                            }
+                          }}
+                          onReject={async (e) => {
+                            const remarks = prompt('Rejection remarks');
+                            try {
+                              await expenseService.approve(e.id, { status: 'REJECTED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
+                              toast.success('Expense rejected');
+                              fetchExpenses();
+                            } catch (err: any) {
+                              toast.error(err?.response?.data?.message || 'Rejection failed');
+                            }
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1093,82 +1208,44 @@ const ExpensesPage: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
-                          <div className="flex items-center justify-end space-x-2">
-                            {(hasPermission('expense.read') || hasRole('Admin')) && (
-                              <button
-                                onClick={() => openView(expense)}
-                                className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                title="View Expense"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                            )}
-                            {(hasPermission('expense.approve') || hasRole('Admin')) && expense.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={async () => {
-                                    const remarks = prompt('Approval remarks');
-                                    try {
-                                      await expenseService.approve(expense.id, { status: 'APPROVED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                                      toast.success('Expense approved');
-                                      fetchExpenses();
-                                    } catch (e: any) {
-                                      toast.error(e?.response?.data?.message || 'Approval failed');
-                                    }
-                                  }}
-                                  className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                  title="Approve"
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    const remarks = prompt('Rejection remarks');
-                                    try {
-                                      await expenseService.approve(expense.id, { status: 'REJECTED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                                      toast.success('Expense rejected');
-                                      fetchExpenses();
-                                    } catch (e: any) {
-                                      toast.error(e?.response?.data?.message || 'Rejection failed');
-                                    }
-                                  }}
-                                  className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                  title="Reject"
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </button>
-                              </>
-                            )}
-                            {(hasPermission('expense.update') || hasRole('Admin')) && expense.status === 'PENDING' && (
-                              <button
-                                onClick={() => {
-                                  openView(expense);
-                                  setEditing(true);
-                                }}
-                                className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                title="Edit Expense"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </button>
-                            )}
-                            {(hasPermission('expense.delete') || hasRole('Admin')) && (
-                              <button
-                                className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                title="Delete Expense"
-                                onClick={async () => {
-                                  if (!confirm('Delete this expense?')) return;
-                                  try {
-                                    await expenseService.remove(expense.id);
-                                    setExpenses(prev => prev.filter(e => e.id !== expense.id));
-                                    toast.success('Expense deleted');
-                                  } catch (e) {
-                                    toast.error('Failed to delete');
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
+                          <div className="flex items-center justify-end">
+                            <ExpenseActionMenu
+                              expense={expense}
+                              hasPermission={hasPermission}
+                              hasRole={hasRole}
+                              onView={openView}
+                              onEdit={(e) => { openView(e); setEditing(true); }}
+                              onDelete={async (e) => {
+                                if (!confirm('Delete this expense?')) return;
+                                try {
+                                  await expenseService.remove(e.id);
+                                  setExpenses(prev => prev.filter(item => item.id !== e.id));
+                                  toast.success('Expense deleted');
+                                } catch (err) {
+                                  toast.error('Failed to delete');
+                                }
+                              }}
+                              onApprove={async (e) => {
+                                const remarks = prompt('Approval remarks');
+                                try {
+                                  await expenseService.approve(e.id, { status: 'APPROVED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
+                                  toast.success('Expense approved');
+                                  fetchExpenses();
+                                } catch (err: any) {
+                                  toast.error(err?.response?.data?.message || 'Approval failed');
+                                }
+                              }}
+                              onReject={async (e) => {
+                                const remarks = prompt('Rejection remarks');
+                                try {
+                                  await expenseService.approve(e.id, { status: 'REJECTED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
+                                  toast.success('Expense rejected');
+                                  fetchExpenses();
+                                } catch (err: any) {
+                                  toast.error(err?.response?.data?.message || 'Rejection failed');
+                                }
+                              }}
+                            />
                           </div>
                         </td>
                       </tr>
@@ -1190,239 +1267,252 @@ const ExpensesPage: React.FC = () => {
             )}
           </div>
         </div>
-      )}
+      )
+      }
 
       {/* Empty state */}
-      {totalItems === 0 && !loading && (
-        <NoResults
-          title="No expenses found"
-          description={searchValue ? 'No expenses match your search criteria.' : 'Get started by creating your first expense.'}
-          icon={<DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-          showClearButton={!!searchValue}
-          onClear={() => setSearch('')}
-        />
-      )}
+      {
+        totalItems === 0 && !loading && (
+          <NoResults
+            title="No expenses found"
+            description={searchValue ? 'No expenses match your search criteria.' : 'Get started by creating your first expense.'}
+            icon={<DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+            showClearButton={!!searchValue}
+            onClear={() => setSearch('')}
+          />
+        )
+      }
 
       {/* View/Edit Modal */}
-      {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Receipt className="text-emerald-500" size={24} />
-                Expense #{selected.id}
-              </h3>
-              <div className="flex gap-2">
-                {(hasPermission('expense.update') || hasRole('Admin')) && selected.status === 'PENDING' && (
-                  <Button variant="OUTLINE" size="SM" onClick={() => setEditing((v) => !v)}>
-                    <Edit size={16} className="mr-2" />
-                    {editing ? 'Cancel' : 'Edit'}
+      {
+        selected && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Receipt className="text-emerald-500" size={24} />
+                  Expense #{selected.id}
+                </h3>
+                <div className="flex gap-2">
+                  {(hasPermission('expense.update') || hasRole('Admin')) && selected.status === 'PENDING' && (
+                    <Button variant="OUTLINE" size="SM" onClick={() => setEditing((v) => !v)}>
+                      <Edit size={16} className="mr-2" />
+                      {editing ? 'Cancel' : 'Edit'}
+                    </Button>
+                  )}
+                  {(hasPermission('expense.delete') || hasRole('Admin')) && (
+                    <Button variant="OUTLINE" size="SM" onClick={deleteExpense}>
+                      <Trash2 size={16} className="mr-2" />
+                      Delete
+                    </Button>
+                  )}
+                  <Button variant="OUTLINE" size="SM" onClick={() => setSelected(null)}>
+                    ✕
                   </Button>
-                )}
-                {(hasPermission('expense.delete') || hasRole('Admin')) && (
-                  <Button variant="OUTLINE" size="SM" onClick={deleteExpense}>
-                    <Trash2 size={16} className="mr-2" />
-                    Delete
-                  </Button>
-                )}
-                <Button variant="OUTLINE" size="SM" onClick={() => setSelected(null)}>
-                  ✕
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {!editing ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="text-4xl">{getTypeIcon(selected.type)}</div>
-                      <div className="flex-1">
-                        <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                          {selected.type.replace('_', ' ')}
-                        </h4>
-                        <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selected.status)}`}>
-                          {getStatusIcon(selected.status)}
-                          {selected.status}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                          {formatCurrency(selected.amount, selected.currency)}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{selected.currency}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Expense Date</p>
-                    <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                      <Calendar size={18} className="text-emerald-500" />
-                      {new Date(selected.expenseDate).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created At</p>
-                    <p className="text-lg text-gray-900 dark:text-white">
-                      {new Date(selected.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created By</p>
-                    <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                      <User size={18} className="text-emerald-500" />
-                      {selected.submittedByUser
-                        ? `${selected.submittedByUser.firstName} ${selected.submittedByUser.lastName}`
-                        : selected.createdByUser
-                          ? `${selected.createdByUser.firstName} ${selected.createdByUser.lastName}`
-                          : '-'}
-                    </p>
-                  </div>
-
-                  {selected.approvedByUser && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved By</p>
-                      <p className="text-lg text-green-600 dark:text-green-400 flex items-center gap-2">
-                        <CheckCircle size={18} />
-                        {selected.approvedByUser.firstName} {selected.approvedByUser.lastName}
-                      </p>
-                    </div>
-                  )}
-
-                  {selected.approvedAt && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved At</p>
-                      <p className="text-lg text-gray-900 dark:text-white">
-                        {new Date(selected.approvedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-
-                  {selected.rejectedByUser && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Rejected By</p>
-                      <p className="text-lg text-red-600 dark:text-red-400 flex items-center gap-2">
-                        <XCircle size={18} />
-                        {selected.rejectedByUser.firstName} {selected.rejectedByUser.lastName}
-                      </p>
-                    </div>
-                  )}
-
-                  {selected.description && (
-                    <div className="md:col-span-2 space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Description</p>
-                      <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
-                        {selected.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {selected.remarks && (
-                    <div className="md:col-span-2 space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Remarks</p>
-                      <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
-                        {selected.remarks}
-                      </p>
-                    </div>
-                  )}
-
-                  {selected.receiptUrl && (
-                    <div className="md:col-span-2">
-                      <Button variant="OUTLINE" onClick={() => window.open(selected.receiptUrl, '_blank')}>
-                        <Download size={16} className="mr-2" />
-                        View Receipt
-                      </Button>
-                    </div>
-                  )}
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
-                    <input
-                      type="date"
-                      value={editForm.expenseDate as string}
-                      onChange={(e) => setEditForm({ ...editForm, expenseDate: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                    />
+              </div>
+
+              <div className="p-6">
+                {!editing ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="text-4xl">{getTypeIcon(selected.type)}</div>
+                        <div className="flex-1">
+                          <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            {selected.type.replace('_', ' ')}
+                          </h4>
+                          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selected.status)}`}>
+                            {getStatusIcon(selected.status)}
+                            {selected.status}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(selected.amount, selected.currency)}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{selected.currency}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Expense Date</p>
+                      <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                        <Calendar size={18} className="text-emerald-500" />
+                        {new Date(selected.expenseDate).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created At</p>
+                      <p className="text-lg text-gray-900 dark:text-white">
+                        {new Date(selected.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created By</p>
+                      <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                        <User size={18} className="text-emerald-500" />
+                        {selected.submittedByUser
+                          ? `${selected.submittedByUser.firstName} ${selected.submittedByUser.lastName}`
+                          : selected.createdByUser
+                            ? `${selected.createdByUser.firstName} ${selected.createdByUser.lastName}`
+                            : '-'}
+                      </p>
+                    </div>
+
+                    {selected.approvedByUser && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved By</p>
+                        <p className="text-lg text-green-600 dark:text-green-400 flex items-center gap-2">
+                          <CheckCircle size={18} />
+                          {selected.approvedByUser.firstName} {selected.approvedByUser.lastName}
+                        </p>
+                      </div>
+                    )}
+
+                    {selected.approvedAt && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved At</p>
+                        <p className="text-lg text-gray-900 dark:text-white">
+                          {new Date(selected.approvedAt).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+
+                    {selected.rejectedByUser && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Rejected By</p>
+                        <p className="text-lg text-red-600 dark:text-red-400 flex items-center gap-2">
+                          <XCircle size={18} />
+                          {selected.rejectedByUser.firstName} {selected.rejectedByUser.lastName}
+                        </p>
+                      </div>
+                    )}
+
+                    {selected.description && (
+                      <div className="md:col-span-2 space-y-1">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Description</p>
+                        <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
+                          {selected.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {selected.remarks && (
+                      <div className="md:col-span-2 space-y-1">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Remarks</p>
+                        <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
+                          {selected.remarks}
+                        </p>
+                      </div>
+                    )}
+
+                    {selected.receiptUrl && (
+                      <div className="md:col-span-2">
+                        <Button variant="OUTLINE" onClick={() => window.open(selected.receiptUrl, '_blank')}>
+                          <Download size={16} className="mr-2" />
+                          View Receipt
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount</label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-500 font-medium">
-                        {currencySettings?.symbol || '$'}
-                      </span>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
                       <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={editForm.amount ?? 0}
-                        onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })}
-                        className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                        type="date"
+                        value={editForm.expenseDate as string}
+                        onChange={(e) => setEditForm({ ...editForm, expenseDate: e.target.value })}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-3 text-gray-500 font-medium">
+                          {currencySettings?.symbol || '$'}
+                        </span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={editForm.amount ?? 0}
+                          onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })}
+                          className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Type</label>
+                      <select
+                        value={editForm.type as string}
+                        onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ExpenseType })}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                      >
+                        {expenseTypes.map((t) => (
+                          <option key={t} value={t}>{getTypeIcon(t)} {t.replace('_', ' ')}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Currency</label>
+                      <select
+                        value={editForm.currency || 'USD'}
+                        onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                      >
+                        {currencySettings?.supportedCurrencies?.length ? (
+                          currencySettings.supportedCurrencies.map(code => (
+                            <option key={code} value={code}>{code}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="INR">INR</option>
+                          </>
+                        )}
+                      </select>
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                      <textarea
+                        value={editForm.description || ''}
+                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Remarks</label>
+                      <textarea
+                        value={editForm.remarks || ''}
+                        onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
+                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                        rows={2}
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex justify-end gap-3">
+                      <Button variant="OUTLINE" onClick={() => setEditing(false)}>Cancel</Button>
+                      <Button onClick={saveEdit}>Save Changes</Button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Type</label>
-                    <select
-                      value={editForm.type as string}
-                      onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ExpenseType })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                    >
-                      {expenseTypes.map((t) => (
-                        <option key={t} value={t}>{getTypeIcon(t)} {t.replace('_', ' ')}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Currency</label>
-                    <select
-                      value={editForm.currency || 'USD'}
-                      onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                    >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                      <option value="INR">INR</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                    <textarea
-                      value={editForm.description || ''}
-                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Remarks</label>
-                    <textarea
-                      value={editForm.remarks || ''}
-                      onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                      rows={2}
-                    />
-                  </div>
-                  <div className="md:col-span-2 flex justify-end gap-3">
-                    <Button variant="OUTLINE" onClick={() => setEditing(false)}>Cancel</Button>
-                    <Button onClick={saveEdit}>Save Changes</Button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
     </div>
   );
 };

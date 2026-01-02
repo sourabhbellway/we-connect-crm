@@ -54,7 +54,7 @@ export declare class PaymentsController {
             };
         };
     }>;
-    findAll(query: any): Promise<{
+    findAll(query: any, req: any): Promise<{
         success: boolean;
         data: {
             payments: ({

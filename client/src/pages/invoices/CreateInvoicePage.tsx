@@ -6,7 +6,7 @@ import apiClient from '../../services/apiClient';
 import { leadService } from '../../services/leadService';
 import { dealService } from '../../services/dealService'; // Check if this should be dealsService
 import { toast } from 'react-toastify';
-import { getCurrencyByCountry } from '../../utils/countryUtils';
+import { getCurrencyByCountry, getAllCountries } from '../../utils/countryUtils';
 import { taxesService, Tax } from '../../services/taxesService';
 import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 
@@ -171,27 +171,93 @@ const CreateInvoicePage: React.FC = () => {
 
     // Auto-select currency when country changes
     useEffect(() => {
+        // Skip auto-selection if we're creating from a quotation, lead, or deal to preserve source currency
+        const hasSource = searchParams.get('quotationId') || searchParams.get('entityId');
+        if (hasSource && !isEdit) return;
+
         if (country) {
             const newCurrency = getCurrencyByCountry(country);
             if (newCurrency) {
                 setCurrency(newCurrency);
             }
         }
-    }, [country]);
+    }, [country, searchParams, isEdit]);
 
-    // Prefill when opened from an entity context
+    // Prefill when opened from an entity context or a quotation
     useEffect(() => {
         const entityType = (searchParams.get('entityType') as 'lead' | 'deal' | null) || null;
         const entityIdParam = searchParams.get('entityId');
-        if (!entityType || !entityIdParam || isEdit) return;
-        const id = parseInt(entityIdParam);
+        const quotationIdParam = searchParams.get('quotationId');
+
+        if (isEdit) return;
+
         (async () => {
             try {
+                // Priority 1: Prefill from Quotation
+                if (quotationIdParam) {
+                    const res = await apiClient.get(`/quotations/${quotationIdParam}`);
+                    const q = res?.data?.data?.quotation || res?.data?.quotation || res?.data?.data || res?.data;
+                    if (q) {
+                        setNotes(q.notes || '');
+                        setTerms(q.terms || '');
+                        setCustomTerms(q.terms || '');
+                        setCurrency(q.currency || currency);
+                        setDealId(q.dealId ? String(q.dealId) : '');
+
+                        // Map items
+                        if (Array.isArray(q.items)) {
+                            setItems(q.items.map((it: any) => ({
+                                description: it.name || it.description || '',
+                                longDescription: it.description || '',
+                                quantity: Number(it.quantity || 1),
+                                unit: it.unit || 'Unit',
+                                rate: Number(it.unitPrice || 0),
+                                taxRate: Number(it.taxRate || 0),
+                                amount: Number(it.totalAmount || 0),
+                                isOptional: false,
+                                productId: it.productId ? String(it.productId) : '',
+                            })));
+                        }
+
+                        // Set customer info if lead is attached
+                        if (q.lead || q.leadId) {
+                            const lead = q.lead || (await leadService.getLeadById(q.leadId)).data;
+                            if (lead) {
+                                setCustomerId(String(lead.id));
+                                const parts = [lead.firstName, lead.lastName].filter(Boolean);
+                                const displayName = parts.length > 0 ? parts.join(' ') : (lead.email || 'Unknown Customer');
+                                setCustomerName(displayName);
+                                setEmail(lead.email || '');
+                                setPhone(lead.phone || '');
+                                setAddress(lead.address || '');
+                                setCity(lead.city || '');
+                                setState(lead.state || '');
+                                setCountry(lead.country || '');
+                                setZipCode(lead.zipCode || '');
+
+                                // Ensure currency is set AFTER potential country change side-effects
+                                if (q.currency) setCurrency(q.currency);
+                            }
+                        }
+                        toast.info('Invoice pre-filled from quotation');
+                        return; // Successfully pre-filled from quotation, skip other entity pre-fills
+                    }
+                }
+
+                // Priority 2: Prefill from Lead/Deal
+                const id = entityIdParam ? parseInt(entityIdParam) : null;
+                if (!id) return;
+
                 if (entityType === 'lead') {
                     const res = await leadService.getLeadById(id);
                     const lead = res?.data?.lead || res?.data || res;
                     if (lead) {
                         setCustomerId(String(lead.id));
+
+                        const parts = [lead.firstName, lead.lastName].filter(Boolean);
+                        const displayName = parts.length > 0 ? parts.join(' ') : (lead.email || 'Unknown Customer');
+                        setCustomerName(displayName);
+
                         setEmail(lead.email || '');
                         setPhone(lead.phone || '');
                         setAddress(lead.address || '');
@@ -215,6 +281,11 @@ const CreateInvoicePage: React.FC = () => {
                                 const lead = leadRes?.data?.lead || leadRes?.data || leadRes;
                                 if (lead) {
                                     setCustomerId(String(lead.id));
+
+                                    const parts = [lead.firstName, lead.lastName].filter(Boolean);
+                                    const displayName = parts.length > 0 ? parts.join(' ') : (lead.email || 'Unknown Customer');
+                                    setCustomerName(displayName);
+
                                     setEmail(lead.email || '');
                                     setPhone(lead.phone || '');
                                     setAddress(lead.address || '');
@@ -230,7 +301,7 @@ const CreateInvoicePage: React.FC = () => {
                     }
                 }
             } catch (e) {
-                console.error('Error loading entity:', e);
+                console.error('Error loading pre-fill data:', e);
             }
         })();
     }, [searchParams, isEdit]);
@@ -481,7 +552,15 @@ const CreateInvoicePage: React.FC = () => {
                         await apiClient.put(`/invoices/${invoiceId}/send`);
                     }
                 }
-                navigate('/invoices');
+
+                // Redirect back to source if applicable
+                if (dealId) {
+                    navigate(`/deals/${dealId}?tab=quotations`);
+                } else if (customerId) {
+                    navigate(`/leads/${customerId}?tab=quotations`);
+                } else {
+                    navigate('/invoices');
+                }
             }
         } catch (error: any) {
             console.error('Error creating invoice:', error);
@@ -695,11 +774,9 @@ const CreateInvoicePage: React.FC = () => {
                                         className="input-base appearance-none"
                                     >
                                         <option value="">Select Country</option>
-                                        <option value="US">United States</option>
-                                        <option value="IN">India</option>
-                                        <option value="UK">United Kingdom</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="AU">Australia</option>
+                                        {getAllCountries().map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
                                     </select>
                                 </div>
 

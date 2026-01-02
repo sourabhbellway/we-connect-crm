@@ -30,6 +30,7 @@ export interface CurrencySettings {
   thousandSeparator: ',' | '.';
   decimalSeparator: '.' | ',';
   supportedCurrencies: string[];
+  currencies?: Currency[];
   exchangeRates?: Record<string, number>;
   autoUpdateRates: boolean;
   createdAt?: string;

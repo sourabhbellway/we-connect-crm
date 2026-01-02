@@ -120,33 +120,90 @@ const InvoiceTemplatesPage: React.FC = () => {
 
             case 'classic-right':
                 return (
-                    <BaseDoc className="p-6 text-[9px] font-serif">
-                        <div className="flex justify-between items-end mb-2">
-                            <div className="text-[20px] font-bold tracking-tighter">INVOICE</div>
-                            <div className="text-indigo-800 font-bold">CLASSIC</div>
-                        </div>
-                        <div className="h-0.5 bg-indigo-900 mb-6"></div>
-                        <div className="flex justify-between mb-8">
+                    <BaseDoc className="p-6 text-[9px] font-sans text-gray-800">
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-8">
                             <div>
-                                <div className="text-[7px] text-indigo-900 font-sans font-bold mb-1">BILL TO</div>
-                                <div className="font-bold text-[10px]">Global Enterprises</div>
+                                <h1 className="text-[24px] font-bold text-teal-700 tracking-wide mb-2">INVOICE</h1>
+                                <div className="text-gray-600 font-bold">#INV-2024-001</div>
+                                <div className="text-gray-500 mt-1">Date: 16 Dec 2024</div>
+                                <div className="text-gray-500">Due: 30 Dec 2024</div>
                             </div>
-                            <div className="text-right italic text-gray-400">16 Dec 2024</div>
+                            <div className="text-right">
+                                <div className="flex justify-end mb-2">
+                                    <div className="h-10 w-10 bg-teal-600 rounded flex items-center justify-center text-white font-bold text-xs">
+                                        YL
+                                    </div>
+                                </div>
+                                <div className="font-bold text-gray-900 text-[10px] uppercase">YOUR COMPANY</div>
+                                <div className="text-gray-500">123 Business Road</div>
+                                <div className="text-gray-500">New York, NY 10010</div>
+                                <div className="text-gray-500">contact@company.com</div>
+                            </div>
                         </div>
-                        <div className="flex-1 font-sans">
-                            <div className="bg-indigo-50 border-y border-indigo-100 flex text-[7px] font-bold py-2 px-2">
+
+                        {/* Bill To */}
+                        <div className="mb-6">
+                            <div className="bg-teal-600 text-white px-2 py-1 font-bold mb-2 inline-block w-full">
+                                INVOICE TO
+                            </div>
+                            <div className="px-2">
+                                <div className="font-bold text-gray-900 text-[10px]">Global Enterprises Ltd.</div>
+                                <div className="text-gray-500">456 Corporate Blvd</div>
+                                <div className="text-gray-500">London, UK</div>
+                            </div>
+                        </div>
+
+                        {/* Table */}
+                        <div className="flex-1">
+                            <div className="bg-teal-600 text-white flex text-[7px] font-bold py-1.5 px-2">
                                 <div className="flex-1">DESCRIPTION</div>
-                                <div className="w-20 text-right">TOTAL</div>
+                                <div className="w-16 text-right">PRICE</div>
+                                <div className="w-10 text-center">QTY</div>
+                                <div className="w-16 text-right">TOTAL</div>
                             </div>
-                            <div className="flex py-2 px-2 border-b border-gray-100">
-                                <div className="flex-1">Brand Strategy</div>
-                                <div className="w-20 text-right font-bold">{currencySettings?.symbol || '₹'}45,000</div>
+                            <div className="flex text-[8px] py-2 px-2 border-b border-gray-100 bg-teal-50/30">
+                                <div className="flex-1 font-medium">Brand Strategy Consultation</div>
+                                <div className="w-16 text-right">20,000</div>
+                                <div className="w-10 text-center">1</div>
+                                <div className="w-16 text-right font-bold text-teal-700">{currencySettings?.symbol || '₹'}20,000</div>
+                            </div>
+                            <div className="flex text-[8px] py-2 px-2 border-b border-gray-100">
+                                <div className="flex-1 font-medium">UI/UX Design Phase 1</div>
+                                <div className="w-16 text-right">25,000</div>
+                                <div className="w-10 text-center">1</div>
+                                <div className="w-16 text-right font-bold text-teal-700">{currencySettings?.symbol || '₹'}25,000</div>
                             </div>
                         </div>
-                        <div className="flex justify-end mt-4">
-                            <div className="bg-indigo-800 text-white px-4 py-2 rounded-sm shadow-md w-32">
-                                <div className="text-[6px] opacity-70">PAYABLE</div>
-                                <div className="text-[12px] font-bold">{currencySettings?.symbol || '₹'}45,000</div>
+
+                        {/* Totals */}
+                        <div className="flex justify-end mt-4 mb-4">
+                            <div className="w-32">
+                                <div className="flex justify-between mb-1 text-gray-500">
+                                    <span>Subtotal:</span>
+                                    <span>45,000</span>
+                                </div>
+                                <div className="flex justify-between mb-2 text-gray-500">
+                                    <span>Tax (10%):</span>
+                                    <span>4,500</span>
+                                </div>
+                                <div className="bg-teal-600 text-white p-1.5 flex justify-between items-center font-bold">
+                                    <span>Total:</span>
+                                    <span className="text-[10px]">{currencySettings?.symbol || '₹'}49,500</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer: Bank & Signature */}
+                        <div className="border-t border-gray-100 pt-3 flex justify-between items-end">
+                            <div>
+                                <div className="text-[7px] font-bold text-teal-700 mb-1">PAYMENT INFO</div>
+                                <div className="text-[6px] text-gray-500">Bank: HDFC Bank</div>
+                                <div className="text-[6px] text-gray-500">Acct: **********890</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="border-b border-gray-300 w-24 mb-1"></div>
+                                <div className="text-[6px] text-gray-400">Authorized Signature</div>
                             </div>
                         </div>
                         <NotesSection />

@@ -139,6 +139,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
     fetchTaxes();
   }, []);
 
+  // Sync default currency when settings load
+  useEffect(() => {
+    if (currencySettings?.primary && !initialProduct && (formData.currency === 'INR' || !formData.currency)) {
+      setFormData(prev => ({ ...prev, currency: currencySettings.primary }));
+    }
+  }, [currencySettings, initialProduct]);
+
   const handleSave = async () => {
     if (!validateForm()) {
       return;
@@ -324,7 +331,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Price *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">{currencySettings?.symbol || '₹'}</span>
+                  <span className="absolute left-3 top-2 text-gray-500">
+                    {currencySettings?.currencies?.find(c => c.code === formData.currency)?.symbol ||
+                      (formData.currency === currencySettings?.primary ? currencySettings?.symbol : '') ||
+                      (formData.currency === 'INR' ? '₹' : '$')}
+                  </span>
                   <input
                     type="number"
                     value={formData.price}
@@ -340,26 +351,34 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
               </div>
 
               <div>
-                {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cost Price
-                </label> */}
-                <div className="relative">
-                  {/* <span className="absolute left-3 top-2 text-gray-500">{currencySettings?.symbol || '₹'}</span> */}
-                  {/* <input
-                    type="number"
-                    value={formData.cost}
-                    onChange={(e) => handleInputChange('cost', parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    className="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  /> */}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Currency
+                </label>
+                <select
+                  value={formData.currency}
+                  onChange={(e) => handleInputChange('currency', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  {currencySettings?.currencies?.length ? (
+                    currencySettings.currencies.map((curr) => (
+                      <option key={curr.code} value={curr.code}>
+                        {curr.code} - {curr.name} ({curr.symbol})
+                      </option>
+                    ))
+                  ) : currencySettings?.supportedCurrencies?.length ? (
+                    currencySettings.supportedCurrencies.map((code: string) => (
+                      <option key={code} value={code}>{code}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="USD">USD</option>
+                      <option value="INR">INR</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                    </>
+                  )}
+                </select>
               </div>
-
-
-
-
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

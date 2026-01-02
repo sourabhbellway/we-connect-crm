@@ -303,22 +303,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }
   }, [formState.form.country, formState.form.state, states]);
 
-  // Auto-select currency when country changes
-  useEffect(() => {
-    if (formState.form.country && countryToCurrency[formState.form.country]) {
-      const defaultCurrency = countryToCurrency[formState.form.country];
-      // Only auto-select if currency is not already set or if it's the default
-      if (!formState.form.currency || formState.form.currency === currencySettings?.primary || formState.form.currency === "USD") {
-        setFormState((prev) => ({
-          ...prev,
-          form: {
-            ...prev.form,
-            currency: defaultCurrency,
-          },
-        }));
-      }
-    }
-  }, [formState.form.country, currencySettings]);
+
 
   useEffect(() => {
     const load = async () => {
@@ -704,7 +689,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             value={value || ""}
             onChange={(fullPhone) => handleChange(field.fieldName, fullPhone)}
             error={error}
-            placeholder={field.placeholder || "Enter phone number"}
+            placeholder={field.placeholder || "Enter  number"}
             required={field.isRequired}
           />
         );
@@ -837,6 +822,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
               handleChange(field.fieldName, v || "");
               handleChange("state", "");
               handleChange("city", "");
+
+              // Auto-select currency based on country
+              if (v) {
+                const countryObj = CSCCountry.getAllCountries().find(c => c.name === v);
+                if (countryObj && countryObj.currency) {
+                  handleChange("currency", countryObj.currency);
+                } else {
+                  // Fallback to local mapping if library doesn't have it
+                  const fallback = countryToCurrency[v];
+                  if (fallback) handleChange("currency", fallback);
+                }
+              }
             }}
             searchable={true}
             clearable={true}

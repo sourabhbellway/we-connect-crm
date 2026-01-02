@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Card, Input } from '../../components/ui';
-import { CheckCircle, Clock, CalendarDays, User, Plus, Search, CheckCircle2, FileDown, FileText, LayoutList, LayoutGrid, Eye, Edit, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { CheckCircle, Clock, CalendarDays, User, Plus, Search, CheckCircle2, FileDown, FileText, LayoutList, LayoutGrid, Eye, Edit, ToggleLeft, ToggleRight, Trash2, MoreVertical } from 'lucide-react';
+import ReactDOM from 'react-dom';
 import { tasksService, TaskPayload } from '../../services/tasksService';
 import { userService } from '../../services/userService';
 import { toast } from 'react-toastify';
@@ -10,6 +11,116 @@ import MetaBar from '../../components/list/MetaBar';
 import DropdownFilter from '../../components/DropdownFilter';
 import { useAuth } from '../../contexts/AuthContext';
 import { exportToCsv, exportTableToPrintPdf } from '../../utils/exportUtils';
+
+const TaskActionMenu = ({
+  task,
+  onView,
+  onEdit,
+  onDelete
+}: {
+  task: any;
+  onView: (task: any) => void;
+  onEdit: (task: any) => void;
+  onDelete: (task: any) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        const target = event.target as Element;
+        if (!target.closest('.action-menu-dropdown')) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', () => setIsOpen(false), true);
+      window.addEventListener('resize', () => setIsOpen(false));
+    }
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', () => setIsOpen(false), true);
+      window.removeEventListener('resize', () => setIsOpen(false));
+    };
+  }, [isOpen]);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuWidth = 140;
+      let left = rect.right - menuWidth;
+      let top = rect.bottom + 4;
+
+      if (left < 0) left = rect.left;
+      if (top + 150 > window.innerHeight) {
+        top = rect.top - 150;
+      }
+
+      setMenuStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        left: `${left}px`,
+        zIndex: 9999,
+        width: `${menuWidth}px`
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </button>
+
+      {isOpen && ReactDOM.createPortal(
+        <div
+          className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+          style={menuStyle}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => { onView(task); setIsOpen(false); }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4 text-gray-400" />
+            View
+          </button>
+
+          <button
+            onClick={() => { onEdit(task); setIsOpen(false); }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <Edit className="h-4 w-4 text-blue-500" />
+            Edit
+          </button>
+
+          <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+          <button
+            onClick={() => { onDelete(task); setIsOpen(false); }}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+            Delete
+          </button>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
 
 const TasksPage: React.FC = () => {
   const navigate = useNavigate();
@@ -476,36 +587,12 @@ const TasksPage: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center justify-end gap-1 pt-2 border-t border-gray-100 dark:border-gray-700 mt-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewTask(task);
-                        }}
-                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                        title="View Task"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditTask(task);
-                        }}
-                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                        title="Edit Task"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTask(task);
-                        }}
-                        className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                        title="Delete task"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <TaskActionMenu
+                        task={task}
+                        onView={handleViewTask}
+                        onEdit={handleEditTask}
+                        onDelete={deleteTask}
+                      />
                     </div>
                   </div>
                 </div>
@@ -621,36 +708,12 @@ const TasksPage: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-1 ml-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewTask(task);
-                        }}
-                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                        title="View Task"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditTask(task);
-                        }}
-                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                        title="Edit Task"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTask(task);
-                        }}
-                        className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                        title="Delete task"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <TaskActionMenu
+                        task={task}
+                        onView={handleViewTask}
+                        onEdit={handleEditTask}
+                        onDelete={deleteTask}
+                      />
                     </div>
                   </div>
                 ))}

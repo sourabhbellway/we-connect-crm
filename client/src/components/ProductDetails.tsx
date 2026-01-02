@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Package, DollarSign, Tag, Calendar, Hash, CheckCircle, XCircle } from 'lucide-react';
 import { Product } from '../services/productsService';
+import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
 
 interface ProductDetailsProps {
     product: Product;
@@ -8,6 +9,7 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => {
+    const { formatCurrency } = useBusinessSettings();
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -24,8 +26,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => 
                             <div className="flex items-center gap-2 mt-1">
                                 <span
                                     className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${product.isActive
-                                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                                         }`}
                                 >
                                     {product.isActive ? (
@@ -75,14 +77,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => 
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Price:</span>
                                     <span className="font-medium text-gray-900 dark:text-white">
-                                        {product.price} {product.currency}
+                                        {formatCurrency(product.price, product.currency)}
                                     </span>
                                 </div>
                                 {product.cost && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-600 dark:text-gray-400">Cost:</span>
                                         <span className="font-medium text-gray-900 dark:text-white">
-                                            {product.cost} {product.currency}
+                                            {formatCurrency(product.cost, product.currency)}
                                         </span>
                                     </div>
                                 )}

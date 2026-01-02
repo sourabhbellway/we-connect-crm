@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import { productsService, Product } from "../services/productsService";
 import {
     Plus,
@@ -12,9 +11,6 @@ import {
     Search,
     LayoutList,
     LayoutGrid,
-    DollarSign,
-    Tag,
-    Hash,
     Eye,
     ToggleLeft,
     ToggleRight,
@@ -23,8 +19,7 @@ import {
     FileDown,
     X,
     CheckSquare,
-    Square,
-    Check
+    Square
 } from "lucide-react";
 import ProductDetails from "./ProductDetails";
 import ConfirmModal from "./ConfirmModal";
@@ -38,6 +33,134 @@ import TableLoader from "./TableLoader";
 import Pagination from "./Pagination";
 import MetaBar from "./list/MetaBar";
 import ProductForm from "./ProductForm";
+import ReactDOM from "react-dom";
+import { productCategoriesService, ProductCategory } from "../services/productCategoriesService";
+import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
+
+const ProductActionMenu = ({
+    product,
+    hasPermission,
+    onView,
+    onEdit,
+    onDelete,
+    onToggleStatus
+}: {
+    product: Product;
+    hasPermission: (p: string) => boolean;
+    onView: (p: Product) => void;
+    onEdit: (p: Product) => void;
+    onDelete: (p: Product) => void;
+    onToggleStatus: (p: Product) => void;
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
+    const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+                const target = event.target as Element;
+                if (!target.closest('.action-menu-dropdown')) {
+                    setIsOpen(false);
+                }
+            }
+        };
+
+        if (isOpen) {
+            window.addEventListener('mousedown', handleClickOutside);
+            window.addEventListener('scroll', () => setIsOpen(false), true);
+            window.addEventListener('resize', () => setIsOpen(false));
+        }
+        return () => {
+            window.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('scroll', () => setIsOpen(false), true);
+            window.removeEventListener('resize', () => setIsOpen(false));
+        };
+    }, [isOpen]);
+
+    const handleToggle = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const menuWidth = 160;
+            let left = rect.right - menuWidth;
+            let top = rect.bottom + 4;
+
+            if (left < 0) left = rect.left;
+            if (top + 200 > window.innerHeight) {
+                top = rect.top - 200;
+            }
+
+            setMenuStyle({
+                position: 'fixed',
+                top: `${top}px`,
+                left: `${left}px`,
+                zIndex: 9999,
+                width: `${menuWidth}px`
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    return (
+        <div className="relative">
+            <button
+                ref={buttonRef}
+                onClick={handleToggle}
+                className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none"
+            >
+                <MoreVertical className="h-4 w-4" />
+            </button>
+
+            {isOpen && ReactDOM.createPortal(
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+                    style={menuStyle}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => { onView(product); setIsOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                    >
+                        <Eye className="h-4 w-4 text-gray-400" />
+                        View
+                    </button>
+
+                    {hasPermission("product.update") && (
+                        <>
+                            <button
+                                onClick={() => { onEdit(product); setIsOpen(false); }}
+                                className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <Edit className="h-4 w-4" />
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => { onToggleStatus(product); setIsOpen(false); }}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 ${product.isActive ? 'text-orange-600' : 'text-green-600'}`}
+                            >
+                                {product.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                                {product.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </>
+                    )}
+
+                    {hasPermission("product.delete") && (
+                        <button
+                            onClick={() => { onDelete(product); setIsOpen(false); }}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                        </button>
+                    )}
+                </div>,
+                document.body
+            )}
+        </div>
+    );
+};
 
 interface Pagination {
     currentPage: number;
@@ -49,9 +172,10 @@ interface Pagination {
 
 const Products: React.FC = () => {
     const { hasPermission } = useAuth();
+    const { formatCurrency } = useBusinessSettings();
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<ProductCategory[]>([]);
     const [pagination, setPagination] = useState<Pagination | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -96,12 +220,27 @@ const Products: React.FC = () => {
         fetchProducts();
     }, [debouncedSearchValue, filters.status, filters.category, filters.type, currentPage]);
 
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const fetchCategories = async () => {
+        try {
+            const data = await productCategoriesService.getProductCategories();
+            setCategories(data);
+        } catch (err) {
+            console.error("Error fetching categories:", err);
+        }
+    };
+
     const fetchProducts = async () => {
         try {
             setIsLoading(true);
             setError(null);
             const api = await productsService.list({
                 search: debouncedSearchValue,
+                status: filters.status || undefined,
+                category: filters.category || undefined,
                 page: currentPage,
                 limit: pageSize,
             });
@@ -335,7 +474,10 @@ const Products: React.FC = () => {
                                 label="Category"
                                 value={filters.category}
                                 onChange={(val) => handleFilterChange("category", val as string)}
-                                options={[{ value: "", label: "All Categories" }]}
+                                options={[
+                                    { value: "", label: "All Categories" },
+                                    ...categories.map(c => ({ value: c.name, label: c.name }))
+                                ]}
                             />
                         </div>
                     </div>
@@ -445,15 +587,19 @@ const Products: React.FC = () => {
                                         </div>
                                     </div>
                                     {/* --- FIXED: Dark Mode Text --- */}
-                                    <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">{product.price} {product.currency}</div>
+                                    <div className="text-sm font-semibold mb-2 text-gray-900 dark:text-white">
+                                        {formatCurrency(product.price, product.currency)}
+                                    </div>
                                     <div className="flex justify-between items-center border-t pt-3">
-                                        <div className="flex gap-1">
-                                            <button onClick={() => handleViewProduct(product)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 dark:text-gray-400"><Eye className="h-4 w-4" /></button>
-                                            <button onClick={() => handleEditProduct(product)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-blue-600"><Edit className="h-4 w-4" /></button>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            <button onClick={() => toggleProductStatus(product)} className="p-1">{product.isActive ? <ToggleRight className="text-green-600 h-5 w-5" /> : <ToggleLeft className="text-gray-400 h-5 w-5" />}</button>
-                                            <button onClick={() => handleDeleteProduct(product)} className="p-1 hover:bg-red-50 dark:hover:bg-red-900 text-red-600 rounded"><Trash2 className="h-4 w-4" /></button>
+                                        <div className="flex gap-1 ml-auto">
+                                            <ProductActionMenu
+                                                product={product}
+                                                hasPermission={hasPermission}
+                                                onView={handleViewProduct}
+                                                onEdit={handleEditProduct}
+                                                onDelete={handleDeleteProduct}
+                                                onToggleStatus={toggleProductStatus}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -503,20 +649,22 @@ const Products: React.FC = () => {
                                             {/* --- FIXED: Dark Mode Text --- */}
                                             <td className={`px-6 py-4 text-sm ${!isColumnVisible('category') ? 'hidden' : ''} dark:text-white`}>{p.category || '-'}</td>
                                             {/* --- FIXED: Dark Mode Text --- */}
-                                            <td className={`px-6 py-4 text-sm ${!isColumnVisible('price') ? 'hidden' : ''} dark:text-white`}>{p.price} {p.currency}</td>
+                                            <td className={`px-6 py-4 text-sm ${!isColumnVisible('price') ? 'hidden' : ''} dark:text-white`}>
+                                                {formatCurrency(p.price, p.currency)}
+                                            </td>
                                             <td className={`px-6 py-4 ${!isColumnVisible('status') ? 'hidden' : ''}`}>
                                                 <span className={`px-2 py-1 rounded-full text-xs ${p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{p.isActive ? 'Active' : 'Inactive'}</span>
                                             </td>
                                             <td className="px-6 py-4 text-end">
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => handleViewProduct(p)} className="text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-600"><Eye className="h-4 w-4" /></button>
-                                                    {hasPermission("product.update") && (
-                                                        <>
-                                                            <button onClick={() => handleEditProduct(p)} className="text-blue-600"><Edit className="h-4 w-4" /></button>
-                                                            <button onClick={() => toggleProductStatus(p)}>{p.isActive ? <ToggleRight className="text-green-600 h-5 w-5" /> : <ToggleLeft className="text-gray-400 h-5 w-5" />}</button>
-                                                        </>
-                                                    )}
-                                                    {hasPermission("product.delete") && <button onClick={() => handleDeleteProduct(p)} className="text-red-600"><Trash2 className="h-4 w-4" /></button>}
+                                                <div className="flex justify-end">
+                                                    <ProductActionMenu
+                                                        product={p}
+                                                        hasPermission={hasPermission}
+                                                        onView={handleViewProduct}
+                                                        onEdit={handleEditProduct}
+                                                        onDelete={handleDeleteProduct}
+                                                        onToggleStatus={toggleProductStatus}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

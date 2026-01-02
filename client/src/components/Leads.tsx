@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useCounts } from "../contexts/CountsContext";
 import {
@@ -18,6 +19,7 @@ import {
     ChevronDown,
     LayoutList,
     LayoutGrid,
+    MoreVertical,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { leadService, Lead, LeadFilters, ConversionData } from "../services/leadService";
@@ -84,6 +86,150 @@ const getStatusColor = (status: string) => {
         (option) => option.value === status
     );
     return statusOption?.color || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+};
+
+const LeadActionMenu = ({
+    lead,
+    onView,
+    onEdit,
+    onDelete,
+    onConvert,
+    isConverted
+}: {
+    lead: Lead;
+    onView: (lead: Lead) => void;
+    onEdit: (lead: Lead) => void;
+    onDelete: (lead: Lead) => void;
+    onConvert: (lead: Lead) => void;
+    isConverted: boolean;
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const { t } = useTranslation();
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+    // Close on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+                // Check if click is inside the portal menu (we can identify it by class or ref, but simple outside check is okay if we don't ref the portal content easily)
+                // Actually easier: just close if click is anywhere in window and we didn't click the button
+                // But we need to allow clicks INSIDE the menu.
+                const target = event.target as Element;
+                if (!target.closest('.action-menu-dropdown')) {
+                    setIsOpen(false);
+                }
+            }
+        };
+
+        if (isOpen) {
+            window.addEventListener('mousedown', handleClickOutside);
+            window.addEventListener('scroll', () => setIsOpen(false), true); // Close on scroll
+            window.addEventListener('resize', () => setIsOpen(false));
+        }
+        return () => {
+            window.removeEventListener('mousedown', handleClickOutside);
+            window.removeEventListener('scroll', () => setIsOpen(false), true);
+            window.removeEventListener('resize', () => setIsOpen(false));
+        };
+    }, [isOpen]);
+
+    const handleToggle = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            // Calculate position: align right edge of menu with right edge of button
+            // Menu width is roughly 192px (w-48)
+            const menuWidth = 192;
+            let left = rect.right - menuWidth;
+            let top = rect.bottom + 4;
+
+            // Check if it goes off screen left
+            if (left < 0) left = rect.left;
+
+            // Check bottom edge
+            if (top + 200 > window.innerHeight) {
+                top = rect.top - 200; // open upwards if close to bottom
+            }
+
+            setMenuStyle({
+                position: 'fixed',
+                top: `${top}px`,
+                left: `${left}px`,
+                zIndex: 9999,
+                width: `${menuWidth}px`
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    return (
+        <>
+            <button
+                ref={buttonRef}
+                onClick={handleToggle}
+                className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+                <MoreVertical className="h-4 w-4" />
+            </button>
+
+            {isOpen && ReactDOM.createPortal(
+                <div
+                    className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+                    style={menuStyle}
+                >
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onView(lead);
+                            setIsOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2.5"
+                    >
+                        <Eye className="h-4 w-4 text-gray-400" />
+                        {t("common.view") || "View"}
+                    </button>
+                    {!isConverted && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onConvert(lead);
+                                setIsOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2.5"
+                        >
+                            <ArrowRightLeft className="h-4 w-4 text-purple-500" />
+                            {t("leads.convertLead") || "Convert"}
+                        </button>
+                    )}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(lead);
+                            setIsOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2.5"
+                    >
+                        <Edit className="h-4 w-4 text-blue-500" />
+                        {t("common.edit") || "Edit"}
+                    </button>
+                    <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(lead);
+                            setIsOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2.5"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        {t("common.delete") || "Delete"}
+                    </button>
+                </div>,
+                document.body
+            )}
+        </>
+    );
 };
 
 const Leads: React.FC = () => {
@@ -959,40 +1105,17 @@ const Leads: React.FC = () => {
                                     {/* Card Actions */}
                                     <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                                         <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => handleViewLead(lead)}
-                                                    className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                                    title="View Lead"
-                                                >
-                                                    <Eye className="h-4 w-4" />
-                                                </button>
-                                                {lead.status !== 'converted' && (
-                                                    <button
-                                                        onClick={() => requestConvertLead(lead)}
-                                                        className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
-                                                        title="Convert Lead"
-                                                    >
-                                                        <ArrowRightLeft className="h-4 w-4" />
-                                                    </button>
-                                                )}
+                                            <div className="text-xs text-gray-400">
+                                                ID: #{lead.id}
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => handleEditLead(lead)}
-                                                    className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                                    title="Edit Lead"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => requestDeleteLead(lead)}
-                                                    className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                                    title="Delete Lead"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
+                                            <LeadActionMenu
+                                                lead={lead}
+                                                onView={handleViewLead}
+                                                onEdit={handleEditLead}
+                                                onDelete={requestDeleteLead}
+                                                onConvert={requestConvertLead}
+                                                isConverted={lead.status === 'converted'}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -1191,37 +1314,15 @@ const Leads: React.FC = () => {
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
-                                                            <div className="flex items-center justify-end gap-2">
-                                                                <button
-                                                                    onClick={() => handleViewLead(lead)}
-                                                                    className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                                                    title="View Lead"
-                                                                >
-                                                                    <Eye className="h-4 w-4" />
-                                                                </button>
-                                                                {lead.status !== 'converted' && (
-                                                                    <button
-                                                                        onClick={() => requestConvertLead(lead)}
-                                                                        className="text-purple-600 hover:text-purple-900 p-1 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
-                                                                        title="Convert Lead"
-                                                                    >
-                                                                        <ArrowRightLeft className="h-4 w-4" />
-                                                                    </button>
-                                                                )}
-                                                                <button
-                                                                    onClick={() => handleEditLead(lead)}
-                                                                    className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                                                    title={t("common.edit")}
-                                                                >
-                                                                    <Edit className="h-4 w-4" />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => requestDeleteLead(lead)}
-                                                                    className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                                                    title={t("common.delete")}
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </button>
+                                                            <div className="flex items-center justify-end gap-2 text-right">
+                                                                <LeadActionMenu
+                                                                    lead={lead}
+                                                                    onView={handleViewLead}
+                                                                    onEdit={handleEditLead}
+                                                                    onDelete={requestDeleteLead}
+                                                                    onConvert={requestConvertLead}
+                                                                    isConverted={lead.status === 'converted'}
+                                                                />
                                                             </div>
                                                         </td>
                                                     </tr>

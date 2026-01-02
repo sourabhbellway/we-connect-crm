@@ -17,8 +17,14 @@ let ProductsService = class ProductsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async list({ page = 1, limit = 10, search, }) {
+    async list({ page = 1, limit = 10, search, status, category, }) {
         const where = { deletedAt: null };
+        if (status) {
+            where.isActive = status === 'active';
+        }
+        if (category) {
+            where.category = category;
+        }
         if (search && search.trim()) {
             const q = search.trim();
             where.OR = [

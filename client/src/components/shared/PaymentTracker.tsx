@@ -60,7 +60,8 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
   entityId,
   payments: initialPayments,
   invoices: initialInvoices,
-  currency: preferredCurrency
+  currency: preferredCurrency,
+  onPaymentSaved
 }) => {
   const { user, hasPermission } = useAuth();
   const { formatCurrency, getCurrency } = useBusinessSettings();
@@ -740,6 +741,7 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                   </Button>
                   <Button
                     onClick={async () => {
+                      let isSuccess = false;
                       try {
                         if (!paymentForm.invoiceId) {
                           toast.error('Please select an invoice number');
@@ -766,7 +768,9 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
 
                         const res = await apiClient.post('/payments', payload);
                         const created = res?.data?.data?.payment || res?.data?.payment || res?.data;
+
                         if (created) {
+                          isSuccess = true;
                           setPayments(prev => [{
                             id: String(created.id || Date.now()),
                             paymentNumber: created.paymentNumber || `PMT-${created.id || Date.now()}`,
@@ -781,13 +785,19 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                             createdBy: created.createdBy || { id: String(user?.id || '0'), firstName: user?.firstName || '', lastName: user?.lastName || '' },
                             createdAt: created.createdAt || new Date().toISOString(),
                           }, ...prev]);
+
                           toast.success('Payment recorded');
                           onPaymentSaved?.();
                           setShowPaymentModal(false);
                           setPaymentForm({ amount: '', currency: displayCurrency, paymentMethod: 'CASH', paymentDate: new Date().toISOString().slice(0, 10), reference: '', notes: '', invoiceId: '' });
                         }
                       } catch (e: any) {
-                        toast.error(e?.response?.data?.message || 'Failed to record payment');
+                        if (isSuccess) {
+                          console.error('Error occurred after successful payment creation:', e);
+                        } else {
+                          console.error('Payment creation failed:', e);
+                          toast.error(e?.response?.data?.message || 'Failed to record payment');
+                        }
                       } finally {
                         setIsSavingPayment(false);
                       }

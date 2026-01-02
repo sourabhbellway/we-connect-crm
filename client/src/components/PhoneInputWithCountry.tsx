@@ -17,7 +17,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   label = 'Phone',
   error,
   required = false,
-  placeholder = 'Enter phone number',
+  placeholder = 'Enter number',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

@@ -5,7 +5,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 export declare class ProductsController {
     private readonly service;
     constructor(service: ProductsService);
-    list(page?: string, limit?: string, search?: string): Promise<{
+    list(page?: string, limit?: string, search?: string, status?: string, category?: string): Promise<{
         success: boolean;
         data: {
             items: {

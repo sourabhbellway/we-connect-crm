@@ -8,6 +8,7 @@ export declare class QuotationsService {
     private readonly prisma;
     private readonly notificationsService;
     constructor(prisma: PrismaService, notificationsService: NotificationsService);
+    private numberToWords;
     getTemplate(): Promise<{
         success: boolean;
         data: {

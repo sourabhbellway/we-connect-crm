@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
     ArrowLeft, DollarSign, Calendar, User, Building, TrendingUp, Edit, Trash2, Tag, Target,
     Phone, Mail, MessageSquare, Clock, CheckCircle, FileText, Bell, Plus,
-    Activity, Users, BarChart3, Settings, Filter, Download, Eye, RotateCcw, MapPin
+    Activity, Users, BarChart3, Settings, Filter, Download, Eye, RotateCcw, MapPin, CreditCard
 } from 'lucide-react';
 import { Button, Card } from '../ui';
 import { dealService } from '../../services/dealService';
@@ -16,9 +16,10 @@ import ActivityTimeline from '../shared/ActivityTimeline';
 import TaskManager from '../shared/TaskManager';
 import CommunicationCenter from '../shared/CommunicationCenter';
 import LeadCommunication from '../LeadCommunication';
-import PaymentTracker from '../shared/PaymentTracker';
+
 import NotificationPanel from '../shared/NotificationPanel';
 import QuotationManager from '../shared/QuotationManager';
+import PaymentTracker from '../shared/PaymentTracker';
 import { activityService } from '../../services/activityService';
 import { tasksService } from '../../services/tasksService';
 
@@ -89,7 +90,7 @@ const DealProfileEnhanced: React.FC = () => {
     const [callLogs, setCallLogs] = useState<any[]>([]);
     const [quotations, setQuotations] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<any[]>([]);
-    const [payments, setPayments] = useState<any[]>([]);
+
     const [notifications, setNotifications] = useState<any[]>([]);
 
     // Loading states for dynamic data
@@ -97,15 +98,18 @@ const DealProfileEnhanced: React.FC = () => {
     const [tasksLoading, setTasksLoading] = useState(false);
     const [communicationsLoading, setCommunicationsLoading] = useState(false);
     const [quotationsLoading, setQuotationsLoading] = useState(false);
+    const [payments, setPayments] = useState<any[]>([]);
     const [paymentsLoading, setPaymentsLoading] = useState(false);
+
     const tabs = [
         { id: 'overview', label: 'Overview', icon: Eye },
         { id: 'pipeline', label: 'Pipeline Progress', icon: TrendingUp },
-        { id: 'quotations', label: 'Quotes & Proposals', icon: FileText },
+        { id: 'quotations', label: 'Quotation & Invoice', icon: FileText },
+        { id: 'payments', label: 'Payments', icon: CreditCard },
         { id: 'activities', label: 'Sales Activities', icon: Activity },
         { id: 'tasks', label: 'Action Items', icon: CheckCircle },
         { id: 'communications', label: 'Communication', icon: MessageSquare },
-        { id: 'payments', label: 'Payments', icon: DollarSign },
+
         { id: 'notifications', label: 'Alerts', icon: Bell }
     ];
 
@@ -152,8 +156,7 @@ const DealProfileEnhanced: React.FC = () => {
         }
     };
 
-    const gotoPrevStage = () => handleChangeStage(Math.max(0, currentStageIndex - 1));
-    const gotoNextStage = () => handleChangeStage(Math.min(stagesList.length - 1, currentStageIndex + 1));
+
 
     useEffect(() => {
         if (id) {
@@ -197,6 +200,7 @@ const DealProfileEnhanced: React.FC = () => {
             case 'payments':
                 fetchPayments();
                 break;
+
             case 'notifications':
                 fetchNotifications();
                 break;
@@ -319,12 +323,9 @@ const DealProfileEnhanced: React.FC = () => {
                 const res = await activityService.getActivitiesByLeadId(parseInt(deal.leadId), 1, 5);
                 const items = res?.data?.items || res?.items || res?.data?.activities || [];
                 setActivities(items);
-                return;
+            } else {
+                setActivities([]);
             }
-            // Fallback: show global recent activities (best-effort)
-            const res = await activityService.getRecentActivities(5);
-            const items = res?.data?.items || res?.items || [];
-            setActivities(items);
         } catch (error) {
             console.error('Failed to fetch activities:', error);
             setActivities([]);
@@ -387,11 +388,11 @@ const DealProfileEnhanced: React.FC = () => {
             if (deal?.leadId) {
                 const leadId = deal.leadId;
                 const [msgsRes, callsRes] = await Promise.all([
-                    fetch(`/ api / communication / messages / lead / ${leadId} `, {
-                        headers: { 'Authorization': `Bearer ${token} `, 'Content-Type': 'application/json' },
+                    fetch(`/api/communication/messages/lead/${leadId}`, {
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     }),
-                    fetch(`/ api / call - logs / lead / ${leadId} `, {
-                        headers: { 'Authorization': `Bearer ${token} `, 'Content-Type': 'application/json' },
+                    fetch(`/api/call-logs/lead/${leadId}`, {
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     })
                 ]);
 
@@ -419,11 +420,11 @@ const DealProfileEnhanced: React.FC = () => {
 
             // Fallback: deal-scoped communications
             const [commResponse, callsResponse] = await Promise.all([
-                fetch(`/ api / communications ? entityType = deal & entityId=${id} `, {
-                    headers: { 'Authorization': `Bearer ${token} `, 'Content-Type': 'application/json' },
+                fetch(`/api/communications?entityType=deal&entityId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 }),
-                fetch(`/ api / call - logs ? entityType = deal & entityId=${id} `, {
-                    headers: { 'Authorization': `Bearer ${token} `, 'Content-Type': 'application/json' },
+                fetch(`/api/call-logs?entityType=deal&entityId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 })
             ]);
 
@@ -449,22 +450,22 @@ const DealProfileEnhanced: React.FC = () => {
 
             // Fetch quotations and invoices in parallel
             const [quotesResponse, invoicesResponse] = await Promise.all([
-                fetch(`/ api / quotations ? entityType = deal & entityId=${id} `, {
-                    headers: { 'Authorization': `Bearer ${token} `, 'Content-Type': 'application/json' },
+                fetch(`/api/quotations?entityType=deal&entityId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 }),
-                fetch(`/ api / invoices ? entityType = deal & entityId=${id} `, {
-                    headers: { 'Authorization': `Bearer ${token} `, 'Content-Type': 'application/json' },
+                fetch(`/api/invoices?entityType=deal&entityId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 })
             ]);
 
             if (quotesResponse.ok) {
                 const data = await quotesResponse.json();
-                setQuotations(data.data?.quotations || data.quotations || []);
+                setQuotations(data.data?.items || data.data?.quotations || data.quotations || []);
             }
 
             if (invoicesResponse.ok) {
                 const data = await invoicesResponse.json();
-                setInvoices(data.data?.invoices || data.invoices || []);
+                setInvoices(data.data?.items || data.data?.invoices || data.invoices || []);
             }
         } catch (error) {
             console.error('Failed to fetch quotations:', error);
@@ -478,43 +479,40 @@ const DealProfileEnhanced: React.FC = () => {
             setPaymentsLoading(true);
             const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
 
-            const [paymentsResponse, invoicesResponse] = await Promise.all([
-                fetch(`/ api / payments ? dealId = ${id} `, {
-                    headers: {
-                        'Authorization': `Bearer ${token} `,
-                        'Content-Type': 'application/json',
-                    },
+            // Fetch payments and invoices in parallel
+            const [paymentsRes, invoicesRes] = await Promise.all([
+                fetch(`/api/payments?entityType=deal&entityId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 }),
-                fetch(`/ api / invoices ? entityType = deal & entityId=${id} `, {
-                    headers: {
-                        'Authorization': `Bearer ${token} `,
-                        'Content-Type': 'application/json',
-                    },
+                fetch(`/api/invoices?entityType=deal&entityId=${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                 })
             ]);
 
-            if (paymentsResponse.ok) {
-                const data = await paymentsResponse.json();
-                setPayments(data.data?.payments || data.payments || []);
+            if (paymentsRes.ok) {
+                const data = await paymentsRes.json();
+                setPayments(data.data?.items || data.data?.payments || data.payments || []);
             }
 
-            if (invoicesResponse.ok) {
-                const data = await invoicesResponse.json();
-                setInvoices(data.data?.invoices || data.invoices || []);
+            if (invoicesRes.ok) {
+                const data = await invoicesRes.json();
+                setInvoices(data.data?.items || data.data?.invoices || data.invoices || []);
             }
         } catch (error) {
-            console.error('Failed to fetch payments or invoices:', error);
+            console.error('Failed to fetch payments:', error);
         } finally {
             setPaymentsLoading(false);
         }
     };
 
+
+
     const fetchNotifications = async () => {
         try {
             const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-            const response = await fetch(`/ api / notifications ? entityType = deal & entityId=${id} `, {
+            const response = await fetch(`/api/notifications?entityType=deal&entityId=${id}`, {
                 headers: {
-                    'Authorization': `Bearer ${token} `,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
@@ -551,7 +549,7 @@ const DealProfileEnhanced: React.FC = () => {
         return (
             <div className="mx-auto p-6">
                 <div className="text-center py-12">
-                    <DollarSign size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                         Deal Not Found
                     </h2>
@@ -589,16 +587,7 @@ const DealProfileEnhanced: React.FC = () => {
                             {isUndoingConversion ? 'Undoing...' : 'Undo Conversion'}
                         </Button>
                     )}
-                    {hasPermission('deal.update') && (
-                        <Button
-                            variant="OUTLINE"
-                            onClick={() => navigate(`/ deals / ${deal.id}/edit`)}
-                            className="flex items-center gap-2"
-                        >
-                            <Edit size={16} />
-                            Edit Deal
-                        </Button >
-                    )}
+
                     {
                         hasPermission('deal.delete') && (
                             <Button
@@ -620,7 +609,7 @@ const DealProfileEnhanced: React.FC = () => {
                 <div className="flex items-start justify-between mb-6">
                     <div className="flex items-start">
                         <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mr-4">
-                            <DollarSign size={28} className="text-white" />
+
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
@@ -630,25 +619,42 @@ const DealProfileEnhanced: React.FC = () => {
                                 Deal: <span className="font-semibold text-gray-900 dark:text-white">{deal.title}</span>
                             </p>
                             <div className="flex flex-wrap items-center gap-2 mb-3">
-                                <span
-                                    className={`px-2.5 py-1 text-xs font-medium rounded-full ${getStatusColor(deal.status)}`}
-                                >
-                                    {deal.status}
-                                </span>
-                                <span
-                                    className="px-2.5 py-1 text-xs font-medium rounded-full text-white"
-                                    style={{ backgroundColor: getStageColor(deal.stage) }}
-                                >
-                                    {deal.stage}
-                                </span>
-                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getPriorityColor(deal.priority)}`}>
-                                    {deal.priority}
-                                </span>
-                                {/* Stage Controls */}
-                                <div className="ml-2 flex items-center gap-2">
-                                    <button onClick={gotoPrevStage} className="px-2 py-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">Prev</button>
+
+                                {/* Status Dropdown */}
+                                <div className="relative">
                                     <select
-                                        className="text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                                        value={deal.status}
+                                        onChange={async (e) => {
+                                            const newStatus = e.target.value as any;
+                                            try {
+                                                const payload = { status: newStatus };
+                                                await dealService.updateDeal(parseInt(deal.id), payload);
+                                                setDeal(prev => prev ? ({ ...prev, status: newStatus }) : prev);
+                                                toast.success(`Status updated to ${newStatus}`);
+                                            } catch (error) {
+                                                console.error('Failed to update status:', error);
+                                                toast.error('Failed to update status');
+                                            }
+                                        }}
+                                        className={`appearance-none pl-3 pr-8 py-1 text-xs font-medium rounded-full cursor-pointer border-0 focus:outline-none focus:ring-2 focus:ring-offset-1 ${getStatusColor(deal.status)}`}
+                                    >
+                                        <option value="DRAFT" className="bg-white text-gray-800">DRAFT</option>
+                                        <option value="PROPOSAL" className="bg-white text-gray-800">PROPOSAL</option>
+                                        <option value="NEGOTIATION" className="bg-white text-gray-800">NEGOTIATION</option>
+                                        <option value="WON" className="bg-white text-gray-800">WON</option>
+                                        <option value="LOST" className="bg-white text-gray-800">LOST</option>
+                                    </select>
+                                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                        <svg className="h-3 w-3 text-current opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Stage Dropdown (No Prev/Next buttons) */}
+                                {/* <div className="ml-2">
+                                    <select
+                                        className="text-xs px-2 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         value={stagesList[currentStageIndex]?.name || ''}
                                         onChange={(e) => {
                                             const idx = stagesList.findIndex((s: any) => s.name === e.target.value);
@@ -659,8 +665,13 @@ const DealProfileEnhanced: React.FC = () => {
                                             <option key={s.id || s.name} value={s.name}>{s.name}</option>
                                         ))}
                                     </select>
-                                    <button onClick={gotoNextStage} className="px-2 py-1 text-xs rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">Next</button>
-                                </div>
+                                </div> */}
+
+                                {/* Priority Badge
+                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getPriorityColor(deal.priority)}`}>
+                                    {deal.priority}
+                                </span> */}
+
                             </div>
                             <p className="text-gray-600 dark:text-gray-400 text-sm">
                                 {deal.probability}% win probability • Expected close: {
@@ -727,44 +738,7 @@ const DealProfileEnhanced: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Pipeline Stepper */}
-                <div className="mb-6">
-                    <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        <span>Pipeline</span>
-                        <span className="font-medium text-gray-800 dark:text-gray-200">{deal.stage}</span>
-                    </div>
-                    <div className="flex items-center">
-                        {stagesList.map((s: any, idx: number) => {
-                            const isCompleted = idx < currentStageIndex;
-                            const isCurrent = idx === currentStageIndex;
-                            const color = getStageColor(s.name);
-                            return (
-                                <React.Fragment key={s.name}>
-                                    <div className="flex flex-col items-center min-w-[60px]">
-                                        <div
-                                            className={`h-5 w-5 rounded-full flex items-center justify-center border-2 ${isCompleted ? 'bg-green-500 border-green-500 text-white' :
-                                                isCurrent ? 'bg-white text-gray-800' : 'bg-white text-gray-400'
-                                                }`}
-                                            style={isCurrent ? { borderColor: color } : {}}
-                                            title={s.name}
-                                        >
-                                            {isCompleted ? '✓' : ''}
-                                        </div>
-                                        <span className={`mt-2 text-[11px] ${isCompleted || isCurrent ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'} truncate max-w-[100px]`}>{s.name}</span>
-                                    </div>
-                                    {idx < stagesList.length - 1 && (
-                                        <div className="w-10 sm:w-16 md:w-24 h-[2px] mx-2 rounded-full bg-gray-300 dark:bg-gray-600">
-                                            <div
-                                                className="h-[2px] rounded-full"
-                                                style={{ width: isCompleted ? '100%' : '0%', backgroundColor: color }}
-                                            />
-                                        </div>
-                                    )}
-                                </React.Fragment>
-                            );
-                        })}
-                    </div>
-                </div>
+
 
             </Card >
 
@@ -1443,6 +1417,7 @@ const DealProfileEnhanced: React.FC = () => {
                                     entityId={deal.id}
                                     quotations={quotations}
                                     invoices={invoices}
+                                    onRefresh={fetchQuotations}
                                 />
                             </div>
                         )
@@ -1452,27 +1427,30 @@ const DealProfileEnhanced: React.FC = () => {
                 {
                     activeTab === 'payments' && (
                         paymentsLoading ? (
-                            <Card className="p-6" id="panel-payments" role="tabpanel" aria-labelledby="payments">
+                            <Card className="p-6">
                                 <div className="flex items-center justify-center py-12">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-weconnect-red"></div>
                                 </div>
                             </Card>
                         ) : (
                             <div id="panel-payments" role="tabpanel" aria-labelledby="payments">
-                                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                                    <PaymentTracker
-                                        entityType="deal"
-                                        entityId={deal.id}
-                                        payments={payments}
-                                        invoices={invoices}
-                                        currency={deal.currency}
-                                        onPaymentSaved={fetchPayments}
-                                    />
-                                </div>
+                                <PaymentTracker
+                                    entityType="deal"
+                                    entityId={deal.id}
+                                    payments={payments}
+                                    invoices={invoices}
+                                    currency={deal.currency}
+                                    onPaymentSaved={() => {
+                                        fetchPayments();
+                                        fetchDeal();
+                                    }}
+                                />
                             </div>
                         )
                     )
                 }
+
+
 
                 {
                     activeTab === 'notifications' && (

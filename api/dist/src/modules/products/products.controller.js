@@ -24,11 +24,13 @@ let ProductsController = class ProductsController {
     constructor(service) {
         this.service = service;
     }
-    list(page, limit, search) {
+    list(page, limit, search, status, category) {
         return this.service.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             search,
+            status,
+            category,
         });
     }
     get(id) {
@@ -99,8 +101,10 @@ __decorate([
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
+    __param(3, (0, common_1.Query)('status')),
+    __param(4, (0, common_1.Query)('category')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "list", null);
 __decorate([

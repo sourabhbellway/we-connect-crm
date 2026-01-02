@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
+const permission_util_1 = require("../../common/utils/permission.util");
 let PaymentsService = class PaymentsService {
     prisma;
     constructor(prisma) {
@@ -45,15 +46,31 @@ let PaymentsService = class PaymentsService {
         await this.updateInvoiceStatus(invoiceId);
         return { success: true, data: { payment } };
     }
-    async findAll(query) {
-        const { leadId, dealId, invoiceId } = query;
+    async findAll(query, user) {
+        const { leadId, dealId, invoiceId, entityType, entityId: eId } = query;
         const where = {};
         if (invoiceId)
             where.invoiceId = Number(invoiceId);
-        if (leadId)
-            where.invoice = { leadId: Number(leadId) };
-        if (dealId)
-            where.invoice = { dealId: Number(dealId) };
+        if (user && user.userId) {
+            const accessibleIds = await (0, permission_util_1.getAccessibleUserIds)(user.userId, this.prisma);
+            if (accessibleIds) {
+                where.invoice = {
+                    OR: [
+                        { createdBy: { in: accessibleIds } },
+                        { lead: { assignedTo: { in: accessibleIds } } },
+                        { deal: { assignedTo: { in: accessibleIds } } },
+                    ]
+                };
+            }
+        }
+        const effectiveLeadId = leadId || (entityType?.toLowerCase() === 'lead' ? eId : null);
+        const effectiveDealId = dealId || (entityType?.toLowerCase() === 'deal' ? eId : null);
+        if (effectiveLeadId) {
+            where.invoice = { ...where.invoice, leadId: Number(effectiveLeadId) };
+        }
+        if (effectiveDealId) {
+            where.invoice = { ...where.invoice, dealId: Number(effectiveDealId) };
+        }
         const payments = await this.prisma.payment.findMany({
             where,
             orderBy: { paymentDate: 'desc' },

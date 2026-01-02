@@ -8,7 +8,7 @@ import { leadService } from '../../services/leadService';
 import { dealService } from '../../services/dealService';
 import { taxesService, Tax } from '../../services/taxesService';
 import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
-import { getCurrencyByCountry } from '../../utils/countryUtils';
+import { getCurrencyByCountry, getAllCountries } from '../../utils/countryUtils';
 
 interface QuotationItem {
     description: string;
@@ -267,20 +267,13 @@ const CreateQuotationPage: React.FC = () => {
     }, [searchQuery, relatedType, allLeads]);
 
     useEffect(() => {
-        if (currencySettings?.primary && !isEdit && (currency === 'USD' || !currency)) {
+        const hasSource = searchParams.get('entityId');
+        if (currencySettings?.primary && !isEdit && !hasSource && (currency === 'USD' || !currency)) {
             setCurrency(currencySettings.primary);
         }
-    }, [currencySettings, isEdit]);
+    }, [currencySettings, isEdit, searchParams]);
 
-    // Auto-select currency when country changes
-    useEffect(() => {
-        if (country) {
-            const newCurrency = getCurrencyByCountry(country);
-            if (newCurrency) {
-                setCurrency(newCurrency);
-            }
-        }
-    }, [country]);
+
 
     const fetchInitialData = async () => {
         try {
@@ -529,7 +522,15 @@ const CreateQuotationPage: React.FC = () => {
 
             if (response.data.success) {
                 toast.success(`Quotation ${sendImmediately ? 'created and sent' : 'saved'} successfully!`);
-                navigate('/quotations');
+
+                // Redirect back to source if applicable
+                if (dealId) {
+                    navigate(`/deals/${dealId}?tab=quotations`);
+                } else if (relatedType === 'lead' && relatedId) {
+                    navigate(`/leads/${relatedId}?tab=quotations`);
+                } else {
+                    navigate('/quotations');
+                }
             }
         } catch (error: any) {
             console.error('Error creating quotation:', error);
@@ -756,15 +757,20 @@ const CreateQuotationPage: React.FC = () => {
                                     </label>
                                     <select
                                         value={country}
-                                        onChange={(e) => setCountry(e.target.value)}
-                                        className="input-base appearance-none"
+                                        onChange={(e) => {
+                                            const newCountry = e.target.value;
+                                            setCountry(newCountry);
+                                            if (newCountry) {
+                                                const newCurrency = getCurrencyByCountry(newCountry);
+                                                if (newCurrency) setCurrency(newCurrency);
+                                            }
+                                        }}
+                                        className="input-base"
                                     >
                                         <option value="">Select Country</option>
-                                        <option value="US">United States</option>
-                                        <option value="IN">India</option>
-                                        <option value="UK">United Kingdom</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="AU">Australia</option>
+                                        {getAllCountries().map(c => (
+                                            <option key={c} value={c}>{c}</option>
+                                        ))}
                                     </select>
                                 </div>
 
@@ -873,8 +879,8 @@ const CreateQuotationPage: React.FC = () => {
                                         className="input-base appearance-none"
                                     >
                                         <option value="none">No discount</option>
-                                        <option value="%">Percentage</option>
-                                        <option value="fixed">Fixed Amount</option>
+                                        <option value="%">Percentage (%)</option>
+                                        <option value="fixed">Fixed Amount ({currency})</option>
                                     </select>
                                 </div>
 
@@ -1296,8 +1302,9 @@ const CreateQuotationPage: React.FC = () => {
                                                     onChange={(e) => setDiscountType(e.target.value)}
                                                     className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 >
-                                                    <option value="%">%</option>
-                                                    <option value="fixed">{currency}</option>
+                                                    <option value="none">No discount</option>
+                                                    <option value="%">% Percentage</option>
+                                                    <option value="fixed">{currency} Fixed</option>
                                                 </select>
                                             </div>
                                         </div>

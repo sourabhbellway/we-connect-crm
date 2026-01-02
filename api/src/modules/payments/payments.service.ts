@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { getAccessibleUserIds } from '../../common/utils/permission.util';
 
 @Injectable()
 export class PaymentsService {
@@ -41,13 +42,36 @@ export class PaymentsService {
         return { success: true, data: { payment } };
     }
 
-    async findAll(query: any) {
-        const { leadId, dealId, invoiceId } = query;
+    async findAll(query: any, user?: any) {
+        const { leadId, dealId, invoiceId, entityType, entityId: eId } = query;
         const where: any = {};
+
         if (invoiceId) where.invoiceId = Number(invoiceId);
-        // If filtering by lead/deal, we need to look at the invoice's relations
-        if (leadId) where.invoice = { leadId: Number(leadId) };
-        if (dealId) where.invoice = { dealId: Number(dealId) };
+
+        // Role-based filtering
+        if (user && user.userId) {
+            const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+            if (accessibleIds) {
+                where.invoice = {
+                    OR: [
+                        { createdBy: { in: accessibleIds } },
+                        { lead: { assignedTo: { in: accessibleIds } } },
+                        { deal: { assignedTo: { in: accessibleIds } } },
+                    ]
+                };
+            }
+        }
+
+        // Support both direct IDs and entityType/entityId pattern
+        const effectiveLeadId = leadId || (entityType?.toLowerCase() === 'lead' ? eId : null);
+        const effectiveDealId = dealId || (entityType?.toLowerCase() === 'deal' ? eId : null);
+
+        if (effectiveLeadId) {
+            where.invoice = { ...where.invoice, leadId: Number(effectiveLeadId) };
+        }
+        if (effectiveDealId) {
+            where.invoice = { ...where.invoice, dealId: Number(effectiveDealId) };
+        }
 
         const payments = await this.prisma.payment.findMany({
             where,

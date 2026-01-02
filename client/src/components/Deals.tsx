@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCounts } from '../contexts/CountsContext';
@@ -54,6 +55,124 @@ const getStatusStyles = (statusName: string, dealStatuses: DealStatus[]) => {
     backgroundColor: '#f3f4f6',
     color: '#374151'
   };
+};
+
+const DealActionMenu = ({
+  deal,
+  onView,
+  onEdit,
+  onDelete
+}: {
+  deal: Deal;
+  onView: (id: number) => void;
+  onEdit: (id: number) => void;
+  onDelete: (id: number) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        const target = event.target as Element;
+        if (!target.closest('.action-menu-dropdown')) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', () => setIsOpen(false), true);
+      window.addEventListener('resize', () => setIsOpen(false));
+    }
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', () => setIsOpen(false), true);
+      window.removeEventListener('resize', () => setIsOpen(false));
+    };
+  }, [isOpen]);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuWidth = 160;
+      let left = rect.right - menuWidth;
+      let top = rect.bottom + 4;
+
+      if (left < 0) left = rect.left;
+      if (top + 150 > window.innerHeight) {
+        top = rect.top - 150;
+      }
+
+      setMenuStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        left: `${left}px`,
+        zIndex: 9999,
+        width: `${menuWidth}px`
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </button>
+
+      {isOpen && ReactDOM.createPortal(
+        <div
+          className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+          style={menuStyle}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(deal.id);
+              setIsOpen(false);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4 text-gray-400" />
+            View
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(deal.id);
+              setIsOpen(false);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <Edit className="h-4 w-4 text-blue-500" />
+            Edit
+          </button>
+          <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(deal.id);
+              setIsOpen(false);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </button>
+        </div>,
+        document.body
+      )}
+    </>
+  );
 };
 
 const Deals: React.FC = () => {
@@ -629,56 +748,22 @@ const Deals: React.FC = () => {
 
                         {/* Right: Action Buttons */}
                         <div className="flex items-center gap-1">
-                          {hasPermission(PERMISSIONS.DEAL.READ) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/deals/${deal.id}`);
-                              }}
-                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                              title="View Deal"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                          )}
-                          {hasPermission(PERMISSIONS.DEAL.UPDATE) && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/deals/${deal.id}/edit`);
-                              }}
-                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                              title="Edit Deal"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                          )}
-                          {hasPermission(PERMISSIONS.DEAL.DELETE) && (
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (!confirm('Delete this deal?')) return;
-                                try {
-                                  await dealService.deleteDeal(deal.id);
-                                  setDeals(prev => prev.filter(d => d.id !== deal.id));
-                                  toast.success('Deal deleted');
-                                } catch (e) {
-                                  toast.error('Failed to delete');
-                                }
-                              }}
-                              className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                              title="Delete Deal"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                          <button
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                            title="More options"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </button>
+                          <DealActionMenu
+                            deal={deal}
+                            onView={() => hasPermission(PERMISSIONS.DEAL.READ) && navigate(`/deals/${deal.id}`)}
+                            onEdit={() => hasPermission(PERMISSIONS.DEAL.UPDATE) && navigate(`/deals/${deal.id}/edit`)}
+                            onDelete={async () => {
+                              if (!hasPermission(PERMISSIONS.DEAL.DELETE)) return;
+                              if (!confirm('Delete this deal?')) return;
+                              try {
+                                await dealService.deleteDeal(deal.id);
+                                setDeals(prev => prev.filter(d => d.id !== deal.id));
+                                toast.success('Deal deleted');
+                              } catch (e) {
+                                toast.error('Failed to delete');
+                              }
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -906,42 +991,22 @@ const Deals: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
                           <div className="flex items-center justify-end space-x-2">
-                            {hasPermission(PERMISSIONS.DEAL.READ) && (
-                              <Link
-                                to={`/deals/${deal.id}`}
-                                className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                title="View Deal"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Link>
-                            )}
-                            {hasPermission(PERMISSIONS.DEAL.UPDATE) && (
-                              <Link
-                                to={`/deals/${deal.id}/edit`}
-                                className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                title="Edit Deal"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Link>
-                            )}
-                            {hasPermission(PERMISSIONS.DEAL.DELETE) && (
-                              <button
-                                className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                title="Delete Deal"
-                                onClick={async () => {
-                                  if (!confirm('Delete this deal?')) return;
-                                  try {
-                                    await dealService.deleteDeal(deal.id);
-                                    setDeals(prev => prev.filter(d => d.id !== deal.id));
-                                    toast.success('Deal deleted');
-                                  } catch (e) {
-                                    toast.error('Failed to delete');
-                                  }
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            )}
+                            <DealActionMenu
+                              deal={deal}
+                              onView={() => hasPermission(PERMISSIONS.DEAL.READ) && navigate(`/deals/${deal.id}`)}
+                              onEdit={() => hasPermission(PERMISSIONS.DEAL.UPDATE) && navigate(`/deals/${deal.id}/edit`)}
+                              onDelete={async () => {
+                                if (!hasPermission(PERMISSIONS.DEAL.DELETE)) return;
+                                if (!confirm('Delete this deal?')) return;
+                                try {
+                                  await dealService.deleteDeal(deal.id);
+                                  setDeals(prev => prev.filter(d => d.id !== deal.id));
+                                  toast.success('Deal deleted');
+                                } catch (e) {
+                                  toast.error('Failed to delete');
+                                }
+                              }}
+                            />
                           </div>
                         </td>
                       </tr>

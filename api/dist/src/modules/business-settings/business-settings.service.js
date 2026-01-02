@@ -245,14 +245,28 @@ let BusinessSettingsService = class BusinessSettingsService {
             isActive: true,
             sortOrder: index
         }));
+        const dbCurrencies = await this.prisma.currency.findMany({
+            where: { isActive: true },
+        });
         const currency = {
             id: '1',
+            primary: bs.currency || 'USD',
             baseCurrency: bs.currency || 'USD',
             decimalPlaces: 2,
             symbolPosition: 'before',
             thousandSeparator: ',',
             decimalSeparator: '.',
             autoUpdateRates: false,
+            supportedCurrencies: dbCurrencies.map(c => c.code),
+            currencies: dbCurrencies.map(c => ({
+                id: c.id,
+                name: c.name,
+                code: c.code,
+                symbol: c.symbol,
+                exchangeRate: Number(c.exchangeRate),
+                isActive: c.isActive,
+                isDefault: c.isDefault,
+            })),
             createdAt: new Date(),
             updatedAt: new Date(),
         };

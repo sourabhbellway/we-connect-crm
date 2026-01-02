@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle, Circle, Clock, User, Calendar, Filter, Search, 
+import {
+  CheckCircle, Circle, Clock, User, Calendar, Filter, Search,
   AlertCircle, Flag, CalendarDays,
-  Target, TrendingUp
+  Target, TrendingUp, MoreVertical, Eye, Edit, Trash2
 } from 'lucide-react';
+import ReactDOM from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
@@ -37,11 +39,123 @@ interface TaskManagerProps {
   tasks: Task[];
 }
 
-const TaskManager: React.FC<TaskManagerProps> = ({ 
-  entityType, 
-  entityId, 
-  tasks: initialTasks 
+
+const TaskActionMenu = ({
+  task,
+  onView,
+  onEdit,
+  onDelete
+}: {
+  task: any;
+  onView: (task: any) => void;
+  onEdit: (task: any) => void;
+  onDelete: (task: any) => void;
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        const target = event.target as Element;
+        if (!target.closest('.action-menu-dropdown')) {
+          setIsOpen(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', () => setIsOpen(false), true);
+      window.addEventListener('resize', () => setIsOpen(false));
+    }
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', () => setIsOpen(false), true);
+      window.removeEventListener('resize', () => setIsOpen(false));
+    };
+  }, [isOpen]);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const menuWidth = 140;
+      let left = rect.right - menuWidth;
+      let top = rect.bottom + 4;
+
+      if (left < 0) left = rect.left;
+      if (top + 150 > window.innerHeight) {
+        top = rect.top - 150;
+      }
+
+      setMenuStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        left: `${left}px`,
+        zIndex: 9999,
+        width: `${menuWidth}px`
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors focus:outline-none"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </button>
+
+      {isOpen && ReactDOM.createPortal(
+        <div
+          className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+          style={menuStyle}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => { onView(task); setIsOpen(false); }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4 text-gray-400" />
+            View
+          </button>
+
+          <button
+            onClick={() => { onEdit(task); setIsOpen(false); }}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <Edit className="h-4 w-4 text-blue-500" />
+            Edit
+          </button>
+
+          <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+          <button
+            onClick={() => { onDelete(task); setIsOpen(false); }}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+            Delete
+          </button>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+
+const TaskManager: React.FC<TaskManagerProps> = ({
+  entityType,
+  entityId,
+  tasks: initialTasks
+}) => {
+  const navigate = useNavigate();
   const { user, hasPermission } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +176,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entityType, entityId]);
 
-const refresh = async () => {
+  const refresh = async () => {
     try {
       setIsLoading(true);
       const res = await tasksService.list({ entityType: entityType as any, entityId, status: 'PENDING,IN_PROGRESS,COMPLETED' });
@@ -120,12 +234,26 @@ const refresh = async () => {
     }
   };
 
+  const handleDeleteTask = async (task: Task) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      await tasksService.remove(Number(task.id));
+      toast.success('Task deleted');
+      refresh();
+    } catch (e) {
+      toast.error('Failed to delete task');
+    }
+  };
+
+  const handleViewTask = (task: Task) => navigate(`/tasks/${task.id}`);
+  const handleEditTask = (task: Task) => navigate(`/tasks/${task.id}`);
+
   // Filter and sort tasks
   const filteredTasks = tasks
     .filter(task => {
       const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
       const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesStatus && matchesPriority && matchesSearch;
@@ -135,16 +263,16 @@ const refresh = async () => {
       const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
       const aPriority = priorityOrder[a.priority];
       const bPriority = priorityOrder[b.priority];
-      
+
       if (aPriority !== bPriority) {
         return bPriority - aPriority;
       }
-      
+
       // Then by due date
       if (a.dueDate && b.dueDate) {
         return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
       }
-      
+
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
@@ -217,18 +345,16 @@ const refresh = async () => {
     return new Date(dueDate) < new Date();
   };
 
-const handleToggleStatus = async (taskId: string, currentStatus: string) => {
+  const handleToggleStatus = async (taskId: string, currentStatus: string) => {
     try {
       if (currentStatus === 'COMPLETED') {
         // Reopen task
-        const res = await tasksService.update(Number(taskId), { status: 'PENDING' });
-        const updated = res?.data?.task || res?.task;
-        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: 'PENDING', completedAt: undefined } : t)));
+        await tasksService.update(Number(taskId), { status: 'PENDING' });
+        setTasks(prev => (prev as any[]).map(t => (t.id === taskId ? { ...t, status: 'PENDING', completedAt: undefined } : t)));
         toast.success('Task reopened');
       } else {
-        const res = await tasksService.complete(Number(taskId));
-        const updated = res?.data?.task || res?.task;
-        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, status: 'COMPLETED', completedAt: new Date().toISOString() } : t)));
+        await tasksService.complete(Number(taskId));
+        setTasks(prev => (prev as any[]).map(t => (t.id === taskId ? { ...t, status: 'COMPLETED', completedAt: new Date().toISOString() } : t)));
         toast.success('Task marked as completed');
       }
     } catch (e: any) {
@@ -248,7 +374,7 @@ const handleToggleStatus = async (taskId: string, currentStatus: string) => {
   const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
   const overdueTasks = tasks.filter(task => task.dueDate && isOverdue(task.dueDate) && task.status !== 'COMPLETED').length;
 
-return (
+  return (
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="flex items-center justify-between">
@@ -383,7 +509,7 @@ return (
 
       {/* Task List */}
       <div className="space-y-4">
-{isLoading ? (
+        {isLoading ? (
           <Card className="p-8 text-center">
             <div className="animate-spin h-8 w-8 border-2 border-weconnect-red border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">Loading tasks...</p>
@@ -417,13 +543,13 @@ return (
                   {/* Task Content */}
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className={`text-lg font-semibold ${task.status === 'COMPLETED' 
-                        ? 'line-through text-gray-500 dark:text-gray-400' 
+                      <h3 className={`text-lg font-semibold ${task.status === 'COMPLETED'
+                        ? 'line-through text-gray-500 dark:text-gray-400'
                         : 'text-gray-900 dark:text-white'
-                      }`}>
+                        }`}>
                         {task.title}
                       </h3>
-                      
+
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
                           {task.status.replace('_', ' ')}
@@ -443,15 +569,15 @@ return (
 
                     <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                       {task.dueDate && (
-                        <div className={`flex items-center ${isOverdue(task.dueDate) && task.status !== 'COMPLETED' 
-                          ? 'text-red-600 dark:text-red-400 font-medium' 
+                        <div className={`flex items-center ${isOverdue(task.dueDate) && task.status !== 'COMPLETED'
+                          ? 'text-red-600 dark:text-red-400 font-medium'
                           : ''
-                        }`}>
+                          }`}>
                           <CalendarDays size={14} className="mr-1" />
                           {formatDueDate(task.dueDate)}
                         </div>
                       )}
-                      
+
                       {task.assignedTo && (
                         <div className="flex items-center text-gray-500 dark:text-gray-400">
                           <User size={14} className="mr-1" />
@@ -473,6 +599,15 @@ return (
                   </div>
                 </div>
 
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <TaskActionMenu
+                    task={task}
+                    onView={handleViewTask}
+                    onEdit={handleEditTask}
+                    onDelete={handleDeleteTask}
+                  />
+                </div>
               </div>
             </Card>
           ))
@@ -491,7 +626,7 @@ return (
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
+            <div
               className="h-2 bg-green-600 rounded-full transition-all duration-300"
               style={{ width: `${(completedTasks / totalTasks) * 100}%` }}
             ></div>

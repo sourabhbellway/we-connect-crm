@@ -340,12 +340,12 @@ const TrashPage: React.FC = () => {
                         <p className="text-xs text-red-700 dark:text-red-500/60">Cleaning the trash will permanently remove all items from our database forever.</p>
                     </div>
                 </div>
-                <button
+                {/* <button
                     onClick={() => setConfirmEmpty('all')}
                     className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95 whitespace-nowrap"
                 >
                     Empty Recycle Bin
-                </button>
+                </button> */}
             </div>
 
             {/* Modals */}

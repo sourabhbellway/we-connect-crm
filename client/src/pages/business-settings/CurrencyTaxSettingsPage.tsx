@@ -10,7 +10,7 @@ import { currenciesService, Currency } from '../../services/currenciesService';
 
 const CurrencyTaxSettingsPage: React.FC = () => {
     const navigate = useNavigate();
-    const { taxSettings, updateTaxSettings, isLoading } = useBusinessSettings();
+    const { taxSettings, updateTaxSettings, isLoading, refreshBusinessSettings } = useBusinessSettings();
 
     // Global Tax Settings State
     const [taxData, setTaxData] = useState<Partial<TaxSettings>>({
@@ -138,6 +138,7 @@ const CurrencyTaxSettingsPage: React.FC = () => {
             }
             setIsModalOpen(false);
             fetchTaxes();
+            refreshBusinessSettings();
         } catch (error) {
             toast.error('Failed to save tax rate');
         } finally {
@@ -201,6 +202,7 @@ const CurrencyTaxSettingsPage: React.FC = () => {
             }
             setIsCurrencyModalOpen(false);
             fetchCurrencies();
+            refreshBusinessSettings(); // Refresh global settings to reflect new/updated currency
         } catch (error) {
             toast.error('Failed to save currency');
         } finally {

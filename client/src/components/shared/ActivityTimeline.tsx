@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  Calendar, Clock, User, Phone, Mail, MessageSquare, FileText, 
+import {
+  Calendar, Clock, User, Phone, Mail, MessageSquare, FileText,
   CheckCircle, TrendingUp, Search,
   Play
 } from 'lucide-react';
@@ -30,15 +30,20 @@ interface ActivityTimelineProps {
   activities: Activity[];
 }
 
-const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ 
-  activities: initialActivities 
+const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
+  activities: initialActivities
 }) => {
-  const [activities] = useState<Activity[]>(initialActivities);
+  const [activities, setActivities] = useState<Activity[]>(initialActivities);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Sync state when props change
+  React.useEffect(() => {
+    setActivities(initialActivities);
+  }, [initialActivities]);
 
   // Filter activities
   const filteredActivities = activities.filter(activity => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       activity.description?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
@@ -235,7 +240,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
       {/* Load More */}
       {filteredActivities.length > 0 && (
         <div className="text-center">
-          <Button variant="OUTLINE" onClick={() => {}}>
+          <Button variant="OUTLINE" onClick={() => { }}>
             Load More Activities
           </Button>
         </div>

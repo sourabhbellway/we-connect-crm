@@ -25,8 +25,8 @@ let PaymentsController = class PaymentsController {
     create(createPaymentDto, req) {
         return this.paymentsService.create(createPaymentDto, req.user);
     }
-    findAll(query) {
-        return this.paymentsService.findAll(query);
+    findAll(query, req) {
+        return this.paymentsService.findAll(query, req.user);
     }
     remove(id) {
         return this.paymentsService.remove(id);
@@ -44,8 +44,9 @@ __decorate([
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], PaymentsController.prototype, "findAll", null);
 __decorate([

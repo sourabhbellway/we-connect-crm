@@ -11,12 +11,24 @@ export class ProductsService {
     page = 1,
     limit = 10,
     search,
+    status,
+    category,
   }: {
     page?: number;
     limit?: number;
     search?: string;
+    status?: string;
+    category?: string;
   }) {
     const where: any = { deletedAt: null };
+
+    if (status) {
+      where.isActive = status === 'active';
+    }
+
+    if (category) {
+      where.category = category;
+    }
     if (search && search.trim()) {
       const q = search.trim();
       where.OR = [
