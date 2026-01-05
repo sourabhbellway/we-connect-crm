@@ -98,6 +98,7 @@ model User {
   managerId              Int?
   teamId                 Int?
   deviceToken            String?
+  fcmToken               String?
   activities             Activity[]                @relation("UserActivities")
   createdBudgets         Budget[]                  @relation("UserCreatedBudgets")
   callLogs               CallLog[]                 @relation("UserCallLogs")
@@ -603,7 +604,7 @@ model Currency {
   name         String   @unique
   code         String   @unique
   symbol       String
-  exchangeRate Decimal  @db.Decimal(15, 6) @default(1.0)
+  exchangeRate Decimal  @default(1.0) @db.Decimal(15, 6)
   isActive     Boolean  @default(true)
   isDefault    Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -1100,7 +1101,6 @@ model LeadImportRecord {
   @@map("lead_import_records")
 }
 
-
 model DealStatus {
   id          Int      @id @default(autoincrement())
   name        String   @unique
@@ -1112,17 +1112,6 @@ model DealStatus {
   updatedAt   DateTime @updatedAt
 
   @@map("deal_statuses")
-}
-
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  PROPOSAL
-  NEGOTIATION
-  CLOSED
-  LOST
-  CONVERTED
 }
 
 model Product {
@@ -1533,6 +1522,17 @@ model NotificationPreference {
   @@map("notification_preferences")
 }
 
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  CLOSED
+  LOST
+  CONVERTED
+}
+
 enum ActivityType {
   USER_REGISTRATION
   USER_LOGIN
@@ -1573,7 +1573,6 @@ enum ActivityType {
   NOTE_ADDED
   NOTE_UPDATED
 }
-
 
 enum LeadPriority {
   LOW

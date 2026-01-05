@@ -60,6 +60,7 @@ export declare class ActivitiesService {
                     twoFactorEnabled: boolean;
                     twoFactorSecret: string | null;
                     mustChangePassword: boolean;
+                    deviceToken: string | null;
                     fcmToken: string | null;
                     id: number;
                     companyId: number | null;
