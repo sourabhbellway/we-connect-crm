@@ -16,6 +16,7 @@ class CreateTeamDto {
     description;
     managerId;
     memberIds;
+    productId;
 }
 exports.CreateTeamDto = CreateTeamDto;
 __decorate([
@@ -39,4 +40,9 @@ __decorate([
     (0, class_validator_1.IsInt)({ each: true }),
     __metadata("design:type", Array)
 ], CreateTeamDto.prototype, "memberIds", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Number)
+], CreateTeamDto.prototype, "productId", void 0);
 //# sourceMappingURL=create-team.dto.js.map

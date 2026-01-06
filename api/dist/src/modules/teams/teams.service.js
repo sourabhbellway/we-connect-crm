@@ -18,9 +18,10 @@ let TeamsService = class TeamsService {
         this.prisma = prisma;
     }
     async create(createTeamDto) {
+        console.log('Creating team with DTO:', JSON.stringify(createTeamDto, null, 2));
         const { memberIds, ...rest } = createTeamDto;
         const filteredMemberIds = memberIds?.filter(id => id !== rest.managerId);
-        return this.prisma.team.create({
+        const result = await this.prisma.team.create({
             data: {
                 ...rest,
                 members: filteredMemberIds && filteredMemberIds.length > 0 ? {
@@ -30,14 +31,18 @@ let TeamsService = class TeamsService {
             include: {
                 manager: true,
                 members: true,
+                product: true,
             },
         });
+        console.log('Created team result:', JSON.stringify(result, null, 2));
+        return result;
     }
     async findAll() {
-        return this.prisma.team.findMany({
+        const result = await this.prisma.team.findMany({
             include: {
                 manager: true,
                 members: true,
+                product: true,
                 _count: {
                     select: { members: true },
                 },
@@ -46,6 +51,8 @@ let TeamsService = class TeamsService {
                 createdAt: 'desc',
             },
         });
+        console.log('All teams found:', JSON.stringify(result, null, 2));
+        return result;
     }
     async findOne(id) {
         return this.prisma.team.findUnique({
@@ -53,13 +60,15 @@ let TeamsService = class TeamsService {
             include: {
                 manager: true,
                 members: true,
+                product: true,
             },
         });
     }
     async update(id, updateTeamDto) {
+        console.log(`Updating team ${id} with DTO:`, JSON.stringify(updateTeamDto, null, 2));
         const { memberIds, ...rest } = updateTeamDto;
         const filteredMemberIds = memberIds?.filter(mid => mid !== (rest.managerId || undefined));
-        return this.prisma.team.update({
+        const result = await this.prisma.team.update({
             where: { id },
             data: {
                 ...rest,
@@ -70,8 +79,11 @@ let TeamsService = class TeamsService {
             include: {
                 manager: true,
                 members: true,
+                product: true,
             },
         });
+        console.log('Updated team result:', JSON.stringify(result, null, 2));
+        return result;
     }
     async remove(id) {
         await this.prisma.user.updateMany({

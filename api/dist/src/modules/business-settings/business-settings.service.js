@@ -854,13 +854,13 @@ let BusinessSettingsService = class BusinessSettingsService {
     }
     async getFieldConfigs(entityType) {
         let configs = await this.prisma.fieldConfig.findMany({
-            where: { entityType, isVisible: true },
+            where: { entityType },
             orderBy: { displayOrder: 'asc' },
         });
         if (configs.length === 0) {
             await this.initializeDefaultFieldConfigs();
             configs = await this.prisma.fieldConfig.findMany({
-                where: { entityType, isVisible: true },
+                where: { entityType },
                 orderBy: { displayOrder: 'asc' },
             });
         }

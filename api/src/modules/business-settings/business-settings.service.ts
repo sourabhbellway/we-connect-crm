@@ -965,7 +965,7 @@ export class BusinessSettingsService {
   // Field Configuration Methods
   async getFieldConfigs(entityType: string) {
     let configs = await this.prisma.fieldConfig.findMany({
-      where: { entityType, isVisible: true },
+      where: { entityType },
       orderBy: { displayOrder: 'asc' },
     });
 
@@ -973,7 +973,7 @@ export class BusinessSettingsService {
     if (configs.length === 0) {
       await this.initializeDefaultFieldConfigs();
       configs = await this.prisma.fieldConfig.findMany({
-        where: { entityType, isVisible: true },
+        where: { entityType },
         orderBy: { displayOrder: 'asc' },
       });
     }

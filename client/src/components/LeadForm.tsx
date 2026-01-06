@@ -1037,7 +1037,31 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'budget':
+      case 'budget': {
+        const currencyField = fieldConfigs.find(f => f.fieldName === 'currency');
+        const isCurrencyVisible = currencyField?.isVisible ?? true;
+
+        if (!isCurrencyVisible) {
+          return (
+            <InputField
+              key={field.fieldName}
+              label={field.label}
+              leftIcon={
+                <span className="text-gray-400 font-medium text-sm">
+                  {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "USD")}
+                </span>
+              }
+              type="number"
+              step="0.01"
+              value={value || ""}
+              onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+              placeholder={field.placeholder || "Enter amount"}
+              required={field.isRequired}
+              error={error}
+            />
+          );
+        }
+
         return (
           <div key={field.fieldName} className="space-y-2">
             <label className="block text-sm font-medium text-gray-900 dark:text-white">
@@ -1072,10 +1096,30 @@ const LeadForm: React.FC<LeadFormProps> = ({
             </div>
           </div>
         );
+      }
 
-      case 'currency':
-        // Handled with budget field
-        return null;
+      case 'currency': {
+        const budgetField = fieldConfigs.find(f => f.fieldName === 'budget');
+        const isBudgetVisible = budgetField?.isVisible ?? true;
+
+        // If budget is visible, it already includes the currency selector
+        if (isBudgetVisible) return null;
+
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={field.label}
+            leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />}
+            value={value || currencySettings?.primary || "USD"}
+            placeholder={field.placeholder || "Select currency"}
+            options={getCurrencyOptions()}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={true}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+      }
 
       case 'leadScore':
         return (

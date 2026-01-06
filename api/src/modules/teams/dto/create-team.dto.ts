@@ -17,4 +17,8 @@ export class CreateTeamDto {
     @IsOptional()
     @IsInt({ each: true })
     memberIds?: number[];
+
+    @IsInt()
+    @IsOptional()
+    productId?: number;
 }

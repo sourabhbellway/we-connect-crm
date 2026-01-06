@@ -143,14 +143,16 @@ model User {
 }
 
 model Team {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String?
   managerId   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  manager     User?    @relation("TeamManager", fields: [managerId], references: [id])
-  members     User[]   @relation("TeamMembers")
+  productId   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  manager     User?     @relation("TeamManager", fields: [managerId], references: [id])
+  members     User[]    @relation("TeamMembers")
+  product     Product?  @relation(fields: [productId], references: [id])
 
   @@map("teams")
 }
@@ -1138,6 +1140,7 @@ model Product {
   deletedAt      DateTime?
   invoiceItems   InvoiceItem[]
   quotationItems QuotationItem[]
+  teams          Team[]
 
   @@map("products")
 }

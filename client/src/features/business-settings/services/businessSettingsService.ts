@@ -314,6 +314,11 @@ class BusinessSettingsService {
   async getAllBusinessSettings(): Promise<BusinessSettingsResponse<BusinessSettings>> {
     return apiRequest.get(`${this.baseUrl}/all`);
   }
+
+  // Field Configurations
+  async getFieldConfigs(entityType: string): Promise<BusinessSettingsResponse<any[]>> {
+    return apiRequest.get(`${this.baseUrl}/field-configs/${entityType}`);
+  }
 }
 
 // Create singleton instance

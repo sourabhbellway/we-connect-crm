@@ -57,6 +57,7 @@ const LeadFieldsSettings: React.FC = () => {
       setEditingId(null);
       setEditForm({});
       fetchFields();
+      try { window.dispatchEvent(new CustomEvent('fieldConfigsUpdated')); } catch { }
     } catch (error) {
       console.error('Error updating field:', error);
       toast.error('Failed to update field');
@@ -77,6 +78,7 @@ const LeadFieldsSettings: React.FC = () => {
         f.id === field.id ? { ...f, isVisible: !f.isVisible } : f
       ));
       toast.success(`Field ${!field.isVisible ? 'shown' : 'hidden'}`);
+      try { window.dispatchEvent(new CustomEvent('fieldConfigsUpdated')); } catch { }
     } catch (error) {
       console.error('Error toggling visibility:', error);
       toast.error('Failed to update field visibility');
@@ -108,6 +110,7 @@ const LeadFieldsSettings: React.FC = () => {
 
       setFields(newFields);
       toast.success('Field order updated');
+      try { window.dispatchEvent(new CustomEvent('fieldConfigsUpdated')); } catch { }
     } catch (error) {
       console.error('Error reordering fields:', error);
       toast.error('Failed to reorder fields');
@@ -377,8 +380,8 @@ const LeadFieldsSettings: React.FC = () => {
                   <button
                     onClick={() => handleToggleRequired(field)}
                     className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium transition-colors ${field.isRequired
-                        ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-900/50'
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
+                      : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-900/50'
                       }`}
                   >
                     {field.isRequired ? 'Required' : 'Optional'}

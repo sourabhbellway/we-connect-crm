@@ -1098,21 +1098,59 @@ export class LeadsService {
       };
 
       // Process each row
+      const fieldConfigs = await this.prisma.fieldConfig.findMany({
+        where: { entityType: 'lead' }
+      });
+
+      const standardFields = [
+        'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
+        'website', 'companySize', 'annualRevenue', 'address', 'country', 'state', 'city',
+        'zipCode', 'linkedinProfile', 'timezone', 'preferredContactMethod', 'sourceId',
+        'status', 'priority', 'assignedTo', 'budget', 'currency', 'leadScore', 'notes',
+        'tags', 'lastContactedAt', 'nextFollowUpAt'
+      ];
+
       for (let i = 1; i < lines.length; i++) {
         try {
-          const values = lines[i].split(',').map(v => v.trim());
+          // Handle quoted values correctly
+          const values = lines[i].match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim())
+            || lines[i].split(',').map(v => v.trim());
 
           // Create a map of column name to value
-          const row: Record<string, string> = {};
+          const row: Record<string, any> = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || '';
           });
 
-          // Validate required fields
-          if (!row.name || !row.email || !row.phone) {
+          // Map 'name' to firstName/lastName if present
+          if (row.name && !row.firstName) {
+            const nameParts = (row.name || '').split(' ').filter(Boolean);
+            row.firstName = nameParts.length > 0 ? nameParts[0] : '';
+            row.lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+          }
+
+          // Validate required fields based on fieldConfigs
+          const errorsInRow: string[] = [];
+          fieldConfigs.forEach(config => {
+            if (config.isRequired && !row[config.fieldName]) {
+              errorsInRow.push(`${config.label || config.fieldName} is required`);
+            }
+          });
+
+          if (errorsInRow.length > 0) {
             results.data.errors.push({
               row: i + 1,
-              error: 'Missing required fields: name, email, or phone',
+              error: errorsInRow.join(', '),
+            });
+            results.data.failed++;
+            continue;
+          }
+
+          // Basic validation for email if it's the primary identifier
+          if (!row.email) {
+            results.data.errors.push({
+              row: i + 1,
+              error: 'Email is required for import',
             });
             results.data.failed++;
             continue;
@@ -1135,27 +1173,30 @@ export class LeadsService {
             continue;
           }
 
-          // Create the lead (split full name into firstName / lastName)
-          const nameParts = (row.name || '').split(' ').filter(Boolean);
-          const firstName = nameParts.length > 0 ? nameParts[0] : '';
-          const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+          // Separate standard and custom fields
+          const leadData: any = {};
+          const customFieldsData: any = {};
+
+          Object.keys(row).forEach(key => {
+            if (standardFields.includes(key)) {
+              if (key === 'annualRevenue' || key === 'budget' || key === 'companySize' || key === 'leadScore' || key === 'sourceId') {
+                leadData[key] = row[key] ? Number(row[key]) : null;
+              } else if (key === 'status') {
+                leadData[key] = normalizeLeadStatus(row[key]);
+              } else if (key === 'priority') {
+                leadData[key] = normalizeLeadPriority(row[key]);
+              } else {
+                leadData[key] = row[key] || null;
+              }
+            } else if (key !== 'name') {
+              customFieldsData[key] = row[key];
+            }
+          });
 
           await this.prisma.lead.create({
             data: {
-              firstName: firstName || row.name,
-              lastName: lastName || '',
-              email: row.email,
-              phone: row.phone || null,
-              company: row.company || null,
-              position: row.designation || null,
-              address: row.address || null,
-              city: row.city || null,
-              state: row.state || null,
-              country: row.country || null,
-              zipCode: row.zipcode || row.zip || null,
-              status: normalizeLeadStatus(row.status),
-              priority: normalizeLeadPriority(row.priority),
-              notes: row.notes || null,
+              ...leadData,
+              customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : undefined,
               source: row.source
                 ? {
                   connectOrCreate: {
@@ -1211,19 +1252,27 @@ export class LeadsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    const headers = [
-      'firstName',
-      'lastName',
-      'email',
-      'phone',
-      'company',
-      'position',
-      'status',
-      'priority',
-      'source',
-      'assignedTo',
-      'createdAt',
-    ];
+    // Get dynamic field configurations
+    const fieldConfigs = await this.prisma.fieldConfig.findMany({
+      where: { entityType: 'lead', isVisible: true },
+      orderBy: { displayOrder: 'asc' }
+    });
+
+    const headers = fieldConfigs.length > 0
+      ? fieldConfigs.map(f => f.fieldName)
+      : [
+        'firstName',
+        'lastName',
+        'email',
+        'phone',
+        'company',
+        'position',
+        'status',
+        'priority',
+        'source',
+        'assignedTo',
+        'createdAt',
+      ];
 
     const escape = (v: any) => {
       if (v === null || v === undefined) return '';
@@ -1237,19 +1286,28 @@ export class LeadsService {
 
     const rows = [headers.join(',')];
     for (const l of leads) {
-      const row = [
-        escape(l.firstName),
-        escape(l.lastName),
-        escape(l.email),
-        escape(l.phone),
-        escape(l.company),
-        escape(l.position || ''),
-        escape(l.status),
-        escape(l.priority),
-        escape(l.source?.name || ''),
-        escape(l.assignedUser ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}` : ''),
-        escape(l.createdAt ? new Date(l.createdAt).toISOString() : ''),
-      ];
+      const row = headers.map(header => {
+        // Handle standard fields
+        if (header in l) {
+          const val = (l as any)[header];
+          if (header === 'createdAt' || header === 'updatedAt' || header === 'lastContactedAt' || header === 'nextFollowUpAt') {
+            return escape(val ? new Date(val).toISOString() : '');
+          }
+          return escape(val);
+        }
+
+        // Handle special relations or mapped fields
+        if (header === 'source') return escape(l.source?.name || '');
+        if (header === 'assignedTo') return escape(l.assignedUser ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}` : '');
+
+        // Handle custom fields
+        const customFields = (l.customFields as any) || {};
+        if (header in customFields) {
+          return escape(customFields[header]);
+        }
+
+        return '';
+      });
       rows.push(row.join(','));
     }
 

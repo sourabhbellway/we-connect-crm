@@ -3,4 +3,5 @@ export declare class CreateTeamDto {
     description?: string;
     managerId?: number;
     memberIds?: number[];
+    productId?: number;
 }

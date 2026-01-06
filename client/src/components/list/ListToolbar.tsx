@@ -7,6 +7,7 @@ export interface ToolbarAction {
   onClick: () => void;
   icon?: React.ReactNode;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 interface ListToolbarProps {
@@ -15,9 +16,10 @@ interface ListToolbarProps {
   addLabel?: string;
   onAdd?: () => void;
   bulkActions?: ToolbarAction[];
+  actions?: ToolbarAction[];
 }
 
-const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = 'Add', onAdd, bulkActions = [] }) => {
+const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = 'Add', onAdd, bulkActions = [], actions = [] }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -40,6 +42,19 @@ const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = '
           {subtitle && <p className="text-gray-600 dark:text-gray-400">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
+          {actions.map((action, idx) => (
+            <Button
+              key={idx}
+              variant="SECONDARY"
+              size="MD"
+              disabled={action.disabled}
+              loading={action.loading}
+              onClick={action.onClick}
+              icon={action.icon}
+            >
+              <span className="hidden sm:inline">{action.label}</span>
+            </Button>
+          ))}
           {bulkActions.length > 0 && (
             <div className="relative">
               <Button variant="SECONDARY" size="MD" onClick={() => setOpen((v) => !v)}>

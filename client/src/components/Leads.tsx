@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { leadService, Lead, LeadFilters, ConversionData } from "../services/leadService";
+import { businessSettingsService } from "../features/business-settings/services/businessSettingsService";
 import { toast } from "react-toastify";
 import ConfirmModal from "./ConfirmModal";
 import LeadConversionModal from "./LeadConversionModal";
@@ -286,6 +287,7 @@ const Leads: React.FC = () => {
     const [assignToUserId, setAssignToUserId] = useState<string>('');
     const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>([]);
     const [isBulkAssigning, setIsBulkAssigning] = useState(false);
+    const [fieldConfigs, setFieldConfigs] = useState<any[]>([]);
 
     // Debounced search with 500ms delay for better UX
     const { searchValue, debouncedSearchValue, setSearch, isSearching } =
@@ -377,6 +379,23 @@ const Leads: React.FC = () => {
     useEffect(() => {
         fetchLeads();
     }, [debouncedSearchValue, debouncedEmailSearchValue, filters.status, filters.assignedTo, filters.limit, currentPage]);
+
+    useEffect(() => {
+        const fetchFieldConfigs = async () => {
+            try {
+                const response = await businessSettingsService.getFieldConfigs('lead');
+                if (response.success) {
+                    setFieldConfigs(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch field configs:', error);
+            }
+        };
+        fetchFieldConfigs();
+
+        window.addEventListener('fieldConfigsUpdated', fetchFieldConfigs);
+        return () => window.removeEventListener('fieldConfigsUpdated', fetchFieldConfigs);
+    }, []);
 
     // Load column visibility preferences
     useEffect(() => {
@@ -620,32 +639,43 @@ const Leads: React.FC = () => {
     // Bulk import/export functions
     const handleDownloadTemplate = () => {
         try {
-            const headers = [
-                'firstName',
-                'lastName',
-                'email',
-                'phone',
-                'company',
-                'position',
-                'status',
-                'website',
-                'industry',
-                'companySize',
-                'annualRevenue',
-                'budget',
-                'currency',
-                'priority',
-                'leadScore',
-                'address',
-                'city',
-                'state',
-                'country',
-                'zipCode',
-                'linkedinProfile',
-                'timezone',
-                'preferredContactMethod',
-                'notes'
-            ];
+            let headers = [];
+
+            if (fieldConfigs && fieldConfigs.length > 0) {
+                // Use field configs to generate headers
+                headers = fieldConfigs
+                    .filter(field => field.isVisible)
+                    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+                    .map(field => field.fieldName);
+            } else {
+                // Fallback to default headers if configs are not loaded
+                headers = [
+                    'firstName',
+                    'lastName',
+                    'email',
+                    'phone',
+                    'company',
+                    'position',
+                    'status',
+                    'website',
+                    'industry',
+                    'companySize',
+                    'annualRevenue',
+                    'budget',
+                    'currency',
+                    'priority',
+                    'leadScore',
+                    'address',
+                    'city',
+                    'state',
+                    'country',
+                    'zipCode',
+                    'linkedinProfile',
+                    'timezone',
+                    'preferredContactMethod',
+                    'notes'
+                ];
+            }
             const csvContent = headers.join(',') + '\n';
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
@@ -900,11 +930,13 @@ const Leads: React.FC = () => {
                     subtitle="Capture and manage your incoming opportunities"
                     addLabel="Add Lead"
                     onAdd={handleCreateLead}
+                    actions={[
+                        { label: 'Sync Integrations', onClick: handleSyncIntegrations, icon: <RefreshCw className="w-4 h-4" />, loading: isSyncingIntegrations },
+                    ]}
                     bulkActions={[
                         { label: 'Download Template', onClick: handleDownloadTemplate, icon: <FileDown className="w-4 h-4" /> },
                         { label: 'Import Leads', onClick: () => setShowImportModal(true), icon: <Upload className="w-4 h-4" /> },
                         { label: 'Export Leads', onClick: handleExportLeads, icon: <FileDown className="w-4 h-4" />, disabled: isExporting },
-                        { label: 'Sync Integrations', onClick: handleSyncIntegrations, icon: <RefreshCw className="w-4 h-4" />, disabled: isSyncingIntegrations },
                         ...(selectedLeadIds.size > 0 ? [
                             { label: `Bulk Assign (${selectedLeadIds.size})`, onClick: () => setShowBulkAssignModal(true), icon: <User className="w-4 h-4" /> }
                         ] : [])

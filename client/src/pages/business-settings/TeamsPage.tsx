@@ -4,11 +4,13 @@ import { Button, Card, PageLoader } from '../../components/ui';
 import { toast } from 'react-toastify';
 import { teamsService, Team } from '../../services/teamsService';
 import { userService } from '../../services/userService';
+import { productsService } from '../../services/productsService';
 
 const TeamsPage = () => {
     const [loading, setLoading] = useState(true);
     const [teams, setTeams] = useState<Team[]>([]);
     const [users, setUsers] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editTeam, setEditTeam] = useState<Team | null>(null);
     const [viewTeam, setViewTeam] = useState<Team | null>(null);
@@ -20,6 +22,7 @@ const TeamsPage = () => {
         description: '',
         managerId: '',
         memberIds: [] as string[],
+        productId: '',
     });
 
     useEffect(() => {
@@ -28,14 +31,18 @@ const TeamsPage = () => {
 
     const fetchData = async () => {
         try {
-            const [teamsData, usersResponse] = await Promise.all([
+            const [teamsData, usersResponse, productsResponse] = await Promise.all([
                 teamsService.getAll(),
                 userService.getUsers(),
+                productsService.list({ limit: 1000 })
             ]);
+            console.log('Fetched teams:', teamsData);
+            console.log('Fetched products:', productsResponse?.data?.items);
             setTeams(teamsData);
             // Handle both paginated and non-paginated responses
             const fetchedUsers = usersResponse.data?.users || (Array.isArray(usersResponse.data) ? usersResponse.data : []) || [];
             setUsers(fetchedUsers);
+            setProducts(productsResponse?.data?.items || []);
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Failed to load teams');
@@ -45,6 +52,7 @@ const TeamsPage = () => {
     };
 
     const handleOpenModal = (team?: Team) => {
+        console.log('Opening modal with team:', team);
         if (team) {
             setEditTeam(team);
             setFormData({
@@ -52,6 +60,7 @@ const TeamsPage = () => {
                 description: team.description || '',
                 managerId: team.managerId?.toString() || '',
                 memberIds: team.members?.map(m => m.id.toString()).filter(id => id !== team.managerId?.toString()) || [],
+                productId: team.productId?.toString() || '',
             });
         } else {
             setEditTeam(null);
@@ -60,6 +69,7 @@ const TeamsPage = () => {
                 description: '',
                 managerId: '',
                 memberIds: [],
+                productId: '',
             });
         }
         setIsModalOpen(true);
@@ -78,7 +88,9 @@ const TeamsPage = () => {
                 description: formData.description,
                 managerId: formData.managerId ? parseInt(formData.managerId) : undefined,
                 memberIds: formData.memberIds.map(id => parseInt(id)),
+                productId: formData.productId ? parseInt(formData.productId) : undefined,
             };
+            console.log('Saving team with payload:', payload);
 
             if (editTeam) {
                 await teamsService.update(editTeam.id, payload);
@@ -106,17 +118,6 @@ const TeamsPage = () => {
                 toast.error('Failed to delete team');
             }
         }
-    };
-
-    const handleMemberSelection = (userId: string) => {
-        setFormData(prev => {
-            const currentMembers = prev.memberIds;
-            if (currentMembers.includes(userId)) {
-                return { ...prev, memberIds: currentMembers.filter(id => id !== userId) };
-            } else {
-                return { ...prev, memberIds: [...currentMembers, userId] };
-            }
-        });
     };
 
     const filteredTeams = teams.filter(team =>
@@ -159,6 +160,7 @@ const TeamsPage = () => {
                             <tr>
                                 <th className="px-6 py-4 font-medium">Team Name</th>
                                 <th className="px-6 py-4 font-medium">Manager</th>
+                                <th className="px-6 py-4 font-medium">Product</th>
                                 <th className="px-6 py-4 font-medium">Members</th>
                                 <th className="px-6 py-4 font-medium">Created At</th>
                                 <th className="px-6 py-4 font-medium text-right">Actions</th>
@@ -171,6 +173,9 @@ const TeamsPage = () => {
                                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{team.name}</td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
                                             {team.manager ? `${team.manager.firstName} ${team.manager.lastName}` : '-'}
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
+                                            {team.product ? team.product.name : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
                                             {team._count?.members || 0} Members
@@ -282,6 +287,24 @@ const TeamsPage = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Product
+                                </label>
+                                <select
+                                    value={formData.productId}
+                                    onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Select Product</option>
+                                    {products.map(product => (
+                                        <option key={product.id} value={product.id}>
+                                            {product.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                     Team Members
                                 </label>
                                 <div className="border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
@@ -292,7 +315,17 @@ const TeamsPage = () => {
                                                 <input
                                                     type="checkbox"
                                                     checked={formData.memberIds.includes(user.id.toString())}
-                                                    onChange={() => handleMemberSelection(user.id.toString())}
+                                                    onChange={() => {
+                                                        const userId = user.id.toString();
+                                                        setFormData(prev => {
+                                                            const currentMembers = prev.memberIds;
+                                                            if (currentMembers.includes(userId)) {
+                                                                return { ...prev, memberIds: currentMembers.filter(id => id !== userId) };
+                                                            } else {
+                                                                return { ...prev, memberIds: [...currentMembers, userId] };
+                                                            }
+                                                        });
+                                                    }}
                                                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                                 />
                                                 <span className="text-sm text-gray-700 dark:text-gray-300">
@@ -384,6 +417,21 @@ const TeamsPage = () => {
                                         </p>
                                     )}
                                 </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Assigned Product</h3>
+                                {viewTeam.product ? (
+                                    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                            {viewTeam.product.name}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 italic mt-1">
+                                        No product assigned.
+                                    </p>
+                                )}
                             </div>
                         </div>
 
