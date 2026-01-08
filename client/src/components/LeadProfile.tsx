@@ -2847,12 +2847,14 @@ import {
 import { leadService, Lead } from '../services/leadService';
 import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'react-toastify';
 import { userService } from '../services/userService';
 import { activityService } from '../services/activityService';
 import { notesService, Note } from '../services/notesService';
 import { tasksService } from '../services/tasksService';
 import { communicationService, Meeting } from '../services/communicationService';
+import { callLogService } from '../services/callLogService';
 import BackButton from './BackButton';
 import { Button, Container, Card } from './ui';
 import LeadTransferModal from './LeadTransferModal';
@@ -2905,9 +2907,36 @@ const LeadProfile: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const { hasPermission, user } = useAuth();
+    const { currentLanguage } = useLanguage();
+    const isArabic = currentLanguage === 'ar';
     const {
         getLeadSourceById
     } = useBusinessSettings();
+
+    // Helper function to get localized value with fallback
+    const getLocalizedValue = (arValue: string | undefined, enValue: string | undefined): string => {
+        if (isArabic && arValue && arValue.trim()) {
+            return arValue;
+        }
+        return enValue || '';
+    };
+
+    // Helper to get lead display name
+    const getLeadDisplayName = (lead: any): string => {
+        const firstName = getLocalizedValue(lead.firstNameAr, lead.firstName);
+        const lastName = getLocalizedValue(lead.lastNameAr, lead.lastName);
+        return `${firstName} ${lastName}`.trim();
+    };
+
+    // Helper to get lead company
+    const getLeadCompany = (lead: any): string => {
+        return getLocalizedValue(lead.companyAr, lead.company);
+    };
+
+    // Helper to get lead address
+    const getLeadAddress = (lead: any): string => {
+        return getLocalizedValue(lead.addressAr, lead.address);
+    };
 
     const [lead, setLead] = useState<Lead | null>(null);
     const [loading, setLoading] = useState(true);
@@ -3633,34 +3662,23 @@ const LeadProfile: React.FC = () => {
             const startTime = Date.now();
             setCallStartTime(startTime);
 
-            // Pehle call log create karein
-            const response = await fetch('/api/call-logs', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    leadId: lead.id,
-                    userId: user?.id,
-                    phoneNumber: lead.phone,
-                    callType: 'OUTBOUND',
-                    callStatus: 'INITIATED',
-                    notes: 'Call initiated from lead profile',
-                    startTime: new Date(startTime).toISOString(),
-                }),
+            // Pehle call log create karein endpoints /api/call-logs/initiate ka use karke
+            const response = await callLogService.initiateCall({
+                leadId: Number(lead.id),
+                userId: Number(user?.id),
+                phoneNumber: lead.phone,
+                callType: 'OUTBOUND',
+                callStatus: 'INITIATED',
+                notes: 'Call initiated from lead profile',
+                startTime: new Date(startTime).toISOString(),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to log call');
-            }
-
-            const result = await response.json();
+            // callLogService returns the result directly
+            const result = response;
             console.log('Call log created:', result);
 
             // Immediately update UI with safety check
-            let newCallLog = result.data || result;
+            let newCallLog = result.data?.item || result.data || result;
             if (!newCallLog.user && user) {
                 newCallLog = {
                     ...newCallLog,
@@ -4160,7 +4178,7 @@ const LeadProfile: React.FC = () => {
                                 <div className="flex-shrink-0">
                                     <div className="h-14 w-14 rounded-xl bg-weconnect-red flex items-center justify-center shadow-lg">
                                         <span className="text-white font-bold text-xl">
-                                            {lead.firstName[0]}{lead.lastName[0]}
+                                            {getLocalizedValue(lead.firstNameAr, lead.firstName)?.[0]}{getLocalizedValue(lead.lastNameAr, lead.lastName)?.[0]}
                                         </span>
                                     </div>
                                 </div>
@@ -4168,14 +4186,14 @@ const LeadProfile: React.FC = () => {
                                 {/* Info */}
                                 <div className="flex-1">
                                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                                        {lead.firstName} {lead.lastName}
+                                        {getLeadDisplayName(lead)}
                                     </h1>
 
                                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400 mb-2">
-                                        {lead.company && (
+                                        {getLeadCompany(lead) && (
                                             <span className="flex items-center">
                                                 <Building className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
-                                                {lead.company}
+                                                {getLeadCompany(lead)}
                                             </span>
                                         )}
                                         {lead.email && (
@@ -4381,12 +4399,12 @@ const LeadProfile: React.FC = () => {
                                             </div>
                                         )}
 
-                                        {lead.address && (
+                                        {getLeadAddress(lead) && (
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
                                                     Address
                                                 </label>
-                                                <p className="text-sm text-gray-900 dark:text-white">{lead.address}</p>
+                                                <p className="text-sm text-gray-900 dark:text-white">{getLeadAddress(lead)}</p>
                                             </div>
                                         )}
                                     </div>

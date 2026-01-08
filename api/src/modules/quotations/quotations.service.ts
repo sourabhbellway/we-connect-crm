@@ -594,7 +594,7 @@ export class QuotationsService {
         });
         return { success: true, data: { quotation } };
     }
-    async buildPdf(id: number): Promise<{ buffer: Buffer; filename: string }> {
+    async buildPdf(id: number, lang: string = 'en'): Promise<{ buffer: Buffer; filename: string }> {
         const quotation = await this.prisma.quotation.findFirst({
             where: { id, deletedAt: null },
             include: {
@@ -610,8 +610,87 @@ export class QuotationsService {
         const bs = await this.prisma.businessSettings.findFirst();
         const companyName = bs?.companyName || 'WE-CONNECT';
 
+        const i18n = {
+            en: {
+                quotation: 'QUOTATION',
+                quotationNo: 'Quotation No:',
+                quotationDate: 'Quotation Date:',
+                validUntil: 'Valid Until:',
+                billingDetails: 'BILLING DETAILS',
+                quotationBy: 'Quotation By:',
+                quotationTo: 'Quotation To:',
+                subject: 'Subject:',
+                sNo: 'S.No',
+                itemDescription: 'Item Description',
+                qty: 'Qty',
+                unitPrice: 'Unit Price',
+                amount: 'Amount',
+                subTotal: 'Sub Total',
+                tax: 'Tax',
+                discount: 'Discount',
+                total: 'Total',
+                amountInWords: 'Amount in Words:',
+                termsAndConditions: 'Terms and Conditions',
+                additionalNotes: 'Additional Notes',
+                contactInformation: 'Contact Information',
+                thankYou: 'Thank you for your business!',
+                page: 'Page',
+                of: 'of',
+                phone: 'Phone:',
+                email: 'Email:',
+                gstin: 'GSTIN:',
+                pan: 'PAN:',
+                cin: 'CIN:',
+            },
+            ar: {
+                quotation: 'عرض سعر',
+                quotationNo: 'رقم العرض:',
+                quotationDate: 'تاريخ العرض:',
+                validUntil: 'صالح حتى:',
+                billingDetails: 'تفاصيل الفواتير',
+                quotationBy: 'العرض من:',
+                quotationTo: 'العرض إلى:',
+                subject: 'الموضوع:',
+                sNo: 'م.',
+                itemDescription: 'الوصف',
+                qty: 'الكمية',
+                unitPrice: 'سعر الوحدة',
+                amount: 'المبلغ',
+                subTotal: 'المجموع الفرعي',
+                tax: 'الضريبة',
+                discount: 'الخصم',
+                total: 'المجموع الكلي',
+                amountInWords: 'المبلغ بالحروف:',
+                termsAndConditions: 'الشروط والأحكام',
+                additionalNotes: 'ملاحظات إضافية',
+                contactInformation: 'معلومات الاتصال',
+                thankYou: 'شكرا لتعاملكم معنا!',
+                page: 'صفحة',
+                of: 'من',
+                phone: 'هاتف:',
+                email: 'بريد إلكتروني:',
+                gstin: 'رقم الضريبة:',
+                pan: 'رقم البطاقة:',
+                cin: 'رقم السجل:',
+            }
+        };
+
+        const t = (key: string) => (i18n[lang as keyof typeof i18n] || i18n['en'])[key as keyof typeof i18n['en']] || key;
+        const isRTL = lang === 'ar';
+        const fontName = isRTL ? 'Arial' : 'Helvetica';
+        const boldFontName = isRTL ? 'Arial' : 'Helvetica-Bold';
+
         return new Promise((resolve, reject) => {
             const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });
+
+            if (isRTL) {
+                try {
+                    doc.registerFont('Arial', 'C:/Windows/Fonts/arial.ttf');
+                } catch (e) {
+                    console.warn('Could not register Arial font, falling back to Helvetica (Arabic may not render correctly).');
+                }
+            }
+
             const chunks: Buffer[] = [];
             doc.on('data', (c: any) => chunks.push(c));
             doc.on('error', (err: any) => reject(err));
@@ -662,11 +741,11 @@ export class QuotationsService {
             if (hasLogo) {
                 y += 60; // Space below logo
             }
-            doc.fontSize(18).font('Helvetica-Bold').fillColor(colors.primary).text(companyName, leftCol, y);
+            doc.fontSize(18).font(boldFontName).fillColor(colors.primary).text(companyName, leftCol, y);
             y += 25;
 
             // Company Contact Details (Below Name - Same Column)
-            doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+            doc.fontSize(8).font(fontName).fillColor(colors.text);
             if (bs?.companyAddress) {
                 const addressLines = bs.companyAddress.split(',').map((line: string) => line.trim());
                 addressLines.forEach((line: string) => {
@@ -676,23 +755,23 @@ export class QuotationsService {
             }
 
             if (bs?.companyPhone) {
-                doc.text(`Phone: ${bs.companyPhone}`, leftCol, y);
+                doc.text(`${t('phone')} ${bs.companyPhone}`, leftCol, y);
                 y += 10;
             }
             if (bs?.companyEmail) {
-                doc.text(`Email: ${bs.companyEmail}`, leftCol, y);
+                doc.text(`${t('email')} ${bs.companyEmail}`, leftCol, y);
                 y += 10;
             }
             if (bs?.gstNumber) {
-                doc.text(`GSTIN: ${bs.gstNumber}`, leftCol, y);
+                doc.text(`${t('gstin')} ${bs.gstNumber}`, leftCol, y);
                 y += 10;
             }
             if (bs?.panNumber) {
-                doc.text(`PAN: ${bs.panNumber}`, leftCol, y);
+                doc.text(`${t('pan')} ${bs.panNumber}`, leftCol, y);
                 y += 10;
             }
             if (bs?.cinNumber) {
-                doc.text(`CIN: ${bs.cinNumber}`, leftCol, y);
+                doc.text(`${t('cin')} ${bs.cinNumber}`, leftCol, y);
                 y += 10;
             }
 
@@ -701,7 +780,7 @@ export class QuotationsService {
 
             // Quotation Title with Background
             doc.rect(rightCol - 10, rightY - 5, 230, 30).fill(colors.primary);
-            doc.fontSize(16).font('Helvetica-Bold').fillColor(colors.white).text('QUOTATION', rightCol, rightY + 5);
+            doc.fontSize(16).font(boldFontName).fillColor(colors.white).text(t('quotation'), rightCol, rightY + 5);
 
             rightY += 40;
 
@@ -712,16 +791,16 @@ export class QuotationsService {
             // Quotation Number
             doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).fill(colors.light);
             doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).lineWidth(1).strokeColor(colors.border).stroke();
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('Quotation No:', rightCol, rightY + 8);
-            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.text).text(quotation.quotationNumber, rightCol + 80, rightY + 8);
+            doc.fontSize(9).font(boldFontName).fillColor(colors.lightText).text(t('quotationNo'), rightCol, rightY + 8);
+            doc.fontSize(10).font(boldFontName).fillColor(colors.text).text(quotation.quotationNumber, rightCol + 80, rightY + 8);
 
             rightY += detailsBoxHeight + detailsBoxSpacing;
 
             // Quotation Date
             doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).fill(colors.light);
             doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).lineWidth(1).strokeColor(colors.border).stroke();
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('Quotation Date:', rightCol, rightY + 8);
-            doc.fontSize(10).font('Helvetica').fillColor(colors.text).text(
+            doc.fontSize(9).font(boldFontName).fillColor(colors.lightText).text(t('quotationDate'), rightCol, rightY + 8);
+            doc.fontSize(10).font(fontName).fillColor(colors.text).text(
                 new Date(quotation.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
                 rightCol + 80, rightY + 8
             );
@@ -731,11 +810,11 @@ export class QuotationsService {
             // Valid Until
             doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).fill(colors.light);
             doc.rect(rightCol - 10, rightY, 230, detailsBoxHeight).lineWidth(1).strokeColor(colors.border).stroke();
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.lightText).text('Valid Until:', rightCol, rightY + 8);
+            doc.fontSize(9).font(boldFontName).fillColor(colors.lightText).text(t('validUntil'), rightCol, rightY + 8);
             const validDate = quotation.validUntil
                 ? new Date(quotation.validUntil).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
                 : 'N/A';
-            doc.fontSize(10).font('Helvetica').fillColor(colors.text).text(validDate, rightCol + 80, rightY + 8);
+            doc.fontSize(10).font(fontName).fillColor(colors.text).text(validDate, rightCol + 80, rightY + 8);
 
             // Set y to the maximum of both columns
             y = Math.max(y, rightY) + 20;
@@ -747,7 +826,7 @@ export class QuotationsService {
             // --- BILLING SECTION ---
             // Section Header with Background
             doc.rect(leftCol, y, 515, 25).fill(colors.lightOrange);
-            doc.fontSize(11).font('Helvetica-Bold').fillColor(colors.primary).text('BILLING DETAILS', leftCol + 10, y + 8);
+            doc.fontSize(11).font(boldFontName).fillColor(colors.primary).text(t('billingDetails'), leftCol + 10, y + 8);
             y += 30;
 
             // Two Column Layout
@@ -756,13 +835,13 @@ export class QuotationsService {
 
             // Left Column: Quotation By
             let leftY = y;
-            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Quotation By:', billingLeftCol, leftY);
+            doc.fontSize(10).font(boldFontName).fillColor(colors.primary).text(t('quotationBy'), billingLeftCol, leftY);
             leftY += 15;
 
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.text).text(companyName, billingLeftCol, leftY);
+            doc.fontSize(9).font(boldFontName).fillColor(colors.text).text(companyName, billingLeftCol, leftY);
             leftY += 12;
 
-            doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+            doc.fontSize(8).font(fontName).fillColor(colors.text);
             if (bs?.companyAddress) {
                 const addressLines = bs.companyAddress.split(',').map((line: string) => line.trim());
                 addressLines.forEach((line: string) => {
@@ -772,27 +851,27 @@ export class QuotationsService {
             }
 
             if (bs?.companyPhone) {
-                doc.text(`Phone: ${bs.companyPhone}`, billingLeftCol, leftY);
+                doc.text(`${t('phone')} ${bs.companyPhone}`, billingLeftCol, leftY);
                 leftY += 10;
             }
             if (bs?.companyEmail) {
-                doc.text(`Email: ${bs.companyEmail}`, billingLeftCol, leftY);
+                doc.text(`${t('email')} ${bs.companyEmail}`, billingLeftCol, leftY);
                 leftY += 10;
             }
 
             // Right Column: Quotation To
             let customerY = y;
-            doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Quotation To:', billingRightCol, customerY);
+            doc.fontSize(10).font(boldFontName).fillColor(colors.primary).text(t('quotationTo'), billingRightCol, customerY);
             customerY += 15;
 
             const customerName = quotation.lead
                 ? `${quotation.lead.firstName || ''} ${quotation.lead.lastName || ''}`.trim()
                 : quotation.companies?.name || 'Valued Customer';
 
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.text).text(customerName, billingRightCol, customerY);
+            doc.fontSize(9).font(boldFontName).fillColor(colors.text).text(customerName, billingRightCol, customerY);
             customerY += 12;
 
-            doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+            doc.fontSize(8).font(fontName).fillColor(colors.text);
             if (quotation.lead?.company) {
                 doc.text(quotation.lead.company, billingRightCol, customerY);
                 customerY += 10;
@@ -809,11 +888,11 @@ export class QuotationsService {
                 customerY += 10;
             }
             if (quotation.lead?.phone) {
-                doc.text(`Phone: ${quotation.lead.phone}`, billingRightCol, customerY);
+                doc.text(`${t('phone')} ${quotation.lead.phone}`, billingRightCol, customerY);
                 customerY += 10;
             }
             if (quotation.lead?.email) {
-                doc.text(`Email: ${quotation.lead.email}`, billingRightCol, customerY);
+                doc.text(`${t('email')} ${quotation.lead.email}`, billingRightCol, customerY);
                 customerY += 10;
             }
 
@@ -827,8 +906,8 @@ export class QuotationsService {
             // --- SUBJECT LINE ---
             if (quotation.title) {
                 doc.rect(leftCol, y, 515, 20).fill(colors.lightOrange);
-                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.text).text(
-                    `Subject: ${quotation.title}`,
+                doc.fontSize(10).font(boldFontName).fillColor(colors.text).text(
+                    `${t('subject')} ${quotation.title}`,
                     leftCol + 10, y + 5
                 );
                 y += 30;
@@ -839,12 +918,12 @@ export class QuotationsService {
             const tableTop = y;
             doc.rect(leftCol, tableTop, 515, 25).fill(colors.primary);
 
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.white);
-            doc.text('S.No', leftCol + 5, tableTop + 8, { width: 25, align: 'center' });
-            doc.text('Item Description', leftCol + 40, tableTop + 8);
-            doc.text('Qty', leftCol + 285, tableTop + 8, { width: 35, align: 'center' });
-            doc.text('Unit Price', leftCol + 325, tableTop + 8, { width: 90, align: 'right' });
-            doc.text('Amount', leftCol + 420, tableTop + 8, { width: 90, align: 'right' });
+            doc.fontSize(9).font(boldFontName).fillColor(colors.white);
+            doc.text(t('sNo'), leftCol + 5, tableTop + 8, { width: 25, align: 'center' });
+            doc.text(t('itemDescription'), leftCol + 40, tableTop + 8);
+            doc.text(t('qty'), leftCol + 285, tableTop + 8, { width: 35, align: 'center' });
+            doc.text(t('unitPrice'), leftCol + 325, tableTop + 8, { width: 90, align: 'right' });
+            doc.text(t('amount'), leftCol + 420, tableTop + 8, { width: 90, align: 'right' });
 
             y = tableTop + 25;
 
@@ -856,16 +935,16 @@ export class QuotationsService {
 
                     // Repeat table header on new page
                     doc.rect(leftCol, y, 515, 25).fill(colors.primary);
-                    doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.white);
-                    doc.text('S.No', leftCol + 5, y + 8, { width: 25, align: 'center' });
-                    doc.text('Item Description', leftCol + 40, y + 8);
-                    doc.text('Qty', leftCol + 285, y + 8, { width: 35, align: 'center' });
-                    doc.text('Unit Price', leftCol + 325, y + 8, { width: 90, align: 'right' });
-                    doc.text('Amount', leftCol + 420, y + 8, { width: 90, align: 'right' });
+                    doc.fontSize(9).font(boldFontName).fillColor(colors.white);
+                    doc.text(t('sNo'), leftCol + 5, y + 8, { width: 25, align: 'center' });
+                    doc.text(t('itemDescription'), leftCol + 40, y + 8);
+                    doc.text(t('qty'), leftCol + 285, y + 8, { width: 35, align: 'center' });
+                    doc.text(t('unitPrice'), leftCol + 325, y + 8, { width: 90, align: 'right' });
+                    doc.text(t('amount'), leftCol + 420, y + 8, { width: 90, align: 'right' });
                     y += 25;
                 }
 
-                const rowHeight = 25;
+                const rowHeight = Math.max(25, doc.heightOfString(item.name, { width: 240, font: fontName }) + 10);
 
                 // Alternating row background
                 if (index % 2 === 0) {
@@ -875,7 +954,7 @@ export class QuotationsService {
                 // Row border
                 doc.rect(leftCol, y, 515, rowHeight).lineWidth(0.5).strokeColor(colors.border).stroke();
 
-                doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+                doc.fontSize(8).font(fontName).fillColor(colors.text);
                 doc.text(String(index + 1), leftCol + 5, y + 8, { width: 25, align: 'center' });
                 doc.text(item.name, leftCol + 40, y + 8, { width: 240 });
                 doc.text(String(item.quantity), leftCol + 285, y + 8, { width: 35, align: 'center' });
@@ -905,8 +984,8 @@ export class QuotationsService {
             doc.rect(totalsX - 15, y - 10, totalsLabelWidth + totalsValueWidth + 25, 110).lineWidth(1).strokeColor(colors.border).stroke();
 
             // Subtotal
-            doc.fontSize(9).font('Helvetica').fillColor(colors.text);
-            doc.text('Sub Total', totalsX, y);
+            doc.fontSize(9).font(fontName).fillColor(colors.text);
+            doc.text(t('subTotal'), totalsX, y);
             doc.text(
                 `${quotation.currency} ${Number(quotation.subtotal).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
                 totalsX + totalsLabelWidth, y, { width: totalsValueWidth, align: 'right' }
@@ -915,7 +994,7 @@ export class QuotationsService {
 
             // Tax amount if applicable
             if (Number(quotation.taxAmount) > 0) {
-                doc.text('Tax', totalsX, y);
+                doc.text(t('tax'), totalsX, y);
                 doc.text(
                     `${quotation.currency} ${Number(quotation.taxAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
                     totalsX + totalsLabelWidth, y, { width: totalsValueWidth, align: 'right' }
@@ -925,7 +1004,7 @@ export class QuotationsService {
 
             // Discount amount if applicable
             if (Number(quotation.discountAmount) > 0) {
-                doc.text('Discount', totalsX, y);
+                doc.text(t('discount'), totalsX, y);
                 doc.text(
                     `- ${quotation.currency} ${Number(quotation.discountAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
                     totalsX + totalsLabelWidth, y, { width: totalsValueWidth, align: 'right' }
@@ -939,8 +1018,8 @@ export class QuotationsService {
 
             // Total with highlighted background
             doc.rect(totalsX - 10, y - 5, totalsLabelWidth + totalsValueWidth + 20, 25).fill(colors.tertiary);
-            doc.fontSize(11).font('Helvetica-Bold').fillColor(colors.white);
-            doc.text('Total', totalsX, y + 2);
+            doc.fontSize(11).font(boldFontName).fillColor(colors.white);
+            doc.text(t('total'), totalsX, y + 2);
             doc.text(
                 `${quotation.currency} ${Number(quotation.totalAmount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
                 totalsX + totalsLabelWidth, y + 2, { width: totalsValueWidth, align: 'right' }
@@ -951,7 +1030,7 @@ export class QuotationsService {
             // Amount in words
             const amountInWords = this.numberToWords(Number(quotation.totalAmount));
             doc.fontSize(8).font('Helvetica-Oblique').fillColor(colors.text).text(
-                `Amount in Words: ${amountInWords}`,
+                `${t('amountInWords')} ${amountInWords}`,
                 leftCol, y
             );
 
@@ -961,11 +1040,11 @@ export class QuotationsService {
             if (quotation.terms) {
                 // Section Header with Background
                 doc.rect(leftCol, y, 515, 20).fill(colors.lightOrange);
-                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Terms and Conditions', leftCol + 10, y + 5);
+                doc.fontSize(10).font(boldFontName).fillColor(colors.primary).text(t('termsAndConditions'), leftCol + 10, y + 5);
                 y += 25;
 
                 const termsLines = quotation.terms.split('\n');
-                doc.fontSize(8).font('Helvetica').fillColor(colors.text);
+                doc.fontSize(8).font(fontName).fillColor(colors.text);
                 termsLines.forEach((line: string, idx: number) => {
                     doc.text(`${idx + 1}. ${line}`, leftCol + 10, y, { width: 515 });
                     y += 12;
@@ -977,10 +1056,10 @@ export class QuotationsService {
             if (quotation.notes) {
                 // Section Header with Background
                 doc.rect(leftCol, y, 515, 20).fill(colors.lightOrange);
-                doc.fontSize(10).font('Helvetica-Bold').fillColor(colors.primary).text('Additional Notes', leftCol + 10, y + 5);
+                doc.fontSize(10).font(boldFontName).fillColor(colors.primary).text(t('additionalNotes'), leftCol + 10, y + 5);
                 y += 25;
 
-                doc.fontSize(8).font('Helvetica').fillColor(colors.text).text(quotation.notes, leftCol + 10, y, { width: 515, lineGap: 2 });
+                doc.fontSize(8).font(fontName).fillColor(colors.text).text(quotation.notes, leftCol + 10, y, { width: 515, lineGap: 2 });
                 y += doc.heightOfString(quotation.notes, { width: 515 }) + 20;
             }
 
@@ -998,16 +1077,16 @@ export class QuotationsService {
             doc.rect(0, y + 20, 595, 60).fill(colors.light);
 
             // Contact Information
-            doc.fontSize(9).font('Helvetica-Bold').fillColor(colors.primary).text('Contact Information', leftCol, y + 30);
-            doc.fontSize(8).font('Helvetica').fillColor(colors.text).text(
-                `Email: ${bs?.companyEmail || 'info@company.com'} | Phone: ${bs?.companyPhone || '+91-XXXXXXXXXX'}`,
+            doc.fontSize(9).font(boldFontName).fillColor(colors.primary).text(t('contactInformation'), leftCol, y + 30);
+            doc.fontSize(8).font(fontName).fillColor(colors.text).text(
+                `${t('email')} ${bs?.companyEmail || 'info@company.com'} | ${t('phone')} ${bs?.companyPhone || '+91-XXXXXXXXXX'}`,
                 leftCol, y + 45
             );
             doc.text(`Website: ${bs?.companyWebsite || 'www.example.com'}`, leftCol, y + 60);
 
             // Thank You Note - Centered
-            doc.fontSize(12).font('Helvetica-Bold').fillColor(colors.secondary).text(
-                'Thank you for your business!',
+            doc.fontSize(12).font(boldFontName).fillColor(colors.secondary).text(
+                t('thankYou'),
                 0, y + 45,
                 { align: 'center', width: 595 }
             );
@@ -1016,8 +1095,8 @@ export class QuotationsService {
             const range = doc.bufferedPageRange();
             for (let i = range.start; i <= range.start + range.count - 1; i++) {
                 doc.switchToPage(i);
-                doc.fontSize(8).font('Helvetica').fillColor(colors.lightText).text(
-                    `Page ${i + 1} of ${range.start + range.count}`,
+                doc.fontSize(8).font(fontName).fillColor(colors.lightText).text(
+                    `${t('page')} ${i + 1} ${t('of')} ${range.start + range.count}`,
                     0, 820, { align: 'center', width: 595 }
                 );
             }

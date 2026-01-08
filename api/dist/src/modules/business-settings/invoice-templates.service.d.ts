@@ -6,11 +6,11 @@ export declare class InvoiceTemplatesService implements OnModuleInit {
     onModuleInit(): Promise<void>;
     seedDefaults(): Promise<void>;
     findAll(): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         designType: string;
@@ -26,11 +26,11 @@ export declare class InvoiceTemplatesService implements OnModuleInit {
         styles: import("@prisma/client/runtime/library").JsonValue | null;
     }[]>;
     findOne(id: number): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         designType: string;
@@ -46,11 +46,11 @@ export declare class InvoiceTemplatesService implements OnModuleInit {
         styles: import("@prisma/client/runtime/library").JsonValue | null;
     } | null>;
     findDefault(): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         designType: string;
@@ -66,11 +66,11 @@ export declare class InvoiceTemplatesService implements OnModuleInit {
         styles: import("@prisma/client/runtime/library").JsonValue | null;
     } | null>;
     create(data: any): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         designType: string;
@@ -86,11 +86,11 @@ export declare class InvoiceTemplatesService implements OnModuleInit {
         styles: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     update(id: number, data: any): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         designType: string;
@@ -106,11 +106,11 @@ export declare class InvoiceTemplatesService implements OnModuleInit {
         styles: import("@prisma/client/runtime/library").JsonValue | null;
     }>;
     delete(id: number): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         designType: string;

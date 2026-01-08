@@ -573,6 +573,8 @@ let UsersService = UsersService_1 = class UsersService {
             }
             data.email = dto.email;
         }
+        if (dto.language !== undefined)
+            data.language = dto.language;
         try {
             const updated = await this.prisma.user.update({ where: { id }, data });
             return { success: true, data: { user: updated } };

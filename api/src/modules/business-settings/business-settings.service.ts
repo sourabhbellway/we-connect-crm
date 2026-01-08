@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { CommunicationsService } from '../communications/communications.service';
 import { EmailTemplateCategory, LeadStatus } from '@prisma/client';
 
 // Map DB BusinessSettings to frontend CompanySettings shape
@@ -28,7 +29,10 @@ function mapToCompanySettings(bs: any) {
 
 @Injectable()
 export class BusinessSettingsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly communicationsService: CommunicationsService,
+  ) { }
   private generateUniqueColor() {
     return (
       '#' +
@@ -1036,41 +1040,45 @@ export class BusinessSettingsService {
     const defaultConfigs = [
       // Personal Information
       { entityType: 'lead', fieldName: 'firstName', label: 'First Name', isRequired: true, section: 'personal', displayOrder: 1, validation: { type: 'text', minLength: 2, maxLength: 50 } },
-      { entityType: 'lead', fieldName: 'lastName', label: 'Last Name', isRequired: true, section: 'personal', displayOrder: 2, validation: { type: 'text', minLength: 2, maxLength: 50 } },
-      { entityType: 'lead', fieldName: 'email', label: 'Email', isRequired: true, section: 'personal', displayOrder: 3, validation: { type: 'email' } },
-      { entityType: 'lead', fieldName: 'phone', label: 'Phone', isRequired: true, section: 'personal', displayOrder: 4, validation: { type: 'phone' } },
+      { entityType: 'lead', fieldName: 'firstNameAr', label: 'First Name (Arabic)', isRequired: false, section: 'personal', displayOrder: 2, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'lastName', label: 'Last Name', isRequired: true, section: 'personal', displayOrder: 3, validation: { type: 'text', minLength: 2, maxLength: 50 } },
+      { entityType: 'lead', fieldName: 'lastNameAr', label: 'Last Name (Arabic)', isRequired: false, section: 'personal', displayOrder: 4, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'email', label: 'Email', isRequired: true, section: 'personal', displayOrder: 5, validation: { type: 'email' } },
+      { entityType: 'lead', fieldName: 'phone', label: 'Phone', isRequired: true, section: 'personal', displayOrder: 6, validation: { type: 'phone' } },
 
       // Company Information
-      { entityType: 'lead', fieldName: 'company', label: 'Company', isRequired: true, section: 'company', displayOrder: 5, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'position', label: 'Position/Job Title', isRequired: false, section: 'company', displayOrder: 6, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'industry', label: 'Industry', isRequired: false, section: 'company', displayOrder: 7, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'website', label: 'Company Website', isRequired: false, section: 'company', displayOrder: 8, validation: { type: 'url' } },
-      { entityType: 'lead', fieldName: 'companySize', label: 'Company Size', isRequired: false, section: 'company', displayOrder: 9, validation: { type: 'number', min: 0 } },
-      { entityType: 'lead', fieldName: 'annualRevenue', label: 'Annual Revenue', isRequired: false, section: 'company', displayOrder: 10, validation: { type: 'number', min: 0 } },
+      { entityType: 'lead', fieldName: 'company', label: 'Company', isRequired: true, section: 'company', displayOrder: 7, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'companyAr', label: 'Company (Arabic)', isRequired: false, section: 'company', displayOrder: 8, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'position', label: 'Position/Job Title', isRequired: false, section: 'company', displayOrder: 9, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'industry', label: 'Industry', isRequired: false, section: 'company', displayOrder: 10, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'website', label: 'Company Website', isRequired: false, section: 'company', displayOrder: 11, validation: { type: 'url' } },
+      { entityType: 'lead', fieldName: 'companySize', label: 'Company Size', isRequired: false, section: 'company', displayOrder: 12, validation: { type: 'number', min: 0 } },
+      { entityType: 'lead', fieldName: 'annualRevenue', label: 'Annual Revenue', isRequired: false, section: 'company', displayOrder: 13, validation: { type: 'number', min: 0 } },
 
       // Location Information
-      { entityType: 'lead', fieldName: 'country', label: 'Country', isRequired: false, section: 'location', displayOrder: 11, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'state', label: 'State/Province', isRequired: false, section: 'location', displayOrder: 12, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'city', label: 'City', isRequired: false, section: 'location', displayOrder: 13, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'zipCode', label: 'ZIP/Postal Code', isRequired: false, section: 'location', displayOrder: 14, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'address', label: 'Address', isRequired: false, section: 'location', displayOrder: 15, validation: { type: 'textarea' } },
-      { entityType: 'lead', fieldName: 'timezone', label: 'Timezone', isRequired: false, section: 'location', displayOrder: 16, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', isRequired: false, section: 'location', displayOrder: 17, validation: { type: 'url' } },
+      { entityType: 'lead', fieldName: 'country', label: 'Country', isRequired: false, section: 'location', displayOrder: 14, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'state', label: 'State/Province', isRequired: false, section: 'location', displayOrder: 15, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'city', label: 'City', isRequired: false, section: 'location', displayOrder: 16, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'zipCode', label: 'ZIP/Postal Code', isRequired: false, section: 'location', displayOrder: 17, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'address', label: 'Address', isRequired: false, section: 'location', displayOrder: 18, validation: { type: 'textarea' } },
+      { entityType: 'lead', fieldName: 'addressAr', label: 'Address (Arabic)', isRequired: false, section: 'location', displayOrder: 19, validation: { type: 'textarea' } },
+      { entityType: 'lead', fieldName: 'timezone', label: 'Timezone', isRequired: false, section: 'location', displayOrder: 20, validation: { type: 'text' } },
+      { entityType: 'lead', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', isRequired: false, section: 'location', displayOrder: 21, validation: { type: 'url' } },
 
       // Lead Management
-      { entityType: 'lead', fieldName: 'sourceId', label: 'Lead Source', isRequired: false, section: 'lead_management', displayOrder: 18, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'status', label: 'Status', isRequired: true, section: 'lead_management', displayOrder: 19, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'priority', label: 'Priority', isRequired: false, section: 'lead_management', displayOrder: 20, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'assignedTo', label: 'Assigned To', isRequired: false, section: 'lead_management', displayOrder: 21, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'budget', label: 'Expected Budget', isRequired: false, section: 'lead_management', displayOrder: 22, validation: { type: 'number', min: 0 } },
-      { entityType: 'lead', fieldName: 'currency', label: 'Currency', isRequired: false, section: 'lead_management', displayOrder: 23, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'leadScore', label: 'Lead Score', isRequired: false, section: 'lead_management', displayOrder: 24, validation: { type: 'number', min: 0, max: 100 } },
-      { entityType: 'lead', fieldName: 'preferredContactMethod', label: 'Preferred Contact Method', isRequired: false, section: 'lead_management', displayOrder: 25, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'nextFollowUpAt', label: 'Next Follow-up Date', isRequired: false, section: 'lead_management', displayOrder: 26, validation: { type: 'datetime' } },
+      { entityType: 'lead', fieldName: 'sourceId', label: 'Lead Source', isRequired: false, section: 'lead_management', displayOrder: 22, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'status', label: 'Status', isRequired: true, section: 'lead_management', displayOrder: 23, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'priority', label: 'Priority', isRequired: false, section: 'lead_management', displayOrder: 24, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'assignedTo', label: 'Assigned To', isRequired: false, section: 'lead_management', displayOrder: 25, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'budget', label: 'Expected Budget', isRequired: false, section: 'lead_management', displayOrder: 26, validation: { type: 'number', min: 0 } },
+      { entityType: 'lead', fieldName: 'currency', label: 'Currency', isRequired: false, section: 'lead_management', displayOrder: 27, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'leadScore', label: 'Lead Score', isRequired: false, section: 'lead_management', displayOrder: 28, validation: { type: 'number', min: 0, max: 100 } },
+      { entityType: 'lead', fieldName: 'preferredContactMethod', label: 'Preferred Contact Method', isRequired: false, section: 'lead_management', displayOrder: 29, validation: { type: 'select' } },
+      { entityType: 'lead', fieldName: 'nextFollowUpAt', label: 'Next Follow-up Date', isRequired: false, section: 'lead_management', displayOrder: 30, validation: { type: 'datetime' } },
 
       // Notes and Tags
-      { entityType: 'lead', fieldName: 'notes', label: 'Notes', isRequired: false, section: 'notes', displayOrder: 27, validation: { type: 'textarea' } },
-      { entityType: 'lead', fieldName: 'tags', label: 'Tags', isRequired: false, section: 'notes', displayOrder: 28, validation: { type: 'multiselect' } },
+      { entityType: 'lead', fieldName: 'notes', label: 'Notes', isRequired: false, section: 'notes', displayOrder: 31, validation: { type: 'textarea' } },
+      { entityType: 'lead', fieldName: 'tags', label: 'Tags', isRequired: false, section: 'notes', displayOrder: 32, validation: { type: 'multiselect' } },
     ];
 
     for (const config of defaultConfigs) {
@@ -1271,5 +1279,22 @@ export class BusinessSettingsService {
       where: { id: Number(id) },
     });
     return { success: true };
+  }
+
+  // VOIP Methods
+  async getVoIPConfig() {
+    return this.communicationsService.getVoIPConfig();
+  }
+
+  async saveVoIPConfig(dto: any) {
+    return this.communicationsService.saveVoIPConfig(dto);
+  }
+
+  async getVoIPCallHistory(query: any) {
+    return this.communicationsService.getVoIPCallHistory(query);
+  }
+
+  async getVoIPStatistics() {
+    return this.communicationsService.getVoIPStatistics();
   }
 }

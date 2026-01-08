@@ -744,6 +744,443 @@ let CommunicationsService = CommunicationsService_1 = class CommunicationsServic
             return { success: false, message: 'Failed to send meeting email', error: error.message };
         }
     }
+    async getVoIPConfig() {
+        try {
+            const config = await this.prisma.voIPConfiguration.findFirst({
+                where: { isActive: true },
+            });
+            if (!config) {
+                return {
+                    success: false,
+                    message: 'VoIP configuration not found',
+                };
+            }
+            return {
+                success: true,
+                data: { config },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error fetching VoIP config:', error);
+            return {
+                success: false,
+                message: 'Failed to fetch VoIP configuration',
+                error: error.message,
+            };
+        }
+    }
+    async saveVoIPConfig(dto) {
+        try {
+            const existingConfig = await this.prisma.voIPConfiguration.findFirst();
+            let config;
+            if (existingConfig) {
+                config = await this.prisma.voIPConfiguration.update({
+                    where: { id: existingConfig.id },
+                    data: {
+                        provider: dto.provider,
+                        apiKey: dto.apiKey,
+                        apiSecret: dto.apiSecret,
+                        accountSid: dto.accountSid,
+                        authToken: dto.authToken,
+                        regions: dto.regions,
+                        defaultRegion: dto.defaultRegion,
+                        enableCallRecording: dto.enableCallRecording,
+                        recordingStorage: dto.recordingStorage,
+                        enableVideoCalls: dto.enableVideoCalls,
+                        isActive: dto.isActive !== undefined ? dto.isActive : true,
+                        metadata: dto.metadata,
+                    },
+                });
+            }
+            else {
+                config = await this.prisma.voIPConfiguration.create({
+                    data: {
+                        provider: dto.provider,
+                        apiKey: dto.apiKey,
+                        apiSecret: dto.apiSecret,
+                        accountSid: dto.accountSid,
+                        authToken: dto.authToken,
+                        regions: dto.regions,
+                        defaultRegion: dto.defaultRegion,
+                        enableCallRecording: dto.enableCallRecording,
+                        recordingStorage: dto.recordingStorage,
+                        enableVideoCalls: dto.enableVideoCalls,
+                        isActive: dto.isActive !== undefined ? dto.isActive : true,
+                        metadata: dto.metadata,
+                    },
+                });
+            }
+            return {
+                success: true,
+                message: 'VoIP configuration saved successfully',
+                data: { config },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error saving VoIP config:', error);
+            return {
+                success: false,
+                message: 'Failed to save VoIP configuration',
+                error: error.message,
+            };
+        }
+    }
+    async initiateVoIPCall(dto) {
+        try {
+            const config = await this.prisma.voIPConfiguration.findFirst({
+                where: { isActive: true },
+            });
+            if (!config) {
+                return {
+                    success: false,
+                    message: 'VoIP provider not configured',
+                };
+            }
+            const callId = `call_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            let token = null;
+            if (config.provider === 'twilio' && config.accountSid && config.apiKey && config.apiSecret) {
+                try {
+                    const Twilio = require('twilio');
+                    const AccessToken = Twilio.jwt.AccessToken;
+                    const VoiceGrant = AccessToken.VoiceGrant;
+                    const accessToken = new AccessToken(config.accountSid, config.apiKey, config.apiSecret, { identity: `user_${dto.userId}` });
+                    const twimlAppSid = config.metadata?.twimlAppSid;
+                    if (twimlAppSid) {
+                        const voiceGrant = new VoiceGrant({
+                            outgoingApplicationSid: twimlAppSid,
+                            incomingAllow: true,
+                        });
+                        accessToken.addGrant(voiceGrant);
+                        token = accessToken.toJwt();
+                    }
+                    else {
+                        this.logger.warn('TwiML App SID not found in VoIP Configuration metadata. Outbound calls may fail.');
+                    }
+                }
+                catch (error) {
+                    this.logger.error('Error generating Twilio token:', error);
+                }
+            }
+            const callLog = await this.prisma.voIPCall.create({
+                data: {
+                    callId: callId,
+                    leadId: dto.leadId,
+                    userId: dto.userId,
+                    phoneNumber: dto.phoneNumber,
+                    callType: dto.callType,
+                    status: 'initiated',
+                    region: dto.region || config.defaultRegion || 'india',
+                    isRecorded: dto.recordCall || false,
+                    provider: config.provider,
+                    metadata: {
+                        ...dto.metadata,
+                        isTwilio: config.provider === 'twilio'
+                    },
+                },
+            });
+            await this.prisma.activity.create({
+                data: {
+                    type: 'COMMUNICATION_LOGGED',
+                    title: `${dto.callType === 'video' ? 'Video' : 'VoIP'} Call Initiated`,
+                    description: `Initiated ${dto.callType} call to ${dto.phoneNumber}`,
+                    icon: dto.callType === 'video' ? 'Video' : 'Phone',
+                    iconColor: '#10B981',
+                    metadata: {
+                        callId: callId,
+                        leadId: dto.leadId,
+                        phoneNumber: dto.phoneNumber,
+                        callType: dto.callType,
+                        type: 'VOIP_CALL',
+                    },
+                    userId: dto.userId,
+                    leadId: dto.leadId,
+                },
+            });
+            return {
+                success: true,
+                message: `${dto.callType === 'video' ? 'Video' : 'VoIP'} call initiated successfully`,
+                data: {
+                    callId: callId,
+                    callLogId: callLog.id,
+                    provider: config.provider,
+                    token: token,
+                },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error initiating VoIP call:', error);
+            return {
+                success: false,
+                message: 'Failed to initiate VoIP call',
+                error: error.message,
+            };
+        }
+    }
+    async generateTwiML(body) {
+        try {
+            const Twilio = require('twilio');
+            const VoiceResponse = Twilio.twiml.VoiceResponse;
+            const response = new VoiceResponse();
+            const { To, CallId, Region } = body;
+            if (To) {
+                const dial = response.dial({
+                    callerId: process.env.TWILIO_OD_NUMBER || undefined,
+                    answerOnBridge: true,
+                });
+                dial.number(To);
+            }
+            else {
+                response.say('Invalid phone number.');
+            }
+            return response.toString();
+        }
+        catch (error) {
+            this.logger.error('Error generating TwiML:', error);
+            return '<?xml version="1.0" encoding="UTF-8"?><Response><Say>Error generating call instructions.</Say></Response>';
+        }
+    }
+    async handleVoIPWebhook(dto) {
+        try {
+            this.logger.log(`Received VoIP webhook for call: ${dto.callId}, status: ${dto.status}`);
+            const callLog = await this.prisma.voIPCall.findFirst({
+                where: { callId: dto.callId },
+            });
+            if (!callLog) {
+                this.logger.warn(`No VoIP call found for callId: ${dto.callId}`);
+                return {
+                    success: false,
+                    message: 'VoIP call not found',
+                    data: { callId: dto.callId },
+                };
+            }
+            const updatedCall = await this.prisma.voIPCall.update({
+                where: { id: callLog.id },
+                data: {
+                    status: dto.status,
+                    duration: dto.duration,
+                    endTime: dto.status === 'completed' ? new Date() : undefined,
+                    recordingUrl: dto.recordingUrl,
+                    isRecorded: dto.isRecorded,
+                    errorMessage: dto.errorMessage,
+                    errorCode: dto.errorCode,
+                    metadata: {
+                        ...callLog.metadata,
+                        ...dto.metadata,
+                        webhookReceivedAt: new Date().toISOString(),
+                    },
+                },
+            });
+            await this.prisma.activity.create({
+                data: {
+                    type: 'COMMUNICATION_LOGGED',
+                    title: `VoIP Call ${dto.status.charAt(0).toUpperCase() + dto.status.slice(1)}`,
+                    description: `VoIP call ${dto.status} with ${callLog.phoneNumber}`,
+                    icon: 'Phone',
+                    iconColor: this.getCallStatusColor(dto.status),
+                    metadata: {
+                        callId: dto.callId,
+                        leadId: callLog.leadId,
+                        status: dto.status,
+                        duration: dto.duration,
+                        type: 'VOIP_CALL_STATUS',
+                    },
+                    userId: callLog.userId,
+                    leadId: callLog.leadId,
+                },
+            });
+            const lead = await this.prisma.lead.findUnique({
+                where: { id: callLog.leadId },
+                select: { assignedTo: true },
+            });
+            if (lead?.assignedTo) {
+                try {
+                    await this.notificationsService.create({
+                        userId: lead.assignedTo,
+                        type: client_1.NotificationType.COMMUNICATION_LOGGED,
+                        title: `VoIP Call ${dto.status.charAt(0).toUpperCase() + dto.status.slice(1)}`,
+                        message: `VoIP call with ${callLog.phoneNumber} has been ${dto.status}`,
+                        link: `/leads/${callLog.leadId}`,
+                        metadata: {
+                            callId: dto.callId,
+                            leadId: callLog.leadId,
+                            status: dto.status,
+                            type: 'VOIP_CALL',
+                        },
+                    });
+                }
+                catch (error) {
+                    this.logger.error('Failed to send VoIP notification:', error);
+                }
+            }
+            this.logger.log(`VoIP call ${dto.status}: ${dto.callId} for lead: ${callLog.leadId}`);
+            return {
+                success: true,
+                message: 'VoIP webhook processed successfully',
+                data: {
+                    callId: dto.callId,
+                    status: dto.status,
+                    leadId: callLog.leadId,
+                },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error processing VoIP webhook:', error);
+            return {
+                success: false,
+                message: 'Failed to process VoIP webhook',
+                error: error.message,
+            };
+        }
+    }
+    async getVoIPCallHistory({ leadId, userId, status, region, page = 1, limit = 10, }, user) {
+        try {
+            const where = {};
+            if (leadId)
+                where.leadId = leadId;
+            if (userId)
+                where.userId = userId;
+            if (status)
+                where.status = status;
+            if (region)
+                where.region = region;
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    if (where.AND) {
+                        where.AND.push(roleBasedWhere);
+                    }
+                    else {
+                        where.AND = [roleBasedWhere];
+                    }
+                }
+            }
+            const [calls, total] = await Promise.all([
+                this.prisma.voIPCall.findMany({
+                    where,
+                    include: {
+                        user: { select: { id: true, firstName: true, lastName: true } },
+                        lead: { select: { id: true, firstName: true, lastName: true, company: true } },
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    skip: (page - 1) * limit,
+                    take: limit,
+                }),
+                this.prisma.voIPCall.count({ where }),
+            ]);
+            return {
+                success: true,
+                data: {
+                    calls,
+                    pagination: {
+                        currentPage: page,
+                        totalPages: Math.ceil(total / limit),
+                        totalItems: total,
+                        itemsPerPage: limit,
+                    },
+                },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error fetching VoIP call history:', error);
+            return {
+                success: false,
+                message: 'Failed to fetch VoIP call history',
+                error: error.message,
+            };
+        }
+    }
+    async getVoIPStatistics(user) {
+        try {
+            const where = {};
+            if (user && user.userId) {
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['userId']);
+                if (Object.keys(roleBasedWhere).length > 0) {
+                    where.AND = [roleBasedWhere];
+                }
+            }
+            const totalCalls = await this.prisma.voIPCall.count({ where });
+            const answeredCalls = await this.prisma.voIPCall.count({
+                where: { ...where, status: 'answered' },
+            });
+            const completedCalls = await this.prisma.voIPCall.count({
+                where: { ...where, status: 'completed' },
+            });
+            const videoCalls = await this.prisma.voIPCall.count({
+                where: { ...where, callType: 'video' },
+            });
+            const audioCalls = await this.prisma.voIPCall.count({
+                where: { ...where, callType: 'audio' },
+            });
+            const avgDuration = await this.prisma.voIPCall.aggregate({
+                where: { ...where, status: 'completed', duration: { not: null } },
+                _avg: { duration: true },
+            });
+            const indiaCalls = await this.prisma.voIPCall.count({
+                where: { ...where, region: 'india' },
+            });
+            const arabicCalls = await this.prisma.voIPCall.count({
+                where: { ...where, region: 'arabic' },
+            });
+            return {
+                success: true,
+                data: {
+                    totalCalls,
+                    answeredCalls,
+                    completedCalls,
+                    videoCalls,
+                    audioCalls,
+                    averageCallDuration: avgDuration._avg?.duration || 0,
+                    indiaCalls,
+                    arabicCalls,
+                    answerRate: totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0,
+                    completionRate: totalCalls > 0 ? (completedCalls / totalCalls) * 100 : 0,
+                },
+            };
+        }
+        catch (error) {
+            this.logger.error('Error fetching VoIP statistics:', error);
+            return {
+                success: false,
+                message: 'Failed to fetch VoIP statistics',
+                error: error.message,
+            };
+        }
+    }
+    getCallStatusColor(status) {
+        switch (status.toLowerCase()) {
+            case 'initiated':
+                return '#3B82F6';
+            case 'ringing':
+                return '#8B5CF6';
+            case 'answered':
+                return '#10B981';
+            case 'completed':
+                return '#059669';
+            case 'failed':
+                return '#EF4444';
+            case 'busy':
+                return '#F59E0B';
+            case 'no_answer':
+                return '#6B7280';
+            case 'cancelled':
+                return '#9CA3AF';
+            default:
+                return '#6B7280';
+        }
+    }
+    getVoIPWebhookUrl(baseUrl) {
+        return {
+            success: true,
+            data: {
+                voipWebhook: `${baseUrl}/communications/voip/webhook`,
+                twimlWebhook: `${baseUrl}/communications/voip/twiml`,
+                instructions: {
+                    voip: 'Configure "voipWebhook" as the Status Callback URL.',
+                    twiml: 'Configure "twimlWebhook" as the Voice Request URL in your TwiML App.',
+                },
+            },
+        };
+    }
 };
 exports.CommunicationsService = CommunicationsService;
 exports.CommunicationsService = CommunicationsService = CommunicationsService_1 = __decorate([

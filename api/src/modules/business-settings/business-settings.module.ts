@@ -6,9 +6,10 @@ import { InvoiceTemplatesController } from './invoice-templates.controller';
 import { PrismaService } from '../../database/prisma.service';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
 import { UnitTypesModule } from '../unit-types/unit-types.module';
+import { CommunicationsModule } from '../communications/communications.module';
 
 @Module({
-  imports: [ProductCategoriesModule, UnitTypesModule],
+  imports: [ProductCategoriesModule, UnitTypesModule, CommunicationsModule],
   controllers: [BusinessSettingsController, InvoiceTemplatesController],
   providers: [BusinessSettingsService, InvoiceTemplatesService, PrismaService],
   exports: [BusinessSettingsService, InvoiceTemplatesService],

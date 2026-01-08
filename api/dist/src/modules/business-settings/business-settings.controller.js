@@ -172,6 +172,18 @@ let BusinessSettingsController = class BusinessSettingsController {
     updateDashboardSettings(body) {
         return this.service.updateDashboardSettings(body);
     }
+    getVoIPConfig() {
+        return this.service.getVoIPConfig();
+    }
+    saveVoIPConfig(body) {
+        return this.service.saveVoIPConfig(body);
+    }
+    getVoIPCallHistory(query) {
+        return this.service.getVoIPCallHistory(query);
+    }
+    getVoIPStatistics() {
+        return this.service.getVoIPStatistics();
+    }
 };
 exports.BusinessSettingsController = BusinessSettingsController;
 __decorate([
@@ -516,6 +528,32 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "updateDashboardSettings", null);
+__decorate([
+    (0, common_1.Get)('voip/config'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "getVoIPConfig", null);
+__decorate([
+    (0, common_1.Post)('voip/config'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "saveVoIPConfig", null);
+__decorate([
+    (0, common_1.Get)('voip/calls'),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "getVoIPCallHistory", null);
+__decorate([
+    (0, common_1.Get)('voip/stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "getVoIPStatistics", null);
 exports.BusinessSettingsController = BusinessSettingsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('business-settings'),

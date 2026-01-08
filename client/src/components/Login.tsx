@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 import WeConnectLogo from "../assets/logo.png";
-import { toast } from "react-toastify";
 import MustChangePasswordModal from "./MustChangePasswordModal";
 
 // Validation constraints
@@ -13,6 +13,7 @@ const MAX_PASSWORD_LENGTH = 64;
 
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -53,21 +54,21 @@ const Login: React.FC = () => {
     }
   }, [authError]);
 
-const validateForm = () => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     const email = formData.email.trim();
     const password = formData.password.trim();
 
     if (!email) {
-      newErrors.email = "Email is required";
+      newErrors.email = t('auth.emailRequired', 'Email is required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Enter a valid email address";
+      newErrors.email = t('auth.invalidEmail', 'Enter a valid email address');
     }
 
     if (!password) {
-      newErrors.password = "Password is required";
-    } 
+      newErrors.password = t('auth.passwordRequired', 'Password is required');
+    }
 
     setErrors(newErrors);
 
@@ -77,7 +78,7 @@ const validateForm = () => {
     return true;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isLoading) return; // prevent multiple submits
@@ -109,7 +110,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     } catch (err) {
       const anyErr: any = err;
       const message =
-        anyErr?.response?.data?.message || anyErr?.message || "Invalid credentials";
+        anyErr?.response?.data?.message || anyErr?.message || t('auth.invalidCredentials', 'Invalid credentials');
       // Show inline error only (avoid duplicate toast + inline)
       setSubmitError(message);
     }
@@ -122,7 +123,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   }, [user?.mustChangePassword, user, navigate]);
 
-const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -159,7 +160,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <div className="relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
           {/* Subtle inner glow */}
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-transparent"></div>
-          
+
           {/* Header */}
           <div className="relative text-center mb-6">
             <div className="mb-6">
@@ -178,10 +179,10 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               )}
             </div>
             <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
-              Welcome back
+              {t('auth.welcomeBack', 'Welcome back')}
             </h1>
             <p className="text-base text-white/60">
-              Sign in to {companySettings?.name ? `${companySettings.name} CRM` : 'your CRM dashboard'}
+              {t('auth.signInTo', { name: companySettings?.name || t('auth.defaultDashboard', 'your CRM dashboard') })}
             </p>
           </div>
 
@@ -199,29 +200,28 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 htmlFor="email"
                 className="block text-sm font-semibold text-white/90 mb-3"
               >
-                Email Address
+                {t('auth.emailLabel', 'Email Address')}
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 start-0 ps-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
-<input
+                <input
                   id="email"
                   name="email"
                   type="email"
                   inputMode="email"
                   autoComplete="email"
                   required
-      
+
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={handleTrimOnBlur}
-                  className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
-                    errors.email
-                      ? "border-red-400/60 ring-red-400/20"
-                      : "border-white/10 hover:border-white/20 hover:bg-white/10"
-                  }`}
-                  placeholder="Enter your email address"
+                  className={`block w-full ps-12 pe-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${errors.email
+                    ? "border-red-400/60 ring-red-400/20"
+                    : "border-white/10 hover:border-white/20 hover:bg-white/10"
+                    }`}
+                  placeholder={t('auth.emailPlaceholder', 'Enter your email address')}
                 />
               </div>
               {errors.email && (
@@ -234,13 +234,13 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 htmlFor="password"
                 className="block text-sm font-semibold text-white/90 mb-3"
               >
-                Password
+                {t('auth.passwordLabel', 'Password')}
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 start-0 ps-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
-<input
+                <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -251,16 +251,15 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={handleTrimOnBlur}
-                  className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
-                    errors.password
-                      ? "border-red-400/60 ring-red-400/20"
-                      : "border-white/10 hover:border-white/20 hover:bg-white/10"
-                  }`}
-                  placeholder="Enter your password"
+                  className={`block w-full ps-12 pe-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${errors.password
+                    ? "border-red-400/60 ring-red-400/20"
+                    : "border-white/10 hover:border-white/20 hover:bg-white/10"
+                    }`}
+                  placeholder={t('auth.passwordPlaceholder', 'Enter your password')}
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-weconnect-red transition-colors"
+                  className="absolute inset-y-0 end-0 pe-4 flex items-center hover:text-weconnect-red transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -277,7 +276,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
             {/* Options row */}
             <div className="flex items-center justify-between pt-2">
-              <label className="flex items-center space-x-3 text-sm text-white/70 select-none cursor-pointer hover:text-white/90 transition-colors">
+              <label className="flex items-center space-x-3 rtl:space-x-reverse text-sm text-white/70 select-none cursor-pointer hover:text-white/90 transition-colors">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-white/20 bg-white/5 text-weconnect-red focus:ring-weconnect-red focus:ring-offset-0 focus:ring-2 transition-all"
@@ -289,7 +288,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                     if (!value) localStorage.removeItem("rememberedEmail");
                   }}
                 />
-                <span>Remember me</span>
+                <span>{t('auth.rememberMe', 'Remember me')}</span>
               </label>
 
               <button
@@ -306,11 +305,11 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   window.location.href = mailto;
                 }}
               >
-                Forgot password?
+                {t('auth.forgotPassword', 'Forgot password?')}
               </button>
             </div>
 
-<button
+            <button
               type="submit"
               disabled={isLoading}
               aria-disabled={isLoading}
@@ -318,12 +317,12 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               className="w-full flex justify-center items-center py-4 px-6 mt-8 rounded-xl text-base font-semibold text-white bg-weconnect-red hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               {isLoading ? (
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 rtl:space-x-reverse">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Signing in...</span>
+                  <span>{t('auth.signingIn', 'Signing in...')}</span>
                 </div>
               ) : (
-                "Sign In"
+                t('auth.signIn', 'Sign In')
               )}
             </button>
           </form>
@@ -332,7 +331,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       </div>
 
       {/* Password Change Modal */}
-      <MustChangePasswordModal 
+      <MustChangePasswordModal
         isOpen={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
         onNavigateToProfile={() => navigate("/", { replace: true })}

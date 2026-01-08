@@ -54,6 +54,7 @@ const taxes_module_1 = require("./modules/taxes/taxes.module");
 const currencies_module_1 = require("./modules/currencies/currencies.module");
 const payments_module_1 = require("./modules/payments/payments.module");
 const trash_module_1 = require("./modules/trash/trash.module");
+const webhooks_management_module_1 = require("./modules/webhooks-management/webhooks-management.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -98,6 +99,7 @@ exports.AppModule = AppModule = __decorate([
             currencies_module_1.CurrenciesModule,
             payments_module_1.PaymentsModule,
             trash_module_1.TrashModule,
+            webhooks_management_module_1.WebhooksManagementModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

@@ -11,5 +11,6 @@ import { CommunicationProvidersService } from './communication-providers.service
   imports: [NotificationsModule],
   controllers: [CommunicationsController, WebhooksController, CommunicationProvidersController],
   providers: [CommunicationsService, CommunicationProvidersService, PrismaService],
+  exports: [CommunicationsService, CommunicationProvidersService],
 })
 export class CommunicationsModule {}

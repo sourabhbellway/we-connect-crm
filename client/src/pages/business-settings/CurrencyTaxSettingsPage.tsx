@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { TaxSettings } from '../../features/business-settings/types';
 import { taxesService, Tax } from '../../services/taxesService';
 import { currenciesService, Currency } from '../../services/currenciesService';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const CurrencyTaxSettingsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -49,6 +50,9 @@ const CurrencyTaxSettingsPage: React.FC = () => {
     const [currencyIsActive, setCurrencyIsActive] = useState(true);
     const [currencyIsDefault, setCurrencyIsDefault] = useState(false);
     const [isSavingCurrency, setIsSavingCurrency] = useState(false);
+    const [showDefaultCurrencyModal, setShowDefaultCurrencyModal] = useState(false);
+    const [currencyToSetDefault, setCurrencyToSetDefault] = useState<Currency | null>(null);
+    const [isSettingDefault, setIsSettingDefault] = useState(false);
 
     useEffect(() => {
         if (taxSettings) {
@@ -210,13 +214,25 @@ const CurrencyTaxSettingsPage: React.FC = () => {
         }
     };
 
-    const handleSetDefault = async (currency: Currency) => {
+    const handleSetDefault = (currency: Currency) => {
+        setCurrencyToSetDefault(currency);
+        setShowDefaultCurrencyModal(true);
+    };
+
+    const confirmSetDefault = async () => {
+        if (!currencyToSetDefault) return;
+        setIsSettingDefault(true);
         try {
-            await currenciesService.update(currency.id, { isDefault: true });
-            toast.success(`${currency.name} set as default`);
+            await currenciesService.update(currencyToSetDefault.id, { isDefault: true });
+            toast.success(`${currencyToSetDefault.name} set as default`);
             fetchCurrencies();
+            refreshBusinessSettings();
+            setShowDefaultCurrencyModal(false);
+            setCurrencyToSetDefault(null);
         } catch (error) {
             toast.error('Failed to set default currency');
+        } finally {
+            setIsSettingDefault(false);
         }
     };
 
@@ -679,6 +695,19 @@ const CurrencyTaxSettingsPage: React.FC = () => {
                     </div>
                 </div>
             )}
+            {/* Default Currency Confirmation Modal */}
+            <ConfirmModal
+                open={showDefaultCurrencyModal}
+                title="Set Default Currency"
+                description={`Are you sure you want to set ${currencyToSetDefault?.name} (${currencyToSetDefault?.code}) as the default currency? This will affect the entire system.`}
+                confirmText="Yes, Set Default"
+                loading={isSettingDefault}
+                onConfirm={confirmSetDefault}
+                onClose={() => {
+                    setShowDefaultCurrencyModal(false);
+                    setCurrencyToSetDefault(null);
+                }}
+            />
         </div>
     );
 };

@@ -90,32 +90,32 @@ export const getActivityIconColor = (type: string) => {
 };
 
 // Format time ago
-export const formatTimeAgo = (dateString: string) => {
+export const formatTimeAgo = (dateString: string, t?: any) => {
   const date = new Date(dateString);
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return `${diffInSeconds} sec ago`;
+    return t ? t('logs.timeAgo.sec', { count: diffInSeconds }) : `${diffInSeconds} sec ago`;
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes} min ago`;
+    return t ? t('logs.timeAgo.min', { count: minutes }) : `${minutes} min ago`;
   } else if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    return t ? t('logs.timeAgo.hour', { count: hours }) : `${hours} hour${hours > 1 ? "s" : ""} ago`;
   } else {
     const days = Math.floor(diffInSeconds / 86400);
-    return `${days} day${days > 1 ? "s" : ""} ago`;
+    return t ? t('logs.timeAgo.day', { count: days }) : `${days} day${days > 1 ? "s" : ""} ago`;
   }
 };
 
 // Transform API activity data to component format
-export const transformActivityData = (apiActivity: any) => {
+export const transformActivityData = (apiActivity: any, t?: any) => {
   return {
     id: apiActivity.id,
     title: apiActivity.title,
     description: apiActivity.description,
-    time: formatTimeAgo(apiActivity.createdAt),
+    time: formatTimeAgo(apiActivity.createdAt, t),
     icon: getActivityIcon(apiActivity.type),
     iconColor: apiActivity.iconColor || getActivityIconColor(apiActivity.type),
     tags: apiActivity.tags || [],

@@ -6,10 +6,10 @@ export declare class LeadSourcesController {
     list(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -20,10 +20,10 @@ export declare class LeadSourcesController {
     create(dto: UpsertLeadSourceDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -34,10 +34,10 @@ export declare class LeadSourcesController {
     update(id: string, dto: UpsertLeadSourceDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;

@@ -8,27 +8,27 @@ export declare class CompaniesController {
         success: boolean;
         data: ({
             industry: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 slug: string;
             } | null;
             assignedUser: {
+                id: number;
                 email: string;
                 firstName: string;
                 lastName: string;
-                id: number;
             } | null;
         } & {
+            id: number;
             email: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
             notes: string | null;
-            id: number;
             name: string;
             description: string | null;
             currency: string | null;
@@ -70,27 +70,27 @@ export declare class CompaniesController {
         data: {
             company: {
                 industry: {
+                    id: number;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     slug: string;
                 } | null;
                 assignedUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
             } & {
+                id: number;
                 email: string | null;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
                 name: string;
                 description: string | null;
                 currency: string | null;
@@ -130,13 +130,13 @@ export declare class CompaniesController {
         message: string;
         data: {
             company: {
+                id: number;
                 email: string | null;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
                 name: string;
                 description: string | null;
                 currency: string | null;
@@ -175,13 +175,13 @@ export declare class CompaniesController {
         message: string;
         data: {
             company: {
+                id: number;
                 email: string | null;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
                 name: string;
                 description: string | null;
                 currency: string | null;

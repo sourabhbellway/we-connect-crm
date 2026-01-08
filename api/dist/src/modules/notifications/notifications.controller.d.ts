@@ -16,9 +16,9 @@ export declare class NotificationsController {
         success: boolean;
         data: {
             notifications: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 link: string | null;
                 message: string;
                 title: string;
@@ -46,9 +46,9 @@ export declare class NotificationsController {
     markAsRead(id: string, req: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             link: string | null;
             message: string;
             title: string;
@@ -76,9 +76,9 @@ export declare class NotificationsController {
     } | {
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             link: string | null;
             message: string;
             title: string;
@@ -99,14 +99,14 @@ export declare class NotificationsController {
     getPreferences(req: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             userId: number;
-            preferences: import("@prisma/client/runtime/library").JsonValue;
             inAppEnabled: boolean;
             emailEnabled: boolean;
             soundEnabled: boolean;
+            preferences: import("@prisma/client/runtime/library").JsonValue;
             doNotDisturbStart: number | null;
             doNotDisturbEnd: number | null;
         };
@@ -114,14 +114,14 @@ export declare class NotificationsController {
     updatePreferences(req: any, dto: UpdateNotificationPreferenceDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             userId: number;
-            preferences: import("@prisma/client/runtime/library").JsonValue;
             inAppEnabled: boolean;
             emailEnabled: boolean;
             soundEnabled: boolean;
+            preferences: import("@prisma/client/runtime/library").JsonValue;
             doNotDisturbStart: number | null;
             doNotDisturbEnd: number | null;
         };

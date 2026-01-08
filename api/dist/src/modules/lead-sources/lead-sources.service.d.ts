@@ -7,10 +7,10 @@ export declare class LeadSourcesService {
     list(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -21,10 +21,10 @@ export declare class LeadSourcesService {
     create(dto: UpsertLeadSourceDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -35,10 +35,10 @@ export declare class LeadSourcesService {
     update(id: number, dto: UpsertLeadSourceDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;

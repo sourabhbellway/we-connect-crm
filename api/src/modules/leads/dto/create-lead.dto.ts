@@ -19,15 +19,21 @@ export class CreateLeadDto {
   @IsString({ message: 'First name must be a string' })
   @MinLength(2, { message: 'First name must be at least 2 characters' })
   @MaxLength(50, { message: 'First name must not exceed 50 characters' })
-  @Matches(/^[A-Za-z\s]+$/, { message: 'First name can only contain letters and spaces' })
   firstName?: string;
+
+  @IsOptional()
+  @IsString({ message: 'First name (Arabic) must be a string' })
+  firstNameAr?: string;
 
   @IsOptional()
   @IsString({ message: 'Last name must be a string' })
   @MinLength(2, { message: 'Last name must be at least 2 characters' })
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
-  @Matches(/^[A-Za-z\s]+$/, { message: 'Last name can only contain letters and spaces' })
   lastName?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Last name (Arabic) must be a string' })
+  lastNameAr?: string;
 
   @IsOptional()
   @IsEmail({}, { message: 'Please enter a valid email address' })
@@ -42,6 +48,7 @@ export class CreateLeadDto {
 
   // Company
   @IsOptional() @IsString() company?: string;
+  @IsOptional() @IsString() companyAr?: string;
   @IsOptional() @IsString() position?: string;
   @IsOptional() @IsString() industry?: string;
   @IsOptional() @IsString() website?: string;
@@ -50,6 +57,7 @@ export class CreateLeadDto {
 
   // Location
   @IsOptional() @IsString() address?: string;
+  @IsOptional() @IsString() addressAr?: string;
   @IsOptional() @IsString() country?: string;
   @IsOptional() @IsString() state?: string;
   @IsOptional() @IsString() city?: string;
@@ -76,6 +84,7 @@ export class CreateLeadDto {
   // Notes and Tags
   @IsOptional() @IsString() notes?: string;
   @IsOptional() @IsArray() tags?: number[];
+  @IsOptional() @IsArray() productIds?: number[];
 
   // Timing
   @IsOptional() @IsDateString() lastContactedAt?: string;

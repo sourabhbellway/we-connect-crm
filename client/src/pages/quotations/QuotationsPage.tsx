@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileCheck, Plus, Eye, Download, Filter, Search, Edit, Trash2, Send, FileDown, FileText, LayoutList, LayoutGrid, MoreHorizontal, Calendar, User, Mail, DollarSign, Clock } from 'lucide-react';
+import { FileCheck, Plus, Eye, Download, Filter, Search, Edit, Trash2, Send, FileDown, FileText, LayoutList, LayoutGrid, MoreHorizontal, Calendar, User, Mail, Clock } from 'lucide-react';
 import { Button, Card } from '../../components/ui';
 import ListToolbar from '../../components/list/ListToolbar';
 import MetaBar from '../../components/list/MetaBar';
@@ -27,7 +27,8 @@ interface Quotation {
 
 const QuotationsPage: React.FC = () => {
     const { hasPermission } = useAuth();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+
     const navigate = useNavigate();
     const [quotations, setQuotations] = useState<Quotation[]>([]);
     const [loading, setLoading] = useState(true);
@@ -124,6 +125,7 @@ const QuotationsPage: React.FC = () => {
     const handleDownloadPDF = async (quotationId: string) => {
         try {
             const response = await apiClient.get(`/quotations/${quotationId}/pdf/download`, {
+                params: { lang: i18n.language },
                 responseType: 'blob',
             });
 
@@ -146,6 +148,7 @@ const QuotationsPage: React.FC = () => {
     const handlePreviewPDF = async (quotationId: string) => {
         try {
             const response = await apiClient.get(`/quotations/${quotationId}/pdf/preview`, {
+                params: { lang: i18n.language },
                 responseType: 'blob',
             });
             const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -308,25 +311,25 @@ const QuotationsPage: React.FC = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <ListToolbar
-                        title="Quotations"
-                        subtitle={`Manage and track your quotations • Showing ${pagination.totalItems} quotation${pagination.totalItems !== 1 ? 's' : ''}`}
-                        addLabel="Add Quotation"
+                        title={t("navigation.quotations")}
+                        subtitle={`${t("quotations.subtitle")} • ${t('common.showing')} ${pagination.totalItems} ${t('common.results')}`}
+                        addLabel={t("quotations.addQuotation")}
                         onAdd={hasPermission('deal.create') ? () => navigate('/quotations/new') : undefined}
                         bulkActions={[
                             {
-                                label: 'Export Quotations (Excel)',
+                                label: t('quotations.exportQuotations'),
                                 icon: <FileDown className="w-4 h-4" />,
                                 onClick: () => {
                                     const headers = [
-                                        'Quotation #',
-                                        'Title',
-                                        'Customer',
-                                        'Email',
-                                        'Related',
-                                        'Amount',
-                                        'Status',
-                                        'Created',
-                                        'Valid Until',
+                                        t('quotations.quotationNumber'),
+                                        t('common.title'),
+                                        t('common.customer'),
+                                        t('common.email'),
+                                        t('common.related'),
+                                        t('common.amount'),
+                                        t('common.status'),
+                                        t('common.created'),
+                                        t('common.validUntil'),
                                     ];
                                     const rows = filteredQuotations.map((q) => [
                                         q.quotationNumber,
@@ -343,19 +346,19 @@ const QuotationsPage: React.FC = () => {
                                 },
                             },
                             {
-                                label: 'Export Quotations (PDF)',
+                                label: t('quotations.exportPdf'),
                                 icon: <FileText className="w-4 h-4" />,
                                 onClick: () => {
                                     const headers = [
-                                        'Quotation #',
-                                        'Title',
-                                        'Customer',
-                                        'Email',
-                                        'Related',
-                                        'Amount',
-                                        'Status',
-                                        'Created',
-                                        'Valid Until',
+                                        t('quotations.quotationNumber'),
+                                        t('common.title'),
+                                        t('common.customer'),
+                                        t('common.email'),
+                                        t('common.related'),
+                                        t('common.amount'),
+                                        t('common.status'),
+                                        t('common.created'),
+                                        t('common.validUntil'),
                                     ];
                                     const rows = filteredQuotations.map((q) => [
                                         q.quotationNumber,
@@ -368,7 +371,7 @@ const QuotationsPage: React.FC = () => {
                                         new Date(q.createdAt).toLocaleDateString(),
                                         q.validUntil ? new Date(q.validUntil).toLocaleDateString() : '',
                                     ]);
-                                    exportTableToPrintPdf('Quotations', headers, rows);
+                                    exportTableToPrintPdf(t("navigation.quotations"), headers, rows);
                                 },
                             },
                         ]}
@@ -381,13 +384,13 @@ const QuotationsPage: React.FC = () => {
                         <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full">
                             {/* Search */}
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Search quotations..."
+                                    placeholder={t('quotations.searchPlaceholder', 'Search quotations...')}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white text-sm"
+                                    className="w-full pl-10 pr-4 rtl:pl-4 rtl:pr-10 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white text-sm"
                                 />
                             </div>
 
@@ -399,20 +402,20 @@ const QuotationsPage: React.FC = () => {
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                     className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white text-sm min-w-[150px]"
                                 >
-                                    <option value="ALL">All Status</option>
-                                    <option value="DRAFT">Draft</option>
-                                    <option value="SENT">Sent</option>
-                                    <option value="VIEWED">Viewed</option>
-                                    <option value="ACCEPTED">Accepted</option>
-                                    <option value="REJECTED">Rejected</option>
-                                    <option value="EXPIRED">Expired</option>
-                                    <option value="CANCELLED">Cancelled</option>
+                                    <option value="ALL">{t('common.allStatus', 'All Status')}</option>
+                                    <option value="DRAFT">{t('common.draft', 'Draft')}</option>
+                                    <option value="SENT">{t('common.sent', 'Sent')}</option>
+                                    <option value="VIEWED">{t('common.viewed', 'Viewed')}</option>
+                                    <option value="ACCEPTED">{t('common.accepted', 'Accepted')}</option>
+                                    <option value="REJECTED">{t('common.rejected', 'Rejected')}</option>
+                                    <option value="EXPIRED">{t('common.expired', 'Expired')}</option>
+                                    <option value="CANCELLED">{t('common.cancelled', 'Cancelled')}</option>
                                 </select>
                             </div>
 
                             {/* Items per page */}
                             <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-600 dark:text-gray-400">Show:</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">{t('common.show', 'Show')}:</span>
                                 <select
                                     value={itemsPerPage}
                                     onChange={(e) => {
@@ -430,7 +433,7 @@ const QuotationsPage: React.FC = () => {
                         </div>
 
                         {/* View toggle - Right aligned */}
-                        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 rtl:space-x-reverse">
                             <button
                                 className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
                                 onClick={() => setViewMode('list')}
@@ -922,7 +925,7 @@ const QuotationsPage: React.FC = () => {
                 {pagination.totalPages > 1 && (
                     <div className="mt-6 flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-gray-800 px-6 py-4 rounded-xl shadow-sm gap-4">
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                            Showing <span className="font-medium text-gray-900 dark:text-white">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-gray-900 dark:text-white">{Math.min(currentPage * itemsPerPage, pagination.totalItems)}</span> of <span className="font-medium text-gray-900 dark:text-white">{pagination.totalItems}</span> results
+                            {t('common.showing', 'Showing')} <span className="font-medium text-gray-900 dark:text-white">{((currentPage - 1) * itemsPerPage) + 1}</span> {t('common.to', 'to')} <span className="font-medium text-gray-900 dark:text-white">{Math.min(currentPage * itemsPerPage, pagination.totalItems)}</span> {t('common.of', 'of')} <span className="font-medium text-gray-900 dark:text-white">{pagination.totalItems}</span> {t('common.results', 'results')}
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -930,7 +933,7 @@ const QuotationsPage: React.FC = () => {
                                 disabled={currentPage === 1}
                                 className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Previous
+                                {t('common.previous', 'Previous')}
                             </button>
                             {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                                 let pageNum: number;
@@ -961,7 +964,7 @@ const QuotationsPage: React.FC = () => {
                                 disabled={currentPage === pagination.totalPages}
                                 className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                Next
+                                {t('common.next', 'Next')}
                             </button>
                         </div>
                     </div>

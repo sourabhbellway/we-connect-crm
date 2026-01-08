@@ -6,6 +6,8 @@ import React, {
   ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
+import apiClient from "../services/apiClient";
+import { STORAGE_KEYS } from "../constants";
 
 interface LanguageContextType {
   currentLanguage: string;
@@ -48,10 +50,20 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
     { code: "pt", name: "Portuguese", nativeName: "Português" },
   ];
 
-  const changeLanguage = (lang: string) => {
+  const changeLanguage = async (lang: string) => {
     i18n.changeLanguage(lang);
     setCurrentLanguage(lang);
     localStorage.setItem("i18nextLng", lang);
+
+    // Sync with backend if logged in
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    if (token) {
+      try {
+        await apiClient.put("/users/profile", { language: lang });
+      } catch (err) {
+        console.error("Failed to sync language with backend", err);
+      }
+    }
   };
 
   useEffect(() => {

@@ -39,4 +39,7 @@ export class UpdateProfileDto {
   @IsEmail()
   email?: string;
 
+  @IsOptional()
+  @IsString()
+  language?: string;
 }

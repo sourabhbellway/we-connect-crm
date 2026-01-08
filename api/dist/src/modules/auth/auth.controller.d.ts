@@ -109,4 +109,8 @@ export declare class AuthController {
         };
         message?: undefined;
     }>;
+    updateFcmToken(user: any, fcmToken: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
     Download,
-    Printer,
+
     Edit,
     Send,
     CheckCircle,
@@ -22,6 +22,7 @@ import { Button, Card } from '../../components/ui';
 import apiClient from '../../services/apiClient';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 interface QuotationItem {
     id: number;
@@ -86,6 +87,8 @@ const QuotationDetailPage: React.FC = () => {
         fetchBusinessSettings();
     }, [id]);
 
+    const { t, i18n } = useTranslation();
+
     const fetchQuotation = async () => {
         try {
             setLoading(true);
@@ -117,6 +120,7 @@ const QuotationDetailPage: React.FC = () => {
         try {
             setProcessing(true);
             const response = await apiClient.get(`/quotations/${id}/pdf/download`, {
+                params: { lang: i18n.language },
                 responseType: 'blob',
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -139,6 +143,7 @@ const QuotationDetailPage: React.FC = () => {
         try {
             setProcessing(true);
             const response = await apiClient.get(`/quotations/${id}/pdf/preview`, {
+                params: { lang: i18n.language },
                 responseType: 'blob',
             });
             const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -151,9 +156,7 @@ const QuotationDetailPage: React.FC = () => {
         }
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
+
 
     const handleAction = async (action: 'accept' | 'reject' | 'send') => {
         if (!quotation) return;
@@ -226,6 +229,9 @@ const QuotationDetailPage: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <Button variant="SECONDARY" size="SM" onClick={handlePreviewPDF}>
                             <Eye className="w-4 h-4 mr-2" /> View PDF
+                        </Button>
+                        <Button variant="SECONDARY" size="SM" onClick={handleDownloadPDF}>
+                            <Download className="w-4 h-4 mr-2" /> Download
                         </Button>
 
 

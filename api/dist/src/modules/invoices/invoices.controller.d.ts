@@ -13,10 +13,10 @@ export declare class InvoicesController {
         data: {
             items: ({
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 } | null;
                 deal: {
@@ -24,27 +24,27 @@ export declare class InvoicesController {
                     title: string;
                 } | null;
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     invoiceId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
                 payments: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
                     notes: string | null;
-                    id: number;
                     currency: string;
                     createdBy: number;
                     invoiceId: number;
@@ -54,18 +54,19 @@ export declare class InvoicesController {
                     referenceNumber: string | null;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
                 leadId: number | null;
                 createdBy: number;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
+                sentAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -76,7 +77,6 @@ export declare class InvoicesController {
                 paidAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
                 quotationId: number | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 paidAt: Date | null;
             })[];
@@ -102,27 +102,27 @@ export declare class InvoicesController {
         data: {
             invoice: {
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     invoiceId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
                 payments: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
                     notes: string | null;
-                    id: number;
                     currency: string;
                     createdBy: number;
                     invoiceId: number;
@@ -132,18 +132,19 @@ export declare class InvoicesController {
                     referenceNumber: string | null;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
                 leadId: number | null;
                 createdBy: number;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
+                sentAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -154,7 +155,6 @@ export declare class InvoicesController {
                 paidAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
                 quotationId: number | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 paidAt: Date | null;
             };
@@ -166,35 +166,36 @@ export declare class InvoicesController {
         data: {
             invoice: {
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     invoiceId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
                 leadId: number | null;
                 createdBy: number;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
+                sentAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -205,7 +206,6 @@ export declare class InvoicesController {
                 paidAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
                 quotationId: number | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 paidAt: Date | null;
             };
@@ -216,35 +216,36 @@ export declare class InvoicesController {
         data: {
             invoice: {
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     invoiceId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
                 leadId: number | null;
                 createdBy: number;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
+                sentAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -255,7 +256,6 @@ export declare class InvoicesController {
                 paidAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
                 quotationId: number | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 paidAt: Date | null;
             };
@@ -268,18 +268,18 @@ export declare class InvoicesController {
         success: boolean;
         data: {
             item: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 sortOrder: number;
-                productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 invoiceId: number;
+                productId: number | null;
                 quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
@@ -290,18 +290,18 @@ export declare class InvoicesController {
         success: boolean;
         data: {
             item: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 sortOrder: number;
-                productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 invoiceId: number;
+                productId: number | null;
                 quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
@@ -315,18 +315,19 @@ export declare class InvoicesController {
         success: boolean;
         data: {
             invoice: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
                 leadId: number | null;
                 createdBy: number;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
+                sentAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -337,7 +338,6 @@ export declare class InvoicesController {
                 paidAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
                 quotationId: number | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 paidAt: Date | null;
             };
@@ -351,10 +351,10 @@ export declare class InvoicesController {
         success: boolean;
         data: {
             payment: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 currency: string;
                 createdBy: number;
                 invoiceId: number;

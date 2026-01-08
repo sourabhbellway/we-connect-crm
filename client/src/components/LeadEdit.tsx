@@ -62,6 +62,7 @@ const LeadEdit: React.FC = () => {
           // Notes and Tags
           notes: lead.notes,
           tags: Array.isArray(lead.tags) ? lead.tags.map((t: any) => t.id) : [],
+          productIds: Array.isArray(lead.products) ? lead.products.map((p: any) => p.id) : [],
 
           // Timing
           lastContactedAt: lead.lastContactedAt,
@@ -84,6 +85,7 @@ const LeadEdit: React.FC = () => {
         sourceId: data.sourceId ? Number(data.sourceId) : undefined,
         assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
         tags: Array.isArray(data.tags) ? data.tags.filter(Boolean) : [],
+        productIds: Array.isArray(data.productIds) ? data.productIds : [],
       });
       await refreshLeadsCount();
       toast.success("Lead updated");

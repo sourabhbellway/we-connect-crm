@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BusinessSettingsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../database/prisma.service");
+const communications_service_1 = require("../communications/communications.service");
 const client_1 = require("@prisma/client");
 function mapToCompanySettings(bs) {
     return {
@@ -37,8 +38,10 @@ function mapToCompanySettings(bs) {
 }
 let BusinessSettingsService = class BusinessSettingsService {
     prisma;
-    constructor(prisma) {
+    communicationsService;
+    constructor(prisma, communicationsService) {
         this.prisma = prisma;
+        this.communicationsService = communicationsService;
     }
     generateUniqueColor() {
         return ('#' +
@@ -917,33 +920,37 @@ let BusinessSettingsService = class BusinessSettingsService {
     async initializeDefaultFieldConfigs() {
         const defaultConfigs = [
             { entityType: 'lead', fieldName: 'firstName', label: 'First Name', isRequired: true, section: 'personal', displayOrder: 1, validation: { type: 'text', minLength: 2, maxLength: 50 } },
-            { entityType: 'lead', fieldName: 'lastName', label: 'Last Name', isRequired: true, section: 'personal', displayOrder: 2, validation: { type: 'text', minLength: 2, maxLength: 50 } },
-            { entityType: 'lead', fieldName: 'email', label: 'Email', isRequired: true, section: 'personal', displayOrder: 3, validation: { type: 'email' } },
-            { entityType: 'lead', fieldName: 'phone', label: 'Phone', isRequired: true, section: 'personal', displayOrder: 4, validation: { type: 'phone' } },
-            { entityType: 'lead', fieldName: 'company', label: 'Company', isRequired: true, section: 'company', displayOrder: 5, validation: { type: 'text' } },
-            { entityType: 'lead', fieldName: 'position', label: 'Position/Job Title', isRequired: false, section: 'company', displayOrder: 6, validation: { type: 'text' } },
-            { entityType: 'lead', fieldName: 'industry', label: 'Industry', isRequired: false, section: 'company', displayOrder: 7, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'website', label: 'Company Website', isRequired: false, section: 'company', displayOrder: 8, validation: { type: 'url' } },
-            { entityType: 'lead', fieldName: 'companySize', label: 'Company Size', isRequired: false, section: 'company', displayOrder: 9, validation: { type: 'number', min: 0 } },
-            { entityType: 'lead', fieldName: 'annualRevenue', label: 'Annual Revenue', isRequired: false, section: 'company', displayOrder: 10, validation: { type: 'number', min: 0 } },
-            { entityType: 'lead', fieldName: 'country', label: 'Country', isRequired: false, section: 'location', displayOrder: 11, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'state', label: 'State/Province', isRequired: false, section: 'location', displayOrder: 12, validation: { type: 'text' } },
-            { entityType: 'lead', fieldName: 'city', label: 'City', isRequired: false, section: 'location', displayOrder: 13, validation: { type: 'text' } },
-            { entityType: 'lead', fieldName: 'zipCode', label: 'ZIP/Postal Code', isRequired: false, section: 'location', displayOrder: 14, validation: { type: 'text' } },
-            { entityType: 'lead', fieldName: 'address', label: 'Address', isRequired: false, section: 'location', displayOrder: 15, validation: { type: 'textarea' } },
-            { entityType: 'lead', fieldName: 'timezone', label: 'Timezone', isRequired: false, section: 'location', displayOrder: 16, validation: { type: 'text' } },
-            { entityType: 'lead', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', isRequired: false, section: 'location', displayOrder: 17, validation: { type: 'url' } },
-            { entityType: 'lead', fieldName: 'sourceId', label: 'Lead Source', isRequired: false, section: 'lead_management', displayOrder: 18, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'status', label: 'Status', isRequired: true, section: 'lead_management', displayOrder: 19, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'priority', label: 'Priority', isRequired: false, section: 'lead_management', displayOrder: 20, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'assignedTo', label: 'Assigned To', isRequired: false, section: 'lead_management', displayOrder: 21, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'budget', label: 'Expected Budget', isRequired: false, section: 'lead_management', displayOrder: 22, validation: { type: 'number', min: 0 } },
-            { entityType: 'lead', fieldName: 'currency', label: 'Currency', isRequired: false, section: 'lead_management', displayOrder: 23, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'leadScore', label: 'Lead Score', isRequired: false, section: 'lead_management', displayOrder: 24, validation: { type: 'number', min: 0, max: 100 } },
-            { entityType: 'lead', fieldName: 'preferredContactMethod', label: 'Preferred Contact Method', isRequired: false, section: 'lead_management', displayOrder: 25, validation: { type: 'select' } },
-            { entityType: 'lead', fieldName: 'nextFollowUpAt', label: 'Next Follow-up Date', isRequired: false, section: 'lead_management', displayOrder: 26, validation: { type: 'datetime' } },
-            { entityType: 'lead', fieldName: 'notes', label: 'Notes', isRequired: false, section: 'notes', displayOrder: 27, validation: { type: 'textarea' } },
-            { entityType: 'lead', fieldName: 'tags', label: 'Tags', isRequired: false, section: 'notes', displayOrder: 28, validation: { type: 'multiselect' } },
+            { entityType: 'lead', fieldName: 'firstNameAr', label: 'First Name (Arabic)', isRequired: false, section: 'personal', displayOrder: 2, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'lastName', label: 'Last Name', isRequired: true, section: 'personal', displayOrder: 3, validation: { type: 'text', minLength: 2, maxLength: 50 } },
+            { entityType: 'lead', fieldName: 'lastNameAr', label: 'Last Name (Arabic)', isRequired: false, section: 'personal', displayOrder: 4, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'email', label: 'Email', isRequired: true, section: 'personal', displayOrder: 5, validation: { type: 'email' } },
+            { entityType: 'lead', fieldName: 'phone', label: 'Phone', isRequired: true, section: 'personal', displayOrder: 6, validation: { type: 'phone' } },
+            { entityType: 'lead', fieldName: 'company', label: 'Company', isRequired: true, section: 'company', displayOrder: 7, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'companyAr', label: 'Company (Arabic)', isRequired: false, section: 'company', displayOrder: 8, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'position', label: 'Position/Job Title', isRequired: false, section: 'company', displayOrder: 9, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'industry', label: 'Industry', isRequired: false, section: 'company', displayOrder: 10, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'website', label: 'Company Website', isRequired: false, section: 'company', displayOrder: 11, validation: { type: 'url' } },
+            { entityType: 'lead', fieldName: 'companySize', label: 'Company Size', isRequired: false, section: 'company', displayOrder: 12, validation: { type: 'number', min: 0 } },
+            { entityType: 'lead', fieldName: 'annualRevenue', label: 'Annual Revenue', isRequired: false, section: 'company', displayOrder: 13, validation: { type: 'number', min: 0 } },
+            { entityType: 'lead', fieldName: 'country', label: 'Country', isRequired: false, section: 'location', displayOrder: 14, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'state', label: 'State/Province', isRequired: false, section: 'location', displayOrder: 15, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'city', label: 'City', isRequired: false, section: 'location', displayOrder: 16, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'zipCode', label: 'ZIP/Postal Code', isRequired: false, section: 'location', displayOrder: 17, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'address', label: 'Address', isRequired: false, section: 'location', displayOrder: 18, validation: { type: 'textarea' } },
+            { entityType: 'lead', fieldName: 'addressAr', label: 'Address (Arabic)', isRequired: false, section: 'location', displayOrder: 19, validation: { type: 'textarea' } },
+            { entityType: 'lead', fieldName: 'timezone', label: 'Timezone', isRequired: false, section: 'location', displayOrder: 20, validation: { type: 'text' } },
+            { entityType: 'lead', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', isRequired: false, section: 'location', displayOrder: 21, validation: { type: 'url' } },
+            { entityType: 'lead', fieldName: 'sourceId', label: 'Lead Source', isRequired: false, section: 'lead_management', displayOrder: 22, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'status', label: 'Status', isRequired: true, section: 'lead_management', displayOrder: 23, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'priority', label: 'Priority', isRequired: false, section: 'lead_management', displayOrder: 24, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'assignedTo', label: 'Assigned To', isRequired: false, section: 'lead_management', displayOrder: 25, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'budget', label: 'Expected Budget', isRequired: false, section: 'lead_management', displayOrder: 26, validation: { type: 'number', min: 0 } },
+            { entityType: 'lead', fieldName: 'currency', label: 'Currency', isRequired: false, section: 'lead_management', displayOrder: 27, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'leadScore', label: 'Lead Score', isRequired: false, section: 'lead_management', displayOrder: 28, validation: { type: 'number', min: 0, max: 100 } },
+            { entityType: 'lead', fieldName: 'preferredContactMethod', label: 'Preferred Contact Method', isRequired: false, section: 'lead_management', displayOrder: 29, validation: { type: 'select' } },
+            { entityType: 'lead', fieldName: 'nextFollowUpAt', label: 'Next Follow-up Date', isRequired: false, section: 'lead_management', displayOrder: 30, validation: { type: 'datetime' } },
+            { entityType: 'lead', fieldName: 'notes', label: 'Notes', isRequired: false, section: 'notes', displayOrder: 31, validation: { type: 'textarea' } },
+            { entityType: 'lead', fieldName: 'tags', label: 'Tags', isRequired: false, section: 'notes', displayOrder: 32, validation: { type: 'multiselect' } },
         ];
         for (const config of defaultConfigs) {
             const existing = await this.prisma.fieldConfig.findUnique({
@@ -1111,10 +1118,23 @@ let BusinessSettingsService = class BusinessSettingsService {
         });
         return { success: true };
     }
+    async getVoIPConfig() {
+        return this.communicationsService.getVoIPConfig();
+    }
+    async saveVoIPConfig(dto) {
+        return this.communicationsService.saveVoIPConfig(dto);
+    }
+    async getVoIPCallHistory(query) {
+        return this.communicationsService.getVoIPCallHistory(query);
+    }
+    async getVoIPStatistics() {
+        return this.communicationsService.getVoIPStatistics();
+    }
 };
 exports.BusinessSettingsService = BusinessSettingsService;
 exports.BusinessSettingsService = BusinessSettingsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        communications_service_1.CommunicationsService])
 ], BusinessSettingsService);
 //# sourceMappingURL=business-settings.service.js.map

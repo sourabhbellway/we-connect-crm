@@ -5,8 +5,10 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import BackButton from "./BackButton";
 import { useCounts } from "../contexts/CountsContext";
+import { useTranslation } from "react-i18next";
 
 const LeadCreate: React.FC = () => {
+  const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { refreshLeadsCount } = useCounts();
@@ -22,7 +24,7 @@ const LeadCreate: React.FC = () => {
         tags: Array.isArray(data.tags) ? data.tags.filter(Boolean) : [],
       });
       await refreshLeadsCount();
-      toast.success("Lead created");
+      toast.success(t("leads.createSuccess", "Lead created"));
       navigate("/leads");
     } catch (e: any) {
       const data = e?.response?.data;
@@ -32,11 +34,11 @@ const LeadCreate: React.FC = () => {
           const msg = err?.msg || err?.message;
           if (msg) messages.push(msg);
         }
-        toast.error(messages.join("\n") || data?.message || "Validation errors", {
+        toast.error(messages.join("\n") || data?.message || t("common.validationError", "Validation errors"), {
           toastId: "lead_create_validation_errors",
         });
       } else {
-        toast.error(data?.message || e?.message || "Create failed", {
+        toast.error(data?.message || e?.message || t("common.createError", "Create failed"), {
           toastId: "lead_create_error",
         });
       }
@@ -50,10 +52,10 @@ const LeadCreate: React.FC = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Create Lead
+            {t("leads.addLead")}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Fill in the details below
+            {t("leads.form.fillDetails", "Fill in the details below")}
           </p>
         </div>
         <div className="flex items-center gap-4 mb-4">

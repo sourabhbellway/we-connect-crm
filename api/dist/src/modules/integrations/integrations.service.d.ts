@@ -7,10 +7,10 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             items: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 config: import("@prisma/client/runtime/library").JsonValue | null;
@@ -24,10 +24,10 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             integration: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 config: import("@prisma/client/runtime/library").JsonValue | null;
@@ -41,10 +41,10 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             integration: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 config: import("@prisma/client/runtime/library").JsonValue | null;
@@ -59,8 +59,8 @@ export declare class IntegrationsService {
         data: {
             items: {
                 data: import("@prisma/client/runtime/library").JsonValue | null;
-                createdAt: Date;
                 id: number;
+                createdAt: Date;
                 message: string | null;
                 status: import("@prisma/client").$Enums.IntegrationLogStatus;
                 operation: string;

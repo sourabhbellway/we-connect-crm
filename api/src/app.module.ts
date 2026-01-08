@@ -44,6 +44,7 @@ import { TaxesModule } from './modules/taxes/taxes.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { TrashModule } from './modules/trash/trash.module';
+import { WebhooksManagementModule } from './modules/webhooks-management/webhooks-management.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { TrashModule } from './modules/trash/trash.module';
     CurrenciesModule,
     PaymentsModule,
     TrashModule,
+    WebhooksManagementModule,
   ],
   controllers: [AppController],
   providers: [

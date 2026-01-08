@@ -9,7 +9,7 @@ export class TeamsService {
 
   async create(createTeamDto: CreateTeamDto) {
     console.log('Creating team with DTO:', JSON.stringify(createTeamDto, null, 2));
-    const { memberIds, ...rest } = createTeamDto;
+    const { memberIds, productIds, ...rest } = createTeamDto;
 
     // Filter out manager from members if they are in the list
     const filteredMemberIds = memberIds?.filter(id => id !== rest.managerId);
@@ -20,11 +20,14 @@ export class TeamsService {
         members: filteredMemberIds && filteredMemberIds.length > 0 ? {
           connect: filteredMemberIds.map((id) => ({ id })),
         } : undefined,
+        products: productIds && productIds.length > 0 ? {
+          connect: productIds.map((id) => ({ id })),
+        } : undefined,
       },
       include: {
         manager: true,
         members: true,
-        product: true,
+        products: true,
       },
     });
     console.log('Created team result:', JSON.stringify(result, null, 2));
@@ -36,7 +39,7 @@ export class TeamsService {
       include: {
         manager: true,
         members: true, // Include members for listing and view
-        product: true,
+        products: true,
         _count: {
           select: { members: true },
         },
@@ -55,14 +58,14 @@ export class TeamsService {
       include: {
         manager: true,
         members: true,
-        product: true,
+        products: true,
       },
     });
   }
 
   async update(id: number, updateTeamDto: UpdateTeamDto) {
     console.log(`Updating team ${id} with DTO:`, JSON.stringify(updateTeamDto, null, 2));
-    const { memberIds, ...rest } = updateTeamDto;
+    const { memberIds, productIds, ...rest } = updateTeamDto;
 
     // Filter out manager from members if they are in the list
     const filteredMemberIds = memberIds?.filter(mid => mid !== (rest.managerId || undefined));
@@ -74,11 +77,14 @@ export class TeamsService {
         members: memberIds ? {
           set: filteredMemberIds?.map((id) => ({ id })) || [],
         } : undefined,
+        products: productIds ? {
+          set: productIds.map((id) => ({ id })),
+        } : undefined,
       },
       include: {
         manager: true,
         members: true,
-        product: true,
+        products: true,
       },
     });
     console.log('Updated team result:', JSON.stringify(result, null, 2));

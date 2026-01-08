@@ -107,7 +107,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         },
         {
             id: 'deals',
-            name: 'Deals',
+            name: t('navigation.deals', 'Deals'),
             href: '/deals',
             icon: DollarSign,
             permission: PERMISSIONS.DEAL.READ,
@@ -116,7 +116,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         },
         {
             id: 'quotations',
-            name: 'Quotations',
+            name: t('navigation.quotations', 'Quotations'),
             href: '/quotations',
             icon: FileCheck,
             permission: PERMISSIONS.QUOTATION.READ,
@@ -126,7 +126,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         {
             id: 'invoices',
-            name: 'Invoices',
+            name: t('navigation.invoices', 'Invoices'),
             href: '/invoices',
             icon: Receipt,
             permission: PERMISSIONS.INVOICE.READ,
@@ -160,17 +160,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
     let navigationItems = filterNavItems([
         ...baseItems,
-        ...NAV_EXTRA_ITEMS,
+        ...NAV_EXTRA_ITEMS.map(item => ({
+            ...item,
+            name: t(`navigation.${item.id}`, item.name),
+            children: item.children?.map(child => ({
+                ...child,
+                name: t(child.id === 'report-tasks' ? 'reports.tasks' :
+                    child.id === 'report-leads' ? 'reports.leads' :
+                        child.id === 'report-deals' ? 'reports.deals' :
+                            child.id === 'report-expenses' ? 'reports.expenses' :
+                                child.id === 'report-invoices' ? 'reports.invoices' :
+                                    child.id === 'report-quotations' ? 'reports.quotations' : `navigation.${child.id}`, child.name)
+            }))
+        })),
         {
             id: 'trash',
-            name: 'Trash',
+            name: t('navigation.trash', 'Trash'),
             href: '/trash',
             icon: Trash2,
             permission: PERMISSIONS.TRASH.READ,
         },
         {
             id: 'business-settings',
-            name: 'Business Settings',
+            name: t('navigation.businessSettings', 'Business Settings'),
             href: '/business-settings',
             icon: Settings,
             permission: PERMISSIONS.BUSINESS_SETTINGS.READ,
@@ -357,7 +369,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                                         className="w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 flex items-center justify-center gap-2 transition-colors text-center"
                                     >
                                         {isDark ? <Sun size={14} /> : <Moon size={14} />}
-                                        <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                                        <span>{isDark ? t('user.lightMode', 'Light Mode') : t('user.darkMode', 'Dark Mode')}</span>
                                     </button>
                                     <div className="border-t border-gray-200 dark:border-slate-700 my-1" />
                                     <button
@@ -365,7 +377,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                                         className="w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center gap-2 transition-colors text-center"
                                     >
                                         <LogOut size={14} />
-                                        <span>Logout</span>
+                                        <span>{t('auth.logout', 'Logout')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -416,10 +428,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {/* Logout confirmation modal */}
             <ConfirmModal
                 open={showLogoutModal}
-                title="Confirm Logout"
-                description="Are you sure you want to logout? You will need to sign in again to access your account."
-                confirmText="Logout"
-                cancelText="Cancel"
+                title={t('auth.confirmLogout', 'Confirm Logout')}
+                description={t('auth.logoutConfirmation', 'Are you sure you want to logout? You will need to sign in again to access your account.')}
+                confirmText={t('auth.logout', 'Logout')}
+                cancelText={t('common.cancel', 'Cancel')}
                 loading={false}
                 onConfirm={confirmLogout}
                 onClose={() => setShowLogoutModal(false)}

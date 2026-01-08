@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Trash2,
     RefreshCcw,
@@ -27,6 +28,7 @@ interface TrashStats {
 }
 
 const TrashPage: React.FC = () => {
+    const { t } = useTranslation();
     const [items, setItems] = useState<any[]>([]);
     const [stats, setStats] = useState<TrashStats>({ user: 0, quotation: 0, invoice: 0, product: 0, lead: 0 });
     const [loading, setLoading] = useState(true);
@@ -122,20 +124,20 @@ const TrashPage: React.FC = () => {
     };
 
     const categories = [
-        { id: 'user', name: 'Deleted Users', desc: 'Manage soft-deleted user accounts', icon: Users, color: 'blue', count: stats.user, label: 'users' },
-        { id: 'lead', name: 'Deleted Leads', desc: 'Review removed lead records', icon: User, color: 'green', count: stats.lead, label: 'leads' },
-        { id: 'quotation', name: 'Deleted Quotations', desc: 'Manage soft-deleted quotations', icon: FileText, color: 'indigo', count: stats.quotation, label: 'quotations' },
-        { id: 'invoice', name: 'Deleted Invoices', desc: 'Manage soft-deleted invoices', icon: Receipt, color: 'emerald', count: stats.invoice, label: 'invoices' },
-        { id: 'product', name: 'Deleted Products', desc: 'Manage soft-deleted products', icon: Package, color: 'orange', count: stats.product, label: 'products' },
+        { id: 'user', name: t('trash.categories.users') || 'Deleted Users', desc: t('trash.descriptions.users') || 'Manage soft-deleted user accounts', icon: Users, color: 'blue', count: stats.user, label: t('trash.labels.users') || 'users' },
+        { id: 'lead', name: t('trash.categories.leads') || 'Deleted Leads', desc: t('trash.descriptions.leads') || 'Review removed lead records', icon: User, color: 'green', count: stats.lead, label: t('trash.labels.leads') || 'leads' },
+        { id: 'quotation', name: t('trash.categories.quotations') || 'Deleted Quotations', desc: t('trash.descriptions.quotations') || 'Manage soft-deleted quotations', icon: FileText, color: 'indigo', count: stats.quotation, label: t('trash.labels.quotations') || 'quotations' },
+        { id: 'invoice', name: t('trash.categories.invoices') || 'Deleted Invoices', desc: t('trash.descriptions.invoices') || 'Manage soft-deleted invoices', icon: Receipt, color: 'emerald', count: stats.invoice, label: t('trash.labels.invoices') || 'invoices' },
+        { id: 'product', name: t('trash.categories.products') || 'Deleted Products', desc: t('trash.descriptions.products') || 'Manage soft-deleted products', icon: Package, color: 'orange', count: stats.product, label: t('trash.labels.products') || 'products' },
     ];
 
     return (
         <div className="p-6 space-y-6 max-w-[1600px] mx-auto min-h-screen bg-transparent">
             {/* New Design Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Trash Management</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('trash.title')}</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-2">
-                    View soft-deleted records. Items are permanently deleted after 30 days.
+                    {t('trash.description')}
                 </p>
             </div>
 
@@ -166,7 +168,7 @@ const TrashPage: React.FC = () => {
                         <div className="mt-auto pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
                             <div className="flex items-center gap-1.5 text-xs text-gray-400">
                                 <Clock size={14} />
-                                30 days
+                                30 {t('trash.days')}
                             </div>
                             <div className="font-mono text-xs font-bold text-gray-600 dark:text-gray-400">
                                 {cat.count} {cat.label}
@@ -185,7 +187,7 @@ const TrashPage: React.FC = () => {
                                 onClick={() => setTypeFilter('all')}
                                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${typeFilter === 'all' ? 'bg-red-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800'}`}
                             >
-                                All Records
+                                {t('trash.allRecords')}
                             </button>
                         </div>
                         {typeFilter !== 'all' && (
@@ -193,7 +195,7 @@ const TrashPage: React.FC = () => {
                                 onClick={() => setTypeFilter('all')}
                                 className="text-xs text-red-500 hover:underline px-2"
                             >
-                                Clear Filter
+                                {t('trash.clearFilter')}
                             </button>
                         )}
                     </div>
@@ -203,7 +205,7 @@ const TrashPage: React.FC = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                             <input
                                 type="text"
-                                placeholder="Search records..."
+                                placeholder={t('trash.searchPlaceholder') || "Search records..."}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-red-500/20 dark:text-white text-sm outline-none"
@@ -230,9 +232,9 @@ const TrashPage: React.FC = () => {
                             <div className="w-16 h-16 bg-gray-50 dark:bg-slate-800/50 rounded-2xl flex items-center justify-center mb-4 text-gray-300">
                                 <Trash2 size={32} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Clean Trash</h3>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('trash.cleanTrash')}</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
-                                No records found in the recycle bin matching your criteria.
+                                {t('trash.noRecords')}
                             </p>
                         </div>
                     ) : (
@@ -240,10 +242,10 @@ const TrashPage: React.FC = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50/30 dark:bg-slate-800/30">
-                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Record Details</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Module</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Identifier</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('trash.recordDetails')}</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('trash.module')}</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">{t('trash.identifier')}</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-right">{t('trash.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50 dark:divide-slate-800/50">
@@ -259,14 +261,14 @@ const TrashPage: React.FC = () => {
                                                             {item.name}
                                                         </div>
                                                         <div className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                                                            <Clock size={10} /> Deleted {format(new Date(item.deletedAt), 'MMM dd, h:mm a')}
+                                                            <Clock size={10} /> {t('trash.deleted')} {format(new Date(item.deletedAt), 'MMM dd, h:mm a')}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400 uppercase tracking-wider">
-                                                    {item.type}
+                                                    {t(`trash.types.${item.type}`) || item.type}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
@@ -279,14 +281,14 @@ const TrashPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleRestore(item.type, item.id)}
                                                         className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                        title="Restore Record"
+                                                        title={t('trash.restoreRecord') || "Restore Record"}
                                                     >
                                                         <RotateCcw size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => setConfirmDelete({ type: item.type, id: item.id })}
                                                         className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                        title="Delete Permanently"
+                                                        title={t('trash.deletePermanently') || "Delete Permanently"}
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -303,7 +305,7 @@ const TrashPage: React.FC = () => {
                     {pagination.totalPages > 1 && (
                         <div className="p-4 bg-gray-50/50 dark:bg-slate-800/20 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between">
                             <p className="text-xs text-gray-400">
-                                showing <span className="text-gray-900 dark:text-white font-bold">{items.length}</span> of <span className="text-gray-900 dark:text-white font-bold">{pagination.totalItems}</span> records
+                                {t('trash.showing')} <span className="text-gray-900 dark:text-white font-bold">{items.length}</span> {t('trash.of')} <span className="text-gray-900 dark:text-white font-bold">{pagination.totalItems}</span> {t('trash.records')}
                             </p>
                             <div className="flex items-center gap-1">
                                 <button
@@ -336,8 +338,8 @@ const TrashPage: React.FC = () => {
                         <AlertTriangle size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-red-900 dark:text-red-400">Need to wipe everything?</h4>
-                        <p className="text-xs text-red-700 dark:text-red-500/60">Cleaning the trash will permanently remove all items from our database forever.</p>
+                        <h4 className="font-bold text-red-900 dark:text-red-400">{t('trash.wipeEverything')}</h4>
+                        <p className="text-xs text-red-700 dark:text-red-500/60">{t('trash.wipeDescription')}</p>
                     </div>
                 </div>
                 {/* <button
@@ -351,18 +353,18 @@ const TrashPage: React.FC = () => {
             {/* Modals */}
             <ConfirmModal
                 open={!!confirmDelete}
-                title="Permanent Removal"
-                description={`This will erase this ${confirmDelete?.type} from the database permanently. There's no coming back from this.`}
-                confirmText="Yes, Erase Permanently"
+                title={t('trash.confirmPermanentDeleteTitle')}
+                description={t('trash.confirmPermanentDeleteDesc', { type: confirmDelete?.type })}
+                confirmText={t('trash.yesErase')}
                 onConfirm={handlePermanentDelete}
                 onClose={() => setConfirmDelete(null)}
             />
 
             <ConfirmModal
                 open={!!confirmEmpty}
-                title="Wipe Entire Trash"
-                description="Are you sure you want to permanently delete ALL records in the recycle bin? Every team member and every piece of data will be lost forever."
-                confirmText="Yes, Wipe Everything"
+                title={t('trash.confirmWipeTitle')}
+                description={t('trash.confirmWipeDesc')}
+                confirmText={t('trash.yesWipe')}
                 onConfirm={handleEmptyTrash}
                 onClose={() => setConfirmEmpty(null)}
             />

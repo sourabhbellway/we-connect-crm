@@ -5,9 +5,9 @@ export declare class PermissionsService {
     list(): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
             description: string | null;
             key: string;

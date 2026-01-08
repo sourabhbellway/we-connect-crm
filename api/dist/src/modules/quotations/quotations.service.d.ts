@@ -13,10 +13,10 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             users: {
+                id: number;
                 email: string;
                 firstName: string;
                 lastName: string;
-                id: number;
             }[];
         };
     }>;
@@ -32,10 +32,10 @@ export declare class QuotationsService {
         data: {
             items: ({
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 } | null;
                 deal: {
@@ -43,29 +43,29 @@ export declare class QuotationsService {
                     title: string;
                 } | null;
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     quotationId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -73,13 +73,13 @@ export declare class QuotationsService {
                 createdBy: number;
                 status: import("@prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
+                sentAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 taxAmount: import("@prisma/client/runtime/library").Decimal;
                 discountAmount: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 quotationNumber: string;
                 validUntil: Date | null;
@@ -100,13 +100,13 @@ export declare class QuotationsService {
         data: {
             quotation: {
                 companies: {
+                    id: number;
                     email: string | null;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
                     deletedAt: Date | null;
                     notes: string | null;
-                    id: number;
                     name: string;
                     description: string | null;
                     currency: string | null;
@@ -139,16 +139,18 @@ export declare class QuotationsService {
                     twitterHandle: string | null;
                 } | null;
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    deletedAt: Date | null;
-                    notes: string | null;
-                    id: number;
                     companyId: number | null;
+                    deletedAt: Date | null;
+                    firstNameAr: string | null;
+                    lastNameAr: string | null;
+                    notes: string | null;
                     industry: string | null;
                     currency: string | null;
                     budget: import("@prisma/client/runtime/library").Decimal | null;
@@ -174,17 +176,19 @@ export declare class QuotationsService {
                     linkedinProfile: string | null;
                     timezone: string | null;
                     preferredContactMethod: string | null;
-                    customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
+                    previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                    customFields: import("@prisma/client/runtime/library").JsonValue | null;
+                    addressAr: string | null;
+                    companyAr: string | null;
                 } | null;
                 deal: {
+                    id: number;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    deletedAt: Date | null;
-                    id: number;
                     companyId: number | null;
+                    deletedAt: Date | null;
                     description: string | null;
                     currency: string;
                     title: string;
@@ -198,29 +202,29 @@ export declare class QuotationsService {
                     actualCloseDate: Date | null;
                 } | null;
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     quotationId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -228,13 +232,13 @@ export declare class QuotationsService {
                 createdBy: number;
                 status: import("@prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
+                sentAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 taxAmount: import("@prisma/client/runtime/library").Decimal;
                 discountAmount: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 quotationNumber: string;
                 validUntil: Date | null;
@@ -255,29 +259,29 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             items: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 sortOrder: number;
-                productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 quotationId: number;
+                productId: number | null;
                 quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
             }[];
         } & {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
+            companyId: number | null;
             deletedAt: Date | null;
             notes: string | null;
-            id: number;
-            companyId: number | null;
             description: string | null;
             currency: string;
             title: string;
@@ -285,13 +289,13 @@ export declare class QuotationsService {
             createdBy: number;
             status: import("@prisma/client").$Enums.QuotationStatus;
             expiresAt: Date | null;
+            sentAt: Date | null;
             dealId: number | null;
             subtotal: import("@prisma/client/runtime/library").Decimal;
             taxAmount: import("@prisma/client/runtime/library").Decimal;
             discountAmount: import("@prisma/client/runtime/library").Decimal;
             totalAmount: import("@prisma/client/runtime/library").Decimal;
             terms: string | null;
-            sentAt: Date | null;
             viewedAt: Date | null;
             quotationNumber: string;
             validUntil: Date | null;
@@ -304,29 +308,29 @@ export declare class QuotationsService {
         data: {
             quotation: {
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     quotationId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -334,13 +338,13 @@ export declare class QuotationsService {
                 createdBy: number;
                 status: import("@prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
+                sentAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 taxAmount: import("@prisma/client/runtime/library").Decimal;
                 discountAmount: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 quotationNumber: string;
                 validUntil: Date | null;
@@ -356,18 +360,18 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             item: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 sortOrder: number;
-                productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 quotationId: number;
+                productId: number | null;
                 quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
@@ -378,18 +382,18 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             item: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 sortOrder: number;
-                productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 quotationId: number;
+                productId: number | null;
                 quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
@@ -404,12 +408,12 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             quotation: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -417,13 +421,13 @@ export declare class QuotationsService {
                 createdBy: number;
                 status: import("@prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
+                sentAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 taxAmount: import("@prisma/client/runtime/library").Decimal;
                 discountAmount: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 quotationNumber: string;
                 validUntil: Date | null;
@@ -436,12 +440,12 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             quotation: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -449,13 +453,13 @@ export declare class QuotationsService {
                 createdBy: number;
                 status: import("@prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
+                sentAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 taxAmount: import("@prisma/client/runtime/library").Decimal;
                 discountAmount: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 quotationNumber: string;
                 validUntil: Date | null;
@@ -468,12 +472,12 @@ export declare class QuotationsService {
         success: boolean;
         data: {
             quotation: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -481,13 +485,13 @@ export declare class QuotationsService {
                 createdBy: number;
                 status: import("@prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
+                sentAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 taxAmount: import("@prisma/client/runtime/library").Decimal;
                 discountAmount: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 quotationNumber: string;
                 validUntil: Date | null;
@@ -496,7 +500,7 @@ export declare class QuotationsService {
             };
         };
     }>;
-    buildPdf(id: number): Promise<{
+    buildPdf(id: number, lang?: string): Promise<{
         buffer: Buffer;
         filename: string;
     }>;
@@ -509,35 +513,36 @@ export declare class QuotationsService {
         data: {
             invoice: {
                 items: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     sortOrder: number;
-                    productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     invoiceId: number;
+                    productId: number | null;
                     quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
+                companyId: number | null;
                 deletedAt: Date | null;
                 notes: string | null;
-                id: number;
-                companyId: number | null;
                 description: string | null;
                 currency: string;
                 title: string;
                 leadId: number | null;
                 createdBy: number;
                 status: import("@prisma/client").$Enums.InvoiceStatus;
+                sentAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -548,7 +553,6 @@ export declare class QuotationsService {
                 paidAmount: import("@prisma/client/runtime/library").Decimal;
                 terms: string | null;
                 quotationId: number | null;
-                sentAt: Date | null;
                 viewedAt: Date | null;
                 paidAt: Date | null;
             };

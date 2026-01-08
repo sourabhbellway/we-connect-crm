@@ -50,15 +50,10 @@ let CallLogsController = class CallLogsController {
         return this.service.remove(Number(id));
     }
     async initiate(dto, fcm) {
-        const result = await this.service.create(dto);
-        if (fcm) {
-            try {
-            }
-            catch (error) {
-                console.error('Failed to send mobile notification:', error);
-            }
+        if (fcm && !dto.deviceToken) {
+            dto.deviceToken = fcm;
         }
-        return result;
+        return this.service.create(dto);
     }
 };
 exports.CallLogsController = CallLogsController;

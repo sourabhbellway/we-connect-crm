@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { activityService } from '../services/activityService';
 import { callLogService, CallLog } from '../services/callLogService';
@@ -27,19 +28,22 @@ import { format, parseISO } from 'date-fns';
 import Pagination from '../components/Pagination';
 
 // Fix: remove extra spaces in label
-const LOG_CATEGORIES = [
-    { label: 'All Activities', value: 'ALL', icon: History },
-    { label: 'Call Logs', value: 'CALL', icon: PhoneCall },
-    { label: 'Login Logs', value: 'LOGIN', icon: LogIn },
-    { label: 'Lead Logs', value: 'LEAD', icon: UserPlus },
-    { label: 'Quotation Logs', value: 'QUOTATION', icon: FileText }, // ← Fixed spacing
-    { label: 'Invoice Logs', value: 'INVOICE', icon: FileCheck },
-    { label: 'Task Logs', value: 'TASK', icon: CheckSquare },
-    { label: 'Automation Logs', value: 'AUTOMATION', icon: Zap },
-];
+
 
 const LogsPage: React.FC = () => {
+    const { t } = useTranslation();
     const { hasPermission, hasRole } = useAuth();
+
+    const LOG_CATEGORIES = useMemo(() => [
+        { label: t('logs.categories.all'), value: 'ALL', icon: History },
+        { label: t('logs.categories.call'), value: 'CALL', icon: PhoneCall },
+        { label: t('logs.categories.login'), value: 'LOGIN', icon: LogIn },
+        { label: t('logs.categories.lead'), value: 'LEAD', icon: UserPlus },
+        { label: t('logs.categories.quotation'), value: 'QUOTATION', icon: FileText },
+        { label: t('logs.categories.invoice'), value: 'INVOICE', icon: FileCheck },
+        { label: t('logs.categories.task'), value: 'TASK', icon: CheckSquare },
+        { label: t('logs.categories.automation'), value: 'AUTOMATION', icon: Zap },
+    ], [t]);
     const isAdmin = hasRole('admin') || hasRole('super_admin');
 
     const [selectedType, setSelectedType] = useState('ALL');
@@ -74,7 +78,7 @@ const LogsPage: React.FC = () => {
             const items = response?.items || response?.data?.items || response?.data || [];
             const total = response?.total || response?.data?.total || items.length;
 
-            const transformed = items.map(transformActivityData);
+            const transformed = items.map((item: any) => transformActivityData(item, t));
             setActivities(transformed);
             setActivityTotal(total);
 
@@ -170,8 +174,8 @@ const LogsPage: React.FC = () => {
                     <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                         <History size={32} className="text-red-600" />
                     </div>
-                    <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Access Denied</h1>
-                    <p className="text-gray-600 dark:text-gray-400">You don't have permission to view system logs.</p>
+                    <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">{t('logs.accessDenied.title')}</h1>
+                    <p className="text-gray-600 dark:text-gray-400">{t('logs.accessDenied.message')}</p>
                 </div>
             </div>
         );
@@ -217,10 +221,10 @@ const LogsPage: React.FC = () => {
                         <div className="p-2 bg-weconnect-red/10 rounded-xl">
                             <History className="h-8 w-8 text-weconnect-red" />
                         </div>
-                        System Logs
+                        {t('logs.title')}
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Track activities and communications across the platform.
+                        {t('logs.subtitle')}
                     </p>
                 </div>
             </div>
@@ -231,7 +235,7 @@ const LogsPage: React.FC = () => {
                     {/* Search Input */}
                     <div className="flex-1 min-w-[200px]">
                         <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                            Search by Email / User
+                            {t('logs.filters.searchLabel')}
                         </label>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -239,7 +243,7 @@ const LogsPage: React.FC = () => {
                                 type="text"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                placeholder="Enter email or user name..."
+                                placeholder={t('logs.filters.searchPlaceholder') || "Enter email or user name..."}
                                 className="w-full pl-10 pr-10 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-weconnect-red/30"
                             />
                             {searchTerm && (
@@ -256,7 +260,7 @@ const LogsPage: React.FC = () => {
                     {/* Date From */}
                     <div className="min-w-[140px]">
                         <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                            From
+                            {t('logs.filters.from')}
                         </label>
                         <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -272,7 +276,7 @@ const LogsPage: React.FC = () => {
                     {/* Date To */}
                     <div className="min-w-[140px]">
                         <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                            To
+                            {t('logs.filters.to')}
                         </label>
                         <div className="relative">
                             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -291,7 +295,7 @@ const LogsPage: React.FC = () => {
                             onClick={handleClearFilters}
                             className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl font-medium text-gray-700 dark:text-gray-300 transition-colors"
                         >
-                            Clear Filters
+                            {t('logs.filters.clear')}
                         </button>
                     )}
                 </div>
@@ -325,15 +329,15 @@ const LogsPage: React.FC = () => {
                         {activityLoading ? (
                             <div className="flex flex-col items-center justify-center py-32 gap-4">
                                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-weconnect-red/20 border-t-weconnect-red"></div>
-                                <p className="text-sm font-medium text-gray-500">Fetching activities...</p>
+                                <p className="text-sm font-medium text-gray-500">{t('logs.loading.activities')}</p>
                             </div>
                         ) : filteredActivities.length === 0 ? (
                             <div className="text-center py-32">
                                 <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <History size={40} className="text-gray-300" />
                                 </div>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">No activities found</p>
-                                <p className="text-gray-500 mt-1">Try adjusting your filters or search criteria.</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{t('logs.empty.activities')}</p>
+                                <p className="text-gray-500 mt-1">{t('logs.empty.description')}</p>
                             </div>
                         ) : (
                             <>
@@ -399,15 +403,15 @@ const LogsPage: React.FC = () => {
                         {callLoading ? (
                             <div className="flex flex-col items-center justify-center py-32 gap-4">
                                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-weconnect-red/20 border-t-weconnect-red"></div>
-                                <p className="text-sm font-medium text-gray-500">Fetching call logs...</p>
+                                <p className="text-sm font-medium text-gray-500">{t('logs.loading.calls')}</p>
                             </div>
                         ) : callLogs.length === 0 ? (
                             <div className="text-center py-32">
                                 <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Phone size={40} className="text-gray-300" />
                                 </div>
-                                <p className="text-lg font-bold text-gray-900 dark:text-white">No call logs found</p>
-                                <p className="text-gray-500 mt-1">Try adjusting your filters or search criteria.</p>
+                                <p className="text-lg font-bold text-gray-900 dark:text-white">{t('logs.empty.calls')}</p>
+                                <p className="text-gray-500 mt-1">{t('logs.empty.description')}</p>
                             </div>
                         ) : (
                             <>
@@ -415,11 +419,11 @@ const LogsPage: React.FC = () => {
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="bg-gray-50/50 dark:bg-slate-800/50 text-[10px] uppercase tracking-widest text-gray-400 font-bold border-b border-gray-100 dark:border-slate-800">
-                                                <th className="px-8 py-5">Lead / Number</th>
-                                                <th className="px-4 py-5 text-center">Type</th>
-                                                <th className="px-8 py-5">Status</th>
-                                                <th className="px-8 py-5">Performed By</th>
-                                                <th className="px-8 py-5 text-right">Date & Time</th>
+                                                <th className="px-8 py-5">{t('logs.table.leadNumber')}</th>
+                                                <th className="px-4 py-5 text-center">{t('logs.table.type')}</th>
+                                                <th className="px-8 py-5">{t('logs.table.status')}</th>
+                                                <th className="px-8 py-5">{t('logs.table.performedBy')}</th>
+                                                <th className="px-8 py-5 text-right">{t('logs.table.dateTime')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
@@ -427,7 +431,7 @@ const LogsPage: React.FC = () => {
                                                 <tr key={log.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-all group">
                                                     <td className="px-8 py-5">
                                                         <div className="font-bold text-gray-900 dark:text-white group-hover:text-weconnect-red transition-colors">
-                                                            {log.lead ? `${log.lead.firstName} ${log.lead.lastName}` : 'Direct Call'}
+                                                            {log.lead ? `${log.lead.firstName} ${log.lead.lastName}` : t('logs.table.directCall')}
                                                         </div>
                                                         <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
                                                             <Phone size={10} />
@@ -437,11 +441,11 @@ const LogsPage: React.FC = () => {
                                                     <td className="px-4 py-5">
                                                         <div className="flex items-center justify-center">
                                                             {log.callType === 'INBOUND' ? (
-                                                                <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg text-green-600 cursor-help" title="Inbound Call">
+                                                                <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-lg text-green-600 cursor-help" title={t('logs.table.inboundTitle') || "Inbound Call"}>
                                                                     <ArrowLeft size={16} />
                                                                 </div>
                                                             ) : (
-                                                                <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600 cursor-help" title="Outbound Call">
+                                                                <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600 cursor-help" title={t('logs.table.outboundTitle') || "Outbound Call"}>
                                                                     <ArrowRight size={16} />
                                                                 </div>
                                                             )}

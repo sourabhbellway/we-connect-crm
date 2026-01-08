@@ -20,9 +20,17 @@ export class NotificationsService {
       try {
         // Check if Firebase credentials are provided in environment
         const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+        this.logger.log(`Checking Firebase Service Account: ${serviceAccount ? 'Provided (Length: ' + serviceAccount.length + ')' : 'NOT PROVIDED'}`);
+
         if (serviceAccount) {
+          // Clean the string if it has surrounding quotes from .env
+          let cleanJson = serviceAccount.trim();
+          if ((cleanJson.startsWith("'") && cleanJson.endsWith("'")) || (cleanJson.startsWith('"') && cleanJson.endsWith('"'))) {
+            cleanJson = cleanJson.substring(1, cleanJson.length - 1);
+          }
+
           admin.initializeApp({
-            credential: admin.credential.cert(JSON.parse(serviceAccount)),
+            credential: admin.credential.cert(JSON.parse(cleanJson)),
           });
           this.logger.log('Firebase Admin SDK initialized successfully');
         } else {
@@ -31,7 +39,10 @@ export class NotificationsService {
       } catch (error) {
         this.logger.error('Failed to initialize Firebase Admin SDK:', error);
       }
+    } else {
+      this.logger.log('Firebase Admin SDK already initialized');
     }
+
   }
 
   // Create single notification
@@ -311,6 +322,7 @@ export class NotificationsService {
       QUOTATION_ACCEPTED: 'quotationAccepted',
       INVOICE_SENT: 'invoiceSent',
       INVOICE_PAID: 'invoicePaid',
+      COMMUNICATION_LOGGED: 'communicationLogged',
       SYSTEM: 'system',
     };
 
@@ -350,6 +362,7 @@ export class NotificationsService {
       [NotificationType.QUOTATION_ACCEPTED]: undefined,
       [NotificationType.INVOICE_SENT]: undefined,
       [NotificationType.INVOICE_PAID]: undefined,
+      [NotificationType.COMMUNICATION_LOGGED]: undefined,
       [NotificationType.SYSTEM]: undefined,
     };
 
@@ -392,6 +405,16 @@ export class NotificationsService {
         },
         data: data || {},
         token: deviceToken,
+        android: {
+          priority: 'high',
+          notification: {
+            channelId: 'high_importance_channel', // Must match Flutter channel ID
+            priority: 'high',
+            defaultSound: true,
+            defaultVibrateTimings: true,
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+        },
       };
 
       const response = await admin.messaging().send(message);

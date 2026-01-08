@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Package, DollarSign, Tag, Calendar, Hash, CheckCircle, XCircle } from 'lucide-react';
 import { Product } from '../services/productsService';
 import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
+import ImageMagnifier from './ImageMagnifier';
 
 interface ProductDetailsProps {
     product: Product;
@@ -11,8 +12,8 @@ interface ProductDetailsProps {
 const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => {
     const { formatCurrency } = useBusinessSettings();
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col relative">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-4">
@@ -53,102 +54,116 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ product, onClose }) => 
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {/* Description */}
-                    {product.description && (
-                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                                Description
-                            </h3>
-                            <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
-                                {product.description}
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Pricing Section */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
-                            <div className="flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-400">
-                                <DollarSign className="h-5 w-5" />
-                                <h3 className="font-semibold">Pricing</h3>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Price:</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">
-                                        {formatCurrency(product.price, product.currency)}
-                                    </span>
-                                </div>
-                                {product.cost && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Cost:</span>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                            {formatCurrency(product.cost, product.currency)}
-                                        </span>
-                                    </div>
-                                )}
-                                {product.taxRate && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Tax Rate:</span>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                            {product.taxRate}%
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800">
-                            <div className="flex items-center gap-2 mb-2 text-purple-700 dark:text-purple-400">
-                                <Tag className="h-5 w-5" />
-                                <h3 className="font-semibold">Details</h3>
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Type:</span>
-                                    <span className="font-medium text-gray-900 dark:text-white capitalize">
-                                        {product.type}
-                                    </span>
-                                </div>
-                                {product.category && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Category:</span>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                            {product.category}
-                                        </span>
-                                    </div>
-                                )}
-                                {product.unit && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">Unit:</span>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                            {product.unit}
-                                        </span>
-                                    </div>
-                                )}
-                                {product.hsnCode && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600 dark:text-gray-400">HSN Code:</span>
-                                        <span className="font-medium text-gray-900 dark:text-white">
-                                            {product.hsnCode}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+                <div className="flex-1 flex flex-col md:flex-row min-h-0">
+                    {/* Image Section - No overflow hidden, so zoom can pop out */}
+                    <div className="w-full md:w-1/3 p-6 flex-shrink-0 z-20 overflow-visible bg-gray-50/50 dark:bg-gray-900/20">
+                        <div className="sticky top-6">
+                            <ImageMagnifier
+                                src={product.image || 'https://via.placeholder.com/400x400?text=No+Image'}
+                                alt={product.name}
+                                width="100%"
+                            />
                         </div>
                     </div>
 
-                    {/* System Info */}
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                        <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                            <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                Created: {new Date(product.createdAt).toLocaleDateString()}
+                    {/* Details Section - Independent Scroll */}
+                    <div className="flex-1 space-y-6 p-6 overflow-y-auto custom-scrollbar">
+                        {/* Description */}
+                        {product.description && (
+                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                                    Description
+                                </h3>
+                                <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
+                                    {product.description}
+                                </p>
                             </div>
-                            <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                Updated: {new Date(product.updatedAt).toLocaleDateString()}
+                        )}
+
+                        {/* Pricing Section */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+                                <div className="flex items-center gap-2 mb-2 text-blue-700 dark:text-blue-400">
+                                    <DollarSign className="h-5 w-5" />
+                                    <h3 className="font-semibold">Pricing</h3>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600 dark:text-gray-400">Price:</span>
+                                        <span className="font-medium text-gray-900 dark:text-white">
+                                            {formatCurrency(product.price, product.currency)}
+                                        </span>
+                                    </div>
+                                    {product.cost && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Cost:</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">
+                                                {formatCurrency(product.cost, product.currency)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {product.taxRate && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Tax Rate:</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">
+                                                {product.taxRate}%
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800">
+                                <div className="flex items-center gap-2 mb-2 text-purple-700 dark:text-purple-400">
+                                    <Tag className="h-5 w-5" />
+                                    <h3 className="font-semibold">Details</h3>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600 dark:text-gray-400">Type:</span>
+                                        <span className="font-medium text-gray-900 dark:text-white capitalize">
+                                            {product.type}
+                                        </span>
+                                    </div>
+                                    {product.category && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Category:</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">
+                                                {product.category}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {product.unit && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">Unit:</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">
+                                                {product.unit}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {product.hsnCode && (
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600 dark:text-gray-400">HSN Code:</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">
+                                                {product.hsnCode}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* System Info */}
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                                <div className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    Created: {new Date(product.createdAt).toLocaleDateString()}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    Updated: {new Date(product.updatedAt).toLocaleDateString()}
+                                </div>
                             </div>
                         </div>
                     </div>

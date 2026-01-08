@@ -82,16 +82,18 @@ export declare class LeadsController {
     create(dto: CreateLeadDto, user?: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             email: string | null;
             firstName: string | null;
             lastName: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
+            firstNameAr: string | null;
+            lastNameAr: string | null;
+            notes: string | null;
             industry: string | null;
             currency: string | null;
             budget: import("@prisma/client/runtime/library").Decimal | null;
@@ -117,9 +119,11 @@ export declare class LeadsController {
             linkedinProfile: string | null;
             timezone: string | null;
             preferredContactMethod: string | null;
-            customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
+            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            customFields: import("@prisma/client/runtime/library").JsonValue | null;
+            addressAr: string | null;
+            companyAr: string | null;
         } | {
             status: string;
             priority: string | undefined;
@@ -133,16 +137,18 @@ export declare class LeadsController {
                 name: string;
                 description: string | null;
             } | null;
+            id: number;
             email: string | null;
             firstName: string | null;
             lastName: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
+            firstNameAr: string | null;
+            lastNameAr: string | null;
+            notes: string | null;
             industry: string | null;
             currency: string | null;
             budget: import("@prisma/client/runtime/library").Decimal | null;
@@ -166,9 +172,11 @@ export declare class LeadsController {
             linkedinProfile: string | null;
             timezone: string | null;
             preferredContactMethod: string | null;
-            customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
+            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            customFields: import("@prisma/client/runtime/library").JsonValue | null;
+            addressAr: string | null;
+            companyAr: string | null;
         };
     }>;
     update(id: string, dto: UpdateLeadDto): Promise<{
@@ -198,16 +206,18 @@ export declare class LeadsController {
         success: boolean;
         message: string;
         data: {
+            id: number;
             email: string | null;
             firstName: string | null;
             lastName: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
+            firstNameAr: string | null;
+            lastNameAr: string | null;
+            notes: string | null;
             industry: string | null;
             currency: string | null;
             budget: import("@prisma/client/runtime/library").Decimal | null;
@@ -233,9 +243,11 @@ export declare class LeadsController {
             linkedinProfile: string | null;
             timezone: string | null;
             preferredContactMethod: string | null;
-            customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
+            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            customFields: import("@prisma/client/runtime/library").JsonValue | null;
+            addressAr: string | null;
+            companyAr: string | null;
         };
     }>;
     bulkAssign(dto: BulkAssignDto): Promise<{
@@ -264,16 +276,18 @@ export declare class LeadsController {
         message: string;
         data: {
             lead: {
+                id: number;
                 email: string | null;
                 firstName: string | null;
                 lastName: string | null;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
+                firstNameAr: string | null;
+                lastNameAr: string | null;
+                notes: string | null;
                 industry: string | null;
                 currency: string | null;
                 budget: import("@prisma/client/runtime/library").Decimal | null;
@@ -299,9 +313,11 @@ export declare class LeadsController {
                 linkedinProfile: string | null;
                 timezone: string | null;
                 preferredContactMethod: string | null;
-                customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
                 convertedToDealId: number | null;
+                previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                customFields: import("@prisma/client/runtime/library").JsonValue | null;
+                addressAr: string | null;
+                companyAr: string | null;
             };
         };
     }>;

@@ -59,9 +59,14 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         if (!admin.apps.length) {
             try {
                 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+                this.logger.log(`Checking Firebase Service Account: ${serviceAccount ? 'Provided (Length: ' + serviceAccount.length + ')' : 'NOT PROVIDED'}`);
                 if (serviceAccount) {
+                    let cleanJson = serviceAccount.trim();
+                    if ((cleanJson.startsWith("'") && cleanJson.endsWith("'")) || (cleanJson.startsWith('"') && cleanJson.endsWith('"'))) {
+                        cleanJson = cleanJson.substring(1, cleanJson.length - 1);
+                    }
                     admin.initializeApp({
-                        credential: admin.credential.cert(JSON.parse(serviceAccount)),
+                        credential: admin.credential.cert(JSON.parse(cleanJson)),
                     });
                     this.logger.log('Firebase Admin SDK initialized successfully');
                 }
@@ -72,6 +77,9 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             catch (error) {
                 this.logger.error('Failed to initialize Firebase Admin SDK:', error);
             }
+        }
+        else {
+            this.logger.log('Firebase Admin SDK already initialized');
         }
     }
     async create(dto) {
@@ -291,6 +299,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             QUOTATION_ACCEPTED: 'quotationAccepted',
             INVOICE_SENT: 'invoiceSent',
             INVOICE_PAID: 'invoicePaid',
+            COMMUNICATION_LOGGED: 'communicationLogged',
             SYSTEM: 'system',
         };
         return mapping[type] || null;
@@ -327,6 +336,7 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
             [client_1.NotificationType.QUOTATION_ACCEPTED]: undefined,
             [client_1.NotificationType.INVOICE_SENT]: undefined,
             [client_1.NotificationType.INVOICE_PAID]: undefined,
+            [client_1.NotificationType.COMMUNICATION_LOGGED]: undefined,
             [client_1.NotificationType.SYSTEM]: undefined,
         };
         const config = messages[type];
@@ -354,6 +364,16 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
                 },
                 data: data || {},
                 token: deviceToken,
+                android: {
+                    priority: 'high',
+                    notification: {
+                        channelId: 'high_importance_channel',
+                        priority: 'high',
+                        defaultSound: true,
+                        defaultVibrateTimings: true,
+                        clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+                    },
+                },
             };
             const response = await admin.messaging().send(message);
             this.logger.log(`Push notification sent successfully: ${response}`);

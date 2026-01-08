@@ -10,9 +10,9 @@ export declare class ExpensesController {
         data: {
             items: ({
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 } | null;
                 deal: {
@@ -20,27 +20,27 @@ export declare class ExpensesController {
                     title: string;
                 } | null;
                 approvedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 rejectedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 submittedByUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 currency: string;
                 type: import("@prisma/client").$Enums.ExpenseType;
@@ -61,9 +61,9 @@ export declare class ExpensesController {
             })[];
             expenses: ({
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 } | null;
                 deal: {
@@ -71,27 +71,27 @@ export declare class ExpensesController {
                     title: string;
                 } | null;
                 approvedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 rejectedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 submittedByUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 currency: string;
                 type: import("@prisma/client").$Enums.ExpenseType;
@@ -145,9 +145,9 @@ export declare class ExpensesController {
         data: {
             expense: {
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 } | null;
                 deal: {
@@ -155,27 +155,27 @@ export declare class ExpensesController {
                     title: string;
                 } | null;
                 approvedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 rejectedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 submittedByUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 currency: string;
                 type: import("@prisma/client").$Enums.ExpenseType;
@@ -202,17 +202,17 @@ export declare class ExpensesController {
         data: {
             expense: {
                 submittedByUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 currency: string;
                 type: import("@prisma/client").$Enums.ExpenseType;
@@ -238,17 +238,17 @@ export declare class ExpensesController {
         data: {
             expense: {
                 submittedByUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 currency: string;
                 type: import("@prisma/client").$Enums.ExpenseType;
@@ -274,27 +274,27 @@ export declare class ExpensesController {
         data: {
             expense: {
                 approvedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 rejectedByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 submittedByUser: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 currency: string;
                 type: import("@prisma/client").$Enums.ExpenseType;

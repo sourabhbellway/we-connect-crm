@@ -31,12 +31,12 @@ export declare class DealsController {
         message: string;
         data: {
             deal: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
                 description: string | null;
                 currency: string;
                 title: string;
@@ -56,12 +56,12 @@ export declare class DealsController {
         message: string;
         data: {
             deal: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
                 description: string | null;
                 currency: string;
                 title: string;

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { useCounts } from '../contexts/CountsContext';
 import { Button } from './ui';
 import { PERMISSIONS } from '../constants';
@@ -68,6 +69,7 @@ const DealActionMenu = ({
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
@@ -140,10 +142,10 @@ const DealActionMenu = ({
               onView(deal.id);
               setIsOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            className="w-full text-start px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
           >
             <Eye className="h-4 w-4 text-gray-400" />
-            View
+            {t('common.view', 'View')}
           </button>
           <button
             onClick={(e) => {
@@ -151,10 +153,10 @@ const DealActionMenu = ({
               onEdit(deal.id);
               setIsOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            className="w-full text-start px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
           >
             <Edit className="h-4 w-4 text-blue-500" />
-            Edit
+            {t('common.edit', 'Edit')}
           </button>
           <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
           <button
@@ -163,10 +165,10 @@ const DealActionMenu = ({
               onDelete(deal.id);
               setIsOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+            className="w-full text-start px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
           >
             <Trash2 className="h-4 w-4" />
-            Delete
+            {t('common.delete', 'Delete')}
           </button>
         </div>,
         document.body
@@ -176,6 +178,7 @@ const DealActionMenu = ({
 };
 
 const Deals: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -495,23 +498,23 @@ const Deals: React.FC = () => {
       {/* Header */}
       <div className="space-y-4">
         <ListToolbar
-          title="Deals"
-          subtitle="Track and manage your sales opportunities"
-          addLabel="Add Deal"
+          title={t('deals.title', 'Deals')}
+          subtitle={t('deals.subtitle', 'Track and manage your sales opportunities')}
+          addLabel={t('deals.addDeal', 'Add Deal')}
           onAdd={hasPermission(PERMISSIONS.DEAL.CREATE) ? () => navigate('/leads/new') : undefined}
           bulkActions={[
             {
-              label: 'Download Template',
+              label: t('common.downloadTemplate', 'Download Template'),
               icon: <FileSpreadsheet className="w-4 h-4" />,
               onClick: handleDownloadTemplate,
             },
             {
-              label: 'Import Deals',
+              label: t('deals.importDeals', 'Import Deals'),
               icon: <Upload className="w-4 h-4" />,
               onClick: () => setShowImportModal(true),
             },
             {
-              label: 'Export Deals (CSV)',
+              label: t('deals.exportDeals', 'Export Deals (CSV)'),
               icon: <FileDown className="w-4 h-4" />,
               onClick: handleExportDeals,
               disabled: isExporting,
@@ -527,10 +530,10 @@ const Deals: React.FC = () => {
           <div className="">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               <div className="flex items-center gap-2">
-                Search
+                {t('common.search', 'Search')}
                 {isSearching && (
                   <span className="text-xs text-blue-500 flex items-center gap-1">
-                    Searching...
+                    {t('common.searching', 'Searching...')}
                   </span>
                 )}
               </div>
@@ -538,7 +541,7 @@ const Deals: React.FC = () => {
             <SearchInput
               value={searchValue}
               onChange={setSearch}
-              placeholder="Search deals..."
+              placeholder={t('deals.searchPlaceholder', 'Search deals...')}
               className="max-w-full"
             />
           </div>
@@ -548,24 +551,24 @@ const Deals: React.FC = () => {
           {/* Status Filter */}
           <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
-              label="Status"
+              label={t('common.status', 'Status')}
               value={statusFilter}
               onChange={(v) => setStatusFilter((v as string))}
-              options={[{ value: 'ALL', label: 'All statuses' }, ...(dealStatuses || []).map(s => ({ value: s.name, label: s.name }))]}
+              options={[{ value: 'ALL', label: t('common.all', 'All statuses') }, ...(dealStatuses || []).map(s => ({ value: s.name, label: s.name }))]}
             />
           </div>
 
           {/* Sort By */}
           <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
-              label="Sort by"
+              label={t('common.sort', 'Sort by')}
               value={sortBy}
               onChange={(v) => setSortBy((v as string) as any)}
               options={[
-                { value: 'createdAt', label: 'Created date' },
-                { value: 'title', label: 'Title' },
-                { value: 'value', label: 'Value' },
-                { value: 'expectedCloseDate', label: 'Expected close' },
+                { value: 'createdAt', label: t('common.created', 'Created date') },
+                { value: 'title', label: t('common.title', 'Title') },
+                { value: 'value', label: t('common.value', 'Value') },
+                { value: 'expectedCloseDate', label: t('common.expectedClose', 'Expected close') },
               ]}
             />
           </div>
@@ -573,12 +576,12 @@ const Deals: React.FC = () => {
           {/* Sort Order */}
           <div className="w-full sm:w-48 sm:min-w-[200px]">
             <DropdownFilter
-              label="Order"
+              label={t('common.order', 'Order')}
               value={sortOrder}
               onChange={(v) => setSortOrder((v as string) as any)}
               options={[
-                { value: 'asc', label: 'Ascending' },
-                { value: 'desc', label: 'Descending' },
+                { value: 'asc', label: t('common.asc', 'Ascending') },
+                { value: 'desc', label: t('common.desc', 'Descending') },
               ]}
             />
           </div>
@@ -586,7 +589,7 @@ const Deals: React.FC = () => {
           {/* Items per page */}
           <div className="w-full sm:w-48 sm:min-w-[200px]">
             <DropdownFilter
-              label="Items per page"
+              label={t('common.perPage', 'Items per page')}
               value={String(itemsPerPage)}
               onChange={(v) => setItemsPerPage(Number(v))}
               options={[
@@ -600,7 +603,7 @@ const Deals: React.FC = () => {
         </div>
 
         {/* View toggle - Right aligned */}
-        <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 ml-auto">
+        <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 ml-auto rtl:ml-0 rtl:mr-auto">
           <button
             className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
             onClick={() => setViewMode('list')}

@@ -94,11 +94,14 @@ model User {
   passwordResetToken     String?                   @unique
   twoFactorEnabled       Boolean                   @default(false)
   twoFactorSecret        String?
-  mustChangePassword     Boolean                   @default(false)
-  managerId              Int?
-  teamId                 Int?
   deviceToken            String?
   fcmToken               String?
+  managerId              Int?
+  mustChangePassword     Boolean                   @default(false)
+  teamId                 Int?
+  language               String                    @default("en")
+  firstNameAr            String?
+  lastNameAr             String?
   activities             Activity[]                @relation("UserActivities")
   createdBudgets         Budget[]                  @relation("UserCreatedBudgets")
   callLogs               CallLog[]                 @relation("UserCallLogs")
@@ -138,6 +141,7 @@ model User {
   manager                User?                     @relation("UserManager", fields: [managerId], references: [id])
   subordinates           User[]                    @relation("UserManager")
   team                   Team?                     @relation("TeamMembers", fields: [teamId], references: [id])
+  voIPCalls              VoIPCall[]
 
   @@map("users")
 }
@@ -147,12 +151,11 @@ model Team {
   name        String
   description String?
   managerId   Int?
-  productId   Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   manager     User?     @relation("TeamManager", fields: [managerId], references: [id])
   members     User[]    @relation("TeamMembers")
-  product     Product?  @relation(fields: [productId], references: [id])
+  products    Product[] @relation("TeamProducts")
 
   @@map("teams")
 }
@@ -162,10 +165,10 @@ model Role {
   name        String           @unique
   description String?
   isActive    Boolean          @default(true)
-  accessScope RoleAccessScope  @default(OWN)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   deletedAt   DateTime?
+  accessScope RoleAccessScope  @default(OWN)
   permissions RolePermission[]
   users       UserRole[]
 
@@ -189,12 +192,12 @@ model LeadSource {
   id          Int        @id @default(autoincrement())
   name        String     @unique
   description String?
-  color       String     @unique
-  sortOrder   Int        @default(0)
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   companyId   Int?
+  color       String     @unique
+  sortOrder   Int        @default(0)
   companies   companies? @relation(fields: [companyId], references: [id])
   leads       Lead[]
 
@@ -251,10 +254,14 @@ model Lead {
   linkedinProfile        String?
   timezone               String?
   preferredContactMethod String?                @default("email")
-  customFields           Json?                  @default("{}")
-  previousStatus         LeadStatus?
   convertedToDealId      Int?
+  previousStatus         LeadStatus?
   createdBy              Int?
+  customFields           Json?                  @default("{}")
+  addressAr              String?
+  companyAr              String?
+  firstNameAr            String?
+  lastNameAr             String?
   activities             Activity[]             @relation("LeadActivities")
   callLogs               CallLog[]              @relation("LeadCallLogs")
   messages               CommunicationMessage[] @relation("LeadMessages")
@@ -273,6 +280,8 @@ model Lead {
   leadNotes              Note[]                 @relation("LeadNotes")
   quotations             Quotation[]            @relation("LeadQuotations")
   tasks                  Task[]                 @relation("LeadTasks")
+  voIPCalls              VoIPCall[]
+  products               Product[]              @relation("LeadToProduct")
 
   @@map("leads")
 }
@@ -415,6 +424,7 @@ model companies {
   companyQuotations Quotation[]               @relation("CompanyQuotations")
   tagsRelation      Tag[]
   users             User[]
+  webhooks          Webhook[]
 }
 
 model RefreshToken {
@@ -496,16 +506,16 @@ model BusinessSettings {
   industry                  String?
   employeeCount             String?
   description               String?
-  preferences               Json?
-  quotePrefix               String   @default("Q-")
-  quoteSuffix               String   @default("")
-  quotePad                  Int      @default(6)
+  invoiceNumberingEnabled   Boolean  @default(true)
+  invoicePad                Int      @default(6)
   invoicePrefix             String   @default("INV-")
   invoiceSuffix             String   @default("")
-  invoicePad                Int      @default(6)
-  quoteNumberingEnabled     Boolean  @default(true)
-  invoiceNumberingEnabled   Boolean  @default(true)
   invoiceTemplate           String   @default("template1")
+  preferences               Json?
+  quoteNumberingEnabled     Boolean  @default(true)
+  quotePad                  Int      @default(6)
+  quotePrefix               String   @default("Q-")
+  quoteSuffix               String   @default("")
 
   @@map("business_settings")
 }
@@ -1037,6 +1047,22 @@ model ThirdPartyIntegration {
   @@map("third_party_integrations")
 }
 
+model Webhook {
+  id        Int        @id @default(autoincrement())
+  name      String
+  url       String
+  events    Json?
+  secret    String?
+  isActive  Boolean    @default(true)
+  companyId Int?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+  companies companies? @relation(fields: [companyId], references: [id])
+
+  @@map("webhooks")
+}
+
 model IntegrationLog {
   id            Int                   @id @default(autoincrement())
   integrationId Int
@@ -1128,7 +1154,6 @@ model Product {
   currency       String          @default("USD")
   unit           String?         @default("pcs")
   taxRate        Decimal?        @db.Decimal(5, 2)
-  hsnCode        String?
   isActive       Boolean         @default(true)
   stockQuantity  Int?            @default(0)
   minStockLevel  Int?            @default(0)
@@ -1138,9 +1163,11 @@ model Product {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   deletedAt      DateTime?
+  hsnCode        String?
   invoiceItems   InvoiceItem[]
   quotationItems QuotationItem[]
-  teams          Team[]
+  leads          Lead[]          @relation("LeadToProduct")
+  teams          Team[]          @relation("TeamProducts")
 
   @@map("products")
 }
@@ -1413,7 +1440,6 @@ model Expense {
   submittedBy     Int
   approvedBy      Int?
   rejectedBy      Int?
-  approvedAt      DateTime?
   approvalRemarks String?
   projectId       Int?
   dealId          Int?
@@ -1423,6 +1449,7 @@ model Expense {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   deletedAt       DateTime?
+  approvedAt      DateTime?
   approvedByUser  User?         @relation("UserApprovedExpenses", fields: [approvedBy], references: [id])
   deal            Deal?         @relation(fields: [dealId], references: [id])
   lead            Lead?         @relation(fields: [leadId], references: [id])
@@ -1523,6 +1550,52 @@ model NotificationPreference {
   user              User     @relation("UserNotificationPreference", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
+}
+
+model VoIPConfiguration {
+  id                  Int      @id @default(autoincrement())
+  provider            String
+  apiKey              String
+  apiSecret           String
+  accountSid          String?
+  authToken           String?
+  regions             String[]
+  defaultRegion       String?
+  enableCallRecording Boolean  @default(false)
+  recordingStorage    String?  @default("none")
+  enableVideoCalls    Boolean  @default(false)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  metadata            Json?
+
+  @@map("voip_configurations")
+}
+
+model VoIPCall {
+  id           Int       @id @default(autoincrement())
+  callId       String    @unique
+  leadId       Int
+  userId       Int
+  phoneNumber  String
+  callType     String
+  status       String
+  duration     Int?
+  startTime    DateTime?
+  endTime      DateTime?
+  recordingUrl String?
+  region       String?
+  isRecorded   Boolean   @default(false)
+  errorMessage String?
+  errorCode    String?
+  provider     String
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id])
+
+  @@map("voip_calls")
 }
 
 enum LeadStatus {
@@ -1834,6 +1907,7 @@ enum NotificationType {
   INVOICE_SENT
   INVOICE_PAID
   SYSTEM
+  COMMUNICATION_LOGGED
 }
 
 enum EmailTemplateCategory {

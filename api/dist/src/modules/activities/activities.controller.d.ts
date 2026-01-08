@@ -7,9 +7,9 @@ export declare class ActivitiesController {
         success: boolean;
         data: {
             items: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 description: string;
                 title: string;
                 type: import("@prisma/client").$Enums.ActivityType;
@@ -37,7 +37,10 @@ export declare class ActivitiesController {
         data: {
             users: {
                 records: {
+                    id: number;
                     email: string;
+                    emailVerificationToken: string | null;
+                    passwordResetToken: string | null;
                     password: string;
                     firstName: string;
                     lastName: string;
@@ -46,39 +49,41 @@ export declare class ActivitiesController {
                     createdAt: Date;
                     updatedAt: Date;
                     profilePicture: string | null;
+                    companyId: number | null;
                     deletedAt: Date | null;
                     accountLockedUntil: Date | null;
-                    emailVerificationToken: string | null;
                     emailVerified: boolean;
                     emailVerifiedAt: Date | null;
                     failedLoginAttempts: number;
                     passwordResetExpires: Date | null;
-                    passwordResetToken: string | null;
                     twoFactorEnabled: boolean;
                     twoFactorSecret: string | null;
-                    mustChangePassword: boolean;
                     deviceToken: string | null;
                     fcmToken: string | null;
-                    id: number;
-                    companyId: number | null;
                     managerId: number | null;
+                    mustChangePassword: boolean;
                     teamId: number | null;
+                    language: string;
+                    firstNameAr: string | null;
+                    lastNameAr: string | null;
                 }[];
                 total: number;
                 pages: number;
             };
             leads: {
                 records: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    deletedAt: Date | null;
-                    notes: string | null;
-                    id: number;
                     companyId: number | null;
+                    deletedAt: Date | null;
+                    firstNameAr: string | null;
+                    lastNameAr: string | null;
+                    notes: string | null;
                     industry: string | null;
                     currency: string | null;
                     budget: import("@prisma/client/runtime/library").Decimal | null;
@@ -104,20 +109,22 @@ export declare class ActivitiesController {
                     linkedinProfile: string | null;
                     timezone: string | null;
                     preferredContactMethod: string | null;
-                    customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
+                    previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                    customFields: import("@prisma/client/runtime/library").JsonValue | null;
+                    addressAr: string | null;
+                    companyAr: string | null;
                 }[];
                 total: number;
                 pages: number;
             };
             roles: {
                 records: {
+                    id: number;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
                     deletedAt: Date | null;
-                    id: number;
                     name: string;
                     description: string | null;
                     accessScope: import("@prisma/client").$Enums.RoleAccessScope;
@@ -132,15 +139,15 @@ export declare class ActivitiesController {
         data: {
             items: ({
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 description: string;
                 title: string;
                 type: import("@prisma/client").$Enums.ActivityType;
@@ -161,9 +168,9 @@ export declare class ActivitiesController {
         success: boolean;
         data: {
             activity: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 description: string;
                 title: string;
                 type: import("@prisma/client").$Enums.ActivityType;
@@ -182,15 +189,15 @@ export declare class ActivitiesController {
         data: {
             items: ({
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 description: string;
                 title: string;
                 type: import("@prisma/client").$Enums.ActivityType;
@@ -219,10 +226,10 @@ export declare class ActivitiesController {
                 leadId: number | null;
                 userId: number | undefined;
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 source: string;
             } | {
@@ -234,16 +241,16 @@ export declare class ActivitiesController {
                 leadId: number;
                 userId: number;
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                 };
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
                 source: string;
             })[];

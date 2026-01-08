@@ -34,20 +34,19 @@ const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
     <div className="relative">
       <button
         type="button"
-        className={`w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-          isCollapsed ? "justify-center px-3 py-2" : "justify-between"
-        } text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white`}
+        className={`w-full flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isCollapsed ? "justify-center px-3 py-2" : "justify-between"
+          } text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white`}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
         <div
           className={`flex items-center ${isCollapsed ? "justify-center" : ""}`}
         >
-          <Icon size={20} className={`${isCollapsed ? "mr-0" : "mr-3"}`} />
+          <Icon size={20} className={`${isCollapsed ? "mr-0" : "me-3"}`} />
           {!isCollapsed && <span>{name}</span>}
         </div>
         {!isCollapsed && (
-          <span className="ml-2 text-gray-500 dark:text-gray-400">
+          <span className="ms-2 text-gray-500 dark:text-gray-400">
             {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </span>
         )}
@@ -55,7 +54,7 @@ const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
 
       {/* Children */}
       {open && !isCollapsed && (
-        <div className="mt-1 ml-9 space-y-1">
+        <div className="mt-1 ms-[32px] space-y-1">
           {childrenItems
             .filter((c) => canShowChild(c.permission))
             .map((child) => (

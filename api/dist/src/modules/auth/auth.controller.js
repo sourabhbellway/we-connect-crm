@@ -40,6 +40,9 @@ let AuthController = class AuthController {
     profile(user) {
         return this.authService.profile(user.userId);
     }
+    updateFcmToken(user, fcmToken) {
+        return this.authService.updateFcmToken(user.userId, fcmToken);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -78,6 +81,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "profile", null);
+__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Post)('fcm-token'),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Body)('fcmToken')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "updateFcmToken", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

@@ -23,6 +23,7 @@ exports.CommunicationsModule = CommunicationsModule = __decorate([
         imports: [notifications_module_1.NotificationsModule],
         controllers: [communications_controller_1.CommunicationsController, webhooks_controller_1.WebhooksController, communication_providers_controller_1.CommunicationProvidersController],
         providers: [communications_service_1.CommunicationsService, communication_providers_service_1.CommunicationProvidersService, prisma_service_1.PrismaService],
+        exports: [communications_service_1.CommunicationsService, communication_providers_service_1.CommunicationProvidersService],
     })
 ], CommunicationsModule);
 //# sourceMappingURL=communications.module.js.map

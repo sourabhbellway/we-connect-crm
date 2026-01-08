@@ -160,11 +160,12 @@ let CallLogsService = class CallLogsService {
                         where: { id: dto.userId },
                         select: { fcmToken: true, firstName: true },
                     });
-                    if (user?.fcmToken) {
+                    const targetToken = dto.deviceToken || user?.fcmToken;
+                    if (targetToken) {
                         const leadName = item.lead
                             ? `${item.lead.firstName || ''} ${item.lead.lastName || ''}`.trim()
                             : 'Unknown Lead';
-                        await this.notificationsService.sendPushNotification(user.fcmToken, '📞 Outgoing Call', `Calling ${leadName} at ${item.phoneNumber}`, {
+                        await this.notificationsService.sendPushNotification(targetToken, '📞 Outgoing Call', `Calling ${leadName} at ${item.phoneNumber}`, {
                             callId: String(item.id),
                             leadId: String(item.leadId),
                             phoneNumber: item.phoneNumber,

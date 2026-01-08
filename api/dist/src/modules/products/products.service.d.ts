@@ -14,12 +14,12 @@ export declare class ProductsService {
         success: boolean;
         data: {
             items: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
                 name: string;
                 description: string | null;
                 currency: string;
@@ -30,11 +30,11 @@ export declare class ProductsService {
                 cost: import("@prisma/client/runtime/library").Decimal | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal | null;
-                hsnCode: string | null;
                 stockQuantity: number | null;
                 minStockLevel: number | null;
                 maxStockLevel: number | null;
                 image: string | null;
+                hsnCode: string | null;
             }[];
             total: number;
             page: number;
@@ -49,12 +49,12 @@ export declare class ProductsService {
         success: boolean;
         data: {
             product: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
                 name: string;
                 description: string | null;
                 currency: string;
@@ -65,11 +65,11 @@ export declare class ProductsService {
                 cost: import("@prisma/client/runtime/library").Decimal | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal | null;
-                hsnCode: string | null;
                 stockQuantity: number | null;
                 minStockLevel: number | null;
                 maxStockLevel: number | null;
                 image: string | null;
+                hsnCode: string | null;
             };
         };
         message?: undefined;
@@ -79,12 +79,12 @@ export declare class ProductsService {
         message: string;
         data: {
             product: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
                 name: string;
                 description: string | null;
                 currency: string;
@@ -95,11 +95,11 @@ export declare class ProductsService {
                 cost: import("@prisma/client/runtime/library").Decimal | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal | null;
-                hsnCode: string | null;
                 stockQuantity: number | null;
                 minStockLevel: number | null;
                 maxStockLevel: number | null;
                 image: string | null;
+                hsnCode: string | null;
             };
         };
     } | {
@@ -112,12 +112,12 @@ export declare class ProductsService {
         message: string;
         data: {
             product: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 companyId: number | null;
+                deletedAt: Date | null;
                 name: string;
                 description: string | null;
                 currency: string;
@@ -128,11 +128,11 @@ export declare class ProductsService {
                 cost: import("@prisma/client/runtime/library").Decimal | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal | null;
-                hsnCode: string | null;
                 stockQuantity: number | null;
                 minStockLevel: number | null;
                 maxStockLevel: number | null;
                 image: string | null;
+                hsnCode: string | null;
             };
         };
     } | {

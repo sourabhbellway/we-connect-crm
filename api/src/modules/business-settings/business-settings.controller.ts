@@ -270,4 +270,25 @@ export class BusinessSettingsController {
     return this.service.updateDashboardSettings(body);
   }
 
+  // VOIP Settings endpoints
+  @Get('voip/config')
+  getVoIPConfig() {
+    return this.service.getVoIPConfig();
+  }
+
+  @Post('voip/config')
+  saveVoIPConfig(@Body() body: any) {
+    return this.service.saveVoIPConfig(body);
+  }
+
+  @Get('voip/calls')
+  getVoIPCallHistory(@Query() query: any) {
+    return this.service.getVoIPCallHistory(query);
+  }
+
+  @Get('voip/stats')
+  getVoIPStatistics() {
+    return this.service.getVoIPStatistics();
+  }
+
 }

@@ -11,11 +11,11 @@ export declare class AutomationService {
     private readonly logger;
     constructor(prisma: PrismaService, notificationsService: NotificationsService, activitiesService: ActivitiesService);
     create(createWorkflowDto: CreateWorkflowDto, userId?: number): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         createdBy: number | null;
@@ -29,11 +29,11 @@ export declare class AutomationService {
             executions: number;
         };
     } & {
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         createdBy: number | null;
@@ -55,11 +55,11 @@ export declare class AutomationService {
             workflowId: number;
         }[];
     } & {
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         createdBy: number | null;
@@ -69,11 +69,11 @@ export declare class AutomationService {
         actions: Prisma.JsonValue;
     }>;
     update(id: number, updateWorkflowDto: UpdateWorkflowDto): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         createdBy: number | null;
@@ -83,11 +83,11 @@ export declare class AutomationService {
         actions: Prisma.JsonValue;
     }>;
     remove(id: number): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         createdBy: number | null;
@@ -97,11 +97,11 @@ export declare class AutomationService {
         actions: Prisma.JsonValue;
     }>;
     toggleActive(id: number, isActive: boolean): Promise<{
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;
-        id: number;
         name: string;
         description: string | null;
         createdBy: number | null;

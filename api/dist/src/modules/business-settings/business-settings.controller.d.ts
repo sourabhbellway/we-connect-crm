@@ -81,13 +81,14 @@ export declare class BusinessSettingsController {
     updateCurrency(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             description: string | null;
             invoiceTemplate: string;
             industry: string | null;
             currency: string;
+            preferences: import("@prisma/client/runtime/library").JsonValue | null;
             companyName: string;
             companyEmail: string | null;
             companyPhone: string | null;
@@ -122,15 +123,14 @@ export declare class BusinessSettingsController {
             cinNumber: string | null;
             fiscalYearStart: string | null;
             employeeCount: string | null;
-            preferences: import("@prisma/client/runtime/library").JsonValue | null;
-            quotePrefix: string;
-            quoteSuffix: string;
-            quotePad: number;
+            invoiceNumberingEnabled: boolean;
+            invoicePad: number;
             invoicePrefix: string;
             invoiceSuffix: string;
-            invoicePad: number;
             quoteNumberingEnabled: boolean;
-            invoiceNumberingEnabled: boolean;
+            quotePad: number;
+            quotePrefix: string;
+            quoteSuffix: string;
         };
     }>;
     getTax(): Promise<{
@@ -170,10 +170,10 @@ export declare class BusinessSettingsController {
             currency: any;
             tax: any;
             leadSources: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 companyId: number | null;
                 name: string;
                 description: string | null;
@@ -188,10 +188,10 @@ export declare class BusinessSettingsController {
                 sortOrder: number;
             }[];
             dealStatuses: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 color: string;
@@ -233,10 +233,10 @@ export declare class BusinessSettingsController {
     listDealStatuses(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
             description: string | null;
             color: string;
@@ -246,10 +246,10 @@ export declare class BusinessSettingsController {
     createDealStatus(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
             description: string | null;
             color: string;
@@ -259,10 +259,10 @@ export declare class BusinessSettingsController {
     updateDealStatus(id: string, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
             description: string | null;
             color: string;
@@ -322,10 +322,10 @@ export declare class BusinessSettingsController {
     listLeadSources(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -336,10 +336,10 @@ export declare class BusinessSettingsController {
     createLeadSource(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -350,10 +350,10 @@ export declare class BusinessSettingsController {
     updateLeadSource(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -364,11 +364,11 @@ export declare class BusinessSettingsController {
     listQuotationTemplates(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             headerContent: string | null;
@@ -385,11 +385,11 @@ export declare class BusinessSettingsController {
     createQuotationTemplate(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             headerContent: string | null;
@@ -406,11 +406,11 @@ export declare class BusinessSettingsController {
     updateQuotationTemplate(id: string, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             headerContent: string | null;
@@ -430,11 +430,11 @@ export declare class BusinessSettingsController {
     setDefaultQuotationTemplate(id: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             headerContent: string | null;
@@ -451,11 +451,11 @@ export declare class BusinessSettingsController {
     listTermsAndConditions(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             isDefault: boolean;
@@ -466,11 +466,11 @@ export declare class BusinessSettingsController {
     createTermsAndConditions(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             isDefault: boolean;
@@ -481,11 +481,11 @@ export declare class BusinessSettingsController {
     updateTermsAndConditions(id: string, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             isDefault: boolean;
@@ -499,11 +499,11 @@ export declare class BusinessSettingsController {
     setDefaultTermsAndConditions(id: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             deletedAt: Date | null;
-            id: number;
             name: string;
             description: string | null;
             isDefault: boolean;
@@ -514,12 +514,12 @@ export declare class BusinessSettingsController {
     getWelcomeEmailTemplate(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -527,10 +527,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -549,12 +549,12 @@ export declare class BusinessSettingsController {
     updateWelcomeEmailTemplate(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -562,10 +562,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -573,12 +573,12 @@ export declare class BusinessSettingsController {
     getEmailTemplatesByCategory(category: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -586,10 +586,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         }[];
@@ -608,12 +608,12 @@ export declare class BusinessSettingsController {
     } | {
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -621,10 +621,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -659,12 +659,12 @@ export declare class BusinessSettingsController {
     getEmailTemplates(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -672,10 +672,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         }[];
@@ -683,12 +683,12 @@ export declare class BusinessSettingsController {
     createEmailTemplate(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -696,10 +696,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -707,12 +707,12 @@ export declare class BusinessSettingsController {
     setDefaultEmailTemplate(id: string, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -720,10 +720,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -731,12 +731,12 @@ export declare class BusinessSettingsController {
     updateEmailTemplate(id: string, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -744,10 +744,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -755,12 +755,12 @@ export declare class BusinessSettingsController {
     deleteEmailTemplate(id: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             companyId: number | null;
+            deletedAt: Date | null;
             name: string;
             isDefault: boolean;
             type: import("@prisma/client").$Enums.TemplateType;
@@ -768,10 +768,10 @@ export declare class BusinessSettingsController {
             createdBy: number;
             status: import("@prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
-            category: import("@prisma/client").$Enums.EmailTemplateCategory;
-            htmlContent: string;
-            textContent: string;
             variables: import("@prisma/client/runtime/library").JsonValue | null;
+            textContent: string;
+            htmlContent: string;
+            category: import("@prisma/client").$Enums.EmailTemplateCategory;
             approvedAt: Date | null;
             approvedBy: number | null;
         };
@@ -779,9 +779,9 @@ export declare class BusinessSettingsController {
     getFieldConfigs(entityType: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             entityType: string;
             fieldName: string;
             label: string;
@@ -798,9 +798,9 @@ export declare class BusinessSettingsController {
     createFieldConfig(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             entityType: string;
             fieldName: string;
             label: string;
@@ -817,9 +817,9 @@ export declare class BusinessSettingsController {
     updateFieldConfig(id: string, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             entityType: string;
             fieldName: string;
             label: string;
@@ -847,5 +847,141 @@ export declare class BusinessSettingsController {
     updateDashboardSettings(body: any): Promise<{
         success: boolean;
         data: any;
+    }>;
+    getVoIPConfig(): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            config: {
+                id: number;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                provider: string;
+                apiKey: string;
+                apiSecret: string;
+                accountSid: string | null;
+                authToken: string | null;
+                regions: string[];
+                defaultRegion: string | null;
+                enableCallRecording: boolean;
+                recordingStorage: string | null;
+                enableVideoCalls: boolean;
+            };
+        };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        data?: undefined;
+    }>;
+    saveVoIPConfig(body: any): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            config: {
+                id: number;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                provider: string;
+                apiKey: string;
+                apiSecret: string;
+                accountSid: string | null;
+                authToken: string | null;
+                regions: string[];
+                defaultRegion: string | null;
+                enableCallRecording: boolean;
+                recordingStorage: string | null;
+                enableVideoCalls: boolean;
+            };
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        data?: undefined;
+    }>;
+    getVoIPCallHistory(query: any): Promise<{
+        success: boolean;
+        data: {
+            calls: ({
+                user: {
+                    id: number;
+                    firstName: string;
+                    lastName: string;
+                };
+                lead: {
+                    id: number;
+                    firstName: string | null;
+                    lastName: string | null;
+                    company: string | null;
+                };
+            } & {
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                metadata: import("@prisma/client/runtime/library").JsonValue | null;
+                userId: number;
+                leadId: number;
+                status: string;
+                duration: number | null;
+                phoneNumber: string;
+                callType: string;
+                region: string | null;
+                callId: string;
+                recordingUrl: string | null;
+                errorMessage: string | null;
+                errorCode: string | null;
+                isRecorded: boolean;
+                provider: string;
+                startTime: Date | null;
+                endTime: Date | null;
+            })[];
+            pagination: {
+                currentPage: number;
+                totalPages: number;
+                totalItems: number;
+                itemsPerPage: number;
+            };
+        };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        data?: undefined;
+    }>;
+    getVoIPStatistics(): Promise<{
+        success: boolean;
+        data: {
+            totalCalls: number;
+            answeredCalls: number;
+            completedCalls: number;
+            videoCalls: number;
+            audioCalls: number;
+            averageCallDuration: number;
+            indiaCalls: number;
+            arabicCalls: number;
+            answerRate: number;
+            completionRate: number;
+        };
+        message?: undefined;
+        error?: undefined;
+    } | {
+        success: boolean;
+        message: string;
+        error: any;
+        data?: undefined;
     }>;
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import { ChevronDown, Filter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface DropdownFilterProps {
   value: string | boolean;
@@ -14,10 +15,12 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
   value,
   onChange,
   options,
-  placeholder = "Select option",
+  placeholder,
   label,
   className = "",
 }) => {
+  const { t } = useTranslation();
+  const displayPlaceholder = placeholder || t("common.select", "Select option");
 
   return (
     <div className={`relative ${className}`}>
@@ -27,7 +30,7 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
         </label>
       )}
       <div className="relative max-w-full">
-<Filter className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+        <Filter className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
         <select
           value={typeof value === "boolean" ? value.toString() : value}
           onChange={(e) => {
@@ -38,16 +41,16 @@ const DropdownFilter: React.FC<DropdownFilterProps> = ({
             else onChange(newValue);
           }}
           style={{ WebkitAppearance: 'none', backgroundImage: 'none', lineHeight: '44px', verticalAlign: 'middle' }}
-className="w-full max-w-full h-11 pl-11 pr-8 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-brand-blue focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer transition-colors duration-200 text-center leading-[44px]"
+          className="w-full max-w-full h-11 ps-11 pe-8 border border-gray-200 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-brand-blue focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer transition-colors duration-200 text-center leading-[44px]"
         >
-          <option value="">{placeholder}</option>
+          <option value="">{displayPlaceholder}</option>
           {options.map((option) => (
             <option key={String(option.value)} value={String(option.value)}>
               {option.label}
             </option>
           ))}
         </select>
-<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
+        <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
       </div>
     </div>
   );

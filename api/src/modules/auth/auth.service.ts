@@ -390,4 +390,18 @@ export class AuthService {
             return { success: false, message: 'Failed to load profile' };
         }
     }
+
+    async updateFcmToken(userId: number, fcmToken: string) {
+        try {
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { fcmToken },
+            });
+            console.log('[Auth] FCM token updated for user', userId);
+            return { success: true, message: 'FCM token updated successfully' };
+        } catch (err) {
+            console.error('[Auth] Failed to update FCM token:', err);
+            return { success: false, message: 'Failed to update FCM token' };
+        }
+    }
 }

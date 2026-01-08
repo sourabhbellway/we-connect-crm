@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PaginationProps {
   currentPage: number;
@@ -24,6 +25,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   itemsPerPageOptions = [5, 10, 25, 50],
   className = ''
 }) => {
+  const { t } = useTranslation();
   if (totalPages <= 1 && !showItemsPerPage) return null;
 
   const startItem = (currentPage - 1) * itemsPerPage + 1;
@@ -72,8 +74,8 @@ export const Pagination: React.FC<PaginationProps> = ({
     <div className={`flex items-center justify-between ${className}`}>
       {/* Items per page selector */}
       {showItemsPerPage && (
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-700 dark:text-gray-300">Items per page:</span>
+        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          <span className="text-sm text-gray-700 dark:text-gray-300">{t('common.itemsPerPage', 'Items per page:')}</span>
           <select
             value={itemsPerPage}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
@@ -89,10 +91,10 @@ export const Pagination: React.FC<PaginationProps> = ({
       )}
 
       {/* Page info and navigation */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 rtl:space-x-reverse">
         {/* Page info */}
         <div className="text-sm text-gray-700 dark:text-gray-300">
-          Showing {startItem} to {endItem} of {totalItems} entries
+          {t('common.showing', 'Showing')} {startItem} {t('common.to', 'to')} {endItem} {t('common.of', 'of')} {totalItems} {t('common.entries', 'entries')}
         </div>
 
         {/* Navigation buttons */}
@@ -124,13 +126,12 @@ export const Pagination: React.FC<PaginationProps> = ({
                 key={index}
                 onClick={() => typeof page === 'number' && onPageChange(page)}
                 disabled={page === '...' || page === currentPage}
-                className={`px-3 py-1 rounded border text-sm transition-colors ${
-                  page === currentPage
+                className={`px-3 py-1 rounded border text-sm transition-colors ${page === currentPage
                     ? 'bg-blue-600 text-white border-blue-600'
                     : page === '...'
-                    ? 'border-gray-300 dark:border-gray-600 cursor-default'
-                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-                }`}
+                      ? 'border-gray-300 dark:border-gray-600 cursor-default'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  }`}
               >
                 {page}
               </button>

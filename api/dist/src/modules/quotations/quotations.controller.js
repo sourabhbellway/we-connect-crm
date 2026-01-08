@@ -113,14 +113,14 @@ let QuotationsController = class QuotationsController {
     generateInvoice(id) {
         return this.service.generateInvoice(Number(id));
     }
-    async previewPdf(id, res) {
-        const { buffer, filename } = await this.service.buildPdf(Number(id));
+    async previewPdf(id, lang, res) {
+        const { buffer, filename } = await this.service.buildPdf(Number(id), lang);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
         res.send(buffer);
     }
-    async downloadPdf(id, res) {
-        const { buffer, filename } = await this.service.buildPdf(Number(id));
+    async downloadPdf(id, lang, res) {
+        const { buffer, filename } = await this.service.buildPdf(Number(id), lang);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.send(buffer);
@@ -237,17 +237,19 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id/pdf/preview'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_2.Res)()),
+    __param(1, (0, common_1.Query)('lang')),
+    __param(2, (0, common_2.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], QuotationsController.prototype, "previewPdf", null);
 __decorate([
     (0, common_1.Get)(':id/pdf/download'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_2.Res)()),
+    __param(1, (0, common_1.Query)('lang')),
+    __param(2, (0, common_2.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], QuotationsController.prototype, "downloadPdf", null);
 exports.QuotationsController = QuotationsController = __decorate([

@@ -26,9 +26,12 @@ export interface Lead {
   id: number;
   firstName: string;
   lastName: string;
+  firstNameAr?: string;
+  lastNameAr?: string;
   email: string;
   phone?: string;
   company?: string;
+  companyAr?: string;
   position?: string;
   sourceId?: number;
   status:
@@ -62,6 +65,7 @@ export interface Lead {
   website?: string;
   industry?: string;
   address?: string;
+  addressAr?: string;
   country?: string;
   state?: string;
   city?: string;
@@ -76,6 +80,7 @@ export interface Lead {
   linkedinProfile?: string;
   lastContactedAt?: string | null;
   nextFollowUpAt?: string | null;
+  products?: Array<{ id: number; name: string; price?: number }>;
 }
 
 // Payload used by create/update endpoints. Backend expects tag IDs (number[]) not tag objects.
@@ -83,11 +88,14 @@ export interface LeadPayload {
   // Basic Information
   firstName?: string;
   lastName?: string;
+  firstNameAr?: string;
+  lastNameAr?: string;
   email?: string;
   phone?: string;
 
   // Company Information
   company?: string;
+  companyAr?: string;
   position?: string;
   industry?: string;
   website?: string;
@@ -96,10 +104,12 @@ export interface LeadPayload {
 
   // Location Information
   address?: string;
+  addressAr?: string;
   country?: string;
   state?: string;
   city?: string;
   zipCode?: string;
+  productIds?: number[];
 
   // Contact & Social
   linkedinProfile?: string;

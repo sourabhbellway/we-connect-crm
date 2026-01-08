@@ -16,9 +16,9 @@ export declare class RolesController {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 permissions: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     key: string;
@@ -54,9 +54,9 @@ export declare class RolesController {
             isActive: boolean;
             accessScope: import("@prisma/client").$Enums.RoleAccessScope;
             permissions: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 key: string;
@@ -69,11 +69,11 @@ export declare class RolesController {
     getUsersByRole(id: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             email: string;
             firstName: string;
             lastName: string;
             isActive: boolean;
-            id: number;
         }[];
     }>;
     update(id: string, dto: UpsertRoleDto): Promise<{
@@ -96,9 +96,9 @@ export declare class RolesController {
             isActive: boolean;
             accessScope: import("@prisma/client").$Enums.RoleAccessScope;
             permissions: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 key: string;

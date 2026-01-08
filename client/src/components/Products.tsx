@@ -152,6 +152,7 @@ const ProductActionMenu = ({
                             className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                         >
                             <Trash2 className="h-4 w-4" />
+                            {/* Translations for actions are usually in 'common' or 'actions' */}
                             Delete
                         </button>
                     )}
@@ -453,29 +454,29 @@ const Products: React.FC = () => {
                                     {isSearching && <Search className="h-3 w-3 animate-pulse text-blue-500" />}
                                 </div>
                             </label>
-                            <SearchInput value={searchValue} onChange={handleSearch} placeholder="Search products..." />
+                            <SearchInput value={searchValue} onChange={handleSearch} placeholder={t('products.searchPlaceholder') || "Search products..."} />
                         </div>
 
                         <div className="w-full sm:w-48">
                             <DropdownFilter
-                                label="Status"
+                                label={t('common.status')}
                                 value={filters.status}
                                 onChange={(val) => handleFilterChange("status", val as string)}
+                                placeholder={t('products.allStatuses') || "All Statuses"}
                                 options={[
-                                    { value: "", label: "All Statuses" },
-                                    { value: "active", label: "Active" },
-                                    { value: "inactive", label: "Inactive" },
+                                    { value: "active", label: t('common.active') || "Active" },
+                                    { value: "inactive", label: t('common.inactive') || "Inactive" },
                                 ]}
                             />
                         </div>
 
                         <div className="w-full sm:w-48">
                             <DropdownFilter
-                                label="Category"
+                                label={t('products.category')}
                                 value={filters.category}
                                 onChange={(val) => handleFilterChange("category", val as string)}
+                                placeholder={t('products.allCategories') || "All Categories"}
                                 options={[
-                                    { value: "", label: "All Categories" },
                                     ...categories.map(c => ({ value: c.name, label: c.name }))
                                 ]}
                             />
@@ -489,14 +490,14 @@ const Products: React.FC = () => {
                             className="px-4 py-3 bg-white dark:bg-gray-800 border rounded-full text-sm font-semibold disabled:opacity-50 flex items-center"
                         >
                             <FileDown className="h-4 w-4 mr-2" />
-                            {isExporting ? 'Exporting...' : 'Export'}
+                            {isExporting ? t('products.exporting') || 'Exporting...' : t('common.export')}
                         </button>
                         <button
                             onClick={() => setShowImportModal(true)}
                             className="px-4 py-3 bg-white dark:bg-gray-800 border rounded-full text-sm font-semibold flex items-center"
                         >
                             <Upload className="h-4 w-4 mr-2" />
-                            Import
+                            {t('common.import')}
                         </button>
                         {hasPermission("product.create") && (
                             <button
@@ -504,7 +505,7 @@ const Products: React.FC = () => {
                                 className="px-4 py-3 bg-[#ef444e] text-white rounded-full text-sm font-semibold flex items-center"
                             >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Add Product
+                                {t('products.addProduct')}
                             </button>
                         )}
                     </div>
@@ -529,7 +530,7 @@ const Products: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border overflow-hidden">
                 <div className="p-6 border-b">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        All Products {pagination && `(${pagination.totalProducts})`}
+                        {t('products.title')} {pagination && `(${pagination.totalProducts})`}
                     </h3>
                 </div>
 
@@ -540,11 +541,11 @@ const Products: React.FC = () => {
                     onItemsPerPageChange={() => { }}
                     columnConfig={{
                         columns: [
-                            { id: 'product', label: 'Product' },
-                            { id: 'sku', label: 'SKU' },
-                            { id: 'category', label: 'Category' },
-                            { id: 'price', label: 'Price' },
-                            { id: 'status', label: 'Status' },
+                            { id: 'product', label: t('products.productName') || 'Product Name' },
+                            { id: 'sku', label: t('products.sku') || 'SKU' },
+                            { id: 'category', label: t('products.category') || 'Category' },
+                            { id: 'price', label: t('products.price') || 'Price' },
+                            { id: 'status', label: t('common.status') || 'Status' },
                         ],
                         visibleColumns,
                         onChange: setVisibleColumns,
@@ -554,12 +555,12 @@ const Products: React.FC = () => {
 
                 {selectedIds.length > 0 && (
                     <div className="m-4 flex items-center justify-between bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 rounded-lg p-3">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedIds.length} selected</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedIds.length} {t('products.selected')}</span>
                         <div className="flex gap-2">
                             <button onClick={handleBulkDelete} className="bg-red-600 text-white px-3 py-1.5 rounded-md text-xs flex items-center">
-                                <Trash2 className="w-4 h-4 mr-1.5" /> Delete
+                                <Trash2 className="w-4 h-4 mr-1.5" /> {t('common.delete')}
                             </button>
-                            <button onClick={() => setSelectedIds([])} className="text-xs text-gray-500 dark:text-gray-400">Cancel</button>
+                            <button onClick={() => setSelectedIds([])} className="text-xs text-gray-500 dark:text-gray-400">{t('common.cancel')}</button>
                         </div>
                     </div>
                 )}
@@ -616,12 +617,12 @@ const Products: React.FC = () => {
                                             {selectedIds.length === products.length && products.length > 0 ? <CheckSquare className="w-4 h-4 text-indigo-600" /> : <Square className="w-4 h-4 text-gray-400" />}
                                         </button>
                                     </th>
-                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('product') ? 'hidden' : ''} dark:text-white`}>Product</th>
-                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('sku') ? 'hidden' : ''} dark:text-white`}>SKU</th>
-                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('category') ? 'hidden' : ''} dark:text-white`}>Category</th>
-                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('price') ? 'hidden' : ''} dark:text-white`}>Price</th>
-                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''} dark:text-white`}>Status</th>
-                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider dark:text-white">Actions</th>
+                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('product') ? 'hidden' : ''} dark:text-white`}>{t('products.productName') || 'Product Name'}</th>
+                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('sku') ? 'hidden' : ''} dark:text-white`}>{t('products.sku') || 'SKU'}</th>
+                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('category') ? 'hidden' : ''} dark:text-white`}>{t('products.category') || 'Category'}</th>
+                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('price') ? 'hidden' : ''} dark:text-white`}>{t('products.price') || 'Price'}</th>
+                                    <th className={`px-6 py-3 text-start text-xs font-medium uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''} dark:text-white`}>{t('common.status') || 'Status'}</th>
+                                    <th className="px-6 py-3 text-end text-xs font-medium uppercase tracking-wider dark:text-white">{t('common.actions') || 'Actions'}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y">
@@ -653,7 +654,7 @@ const Products: React.FC = () => {
                                                 {formatCurrency(p.price, p.currency)}
                                             </td>
                                             <td className={`px-6 py-4 ${!isColumnVisible('status') ? 'hidden' : ''}`}>
-                                                <span className={`px-2 py-1 rounded-full text-xs ${p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{p.isActive ? 'Active' : 'Inactive'}</span>
+                                                <span className={`px-2 py-1 rounded-full text-xs ${p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{p.isActive ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}</span>
                                             </td>
                                             <td className="px-6 py-4 text-end">
                                                 <div className="flex justify-end">
@@ -691,12 +692,12 @@ const Products: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-lg overflow-hidden shadow-xl border">
                         <div className="p-4 border-b flex justify-between items-center">
-                            <h3 className="font-semibold flex items-center gap-2 text-gray-900 dark:text-white"><Upload className="w-5 h-5" /> Import Products</h3>
+                            <h3 className="font-semibold flex items-center gap-2 text-gray-900 dark:text-white"><Upload className="w-5 h-5" /> {t('products.importProducts')}</h3>
                             <button onClick={() => { setShowImportModal(false); setImportFile(null); }}><X className="w-5 h-5 text-gray-500" /></button>
                         </div>
                         <div className="p-6">
-                            <p className="text-sm text-gray-600 mb-4">Upload CSV. Must have 'name' and 'price'.</p>
-                            <button onClick={handleDownloadTemplate} className="text-sm text-blue-600 flex items-center gap-1 mb-4"><FileSpreadsheet className="w-4 h-4" /> Template</button>
+                            <p className="text-sm text-gray-600 mb-4">{t('products.importDescription')}</p>
+                            <button onClick={handleDownloadTemplate} className="text-sm text-blue-600 flex items-center gap-1 mb-4"><FileSpreadsheet className="w-4 h-4" /> {t('products.template')}</button>
                             <div className="border-2 border-dashed rounded-xl p-8 text-center">
                                 {importFile ? (
                                     <div>
@@ -713,9 +714,9 @@ const Products: React.FC = () => {
                                 )}
                             </div>
                             <div className="mt-6 flex justify-end gap-3">
-                                <button onClick={() => { setShowImportModal(false); setImportFile(null); }} className="px-4 py-2 border rounded-lg text-gray-900 dark:text-white">Cancel</button>
+                                <button onClick={() => { setShowImportModal(false); setImportFile(null); }} className="px-4 py-2 border rounded-lg text-gray-900 dark:text-white">{t('common.cancel')}</button>
                                 <button onClick={handleBulkImport} disabled={!importFile || isImporting} className="bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 flex items-center gap-2">
-                                    {isImporting ? 'Importing...' : 'Start Import'}
+                                    {isImporting ? t('products.importing') : t('products.startImport')}
                                 </button>
                             </div>
                         </div>
@@ -725,9 +726,9 @@ const Products: React.FC = () => {
 
             <ConfirmModal
                 open={showDeleteModal && !!productToDelete}
-                title="Delete Product"
-                description={`Are you sure you want to delete ${productToDelete?.name}?`}
-                confirmText="Delete"
+                title={t('products.deleteTitle')}
+                description={t('products.deleteDescription', { name: productToDelete?.name })}
+                confirmText={t('common.delete')}
                 loading={isDeleting}
                 onConfirm={confirmDeleteProduct}
                 onClose={() => { setShowDeleteModal(false); setProductToDelete(null); }}

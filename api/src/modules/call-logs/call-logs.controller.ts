@@ -65,17 +65,12 @@ export class CallLogsController {
 
   @Post('initiate')
   async initiate(@Body() dto: CreateCallLogDto, @Body('fcm') fcm?: string) {
-
-    const result = await this.service.create(dto);
-
-    if (fcm) {
-      try {
-
-      } catch (error) {
-        console.error('Failed to send mobile notification:', error);
-      }
+    // Service already handles notification if callStatus is INITIATED
+    // We can pass fcm as deviceToken in dto if needed
+    if (fcm && !dto.deviceToken) {
+      dto.deviceToken = fcm;
     }
 
-    return result;
+    return this.service.create(dto);
   }
 }

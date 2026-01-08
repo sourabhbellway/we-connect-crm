@@ -224,6 +224,7 @@ export interface IntegrationSettings {
   sms: SMSIntegration;
   email: EmailIntegration;
   zapier: ZapierIntegration;
+  voip: VoIPIntegration;
   customWebhooks: WebhookIntegration[];
   createdAt?: string;
   updatedAt?: string;
@@ -290,6 +291,23 @@ export interface WebhookIntegration {
   events: string[];
   isActive: boolean;
   secretKey?: string;
+}
+
+export interface VoIPIntegration {
+  enabled: boolean;
+  provider: 'twilio' | 'exotel' | 'unifonic' | 'plivo' | 'knowlarity';
+  apiKey?: string;
+  apiSecret?: string;
+  accountSid?: string;
+  authToken?: string;
+  regions: string[];
+  defaultRegion?: string;
+  enableCallRecording: boolean;
+  recordingStorage?: string;
+  enableVideoCalls: boolean;
+  fromNumber?: string;
+  virtualNumber?: string;
+  senderId?: string;
 }
 
 export interface PaymentGatewaySettings {

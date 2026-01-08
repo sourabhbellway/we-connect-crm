@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 import { Card, CardHeader, CardContent, PageLoader } from '../../components/ui';
 import { BUSINESS_SETTINGS } from '../../constants';
@@ -32,31 +33,32 @@ interface SettingsCategory {
 
 const BusinessSettingsPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { companySettings, isLoading } = useBusinessSettings();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     const settingsCategories: SettingsCategory[] = [
         {
             id: 'user-management',
-            name: 'User Management',
-            description: 'Manage users, roles, and permissions for your CRM system',
+            name: t('businessSettings.categories.userManagement', 'User Management'),
+            description: t('businessSettings.descriptions.userManagement', 'Manage users, roles, and permissions for your CRM system'),
             icon: <Users className="w-6 h-6" />,
             color: 'bg-emerald-500',
             items: [
-                { name: 'Users', description: 'Create, edit, and manage user accounts', path: '/users' },
-                { name: 'Roles & Permissions', description: 'Define roles and assign permissions', path: '/roles' },
-                { name: 'Teams', description: 'Manage teams and reporting structures', path: '/business-settings/teams' },
+                { name: t('users.title', 'Users'), description: 'Create, edit, and manage user accounts', path: '/users' },
+                { name: t('roles.title', 'Roles & Permissions'), description: 'Define roles and assign permissions', path: '/roles' },
+                { name: t('navigation.teams', 'Teams'), description: 'Manage teams and reporting structures', path: '/business-settings/teams' },
 
             ],
         },
         {
             id: BUSINESS_SETTINGS.CATEGORIES.COMPANY,
-            name: 'Company Information',
-            description: 'Basic company details, logo, and contact information',
+            name: t('businessSettings.categories.companyInfo', 'Company Information'),
+            description: t('businessSettings.descriptions.companyInfo', 'Basic company details, logo, and contact information'),
             icon: <Building2 className="w-6 h-6" />,
             color: 'bg-blue-500',
             items: [
-                { name: 'Company Profile', description: 'Name, address, logo, GST details', path: '/business-settings/company' },
+                { name: t('businessSettings.items.companyProfile', 'Company Profile'), description: 'Name, address, logo, GST details', path: '/business-settings/company' },
 
             ],
         },
@@ -157,7 +159,8 @@ const BusinessSettingsPage: React.FC = () => {
                 { name: 'Communication Settings', description: 'Templates', path: '/business-settings/communication' },
                 { name: 'Lead Integrations', description: 'Meta Ads, IndiaMart, TradeIndia integrations', path: '/business-settings/integrations/leads' },
                 { name: 'Communication APIs', description: 'WhatsApp, SMS, Email gateways', path: '/business-settings/integrations/communication' },
-                // { name: 'Third-party Apps', description: 'Zapier, webhooks, custom APIs', path: '/business-settings/integrations/third-party' },
+                { name: 'VOIP Settings', description: 'Voice over IP configuration for India and Arabic countries', path: '/business-settings/voip' },
+                { name: 'Webhooks', description: 'Configure external notification URLs', path: '/business-settings/integrations/webhooks' },
             ],
         },
 

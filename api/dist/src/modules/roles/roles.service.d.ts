@@ -22,9 +22,9 @@ export declare class RolesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 permissions: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     description: string | null;
                     key: string;
@@ -60,9 +60,9 @@ export declare class RolesService {
             isActive: boolean;
             accessScope: import("@prisma/client").$Enums.RoleAccessScope;
             permissions: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 key: string;
@@ -75,11 +75,11 @@ export declare class RolesService {
     getUsersByRole(roleId: number): Promise<{
         success: boolean;
         data: {
+            id: number;
             email: string;
             firstName: string;
             lastName: string;
             isActive: boolean;
-            id: number;
         }[];
     }>;
     update(id: number, dto: UpsertRoleDto): Promise<{
@@ -102,9 +102,9 @@ export declare class RolesService {
             isActive: boolean;
             accessScope: import("@prisma/client").$Enums.RoleAccessScope;
             permissions: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 description: string | null;
                 key: string;

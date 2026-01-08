@@ -115,4 +115,8 @@ export declare class AuthService {
         };
         message?: undefined;
     }>;
+    updateFcmToken(userId: number, fcmToken: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

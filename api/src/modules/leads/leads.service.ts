@@ -341,6 +341,7 @@ export class LeadsService {
           }
         },
         quotations: true,
+        products: true,
       },
     });
     if (!leadRow) return { success: false, message: 'Lead not found' };
@@ -492,7 +493,7 @@ export class LeadsService {
       currency = 'USD';
     }
 
-    const { tags, customFields, ...leadData } = dto as any;
+    const { tags, productIds, customFields, ...leadData } = dto as any;
 
     // Get field configs to determine which fields go to customFields
     const fieldConfigs = await this.prisma.fieldConfig.findMany({
@@ -500,11 +501,11 @@ export class LeadsService {
     });
 
     const standardFields = [
-      'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
-      'website', 'companySize', 'annualRevenue', 'address', 'country', 'state', 'city',
-      'zipCode', 'linkedinProfile', 'timezone', 'preferredContactMethod', 'sourceId',
-      'status', 'priority', 'assignedTo', 'budget', 'currency', 'leadScore', 'notes',
-      'tags', 'lastContactedAt', 'nextFollowUpAt'
+      'firstName', 'lastName', 'firstNameAr', 'lastNameAr', 'email', 'phone', 'company', 'companyAr',
+      'position', 'industry', 'website', 'companySize', 'annualRevenue', 'address', 'addressAr',
+      'country', 'state', 'city', 'zipCode', 'linkedinProfile', 'timezone',
+      'preferredContactMethod', 'sourceId', 'status', 'priority', 'assignedTo',
+      'budget', 'currency', 'leadScore', 'notes', 'tags', 'lastContactedAt', 'nextFollowUpAt'
     ];
 
     // Separate standard fields from custom fields
@@ -524,15 +525,19 @@ export class LeadsService {
       data: {
         firstName: dto.firstName || null,
         lastName: dto.lastName || null,
+        firstNameAr: dto.firstNameAr || null,
+        lastNameAr: dto.lastNameAr || null,
         email: dto.email || null,
         phone: dto.phone || null,
         company: dto.company || null,
+        companyAr: dto.companyAr || null,
         position: dto.position || null,
         industry: dto.industry || null,
         website: dto.website || null,
         companySize: dto.companySize || null,
         annualRevenue: dto.annualRevenue as any || null,
         address: dto.address || null,
+        addressAr: dto.addressAr || null,
         country: dto.country || null,
         state: dto.state || null,
         city: dto.city || null,
@@ -556,6 +561,9 @@ export class LeadsService {
           ? new Date(dto.nextFollowUpAt)
           : null,
         customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : null,
+        products: productIds && productIds.length > 0 ? {
+          connect: productIds.map((id: number) => ({ id })),
+        } : undefined,
       },
     });
 
@@ -645,8 +653,14 @@ export class LeadsService {
     // Validate dynamic fields
     await this.validateDynamicFields(dto, true);
 
-    const { tags, ...rest } = dto as any;
+    const { tags, productIds, ...rest } = dto as any;
     const updateData: any = { ...rest, updatedAt: new Date() };
+
+    if (productIds) {
+      updateData.products = {
+        set: productIds.map((id: number) => ({ id })),
+      };
+    }
     if (rest.status) updateData.status = normalizeLeadStatus(rest.status);
     if (rest.priority)
       updateData.priority = normalizeLeadPriority(rest.priority);

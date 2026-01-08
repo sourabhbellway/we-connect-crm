@@ -27,8 +27,10 @@ import apiClient from "../services/apiClient";
 import { PERMISSIONS } from "../constants";
 import { analyticsService } from "../services/analyticsService";
 import { BarChart, LineChart, AreaChart } from "./charts";
+import { useTranslation } from "react-i18next";
 
 function Dashboard() {
+    const { t, i18n } = useTranslation();
     const { hasPermission, user } = useAuth();
     const navigate = useNavigate();
 
@@ -124,7 +126,7 @@ function Dashboard() {
     };
 
     const monthLabel = (d: Date) =>
-        d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+        d.toLocaleDateString(i18n.language, { month: "long", year: "numeric" });
 
     const getMonthMatrix = (d: Date) => {
         const year = d.getFullYear();
@@ -190,7 +192,7 @@ function Dashboard() {
                     // Response structure: { success: true, data: { items: [...] } }
                     const items = response?.data?.items || response?.data || [];
                     const transformedActivities = Array.isArray(items)
-                        ? items.map(transformActivityData)
+                        ? items.map((activity: any) => transformActivityData(activity, t))
                         : [];
                     setActivities(transformedActivities);
                 }
@@ -475,34 +477,30 @@ function Dashboard() {
                             <div className="space-y-5 text-white">
                                 <div>
                                     <p className="text-base sm:text-lg text-white/80 font-light">
-                                        Good{" "}
                                         {new Date().getHours() < 12
-                                            ? "Morning"
+                                            ? (t("dashboard.goodMorning") || "Good Morning")
                                             : new Date().getHours() < 18
-                                                ? "Afternoon"
-                                                : "Evening"}
+                                                ? (t("dashboard.goodAfternoon") || "Good Afternoon")
+                                                : (t("dashboard.goodEvening") || "Good Evening")}
                                         ,
                                     </p>
                                     <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2 leading-tight">
                                         {user
-                                            ? user.fullName ||
-                                            `${user.firstName} ${user.lastName}` ||
-                                            user.email?.split("@")[0]
-                                            : "Welcome"}
+                                            ? ((user.firstName === 'Admin' && user.lastName === 'User') || user.fullName === 'Admin User'
+                                                ? (t("dashboard.adminUser") || "Admin User")
+                                                : (user.fullName || `${user.firstName} ${user.lastName}` || user.email?.split("@")[0]))
+                                            : (t("dashboard.welcome") || "Welcome")}
                                     </h1>
 
                                 </div>
 
                                 <p className="text-white/80 text-base sm:text-lg leading-relaxed max-w-2xl">
-                                    Here's what's happening with your CRM today. You have{" "}
-                                    <span className="text-white font-semibold">
-                                        {userStats.totalUsers} users
-                                    </span>{" "}
-                                    and{" "}
-                                    <span className="text-white font-semibold">
-                                        {leadStats.totalLeads} leads
-                                    </span>{" "}
-                                    in your {scope === "me" ? "pipeline" : "system"}.
+                                    {t("dashboard.introText", {
+                                        users: userStats.totalUsers,
+                                        leads: leadStats.totalLeads,
+                                        scope: scope === "me" ? (t("dashboard.scopeMe") || "pipeline") : (t("dashboard.scopeSystem") || "system")
+                                    }) ||
+                                        `Here's what's happening with your CRM today. You have ${userStats.totalUsers} users and ${leadStats.totalLeads} leads in your ${scope === "me" ? "pipeline" : "system"}.`}
                                 </p>
                                 {/* Show scope toggle only for admin users */}
                                 {isAdmin && (
@@ -517,7 +515,7 @@ function Dashboard() {
                                                     }`}
                                                 onClick={() => setScope("all")}
                                             >
-                                                All Data
+                                                {t("dashboard.allData") || "All Data"}
                                             </button>
                                             <button
                                                 type="button"
@@ -528,7 +526,7 @@ function Dashboard() {
                                                     }`}
                                                 onClick={() => setScope("me")}
                                             >
-                                                My Data
+                                                {t("dashboard.myData") || "My Data"}
                                             </button>
                                         </div>
                                     </div>
@@ -541,9 +539,9 @@ function Dashboard() {
                                         {canViewUserStats && (
                                             <StatsCard
                                                 icon={<HiOutlineUsers className="w-6 h-6" />}
-                                                title="Total Users"
+                                                title={t("dashboard.totalUsers") || "Total Users"}
                                                 value={isLoading ? "..." : userStats.totalUsers}
-                                                subtitle={`${userStats.activeUsers} active, ${userStats.inactiveUsers} inactive`}
+                                                subtitle={`${userStats.activeUsers} ${t("common.active") || "active"}, ${userStats.inactiveUsers} ${t("common.inactive") || "inactive"}`}
                                                 color="blue"
                                                 className=""
                                             />
@@ -552,9 +550,9 @@ function Dashboard() {
                                         {canViewRoleStats && (
                                             <StatsCard
                                                 icon={<HiOutlineUserGroup className="w-6 h-6" />}
-                                                title="Total Roles"
+                                                title={t("dashboard.totalRoles") || "Total Roles"}
                                                 value={isRoleLoading ? "..." : roleStats.totalRoles}
-                                                subtitle={`${roleStats.activeRoles} active, ${roleStats.inactiveRoles} inactive`}
+                                                subtitle={`${roleStats.activeRoles} ${t("common.active") || "active"}, ${roleStats.inactiveRoles} ${t("common.inactive") || "inactive"}`}
                                                 color="green"
                                                 className=""
                                             />
@@ -563,9 +561,9 @@ function Dashboard() {
                                         {canViewLeadStats && (
                                             <StatsCard
                                                 icon={<HiOutlineClipboard className="w-6 h-6" />}
-                                                title="Total Leads"
+                                                title={t("dashboard.totalLeads") || "Total Leads"}
                                                 value={isLeadLoading ? "..." : leadStats.totalLeads}
-                                                subtitle={`${leadStats.newLeads} new, ${leadStats.qualifiedLeads} qualified`}
+                                                subtitle={`${leadStats.newLeads} ${t("common.new") || "new"}, ${leadStats.qualifiedLeads} ${t("leads.status.qualified") || "qualified"}`}
                                                 color="purple"
                                                 className=""
                                             />
@@ -588,12 +586,12 @@ function Dashboard() {
                     {canViewSystemActivity && (
                         <div className="relative bg-gray-200 dark:bg-gray-800 rounded-2xl  hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">System Activity</h3>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t("dashboard.systemActivity") || "System Activity"}</h3>
                                 <button
                                     onClick={() => navigate('/activities')}
                                     className="text-weconnect-red hover:text-red-600 text-sm font-semibold transition-colors"
                                 >
-                                    View All
+                                    {t("common.viewAll") || "View All"}
                                 </button>
                             </div>
 
@@ -638,7 +636,7 @@ function Dashboard() {
                                     ))
                                 ) : (
                                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                        <p className="text-sm">No recent activities</p>
+                                        <p className="text-sm">{t("dashboard.noRecentActivity") || "No recent activities"}</p>
                                     </div>
                                 )}
                             </div>
@@ -649,7 +647,7 @@ function Dashboard() {
                     {canViewActivityCalendar && (
                         <div className="relative bg-gray-200 dark:bg-gray-800 rounded-2xl  hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700 lg:col-span-1">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity Calendar</h3>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t("dashboard.activityCalendar") || "Activity Calendar"}</h3>
                                 <div className="flex items-center gap-2">
                                     <button
                                         className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white"
@@ -684,13 +682,13 @@ function Dashboard() {
                                 <div className="lg:col-span-2 overflow-x-auto">
                                     {/* Weekday headings */}
                                     <div className="grid grid-cols-7 text-[10px] sm:text-xs font-medium text-gray-500 dark:text-gray-300 mb-2">
-                                        <div className="text-center">Mon</div>
-                                        <div className="text-center">Tue</div>
-                                        <div className="text-center">Wed</div>
-                                        <div className="text-center">Thu</div>
-                                        <div className="text-center">Fri</div>
-                                        <div className="text-center">Sat</div>
-                                        <div className="text-center">Sun</div>
+                                        <div className="text-center">{t("calendar.shortDays.Mon") || "Mon"}</div>
+                                        <div className="text-center">{t("calendar.shortDays.Tue") || "Tue"}</div>
+                                        <div className="text-center">{t("calendar.shortDays.Wed") || "Wed"}</div>
+                                        <div className="text-center">{t("calendar.shortDays.Thu") || "Thu"}</div>
+                                        <div className="text-center">{t("calendar.shortDays.Fri") || "Fri"}</div>
+                                        <div className="text-center">{t("calendar.shortDays.Sat") || "Sat"}</div>
+                                        <div className="text-center">{t("calendar.shortDays.Sun") || "Sun"}</div>
                                     </div>
                                     {/* Calendar days */}
                                     <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
@@ -768,7 +766,7 @@ function Dashboard() {
                                         return selectedDateActivities.length > 0 ? (
                                             <div className="space-y-2">
                                                 <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    Activities ({selectedDateActivities.length})
+                                                    {t("dashboard.activitiesValue", { count: selectedDateActivities.length }) || `Activities (${selectedDateActivities.length})`}
                                                 </h4>
                                                 <div className="space-y-2 max-h-32 overflow-y-auto">
                                                     {selectedDateActivities.map((activity, idx) => (
@@ -787,7 +785,7 @@ function Dashboard() {
                                                                     )}
                                                                     {activity.lead && (
                                                                         <p className="text-xs text-blue-600 dark:text-blue-400">
-                                                                            Lead: {activity.lead.firstName} {activity.lead.lastName}
+                                                                            {t("dashboard.leadLabel") || "Lead"}: {activity.lead.firstName} {activity.lead.lastName}
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -804,10 +802,10 @@ function Dashboard() {
                                         className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow hover:from-blue-500 hover:to-indigo-500 transition-all"
                                     >
                                         <HiOutlinePlus className="w-4 h-4" />
-                                        Plan tasks for this day
+                                        {t("dashboard.planTasks") || "Plan tasks for this day"}
                                     </button>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        Jump straight into Task Management with this date prefilled. Ideal for scheduling follow-ups, reminders, or any activity uncovered on the calendar.
+                                        {t("dashboard.taskManagementIntro") || "Jump straight into Task Management with this date prefilled. Ideal for scheduling follow-ups, reminders, or any activity uncovered on the calendar."}
                                     </p>
                                 </div>
                             </div>
@@ -821,49 +819,49 @@ function Dashboard() {
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <HiOutlineTrophy className="text-yellow-500" />
-                                    Performance
+                                    {t("dashboard.performance") || "Performance"}
                                 </h3>
                             </div>
 
                             <div className="space-y-4">
                                 <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-800/20 rounded-lg">
                                     <div className="flex items-center justify-between mb-2">
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Win Rate</p>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("dashboard.winRate") || "Win Rate"}</p>
                                         <FiTrendingUp className="text-blue-600 dark:text-blue-400" />
                                     </div>
                                     <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                                         {isKPILoading ? "..." : `${dashboardKPIs?.conversion.winRate || 0}%`}
                                     </p>
                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                        Deals won vs lost
+                                        {t("dashboard.dealsWonVsLost") || "Deals won vs lost"}
                                     </p>
                                 </div>
 
                                 <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/10 dark:to-green-800/20 rounded-lg">
                                     <div className="flex items-center justify-between mb-2">
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Conversion Rate</p>
+                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("dashboard.conversionRate") || "Conversion Rate"}</p>
                                         <HiOutlineChartBar className="text-green-600 dark:text-green-400" />
                                     </div>
                                     <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                                         {isKPILoading ? "..." : `${dashboardKPIs?.conversion.conversionRate || 0}%`}
                                     </p>
                                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                        {isKPILoading ? "" : `${dashboardKPIs?.conversion.convertedLeads || 0} of ${dashboardKPIs?.conversion.totalLeads || 0} leads`}
+                                        {isKPILoading ? "" : `${dashboardKPIs?.conversion.convertedLeads || 0} ${t("common.of") || "of"} ${dashboardKPIs?.conversion.totalLeads || 0} ${t("dashboard.leads") || "leads"}`}
                                     </p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Sales Cycle</p>
+                                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t("dashboard.avgSalesCycle") || "Avg Sales Cycle"}</p>
                                         <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                                            {isKPILoading ? "..." : `${dashboardKPIs?.conversion.avgSalesCycleDays || 0}d`}
+                                            {isKPILoading ? "..." : `${dashboardKPIs?.conversion.avgSalesCycleDays || 0}${t("dashboard.suffixDays") || "d"}`}
                                         </p>
                                     </div>
 
                                     <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Avg Response</p>
+                                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t("dashboard.avgResponse") || "Avg Response"}</p>
                                         <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
-                                            {isKPILoading ? "..." : `${dashboardKPIs?.conversion.avgResponseTimeHours || 0}h`}
+                                            {isKPILoading ? "..." : `${dashboardKPIs?.conversion.avgResponseTimeHours || 0}${t("dashboard.suffixHours") || "h"}`}
                                         </p>
                                     </div>
                                 </div>
@@ -881,9 +879,9 @@ function Dashboard() {
                             ) : (
                                 <BarChart
                                     data={activityTrendsData}
-                                    title="System Activity Trends (12 Months)"
+                                    title={t("dashboard.systemActivityTrends") || "System Activity Trends (12 Months)"}
                                     height={350}
-                                    dataKeys={[{ key: 'activities', color: '#6366F1', name: 'Activities' }]}
+                                    dataKeys={[{ key: 'activities', color: '#6366F1', name: t("dashboard.activities") || 'Activities' }]}
                                 />
                             )}
                         </div>
@@ -898,14 +896,14 @@ function Dashboard() {
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <HiOutlineCurrencyDollar className="text-green-500" />
-                                    Revenue Metrics
+                                    {t("dashboard.revenueMetrics") || "Revenue Metrics"}
                                 </h3>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {[
                                     {
-                                        label: "Total Revenue",
+                                        label: t("dashboard.totalRevenue") || "Total Revenue",
                                         value: dashboardKPIs?.revenue.total || 0,
                                         bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20",
                                         color: "text-green-600 dark:text-green-400",
@@ -913,7 +911,7 @@ function Dashboard() {
                                         isCurrency: true
                                     },
                                     {
-                                        label: "Avg Deal Size",
+                                        label: t("dashboard.avgDealSize") || "Avg Deal Size",
                                         value: dashboardKPIs?.revenue.avgDealSize || 0,
                                         bg: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
                                         color: "text-blue-600 dark:text-blue-400",
@@ -921,21 +919,21 @@ function Dashboard() {
                                         isCurrency: true
                                     },
                                     {
-                                        label: "Won Deals",
+                                        label: t("dashboard.wonDeals") || "Won Deals",
                                         value: dashboardKPIs?.revenue.wonDeals || 0,
                                         bg: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
                                         color: "text-purple-600 dark:text-purple-400",
                                         icon: <HiOutlineCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
                                     },
                                     {
-                                        label: "Active Deals",
+                                        label: t("dashboard.activeDeals") || "Active Deals",
                                         value: dashboardKPIs?.revenue.activeDeals || 0,
                                         bg: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20",
                                         color: "text-orange-600 dark:text-orange-400",
                                         icon: <HiOutlineClock className="w-5 h-5 text-orange-600 dark:text-orange-400" />,
                                     },
                                     {
-                                        label: "Lost Deals",
+                                        label: t("dashboard.lostDeals") || "Lost Deals",
                                         value: dashboardKPIs?.revenue.lostDeals || 0,
                                         bg: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20",
                                         color: "text-red-600 dark:text-red-400",
@@ -972,35 +970,35 @@ function Dashboard() {
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <HiOutlinePhone className="text-blue-500" />
-                                    Activity & Engagement
+                                    {t("dashboard.activityEngagement") || "Activity & Engagement"}
                                 </h3>
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 {[
                                     {
-                                        label: "Total Calls",
+                                        label: t("dashboard.totalCalls") || "Total Calls",
                                         value: dashboardKPIs?.activity.totalCalls || 0,
                                         bg: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
                                         color: "text-blue-600 dark:text-blue-400",
                                         icon: <HiOutlinePhone className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
                                     },
                                     {
-                                        label: "Total Tasks",
+                                        label: t("dashboard.totalTasks") || "Total Tasks",
                                         value: dashboardKPIs?.activity.totalTasks || 0,
                                         bg: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20",
                                         color: "text-purple-600 dark:text-purple-400",
                                         icon: <HiOutlineClipboard className="w-5 h-5 text-purple-600 dark:text-purple-400" />,
                                     },
                                     {
-                                        label: "Completed Tasks",
+                                        label: t("dashboard.completedTasks") || "Completed Tasks",
                                         value: dashboardKPIs?.activity.completedTasks || 0,
                                         bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20",
                                         color: "text-green-600 dark:text-green-400",
                                         icon: <HiOutlineCheck className="w-5 h-5 text-green-600 dark:text-green-400" />,
                                     },
                                     {
-                                        label: "Task Completion",
+                                        label: t("dashboard.taskCompletion") || "Task Completion",
                                         value: dashboardKPIs?.activity.taskCompletionRate || 0,
                                         bg: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20",
                                         color: "text-orange-600 dark:text-orange-400",
@@ -1036,9 +1034,9 @@ function Dashboard() {
                             ) : (
                                 <LineChart
                                     data={revenueTrendsData}
-                                    title="Revenue Trends (12 Months)"
+                                    title={t("dashboard.revenueTrends") || "Revenue Trends (12 Months)"}
                                     height={350}
-                                    dataKeys={[{ key: 'revenue', color: '#10B981', name: 'Revenue' }]}
+                                    dataKeys={[{ key: 'revenue', color: '#10B981', name: t("dashboard.revenue") || 'Revenue' }]}
                                     valueFormatter={(value) => new Intl.NumberFormat('en-US', {
                                         style: 'currency',
                                         currency: (dashboardKPIs?.revenue?.currency?.code && ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CAD', 'AUD'].includes(dashboardKPIs.revenue.currency.code)) ? dashboardKPIs.revenue.currency.code : 'USD',
@@ -1059,9 +1057,9 @@ function Dashboard() {
                             ) : (
                                 <BarChart
                                     data={conversionFunnelData}
-                                    title="Lead Conversion Funnel"
+                                    title={t("dashboard.leadConversionFunnel") || "Lead Conversion Funnel"}
                                     height={350}
-                                    dataKeys={[{ key: 'value', color: '#F59E0B', name: 'Count' }]}
+                                    dataKeys={[{ key: 'value', color: '#F59E0B', name: t("dashboard.count") || 'Count' }]}
                                 />
                             )}
                         </div>
@@ -1077,15 +1075,15 @@ function Dashboard() {
                             ) : (
                                 <AreaChart
                                     data={salesPipelineData}
-                                    title="Sales Pipeline Flow (6 Months)"
+                                    title={t("dashboard.salesPipelineFlow") || "Sales Pipeline Flow (6 Months)"}
                                     height={400}
                                     dataKeys={[
-                                        { key: 'new', color: '#3B82F6', name: 'New Leads' },
-                                        { key: 'contacted', color: '#10B981', name: 'Contacted' },
-                                        { key: 'qualified', color: '#F59E0B', name: 'Qualified' },
-                                        { key: 'proposal', color: '#8B5CF6', name: 'Proposal' },
-                                        { key: 'negotiation', color: '#EC4899', name: 'Negotiation' },
-                                        { key: 'closed', color: '#14B8A6', name: 'Closed Won' },
+                                        { key: 'new', color: '#3B82F6', name: t("leads.status.new") || 'New Leads' },
+                                        { key: 'contacted', color: '#10B981', name: t("leads.status.contacted") || 'Contacted' },
+                                        { key: 'qualified', color: '#F59E0B', name: t("leads.status.qualified") || 'Qualified' },
+                                        { key: 'proposal', color: '#8B5CF6', name: t("leads.status.proposal") || 'Proposal' },
+                                        { key: 'negotiation', color: '#EC4899', name: t("leads.status.negotiation") || 'Negotiation' },
+                                        { key: 'closed', color: '#14B8A6', name: t("leads.status.closed") || 'Closed Won' },
                                     ]}
                                     gradientId="pipelineGradient"
                                     valueFormatter={(value) => new Intl.NumberFormat('en-US', {

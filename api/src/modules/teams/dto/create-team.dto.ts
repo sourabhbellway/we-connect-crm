@@ -18,7 +18,8 @@ export class CreateTeamDto {
     @IsInt({ each: true })
     memberIds?: number[];
 
-    @IsInt()
+    @IsArray()
     @IsOptional()
-    productId?: number;
+    @IsInt({ each: true })
+    productIds?: number[];
 }

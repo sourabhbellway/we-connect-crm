@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui';
 import { Plus } from 'lucide-react';
 
@@ -20,6 +21,7 @@ interface ListToolbarProps {
 }
 
 const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = 'Add', onAdd, bulkActions = [], actions = [] }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -58,7 +60,7 @@ const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = '
           {bulkActions.length > 0 && (
             <div className="relative">
               <Button variant="SECONDARY" size="MD" onClick={() => setOpen((v) => !v)}>
-                Bulk Actions
+                {t('common.bulkActions') || 'Bulk Actions'}
               </Button>
               {open && (
                 <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg z-20">

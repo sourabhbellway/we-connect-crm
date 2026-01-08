@@ -289,6 +289,7 @@ let LeadsService = class LeadsService {
                     }
                 },
                 quotations: true,
+                products: true,
             },
         });
         if (!leadRow)
@@ -407,16 +408,16 @@ let LeadsService = class LeadsService {
         if (!currency) {
             currency = 'USD';
         }
-        const { tags, customFields, ...leadData } = dto;
+        const { tags, productIds, customFields, ...leadData } = dto;
         const fieldConfigs = await this.prisma.fieldConfig.findMany({
             where: { entityType: 'lead', isVisible: true },
         });
         const standardFields = [
-            'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
-            'website', 'companySize', 'annualRevenue', 'address', 'country', 'state', 'city',
-            'zipCode', 'linkedinProfile', 'timezone', 'preferredContactMethod', 'sourceId',
-            'status', 'priority', 'assignedTo', 'budget', 'currency', 'leadScore', 'notes',
-            'tags', 'lastContactedAt', 'nextFollowUpAt'
+            'firstName', 'lastName', 'firstNameAr', 'lastNameAr', 'email', 'phone', 'company', 'companyAr',
+            'position', 'industry', 'website', 'companySize', 'annualRevenue', 'address', 'addressAr',
+            'country', 'state', 'city', 'zipCode', 'linkedinProfile', 'timezone',
+            'preferredContactMethod', 'sourceId', 'status', 'priority', 'assignedTo',
+            'budget', 'currency', 'leadScore', 'notes', 'tags', 'lastContactedAt', 'nextFollowUpAt'
         ];
         const standardFieldData = {};
         const customFieldsData = { ...(customFields || {}) };
@@ -432,15 +433,19 @@ let LeadsService = class LeadsService {
             data: {
                 firstName: dto.firstName || null,
                 lastName: dto.lastName || null,
+                firstNameAr: dto.firstNameAr || null,
+                lastNameAr: dto.lastNameAr || null,
                 email: dto.email || null,
                 phone: dto.phone || null,
                 company: dto.company || null,
+                companyAr: dto.companyAr || null,
                 position: dto.position || null,
                 industry: dto.industry || null,
                 website: dto.website || null,
                 companySize: dto.companySize || null,
                 annualRevenue: dto.annualRevenue || null,
                 address: dto.address || null,
+                addressAr: dto.addressAr || null,
                 country: dto.country || null,
                 state: dto.state || null,
                 city: dto.city || null,
@@ -464,6 +469,9 @@ let LeadsService = class LeadsService {
                     ? new Date(dto.nextFollowUpAt)
                     : null,
                 customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : null,
+                products: productIds && productIds.length > 0 ? {
+                    connect: productIds.map((id) => ({ id })),
+                } : undefined,
             },
         });
         if (Array.isArray(tags) && tags.length > 0) {
@@ -533,8 +541,13 @@ let LeadsService = class LeadsService {
         if (!lead)
             return { success: false, message: 'Lead not found' };
         await this.validateDynamicFields(dto, true);
-        const { tags, ...rest } = dto;
+        const { tags, productIds, ...rest } = dto;
         const updateData = { ...rest, updatedAt: new Date() };
+        if (productIds) {
+            updateData.products = {
+                set: productIds.map((id) => ({ id })),
+            };
+        }
         if (rest.status)
             updateData.status = normalizeLeadStatus(rest.status);
         if (rest.priority)

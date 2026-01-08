@@ -8,18 +8,19 @@ export declare class PaymentsController {
         data: {
             payment: {
                 invoice: {
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
+                    companyId: number | null;
                     deletedAt: Date | null;
                     notes: string | null;
-                    id: number;
-                    companyId: number | null;
                     description: string | null;
                     currency: string;
                     title: string;
                     leadId: number | null;
                     createdBy: number;
                     status: import("@prisma/client").$Enums.InvoiceStatus;
+                    sentAt: Date | null;
                     dueDate: Date | null;
                     dealId: number | null;
                     invoiceNumber: string;
@@ -30,20 +31,19 @@ export declare class PaymentsController {
                     paidAmount: import("@prisma/client/runtime/library").Decimal;
                     terms: string | null;
                     quotationId: number | null;
-                    sentAt: Date | null;
                     viewedAt: Date | null;
                     paidAt: Date | null;
                 };
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 currency: string;
                 createdBy: number;
                 invoiceId: number;
@@ -59,15 +59,15 @@ export declare class PaymentsController {
         data: {
             payments: ({
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 currency: string;
                 createdBy: number;
                 invoiceId: number;

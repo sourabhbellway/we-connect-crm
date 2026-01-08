@@ -9,16 +9,16 @@ export declare class NotesService {
         data: {
             notes: ({
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
@@ -36,16 +36,16 @@ export declare class NotesService {
         data: {
             note: {
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
@@ -60,16 +60,16 @@ export declare class NotesService {
         data: {
             note: {
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
@@ -87,16 +87,16 @@ export declare class NotesService {
         data: {
             note: {
                 user: {
+                    id: number;
                     email: string;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;

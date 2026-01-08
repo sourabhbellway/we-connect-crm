@@ -159,16 +159,16 @@ export class QuotationsController {
   }
 
   @Get(':id/pdf/preview')
-  async previewPdf(@Param('id') id: string, @Res() res: Response) {
-    const { buffer, filename } = await this.service.buildPdf(Number(id));
+  async previewPdf(@Param('id') id: string, @Query('lang') lang: string, @Res() res: Response) {
+    const { buffer, filename } = await this.service.buildPdf(Number(id), lang);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.send(buffer);
   }
 
   @Get(':id/pdf/download')
-  async downloadPdf(@Param('id') id: string, @Res() res: Response) {
-    const { buffer, filename } = await this.service.buildPdf(Number(id));
+  async downloadPdf(@Param('id') id: string, @Query('lang') lang: string, @Res() res: Response) {
+    const { buffer, filename } = await this.service.buildPdf(Number(id), lang);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(buffer);

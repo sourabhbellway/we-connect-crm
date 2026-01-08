@@ -5,7 +5,7 @@ export interface Team {
     name: string;
     description?: string;
     managerId?: number;
-    productId?: number;
+    productIds?: number[];
     manager?: {
         id: number;
         firstName: string;
@@ -16,10 +16,10 @@ export interface Team {
         firstName: string;
         lastName: string;
     }>;
-    product?: {
+    products?: Array<{
         id: number;
         name: string;
-    };
+    }>;
     _count?: {
         members: number;
     };
@@ -31,7 +31,7 @@ export interface CreateTeamPayload {
     description?: string;
     managerId?: number;
     memberIds?: number[];
-    productId?: number;
+    productIds?: number[];
 }
 
 export interface UpdateTeamPayload extends Partial<CreateTeamPayload> { }

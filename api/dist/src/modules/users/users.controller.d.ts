@@ -121,7 +121,10 @@ export declare class UsersController {
         success: boolean;
         data: {
             user: {
+                id: number;
                 email: string;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
                 password: string;
                 firstName: string;
                 lastName: string;
@@ -130,23 +133,23 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 profilePicture: string | null;
+                companyId: number | null;
                 deletedAt: Date | null;
                 accountLockedUntil: Date | null;
-                emailVerificationToken: string | null;
                 emailVerified: boolean;
                 emailVerifiedAt: Date | null;
                 failedLoginAttempts: number;
                 passwordResetExpires: Date | null;
-                passwordResetToken: string | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
-                mustChangePassword: boolean;
                 deviceToken: string | null;
                 fcmToken: string | null;
-                id: number;
-                companyId: number | null;
                 managerId: number | null;
+                mustChangePassword: boolean;
                 teamId: number | null;
+                language: string;
+                firstNameAr: string | null;
+                lastNameAr: string | null;
             };
         };
         message?: undefined;
@@ -155,7 +158,10 @@ export declare class UsersController {
         success: boolean;
         data: {
             user: {
+                id: number;
                 email: string;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
                 password: string;
                 firstName: string;
                 lastName: string;
@@ -164,23 +170,23 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 profilePicture: string | null;
+                companyId: number | null;
                 deletedAt: Date | null;
                 accountLockedUntil: Date | null;
-                emailVerificationToken: string | null;
                 emailVerified: boolean;
                 emailVerifiedAt: Date | null;
                 failedLoginAttempts: number;
                 passwordResetExpires: Date | null;
-                passwordResetToken: string | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
-                mustChangePassword: boolean;
                 deviceToken: string | null;
                 fcmToken: string | null;
-                id: number;
-                companyId: number | null;
                 managerId: number | null;
+                mustChangePassword: boolean;
                 teamId: number | null;
+                language: string;
+                firstNameAr: string | null;
+                lastNameAr: string | null;
             };
         };
     }>;
@@ -190,7 +196,10 @@ export declare class UsersController {
         success: boolean;
         data: {
             user: {
+                id: number;
                 email: string;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
                 password: string;
                 firstName: string;
                 lastName: string;
@@ -199,23 +208,23 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 profilePicture: string | null;
+                companyId: number | null;
                 deletedAt: Date | null;
                 accountLockedUntil: Date | null;
-                emailVerificationToken: string | null;
                 emailVerified: boolean;
                 emailVerifiedAt: Date | null;
                 failedLoginAttempts: number;
                 passwordResetExpires: Date | null;
-                passwordResetToken: string | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
-                mustChangePassword: boolean;
                 deviceToken: string | null;
                 fcmToken: string | null;
-                id: number;
-                companyId: number | null;
                 managerId: number | null;
+                mustChangePassword: boolean;
                 teamId: number | null;
+                language: string;
+                firstNameAr: string | null;
+                lastNameAr: string | null;
             };
         };
     }>;
@@ -227,7 +236,10 @@ export declare class UsersController {
         success: boolean;
         data: {
             user: {
+                id: number;
                 email: string;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
                 password: string;
                 firstName: string;
                 lastName: string;
@@ -236,23 +248,23 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 profilePicture: string | null;
+                companyId: number | null;
                 deletedAt: Date | null;
                 accountLockedUntil: Date | null;
-                emailVerificationToken: string | null;
                 emailVerified: boolean;
                 emailVerifiedAt: Date | null;
                 failedLoginAttempts: number;
                 passwordResetExpires: Date | null;
-                passwordResetToken: string | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
-                mustChangePassword: boolean;
                 deviceToken: string | null;
                 fcmToken: string | null;
-                id: number;
-                companyId: number | null;
                 managerId: number | null;
+                mustChangePassword: boolean;
                 teamId: number | null;
+                language: string;
+                firstNameAr: string | null;
+                lastNameAr: string | null;
             };
         };
         message?: undefined;
@@ -301,7 +313,10 @@ export declare class UsersController {
         success: boolean;
         data: {
             user: {
+                id: number;
                 email: string;
+                emailVerificationToken: string | null;
+                passwordResetToken: string | null;
                 password: string;
                 firstName: string;
                 lastName: string;
@@ -310,23 +325,23 @@ export declare class UsersController {
                 createdAt: Date;
                 updatedAt: Date;
                 profilePicture: string | null;
+                companyId: number | null;
                 deletedAt: Date | null;
                 accountLockedUntil: Date | null;
-                emailVerificationToken: string | null;
                 emailVerified: boolean;
                 emailVerifiedAt: Date | null;
                 failedLoginAttempts: number;
                 passwordResetExpires: Date | null;
-                passwordResetToken: string | null;
                 twoFactorEnabled: boolean;
                 twoFactorSecret: string | null;
-                mustChangePassword: boolean;
                 deviceToken: string | null;
                 fcmToken: string | null;
-                id: number;
-                companyId: number | null;
                 managerId: number | null;
+                mustChangePassword: boolean;
                 teamId: number | null;
+                language: string;
+                firstNameAr: string | null;
+                lastNameAr: string | null;
             };
         };
         message?: undefined;

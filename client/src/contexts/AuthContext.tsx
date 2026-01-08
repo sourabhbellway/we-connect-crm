@@ -15,6 +15,7 @@ import {
   PasswordRequirements
 } from "../types/auth";
 import { authService } from "../services/auth.service";
+import { requestNotificationPermission } from "../config/firebase";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
@@ -294,6 +295,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           type: "LOGIN_SUCCESS",
           payload: { user, accessToken, refreshToken, tokenExpiry },
         });
+
+        // Register FCM token for push notifications
+        try {
+          const fcmToken = await requestNotificationPermission();
+          if (fcmToken) {
+            console.log('✅ FCM Token registered:', fcmToken);
+            // Save FCM token to backend
+            await authService.updateFcmToken(fcmToken);
+          }
+        } catch (fcmError) {
+          console.warn('Failed to register FCM token:', fcmError);
+          // Don't fail login if FCM registration fails
+        }
       }
 
       // Return the full response so callers can inspect mustChangePassword

@@ -22,6 +22,9 @@ const send_email_dto_1 = require("./dto/send-email.dto");
 const send_whatsapp_dto_1 = require("./dto/send-whatsapp.dto");
 const send_templated_dto_1 = require("./dto/send-templated.dto");
 const list_messages_query_1 = require("./dto/list-messages.query");
+const initiate_voip_call_dto_1 = require("./dto/initiate-voip-call.dto");
+const voip_webhook_dto_1 = require("./dto/voip-webhook.dto");
+const voip_config_dto_1 = require("./dto/voip-config.dto");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
 let CommunicationsController = class CommunicationsController {
     service;
@@ -80,6 +83,37 @@ let CommunicationsController = class CommunicationsController {
     }
     createLeadComm(dto) {
         return this.service.createLeadComm(dto);
+    }
+    getVoIPConfig(user) {
+        return this.service.getVoIPConfig();
+    }
+    saveVoIPConfig(dto, user) {
+        return this.service.saveVoIPConfig(dto);
+    }
+    initiateVoIPCall(dto, user) {
+        return this.service.initiateVoIPCall(dto);
+    }
+    async generateTwiML(body) {
+        return this.service.generateTwiML(body);
+    }
+    handleVoIPWebhook(dto) {
+        return this.service.handleVoIPWebhook(dto);
+    }
+    getVoIPCallHistory(leadId, userId, status, region, page, limit, user) {
+        return this.service.getVoIPCallHistory({
+            leadId: leadId ? parseInt(leadId) : undefined,
+            userId: userId ? parseInt(userId) : undefined,
+            status,
+            region,
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 10,
+        }, user);
+    }
+    getVoIPStatistics(user) {
+        return this.service.getVoIPStatistics(user);
+    }
+    getVoIPWebhookUrl(baseUrl) {
+        return this.service.getVoIPWebhookUrl(baseUrl);
     }
 };
 exports.CommunicationsController = CommunicationsController;
@@ -175,6 +209,70 @@ __decorate([
     __metadata("design:paramtypes", [create_lead_communication_dto_1.CreateLeadCommunicationDto]),
     __metadata("design:returntype", void 0)
 ], CommunicationsController.prototype, "createLeadComm", null);
+__decorate([
+    (0, common_1.Get)('voip/config'),
+    __param(0, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "getVoIPConfig", null);
+__decorate([
+    (0, common_1.Post)('voip/config'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [voip_config_dto_1.VoIPConfigDto, Object]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "saveVoIPConfig", null);
+__decorate([
+    (0, common_1.Post)('voip/initiate'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [initiate_voip_call_dto_1.InitiateVoIPCallDto, Object]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "initiateVoIPCall", null);
+__decorate([
+    (0, common_1.Post)('voip/twiml'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], CommunicationsController.prototype, "generateTwiML", null);
+__decorate([
+    (0, common_1.Post)('voip/webhook'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [voip_webhook_dto_1.VoIPWebhookDto]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "handleVoIPWebhook", null);
+__decorate([
+    (0, common_1.Get)('voip/calls'),
+    __param(0, (0, common_1.Query)('leadId')),
+    __param(1, (0, common_1.Query)('userId')),
+    __param(2, (0, common_1.Query)('status')),
+    __param(3, (0, common_1.Query)('region')),
+    __param(4, (0, common_1.Query)('page')),
+    __param(5, (0, common_1.Query)('limit')),
+    __param(6, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "getVoIPCallHistory", null);
+__decorate([
+    (0, common_1.Get)('voip/stats'),
+    __param(0, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "getVoIPStatistics", null);
+__decorate([
+    (0, common_1.Get)('voip/webhook-url'),
+    __param(0, (0, common_1.Query)('baseUrl')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CommunicationsController.prototype, "getVoIPWebhookUrl", null);
 exports.CommunicationsController = CommunicationsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('communications'),

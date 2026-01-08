@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { teamsService, Team } from '../../services/teamsService';
 import { userService } from '../../services/userService';
 import { productsService } from '../../services/productsService';
+import { EnhancedSelectField } from '../../components/EnhancedSelectField';
+import { EnhancedMultiSelectField } from '../../components/EnhancedMultiSelectField';
 
 const TeamsPage = () => {
     const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ const TeamsPage = () => {
         description: '',
         managerId: '',
         memberIds: [] as string[],
-        productId: '',
+        productIds: [] as string[],
     });
 
     useEffect(() => {
@@ -60,7 +62,7 @@ const TeamsPage = () => {
                 description: team.description || '',
                 managerId: team.managerId?.toString() || '',
                 memberIds: team.members?.map(m => m.id.toString()).filter(id => id !== team.managerId?.toString()) || [],
-                productId: team.productId?.toString() || '',
+                productIds: team.products?.map(p => p.id.toString()) || [],
             });
         } else {
             setEditTeam(null);
@@ -69,7 +71,7 @@ const TeamsPage = () => {
                 description: '',
                 managerId: '',
                 memberIds: [],
-                productId: '',
+                productIds: [],
             });
         }
         setIsModalOpen(true);
@@ -88,7 +90,7 @@ const TeamsPage = () => {
                 description: formData.description,
                 managerId: formData.managerId ? parseInt(formData.managerId) : undefined,
                 memberIds: formData.memberIds.map(id => parseInt(id)),
-                productId: formData.productId ? parseInt(formData.productId) : undefined,
+                productIds: formData.productIds.map(id => parseInt(id)),
             };
             console.log('Saving team with payload:', payload);
 
@@ -160,7 +162,7 @@ const TeamsPage = () => {
                             <tr>
                                 <th className="px-6 py-4 font-medium">Team Name</th>
                                 <th className="px-6 py-4 font-medium">Manager</th>
-                                <th className="px-6 py-4 font-medium">Product</th>
+                                <th className="px-6 py-4 font-medium">Products</th>
                                 <th className="px-6 py-4 font-medium">Members</th>
                                 <th className="px-6 py-4 font-medium">Created At</th>
                                 <th className="px-6 py-4 font-medium text-right">Actions</th>
@@ -175,7 +177,15 @@ const TeamsPage = () => {
                                             {team.manager ? `${team.manager.firstName} ${team.manager.lastName}` : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
-                                            {team.product ? team.product.name : '-'}
+                                            {team.products && team.products.length > 0 ? (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {team.products.map(p => (
+                                                        <span key={p.id} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+                                                            {p.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : '-'}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 dark:text-gray-400">
                                             {team._count?.members || 0} Members
@@ -261,81 +271,54 @@ const TeamsPage = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Team Lead (Manager)
-                                </label>
-                                <select
+                                <EnhancedSelectField
+                                    label="Team Lead (Manager)"
                                     value={formData.managerId}
-                                    onChange={(e) => {
-                                        const newManagerId = e.target.value;
+                                    options={users.map(user => ({
+                                        value: user.id.toString(),
+                                        label: `${user.firstName} ${user.lastName}`,
+                                        description: user.email
+                                    }))}
+                                    onChange={(val) => {
+                                        const newManagerId = val.toString();
                                         setFormData(prev => ({
                                             ...prev,
                                             managerId: newManagerId,
                                             memberIds: prev.memberIds.filter(id => id !== newManagerId)
                                         }));
                                     }}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Select Manager</option>
-                                    {users.map(user => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.firstName} {user.lastName}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Select Manager"
+                                />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Product
-                                </label>
-                                <select
-                                    value={formData.productId}
-                                    onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Select Product</option>
-                                    {products.map(product => (
-                                        <option key={product.id} value={product.id}>
-                                            {product.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <EnhancedMultiSelectField
+                                    label="Products"
+                                    value={formData.productIds}
+                                    options={products.map(product => ({
+                                        value: product.id.toString(),
+                                        label: product.name,
+                                        description: product.sku
+                                    }))}
+                                    onChange={(vals) => setFormData({ ...formData, productIds: vals as string[] })}
+                                    placeholder="Select Products"
+                                />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Team Members
-                                </label>
-                                <div className="border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-200 dark:divide-gray-700">
-                                    {users
+                                <EnhancedMultiSelectField
+                                    label="Team Members"
+                                    value={formData.memberIds}
+                                    options={users
                                         .filter(user => (!user.teamId || (editTeam && user.teamId === editTeam.id)) && user.id.toString() !== formData.managerId)
-                                        .map(user => (
-                                            <div key={user.id} className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 gap-3">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.memberIds.includes(user.id.toString())}
-                                                    onChange={() => {
-                                                        const userId = user.id.toString();
-                                                        setFormData(prev => {
-                                                            const currentMembers = prev.memberIds;
-                                                            if (currentMembers.includes(userId)) {
-                                                                return { ...prev, memberIds: currentMembers.filter(id => id !== userId) };
-                                                            } else {
-                                                                return { ...prev, memberIds: [...currentMembers, userId] };
-                                                            }
-                                                        });
-                                                    }}
-                                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                                />
-                                                <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                    {user.firstName} {user.lastName} ({user.email})
-                                                    {user.team && <span className="text-xs text-gray-400 ml-1">({user.team.name})</span>}
-                                                </span>
-                                            </div>
-                                        ))}
-                                </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select users to add to this team.</p>
+                                        .map(user => ({
+                                            value: user.id.toString(),
+                                            label: `${user.firstName} ${user.lastName}`,
+                                            description: `${user.email}${user.team ? ` (${user.team.name})` : ''}`
+                                        }))}
+                                    onChange={(vals) => setFormData({ ...formData, memberIds: vals as string[] })}
+                                    placeholder="Select Members"
+                                />
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -420,16 +403,20 @@ const TeamsPage = () => {
                             </div>
 
                             <div>
-                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Assigned Product</h3>
-                                {viewTeam.product ? (
-                                    <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                            {viewTeam.product.name}
-                                        </p>
+                                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Assigned Products</h3>
+                                {viewTeam.products && viewTeam.products.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {viewTeam.products.map(product => (
+                                            <div key={product.id} className="p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                    {product.name}
+                                                </p>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : (
                                     <p className="text-sm text-gray-500 dark:text-gray-400 italic mt-1">
-                                        No product assigned.
+                                        No products assigned.
                                     </p>
                                 )}
                             </div>

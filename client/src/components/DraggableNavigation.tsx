@@ -171,7 +171,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
       {/* Children Dropdown */}
       {hasChildren && isOpen && !sidebarCollapsed && (
-        <div className="mt-1 ml-6 space-y-1">
+        <div className="mt-1 ms-6 space-y-1">
           {item.children?.map((child) => (
             <div
               key={child.id}

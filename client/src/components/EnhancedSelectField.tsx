@@ -141,7 +141,7 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
           {required && (
-            <span className="text-red-500 ml-1">*</span>
+            <span className="text-red-500 ms-1">*</span>
           )}
         </label>
       )}
@@ -151,7 +151,7 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
         <div
           className={`
             relative w-full rounded-lg border transition-all duration-200 cursor-pointer
-            ${leftIcon ? 'pl-12' : 'pl-4'} pr-10 py-3
+            ${leftIcon ? 'ps-12' : 'ps-4'} pe-10 py-3
             bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
             ${error
               ? 'border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500'
@@ -168,12 +168,12 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
           tabIndex={disabled ? -1 : 0}
         >
           {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
               {leftIcon}
             </div>
           )}
           {leftIcon && (
-            <span className="absolute inset-y-0 left-9 w-px bg-gray-200 dark:bg-gray-600" />
+            <span className="absolute inset-y-0 start-9 w-px bg-gray-200 dark:bg-gray-600" />
           )}
 
           {/* Display area */}
@@ -189,7 +189,7 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
                 onKeyDown={handleKeyDown}
               />
             ) : (
-              <div className="flex items-center space-x-2 text-sm">
+              <div className="flex items-center gap-2 text-sm">
                 {selectedOption?.icon && (
                   <span className="flex-shrink-0">{selectedOption.icon}</span>
                 )}
@@ -201,7 +201,7 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
           </div>
 
           {/* Right side icons */}
-          <div className="absolute inset-y-0 right-0 flex items-center pr-2 space-x-1">
+          <div className="absolute inset-y-0 end-0 flex items-center pe-2 gap-1">
             {clearable && selectedOption && !disabled && (
               <button
                 onClick={handleClear}
@@ -222,13 +222,13 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
             {searchable && (
               <div className="p-3 border-b border-gray-200 dark:border-gray-600">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute start-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search options..."
-                    className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full ps-10 pe-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     onKeyDown={handleKeyDown}
                   />
                 </div>
@@ -247,8 +247,8 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
                       type="button"
                       onClick={() => handleSelect(option.value)}
                       className={`
-                        w-full text-left px-4 py-3 text-sm transition-colors duration-150
-                        flex items-center space-x-3
+                        w-full text-start px-4 py-3 text-sm transition-colors duration-150
+                        flex items-center gap-3
                         ${index === focusedIndex
                           ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                           : 'hover:bg-gray-50 dark:hover:bg-gray-600'

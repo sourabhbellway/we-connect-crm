@@ -6,10 +6,10 @@ export declare class TagsController {
     list(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -19,10 +19,10 @@ export declare class TagsController {
     create(dto: UpsertTagDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -32,10 +32,10 @@ export declare class TagsController {
     update(id: string, dto: UpsertTagDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;

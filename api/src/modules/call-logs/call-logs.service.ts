@@ -168,13 +168,15 @@ export class CallLogsService {
                         select: { fcmToken: true, firstName: true },
                     });
 
-                    if (user?.fcmToken) {
+                    const targetToken = dto.deviceToken || user?.fcmToken;
+
+                    if (targetToken) {
                         const leadName = item.lead
                             ? `${item.lead.firstName || ''} ${item.lead.lastName || ''}`.trim()
                             : 'Unknown Lead';
 
                         await this.notificationsService.sendPushNotification(
-                            user.fcmToken,
+                            targetToken,
                             '📞 Outgoing Call',
                             `Calling ${leadName} at ${item.phoneNumber}`,
                             {

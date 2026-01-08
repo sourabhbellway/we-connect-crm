@@ -19,29 +19,29 @@ export declare class TasksService {
         data: {
             items: ({
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     phone: string | null;
                     company: string | null;
                 } | null;
                 assignedUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 title: string;
                 leadId: number | null;
@@ -55,29 +55,29 @@ export declare class TasksService {
             })[];
             tasks: ({
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     phone: string | null;
                     company: string | null;
                 } | null;
                 assignedUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 title: string;
                 leadId: number | null;
@@ -103,29 +103,29 @@ export declare class TasksService {
         data: {
             task: {
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     phone: string | null;
                     company: string | null;
                 } | null;
                 assignedUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 title: string;
                 leadId: number | null;
@@ -145,29 +145,29 @@ export declare class TasksService {
         data: {
             task: {
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     phone: string | null;
                     company: string | null;
                 } | null;
                 assignedUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 title: string;
                 leadId: number | null;
@@ -186,29 +186,29 @@ export declare class TasksService {
         data: {
             task: {
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     phone: string | null;
                     company: string | null;
                 } | null;
                 assignedUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 title: string;
                 leadId: number | null;
@@ -227,29 +227,29 @@ export declare class TasksService {
         data: {
             task: {
                 lead: {
+                    id: number;
                     email: string | null;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     phone: string | null;
                     company: string | null;
                 } | null;
                 assignedUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 } | null;
                 createdByUser: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
-                id: number;
                 description: string | null;
                 title: string;
                 leadId: number | null;

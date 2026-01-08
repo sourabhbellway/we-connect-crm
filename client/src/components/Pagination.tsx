@@ -1,5 +1,6 @@
-  import React from "react";
+import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PaginationProps {
   currentPage: number;
@@ -20,6 +21,7 @@ const Pagination: React.FC<PaginationProps> = ({
   showItemsPerPage = true,
   className = "",
 }) => {
+  const { t } = useTranslation();
   // Don't render if only one page
   if (totalPages <= 1) return null;
 
@@ -63,27 +65,31 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Items info */}
         {showItemsPerPage && (
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Showing <span className="font-medium text-gray-900 dark:text-white">{startItem}</span> to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">{endItem}</span> of{" "}
-            <span className="font-medium text-gray-900 dark:text-white">{totalItems}</span> results
+            {t('common.showing', 'Showing')}{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{startItem}</span>{" "}
+            {t('common.to', 'to')}{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{endItem}</span>{" "}
+            {t('common.of', 'of')}{" "}
+            <span className="font-medium text-gray-900 dark:text-white">{totalItems}</span>{" "}
+            {t('common.results', 'results')}
           </div>
         )}
 
         {/* Pagination controls */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 rtl:space-x-reverse">
           {/* Previous button */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800 transition-all duration-200"
-            title="Previous page"
+            title={t('common.previous', 'Previous page')}
           >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="ml-1 hidden sm:inline">Previous</span>
+            <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+            <span className="ms-1 hidden sm:inline">{t('common.previous', 'Previous')}</span>
           </button>
 
           {/* Page numbers */}
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1 rtl:space-x-reverse">
             {visiblePages.map((page, index) => {
               if (page === "...") {
                 return (
@@ -103,11 +109,10 @@ const Pagination: React.FC<PaginationProps> = ({
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-[#ef444e] text-white shadow-sm hover:bg-[#f26971]"
-                      : "text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-                  }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
+                    ? "bg-[#ef444e] text-white shadow-sm hover:bg-[#f26971]"
+                    : "text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                    }`}
                 >
                   {pageNum}
                 </button>
@@ -120,10 +125,10 @@ const Pagination: React.FC<PaginationProps> = ({
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800 transition-all duration-200"
-            title="Next page"
+            title={t('common.next', 'Next page')}
           >
-            <span className="mr-1 hidden sm:inline">Next</span>
-            <ChevronRight className="h-4 w-4" />
+            <span className="me-1 hidden sm:inline">{t('common.next', 'Next')}</span>
+            <ChevronRight className="h-4 w-4 rtl:rotate-180" />
           </button>
         </div>
       </div>

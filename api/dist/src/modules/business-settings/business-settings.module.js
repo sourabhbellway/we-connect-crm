@@ -15,12 +15,13 @@ const invoice_templates_controller_1 = require("./invoice-templates.controller")
 const prisma_service_1 = require("../../database/prisma.service");
 const product_categories_module_1 = require("../product-categories/product-categories.module");
 const unit_types_module_1 = require("../unit-types/unit-types.module");
+const communications_module_1 = require("../communications/communications.module");
 let BusinessSettingsModule = class BusinessSettingsModule {
 };
 exports.BusinessSettingsModule = BusinessSettingsModule;
 exports.BusinessSettingsModule = BusinessSettingsModule = __decorate([
     (0, common_1.Module)({
-        imports: [product_categories_module_1.ProductCategoriesModule, unit_types_module_1.UnitTypesModule],
+        imports: [product_categories_module_1.ProductCategoriesModule, unit_types_module_1.UnitTypesModule, communications_module_1.CommunicationsModule],
         controllers: [business_settings_controller_1.BusinessSettingsController, invoice_templates_controller_1.InvoiceTemplatesController],
         providers: [business_settings_service_1.BusinessSettingsService, invoice_templates_service_1.InvoiceTemplatesService, prisma_service_1.PrismaService],
         exports: [business_settings_service_1.BusinessSettingsService, invoice_templates_service_1.InvoiceTemplatesService],

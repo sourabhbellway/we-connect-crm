@@ -6,10 +6,10 @@ export declare class CommunicationProvidersController {
         success: boolean;
         data: {
             providers: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
@@ -23,10 +23,10 @@ export declare class CommunicationProvidersController {
         message: string;
         data: {
             provider: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
@@ -44,10 +44,10 @@ export declare class CommunicationProvidersController {
         message: string;
         data: {
             provider: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;

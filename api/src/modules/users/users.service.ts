@@ -679,7 +679,7 @@ export class UsersService {
 
   async updateProfile(
     id: number,
-    dto: { firstName?: string; lastName?: string; email?: string },
+    dto: { firstName?: string; lastName?: string; email?: string; language?: string },
   ) {
     const user = await this.prisma.user.findFirst({
       where: { id, deletedAt: null },
@@ -709,6 +709,7 @@ export class UsersService {
       data.email = dto.email;
     }
 
+    if (dto.language !== undefined) data.language = dto.language;
 
     try {
       const updated = await this.prisma.user.update({ where: { id }, data });

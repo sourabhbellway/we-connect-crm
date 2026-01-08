@@ -342,11 +342,11 @@ const PaymentTracker: React.FC<PaymentTrackerProps> = ({
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600 dark:text-gray-400">Paid</p>
-                    <p className="font-semibold text-green-600">{formatCurrency(totalPaid, getCurrency())}</p>
+                    {/* <p className="font-semibold text-green-600">{formatCurrency(totalPaid, getCurrency())}</p> */}
                   </div>
                   <div>
                     <p className="text-gray-600 dark:text-gray-400">Outstanding</p>
-                    <p className="font-semibold text-orange-600">{formatCurrency(totalOutstanding, getCurrency())}</p>
+                    {/* <p className="font-semibold text-orange-600">{formatCurrency(totalOutstanding, getCurrency())}</p> */}
                   </div>
                 </div>
               </div>

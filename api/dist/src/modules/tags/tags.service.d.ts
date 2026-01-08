@@ -8,10 +8,10 @@ export declare class TagsService {
     list(): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -21,10 +21,10 @@ export declare class TagsService {
     create(dto: UpsertTagDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;
@@ -34,10 +34,10 @@ export declare class TagsService {
     update(id: number, dto: UpsertTagDto): Promise<{
         success: boolean;
         data: {
+            id: number;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             companyId: number | null;
             name: string;
             description: string | null;

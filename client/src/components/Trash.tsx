@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import {
   Trash2,
@@ -13,42 +14,43 @@ import {
 import { useCounts } from "../contexts/CountsContext";
 
 const Trash: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { counts, refreshTrashCounts } = useCounts();
 
   const trashItems = [
     {
-      title: "Deleted Users",
-      description: "Manage soft-deleted user accounts",
+      title: t('trash.categories.users') || "Deleted Users",
+      description: t('trash.descriptions.users') || "Manage soft-deleted user accounts",
       icon: UsersIcon,
       path: "/trash/users",
       color: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-900/20",
       borderColor: "border-blue-200 dark:border-blue-800",
       countKey: "trashUsers",
-      retention: "30 days"
+      retention: "30 " + t('trash.days')
     },
     {
-      title: "Deleted Leads",
-      description: "Review removed lead records",
+      title: t('trash.categories.leads') || "Deleted Leads",
+      description: t('trash.descriptions.leads') || "Review removed lead records",
       icon: FileText,
       path: "/trash/leads",
       color: "from-green-500 to-green-600",
       bgColor: "bg-green-50 dark:bg-green-900/20",
       borderColor: "border-green-200 dark:border-green-800",
       countKey: "trashLeads",
-      retention: "30 days"
+      retention: "30 " + t('trash.days')
     },
     {
-      title: "Deleted Roles",
-      description: "Access removed role definitions",
+      title: t('trash.categories.roles') || "Deleted Roles",
+      description: t('trash.descriptions.roles') || "Access removed role definitions",
       icon: Shield,
       path: "/trash/roles",
       color: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-900/20",
       borderColor: "border-purple-200 dark:border-purple-800",
       countKey: "trashRoles",
-      retention: "30 days"
+      retention: "30 " + t('trash.days')
     }
   ];
 
@@ -75,9 +77,9 @@ const Trash: React.FC = () => {
         {/* content */}
         <div className="relative px-6 py-6">
           <div className=" mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Trash Management</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('trash.title')}</h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 ">
-              View soft-deleted records. Items are permanently deleted after 30 days.
+              {t('trash.description')}
             </p>
           </div>
         </div>
@@ -97,7 +99,7 @@ const Trash: React.FC = () => {
               >
                 {/* Background Gradient */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-                
+
                 <div className="relative px-4 py-3 w-full">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3 w-full">

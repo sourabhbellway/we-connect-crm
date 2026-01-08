@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
     X,
     DollarSign,
@@ -57,6 +58,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
     lead,
     isConverting,
 }) => {
+    const { t } = useTranslation();
     const { dealStatuses, currencySettings } = useBusinessSettings();
 
     const [conversionData, setConversionData] = useState<ConversionData>({
@@ -78,9 +80,9 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
             setConversionData(prev => ({
                 ...prev,
                 contactData: {
-                    firstName: lead.firstName,
-                    lastName: lead.lastName,
-                    email: lead.email,
+                    firstName: lead.firstName || "",
+                    lastName: lead.lastName || "",
+                    email: lead.email || "",
                     phone: lead.phone || "",
                     company: lead.company || "",
                     position: lead.position || "",
@@ -89,15 +91,15 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                 },
                 dealData: {
                     ...prev.dealData,
-                    title: `Deal with ${lead.firstName} ${lead.lastName}`,
-                    description: `Deal opportunity from lead conversion`,
+                    title: t('leads.conversion.defaultDealTitle', { name: `${lead.firstName || ''} ${lead.lastName || ''}`.trim() }),
+                    description: t('leads.conversion.defaultDealDescription', 'Deal opportunity from lead conversion'),
                     value: (lead as any)?.budget ?? (lead as any)?.value ?? undefined,
                     currency: (lead as any)?.currency || currencySettings?.primary || prev.dealData.currency,
                     status: prev.dealData.status || (dealStatuses?.length > 0 ? (dealStatuses.find(s => s.isActive)?.name || dealStatuses[0].name) : "DRAFT"),
                 },
             }));
         }
-    }, [lead, dealStatuses]);
+    }, [lead, dealStatuses, t]);
 
     const handleInputChange = (
         section: keyof ConversionData,
@@ -128,12 +130,12 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
 
         // Validation
         if (!conversionData.createDeal) {
-            toast.error("Please select Create Deal to convert the lead");
+            toast.error(t('leads.conversion.selectCreateDeal', 'Please select Create Deal to convert the lead'));
             return;
         }
 
         if (conversionData.createDeal && !conversionData.dealData.title) {
-            toast.error("Deal title is required");
+            toast.error(t('leads.conversion.titleRequired', 'Deal title is required'));
             return;
         }
 
@@ -170,20 +172,20 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 rtl:space-x-reverse">
                             <div className="flex-shrink-0 h-10 w-10">
                                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
                                     <span className="text-white font-medium text-sm">
-                                        {lead.firstName[0]}{lead.lastName[0]}
+                                        {(lead.firstName?.[0] || '')}{(lead.lastName?.[0] || '')}
                                     </span>
                                 </div>
                             </div>
                             <div>
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                                    Convert Lead: {lead.firstName} {lead.lastName}
+                                    {t('leads.conversion.convertLeadName', { name: `${lead.firstName} ${lead.lastName}` })}
                                 </h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    {lead.email} • {lead.company || "No company"}
+                                    {lead.email} • {lead.company || t('common.noCompany', 'No company')}
                                 </p>
                             </div>
                         </div>
@@ -201,7 +203,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                     <div className="grid grid-cols-1 gap-6">
                         {/* Create Deal */}
                         <div className={`border rounded-lg p-4 ${conversionData.createDeal ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
-                            <div className="flex items-center space-x-3 mb-4">
+                            <div className="flex items-center space-x-3 rtl:space-x-reverse mb-4">
                                 <input
                                     type="checkbox"
                                     checked={conversionData.createDeal}
@@ -209,9 +211,9 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                                     disabled={isConverting}
                                     className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                                 />
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                     <DollarSign className="h-5 w-5 text-purple-600" />
-                                    <span className="font-medium text-gray-900 dark:text-white">Create Deal</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">{t('leads.conversion.createDeal', 'Create Deal')}</span>
                                 </div>
                             </div>
 
@@ -219,7 +221,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                                 <div className="space-y-3">
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Deal Title *
+                                            {t('leads.conversion.dealTitle', 'Deal Title')} *
                                         </label>
                                         <input
                                             type="text"
@@ -232,7 +234,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                Value
+                                                {t('common.value', 'Value')}
                                             </label>
                                             <input
                                                 type="number"
@@ -246,7 +248,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                Currency
+                                                {t('common.currency', 'Currency')}
                                             </label>
                                             <select
                                                 value={conversionData.dealData.currency || "USD"}
@@ -277,7 +279,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                                     </div>
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Probability (%)
+                                            {t('leads.conversion.probability', 'Probability (%)')}
                                         </label>
                                         <input
                                             type="number"
@@ -291,7 +293,7 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
                                     </div>
                                     <div>
                                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                            Status
+                                            {t('common.status', 'Status')}
                                         </label>
                                         <select
                                             value={conversionData.dealData.status}
@@ -313,42 +315,42 @@ const LeadConversionModal: React.FC<LeadConversionModalProps> = ({
 
                     {/* Info Banner */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-start space-x-3 rtl:space-x-reverse">
                             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                             <div className="text-sm">
-                                <p className="text-blue-800 dark:text-blue-200 font-medium">Conversion Summary</p>
+                                <p className="text-blue-800 dark:text-blue-200 font-medium">{t('leads.conversion.summary', 'Conversion Summary')}</p>
                                 <ul className="text-blue-700 dark:text-blue-300 mt-1 space-y-1">
-                                    <li>• The lead status will be changed to "Converted"</li>
-                                    {conversionData.createDeal && <li>• A new deal/opportunity will be created and linked</li>}
+                                    <li>• {t('leads.conversion.statusChange', 'The lead status will be changed to "Converted"')}</li>
+                                    {conversionData.createDeal && <li>• {t('leads.conversion.dealLinked', 'A new deal/opportunity will be created and linked')}</li>}
                                 </ul>
                             </div>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                    <div className="flex justify-end space-x-3 rtl:space-x-reverse border-t border-gray-200 dark:border-gray-700 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isConverting}
                             className="px-6 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-50"
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={isConverting || !conversionData.createDeal}
-                            className="px-6 py-2 bg-[#ef444e] text-white text-sm font-medium rounded-lg hover:bg-[#f26971] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                            className="px-6 py-2 bg-[#ef444e] text-white text-sm font-medium rounded-lg hover:bg-[#f26971] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 rtl:space-x-reverse"
                         >
                             {isConverting ? (
                                 <>
                                     <RefreshCw className="h-4 w-4 animate-spin" />
-                                    <span>Converting...</span>
+                                    <span>{t('leads.conversion.converting', 'Converting...')}</span>
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle className="h-4 w-4" />
-                                    <span>Convert Lead</span>
+                                    <span>{t('leads.conversion.convertLead', 'Convert Lead')}</span>
                                 </>
                             )}
                         </button>

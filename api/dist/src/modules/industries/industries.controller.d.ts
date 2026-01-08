@@ -9,10 +9,10 @@ export declare class IndustriesController {
         data: {
             industries: ({
                 fields: {
+                    id: number;
                     isActive: boolean;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
                     type: import("@prisma/client").$Enums.FieldType;
                     key: string;
@@ -20,10 +20,10 @@ export declare class IndustriesController {
                     industryId: number;
                 }[];
             } & {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 slug: string;
             })[];
@@ -33,10 +33,10 @@ export declare class IndustriesController {
         success: boolean;
         data: {
             industry: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 slug: string;
             };
@@ -46,10 +46,10 @@ export declare class IndustriesController {
         success: boolean;
         data: {
             industry: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 slug: string;
             };
@@ -62,10 +62,10 @@ export declare class IndustriesController {
         success: boolean;
         data: {
             field: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 type: import("@prisma/client").$Enums.FieldType;
                 key: string;
@@ -78,10 +78,10 @@ export declare class IndustriesController {
         success: boolean;
         data: {
             field: {
+                id: number;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
                 type: import("@prisma/client").$Enums.FieldType;
                 key: string;

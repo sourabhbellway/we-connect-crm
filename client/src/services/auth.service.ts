@@ -18,7 +18,7 @@ import { API_BASE_URL as API_ROOT } from '../config/config';
 const API_BASE_URL = `${API_ROOT}/auth`;
 
 class AuthService {
-  constructor() {}
+  constructor() { }
 
   private getAuthHeaders() {
     return {
@@ -46,14 +46,14 @@ class AuthService {
 
       if (response.data.success) {
         const { accessToken, refreshToken, user, tokenExpiry } = response.data.data;
-        
+
         // Store tokens securely
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
         localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
         localStorage.setItem('tokenExpiry', tokenExpiry);
         localStorage.setItem('userId', user.id.toString()); // Store userId for token validation
-        
+
         // Set default authorization header for subsequent requests
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       }
@@ -202,6 +202,22 @@ class AuthService {
     }
   }
 
+  async updateFcmToken(fcmToken: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/fcm-token`,
+        { fcmToken },
+        {
+          headers: this.getAuthHeadersWithToken(),
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Update FCM token error:', error);
+      throw this.handleAuthError(error);
+    }
+  }
+
   // Password validation utilities
   validatePassword(password: string, requirements?: PasswordRequirements): { isValid: boolean; errors: string[] } {
     const reqs = requirements || {
@@ -300,7 +316,7 @@ class AuthService {
   getCurrentUser(): User | null {
     const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
     if (!userData) return null;
-    
+
     try {
       return JSON.parse(userData);
     } catch (error) {

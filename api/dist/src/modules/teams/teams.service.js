@@ -19,7 +19,7 @@ let TeamsService = class TeamsService {
     }
     async create(createTeamDto) {
         console.log('Creating team with DTO:', JSON.stringify(createTeamDto, null, 2));
-        const { memberIds, ...rest } = createTeamDto;
+        const { memberIds, productIds, ...rest } = createTeamDto;
         const filteredMemberIds = memberIds?.filter(id => id !== rest.managerId);
         const result = await this.prisma.team.create({
             data: {
@@ -27,11 +27,14 @@ let TeamsService = class TeamsService {
                 members: filteredMemberIds && filteredMemberIds.length > 0 ? {
                     connect: filteredMemberIds.map((id) => ({ id })),
                 } : undefined,
+                products: productIds && productIds.length > 0 ? {
+                    connect: productIds.map((id) => ({ id })),
+                } : undefined,
             },
             include: {
                 manager: true,
                 members: true,
-                product: true,
+                products: true,
             },
         });
         console.log('Created team result:', JSON.stringify(result, null, 2));
@@ -42,7 +45,7 @@ let TeamsService = class TeamsService {
             include: {
                 manager: true,
                 members: true,
-                product: true,
+                products: true,
                 _count: {
                     select: { members: true },
                 },
@@ -60,13 +63,13 @@ let TeamsService = class TeamsService {
             include: {
                 manager: true,
                 members: true,
-                product: true,
+                products: true,
             },
         });
     }
     async update(id, updateTeamDto) {
         console.log(`Updating team ${id} with DTO:`, JSON.stringify(updateTeamDto, null, 2));
-        const { memberIds, ...rest } = updateTeamDto;
+        const { memberIds, productIds, ...rest } = updateTeamDto;
         const filteredMemberIds = memberIds?.filter(mid => mid !== (rest.managerId || undefined));
         const result = await this.prisma.team.update({
             where: { id },
@@ -75,11 +78,14 @@ let TeamsService = class TeamsService {
                 members: memberIds ? {
                     set: filteredMemberIds?.map((id) => ({ id })) || [],
                 } : undefined,
+                products: productIds ? {
+                    set: productIds.map((id) => ({ id })),
+                } : undefined,
             },
             include: {
                 manager: true,
                 members: true,
-                product: true,
+                products: true,
             },
         });
         console.log('Updated team result:', JSON.stringify(result, null, 2));

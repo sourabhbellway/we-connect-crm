@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { X, Upload, Package, Plus } from 'lucide-react';
 import { productsService, Product, CreateProductDto, UpdateProductDto } from '../services/productsService';
@@ -16,6 +17,7 @@ interface ProductFormProps {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProduct }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { currencySettings } = useBusinessSettings();
   const [formData, setFormData] = useState<CreateProductDto & UpdateProductDto>({
@@ -59,12 +61,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({ ...prev, image: 'Please select a valid image file (JPEG, PNG, GIF, WebP)' }));
+        setErrors(prev => ({ ...prev, image: t('products.imageRequirements') || 'Please select a valid image file (JPEG, PNG, GIF, WebP)' }));
         return;
       }
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, image: 'File size must be less than 5MB' }));
+        setErrors(prev => ({ ...prev, image: t('products.imageRequirements') || 'File size must be less than 5MB' }));
         return;
       }
       setSelectedFile(file);
@@ -256,7 +258,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
               <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {initialProduct ? 'Edit Product' : 'Add New Product'}
+              {initialProduct ? t('products.editProduct') : t('products.addProduct')}
             </h2>
           </div>
           <button
@@ -272,19 +274,19 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
           {/* Basic Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Basic Information
+              {t('products.basicInfo')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Name *
+                  {t('products.productName')} *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Enter product name"
+                  placeholder={t('products.enterProductName') || "Enter product name"}
                   className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                 />
@@ -293,13 +295,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  SKU
+                  {t('products.sku')}
                 </label>
                 <input
                   type="text"
                   value={formData.sku}
                   onChange={(e) => handleInputChange('sku', e.target.value)}
-                  placeholder="Enter SKU"
+                  placeholder={t('products.enterSku') || "Enter SKU"}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -307,12 +309,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
+                {t('products.description')}
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Enter product description"
+                placeholder={t('products.enterDescription') || "Enter product description"}
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
@@ -322,13 +324,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
           {/* Pricing & Inventory */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Pricing & Inventory
+              {t('products.pricingInventory')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Price *
+                  {t('products.price')} *
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-gray-500">
@@ -352,7 +354,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Currency
+                  {t('products.currency')}
                 </label>
                 <select
                   value={formData.currency}
@@ -382,7 +384,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Unit Type
+                  {t('products.unitType')}
                 </label>
                 <select
                   value={formData.unit}
@@ -391,7 +393,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                 >
                   <option value="">
-                    {unitTypesLoading ? 'Loading unit types...' : 'Select Unit Type'}
+                    {unitTypesLoading ? t('products.loadingUnitTypes') || 'Loading unit types...' : t('products.selectUnitType') || 'Select Unit Type'}
                   </option>
                   {unitTypes.filter(unit => unit.isActive).map((unit) => (
                     <option key={unit.id} value={unit.name}>
@@ -406,13 +408,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
           {/* Tax & Compliance */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Tax & Compliance
+              {t('products.taxCompliance')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tax Rate (%)
+                  {t('products.taxRate')} (%)
                 </label>
                 <select
                   value={formData.taxRate}
@@ -421,26 +423,26 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 ${errors.taxRate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                 >
-                  <option value="0">No Tax (0%)</option>
+                  <option value="0">{t('products.noTax') || "No Tax (0%)"}</option>
                   {!taxesLoading && taxes.filter(t => t.isActive).map((tax) => (
                     <option key={tax.id} value={Number(tax.rate)}>
                       {tax.name} ({tax.rate}%)
                     </option>
                   ))}
-                  {taxesLoading && <option disabled>Loading taxes...</option>}
+                  {taxesLoading && <option disabled>{t('products.loadingTaxes') || "Loading taxes..."}</option>}
                 </select>
                 {errors.taxRate && <p className="text-red-500 text-sm mt-1">{errors.taxRate}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  HSN Code
+                  {t('products.hsnCode')}
                 </label>
                 <input
                   type="text"
                   value={formData.hsnCode}
                   onChange={(e) => handleInputChange('hsnCode', e.target.value)}
-                  placeholder="e.g., 8471"
+                  placeholder={t('products.enterHsnCode') || "e.g., 8471"}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -450,14 +452,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
           {/* Category & Settings */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Category & Settings
+              {t('products.categorySettings')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Category
+                    {t('products.category')}
                   </label>
                   <button
                     type="button"
@@ -476,7 +478,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                 >
                   <option value="">
-                    {categoriesLoading ? 'Loading categories...' : 'Select Category'}
+                    {categoriesLoading ? t('products.loadingCategories') || 'Loading categories...' : t('products.selectCategory') || 'Select Category'}
                   </option>
                   {categories.filter(cat => cat.isActive).map((category) => (
                     <option key={category.id} value={category.name}>
@@ -488,16 +490,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Type
+                  {t('products.productType')}
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => handleInputChange('type', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="product">Product</option>
-                  <option value="service">Service</option>
-                  <option value="digital">Digital Product</option>
+                  <option value="product">{t('products.types.product') || "Product"}</option>
+                  <option value="service">{t('products.types.service') || "Service"}</option>
+                  <option value="digital">{t('products.types.digital') || "Digital Product"}</option>
                 </select>
               </div>
             </div>
@@ -511,7 +513,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 className="w-4 h-4 text-weconnect-red border-gray-300 rounded focus:ring-weconnect-red"
               />
               <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Active (product will be available for sale)
+                {t('products.isActive')}
               </label>
             </div>
           </div>
@@ -519,7 +521,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
           {/* File Upload */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Product Image
+              {t('products.productImage')}
             </h3>
 
             <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
@@ -528,10 +530,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 <div className="mt-4">
                   <label htmlFor="file-upload" className="cursor-pointer">
                     <span className="mt-2 block text-sm font-medium text-gray-900 dark:text-white">
-                      Upload product image
+                      {t('products.uploadImage')}
                     </span>
                     <span className="mt-1 block text-sm text-gray-500 dark:text-gray-400">
-                      PNG, JPG, GIF up to 5MB
+                      {t('products.imageRequirements')}
                     </span>
                   </label>
                   <input
@@ -546,7 +548,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 {selectedFile && (
                   <div className="mt-4">
                     <p className="text-sm text-green-600 dark:text-green-400">
-                      Selected: {selectedFile.name}
+                      {t('products.selected')}: {selectedFile.name}
                     </p>
                   </div>
                 )}
@@ -563,14 +565,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
             disabled={isSaving}
             className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={isSaving}
             className="px-6 py-2 bg-weconnect-red text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Saving...' : initialProduct ? 'Update Product' : 'Create Product'}
+            {isSaving ? t('common.loading') : initialProduct ? t('common.update') : t('common.create')}
           </button>
         </div>
       </div>

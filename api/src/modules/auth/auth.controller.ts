@@ -8,7 +8,7 @@ import { User } from '../../common/decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('login')
   login(@Body() dto: LoginDto) {
@@ -34,5 +34,11 @@ export class AuthController {
   @Get('profile')
   profile(@User() user: any) {
     return this.authService.profile(user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('fcm-token')
+  updateFcmToken(@User() user: any, @Body('fcmToken') fcmToken: string) {
+    return this.authService.updateFcmToken(user.userId, fcmToken);
   }
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui';
 import { expenseService, ExpensePayload, ExpenseType, ExpenseStatus } from '../../services/expenseService';
@@ -97,6 +98,7 @@ const ExpenseActionMenu = ({
   onApprove: (expense: Expense) => void;
   onReject: (expense: Expense) => void;
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
@@ -170,7 +172,7 @@ const ExpenseActionMenu = ({
               className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
             >
               <Eye className="h-4 w-4 text-gray-400" />
-              View
+              {t('expenses.actions.view')}
             </button>
           )}
 
@@ -180,7 +182,7 @@ const ExpenseActionMenu = ({
               className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
             >
               <Receipt className="h-4 w-4 text-emerald-500" />
-              Receipt
+              {t('expenses.actions.receipt')}
             </button>
           )}
 
@@ -191,14 +193,14 @@ const ExpenseActionMenu = ({
                 className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2"
               >
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                Approve
+                {t('expenses.actions.approve')}
               </button>
               <button
                 onClick={() => { onReject(expense); setIsOpen(false); }}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
               >
                 <XCircle className="h-4 w-4 text-red-500" />
-                Reject
+                {t('expenses.actions.reject')}
               </button>
             </>
           )}
@@ -209,7 +211,7 @@ const ExpenseActionMenu = ({
               className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2"
             >
               <Edit className="h-4 w-4 text-blue-500" />
-              Edit
+              {t('expenses.actions.edit')}
             </button>
           )}
 
@@ -221,7 +223,7 @@ const ExpenseActionMenu = ({
               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
             >
               <Trash2 className="h-4 w-4 text-red-500" />
-              Delete
+              {t('expenses.actions.delete')}
             </button>
           )}
         </div>,
@@ -232,6 +234,7 @@ const ExpenseActionMenu = ({
 };
 
 const ExpensesPage: React.FC = () => {
+  const { t } = useTranslation();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -604,13 +607,13 @@ const ExpensesPage: React.FC = () => {
       {/* Header */}
       <div className="space-y-4">
         <ListToolbar
-          title="Expenses"
-          subtitle="Track and manage your expenses"
-          addLabel="Add Expense"
+          title={t('expenses.title')}
+          subtitle={t('expenses.subtitle')}
+          addLabel={t('expenses.addExpense')}
           onAdd={(hasPermission('expense.create') || hasRole('Admin')) ? () => setShowNew(true) : undefined}
           bulkActions={[
             {
-              label: 'Export Expenses (Excel)',
+              label: t('expenses.exportExcel') || 'Export Expenses (Excel)',
               icon: <FileDown className="w-4 h-4" />,
               onClick: () => {
                 const cols = [
@@ -655,7 +658,7 @@ const ExpensesPage: React.FC = () => {
               },
             },
             {
-              label: 'Export Expenses (PDF)',
+              label: t('expenses.exportPdf') || 'Export Expenses (PDF)',
               icon: <FileText className="w-4 h-4" />,
               onClick: () => {
                 const cols = [
@@ -708,7 +711,7 @@ const ExpensesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Create New Expense</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('expenses.createTitle')}</h3>
               <button
                 onClick={() => setShowNew(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -719,7 +722,7 @@ const ExpensesPage: React.FC = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expense Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.date')} *</label>
                   <input
                     type="date"
                     value={form.expenseDate}
@@ -729,7 +732,7 @@ const ExpensesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.amount')} *</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-gray-500 font-medium text-xs">
                       {currencySettings?.symbol || '$'}
@@ -746,7 +749,7 @@ const ExpensesPage: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.type')} *</label>
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value as ExpenseType })}
@@ -761,7 +764,7 @@ const ExpensesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.currency')}</label>
                   <select
                     value={form.currency}
                     onChange={(e) => setForm({ ...form, currency: e.target.value })}
@@ -782,7 +785,7 @@ const ExpensesPage: React.FC = () => {
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Receipt</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.uploadReceipt')}</label>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
@@ -791,7 +794,7 @@ const ExpensesPage: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.description')}</label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -800,7 +803,7 @@ const ExpensesPage: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remarks</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('expenses.remarks')}</label>
                   <textarea
                     value={form.remarks}
                     onChange={(e) => setForm({ ...form, remarks: e.target.value })}
@@ -810,8 +813,8 @@ const ExpensesPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
-                <Button variant="OUTLINE" onClick={() => setShowNew(false)}>Cancel</Button>
-                <Button onClick={createExpense}>Create Expense</Button>
+                <Button variant="OUTLINE" onClick={() => setShowNew(false)}>{t('expenses.cancel')}</Button>
+                <Button onClick={createExpense}>{t('expenses.create')}</Button>
               </div>
             </div>
           </div>
@@ -836,7 +839,7 @@ const ExpensesPage: React.FC = () => {
             <SearchInput
               value={searchValue}
               onChange={setSearch}
-              placeholder="Search expenses..."
+              placeholder={t('expenses.searchPlaceholder') || "Search expenses..."}
               className="max-w-full"
             />
           </div>
@@ -844,15 +847,15 @@ const ExpensesPage: React.FC = () => {
           {/* Status Filter */}
           <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
-              label="Status"
+              label={t('expenses.status')}
               value={statusFilter}
               onChange={(v) => setStatusFilter((v as string))}
               options={[
-                { value: 'ALL', label: 'All statuses' },
-                { value: 'PENDING', label: 'Pending' },
-                { value: 'APPROVED', label: 'Approved' },
-                { value: 'REJECTED', label: 'Rejected' },
-                { value: 'REIMBURSED', label: 'Reimbursed' },
+                { value: 'ALL', label: t('expenses.statuses.ALL') },
+                { value: 'PENDING', label: t('expenses.statuses.PENDING') },
+                { value: 'APPROVED', label: t('expenses.statuses.APPROVED') },
+                { value: 'REJECTED', label: t('expenses.statuses.REJECTED') },
+                { value: 'REIMBURSED', label: t('expenses.statuses.REIMBURSED') },
               ]}
             />
           </div>
@@ -860,14 +863,14 @@ const ExpensesPage: React.FC = () => {
           {/* Type Filter */}
           <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
-              label="Type"
+              label={t('expenses.type')}
               value={typeFilter}
               onChange={(v) => setTypeFilter((v as string))}
               options={[
-                { value: 'ALL', label: 'All types' },
+                { value: 'ALL', label: t('expenses.types.ALL') },
                 ...expenseTypes.map((type) => ({
                   value: type,
-                  label: `${getTypeIcon(type)} ${type.replace('_', ' ')}`,
+                  label: `${getTypeIcon(type)} ${t(`expenses.types.${type}`) || type.replace('_', ' ')}`,
                 })),
               ]}
             />
@@ -876,7 +879,7 @@ const ExpensesPage: React.FC = () => {
           {/* Currency Filter */}
           <div className="w-full sm:w-48 sm:min-w-[220px]">
             <DropdownFilter
-              label="Currency"
+              label={t('expenses.currency')}
               value={currencyFilter}
               onChange={(v) => setCurrencyFilter((v as string))}
               options={[
@@ -985,7 +988,7 @@ const ExpensesPage: React.FC = () => {
                     <div className="px-4 pt-4 pb-2">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(expense.status)}`}>
                         {getStatusIcon(expense.status)}
-                        {expense.status}
+                        {t(`expenses.statuses.${expense.status}`) || expense.status}
                       </span>
                     </div>
 
@@ -995,7 +998,7 @@ const ExpensesPage: React.FC = () => {
                         className="text-sm font-semibold text-gray-900 dark:text-white mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         onClick={() => openView(expense)}
                       >
-                        {getTypeIcon(expense.type)} {expense.type.replace('_', ' ')}
+                        {getTypeIcon(expense.type)} {t(`expenses.types.${expense.type}`) || expense.type.replace('_', ' ')}
                       </h3>
                       {expense.description && (
                         <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
@@ -1104,12 +1107,12 @@ const ExpensesPage: React.FC = () => {
                 onItemsPerPageChange={(n) => setItemsPerPage(n)}
                 columnConfig={{
                   columns: [
-                    { id: 'type', label: 'Type' },
-                    { id: 'amount', label: 'Amount' },
-                    { id: 'expenseDate', label: 'Date' },
-                    { id: 'submittedBy', label: 'Submitted By' },
-                    { id: 'status', label: 'Status' },
-                    { id: 'createdAt', label: 'Created' },
+                    { id: 'type', label: t('expenses.type') },
+                    { id: 'amount', label: t('expenses.amount') },
+                    { id: 'expenseDate', label: t('expenses.date') },
+                    { id: 'submittedBy', label: t('expenses.submittedBy') },
+                    { id: 'status', label: t('expenses.status') },
+                    { id: 'createdAt', label: t('expenses.created') },
                   ],
                   visibleColumns,
                   onChange: setVisibleColumns,
@@ -1134,24 +1137,24 @@ const ExpensesPage: React.FC = () => {
                         />
                       </th>
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('type') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Type" column={'type'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                        <TableSortHeader label={t('expenses.type')} column={'type'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('amount') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Amount" column={'amount'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                        <TableSortHeader label={t('expenses.amount')} column={'amount'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('expenseDate') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Date" column={'expenseDate'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                        <TableSortHeader label={t('expenses.date')} column={'expenseDate'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('submittedBy') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Submitted By" column={'submittedBy'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                        <TableSortHeader label={t('expenses.submittedBy')} column={'submittedBy'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Status" column={'status'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                        <TableSortHeader label={t('expenses.status')} column={'status'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
                       <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('createdAt') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Created" column={'createdAt'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                        <TableSortHeader label={t('expenses.created')} column={'createdAt'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
                       </th>
-                      <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('expenses.actions.title') || 'Actions'}</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -1297,13 +1300,13 @@ const ExpensesPage: React.FC = () => {
                   {(hasPermission('expense.update') || hasRole('Admin')) && selected.status === 'PENDING' && (
                     <Button variant="OUTLINE" size="SM" onClick={() => setEditing((v) => !v)}>
                       <Edit size={16} className="mr-2" />
-                      {editing ? 'Cancel' : 'Edit'}
+                      {editing ? t('expenses.cancel') : t('expenses.actions.edit')}
                     </Button>
                   )}
                   {(hasPermission('expense.delete') || hasRole('Admin')) && (
                     <Button variant="OUTLINE" size="SM" onClick={deleteExpense}>
                       <Trash2 size={16} className="mr-2" />
-                      Delete
+                      {t('expenses.actions.delete')}
                     </Button>
                   )}
                   <Button variant="OUTLINE" size="SM" onClick={() => setSelected(null)}>
@@ -1320,11 +1323,11 @@ const ExpensesPage: React.FC = () => {
                         <div className="text-4xl">{getTypeIcon(selected.type)}</div>
                         <div className="flex-1">
                           <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            {selected.type.replace('_', ' ')}
+                            {t(`expenses.types.${selected.type}`) || selected.type.replace('_', ' ')}
                           </h4>
                           <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selected.status)}`}>
                             {getStatusIcon(selected.status)}
-                            {selected.status}
+                            {t(`expenses.statuses.${selected.status}`) || selected.status}
                           </span>
                         </div>
                         <div className="text-right">
@@ -1337,7 +1340,7 @@ const ExpensesPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Expense Date</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('expenses.date')}</p>
                       <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
                         <Calendar size={18} className="text-emerald-500" />
                         {new Date(selected.expenseDate).toLocaleDateString('en-US', {
@@ -1350,14 +1353,14 @@ const ExpensesPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created At</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('expenses.created')}</p>
                       <p className="text-lg text-gray-900 dark:text-white">
                         {new Date(selected.createdAt).toLocaleString()}
                       </p>
                     </div>
 
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created By</p>
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('expenses.submittedBy')}</p>
                       <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
                         <User size={18} className="text-emerald-500" />
                         {selected.submittedByUser
@@ -1399,7 +1402,7 @@ const ExpensesPage: React.FC = () => {
 
                     {selected.description && (
                       <div className="md:col-span-2 space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Description</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('expenses.description')}</p>
                         <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
                           {selected.description}
                         </p>
@@ -1408,7 +1411,7 @@ const ExpensesPage: React.FC = () => {
 
                     {selected.remarks && (
                       <div className="md:col-span-2 space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Remarks</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t('expenses.remarks')}</p>
                         <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
                           {selected.remarks}
                         </p>
@@ -1419,7 +1422,7 @@ const ExpensesPage: React.FC = () => {
                       <div className="md:col-span-2">
                         <Button variant="OUTLINE" onClick={() => window.open(selected.receiptUrl, '_blank')}>
                           <Download size={16} className="mr-2" />
-                          View Receipt
+                          {t('expenses.actions.receipt')}
                         </Button>
                       </div>
                     )}
@@ -1427,7 +1430,7 @@ const ExpensesPage: React.FC = () => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('expenses.date')}</label>
                       <input
                         type="date"
                         value={editForm.expenseDate as string}
@@ -1436,7 +1439,7 @@ const ExpensesPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('expenses.amount')}</label>
                       <div className="relative">
                         <span className="absolute left-3 top-3 text-gray-500 font-medium">
                           {currencySettings?.symbol || '$'}
@@ -1452,19 +1455,19 @@ const ExpensesPage: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Type</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('expenses.type')}</label>
                       <select
                         value={editForm.type as string}
                         onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ExpenseType })}
                         className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
                       >
-                        {expenseTypes.map((t) => (
-                          <option key={t} value={t}>{getTypeIcon(t)} {t.replace('_', ' ')}</option>
+                        {expenseTypes.map((tType) => (
+                          <option key={tType} value={tType}>{getTypeIcon(tType)} {t(`expenses.types.${tType}`) || tType.replace('_', ' ')}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Currency</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('expenses.currency')}</label>
                       <select
                         value={editForm.currency || 'USD'}
                         onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
@@ -1485,7 +1488,7 @@ const ExpensesPage: React.FC = () => {
                       </select>
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('expenses.description')}</label>
                       <textarea
                         value={editForm.description || ''}
                         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -1494,7 +1497,7 @@ const ExpensesPage: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Remarks</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('expenses.remarks')}</label>
                       <textarea
                         value={editForm.remarks || ''}
                         onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
@@ -1503,8 +1506,8 @@ const ExpensesPage: React.FC = () => {
                       />
                     </div>
                     <div className="md:col-span-2 flex justify-end gap-3">
-                      <Button variant="OUTLINE" onClick={() => setEditing(false)}>Cancel</Button>
-                      <Button onClick={saveEdit}>Save Changes</Button>
+                      <Button variant="OUTLINE" onClick={() => setEditing(false)}>{t('expenses.cancel')}</Button>
+                      <Button onClick={saveEdit}>{t('expenses.save')}</Button>
                     </div>
                   </div>
                 )}

@@ -14,16 +14,20 @@ const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 class CreateLeadDto {
     firstName;
+    firstNameAr;
     lastName;
+    lastNameAr;
     email;
     phone;
     company;
+    companyAr;
     position;
     industry;
     website;
     companySize;
     annualRevenue;
     address;
+    addressAr;
     country;
     state;
     city;
@@ -40,6 +44,7 @@ class CreateLeadDto {
     leadScore;
     notes;
     tags;
+    productIds;
     lastContactedAt;
     nextFollowUpAt;
     customFields;
@@ -50,17 +55,25 @@ __decorate([
     (0, class_validator_1.IsString)({ message: 'First name must be a string' }),
     (0, class_validator_1.MinLength)(2, { message: 'First name must be at least 2 characters' }),
     (0, class_validator_1.MaxLength)(50, { message: 'First name must not exceed 50 characters' }),
-    (0, class_validator_1.Matches)(/^[A-Za-z\s]+$/, { message: 'First name can only contain letters and spaces' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "firstName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ message: 'First name (Arabic) must be a string' }),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "firstNameAr", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)({ message: 'Last name must be a string' }),
     (0, class_validator_1.MinLength)(2, { message: 'Last name must be at least 2 characters' }),
     (0, class_validator_1.MaxLength)(50, { message: 'Last name must not exceed 50 characters' }),
-    (0, class_validator_1.Matches)(/^[A-Za-z\s]+$/, { message: 'Last name can only contain letters and spaces' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "lastName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ message: 'Last name (Arabic) must be a string' }),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "lastNameAr", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEmail)({}, { message: 'Please enter a valid email address' }),
@@ -79,6 +92,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "company", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "companyAr", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
@@ -111,6 +129,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "address", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "addressAr", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
@@ -195,6 +218,11 @@ __decorate([
     (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
 ], CreateLeadDto.prototype, "tags", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], CreateLeadDto.prototype, "productIds", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),

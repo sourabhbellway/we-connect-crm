@@ -6,10 +6,10 @@ export declare class CurrenciesService {
     constructor(prisma: PrismaService);
     create(createCurrencyDto: CreateCurrencyDto): Promise<{
         symbol: string;
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
         name: string;
         isDefault: boolean;
         code: string;
@@ -17,10 +17,10 @@ export declare class CurrenciesService {
     }>;
     findAll(): import("@prisma/client").Prisma.PrismaPromise<{
         symbol: string;
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
         name: string;
         isDefault: boolean;
         code: string;
@@ -28,10 +28,10 @@ export declare class CurrenciesService {
     }[]>;
     findOne(id: number): import("@prisma/client").Prisma.Prisma__CurrencyClient<{
         symbol: string;
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
         name: string;
         isDefault: boolean;
         code: string;
@@ -39,10 +39,10 @@ export declare class CurrenciesService {
     } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
     update(id: number, updateCurrencyDto: UpdateCurrencyDto): Promise<{
         symbol: string;
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
         name: string;
         isDefault: boolean;
         code: string;
@@ -50,10 +50,10 @@ export declare class CurrenciesService {
     }>;
     remove(id: number): import("@prisma/client").Prisma.Prisma__CurrencyClient<{
         symbol: string;
+        id: number;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
         name: string;
         isDefault: boolean;
         code: string;

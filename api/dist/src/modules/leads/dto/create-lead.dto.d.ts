@@ -1,15 +1,19 @@
 export declare class CreateLeadDto {
     firstName?: string;
+    firstNameAr?: string;
     lastName?: string;
+    lastNameAr?: string;
     email?: string;
     phone?: string;
     company?: string;
+    companyAr?: string;
     position?: string;
     industry?: string;
     website?: string;
     companySize?: number;
     annualRevenue?: number;
     address?: string;
+    addressAr?: string;
     country?: string;
     state?: string;
     city?: string;
@@ -26,6 +30,7 @@ export declare class CreateLeadDto {
     leadScore?: number;
     notes?: string;
     tags?: number[];
+    productIds?: number[];
     lastContactedAt?: string;
     nextFollowUpAt?: string;
     customFields?: Record<string, any>;

@@ -16,21 +16,21 @@ export declare class CallLogsService {
         data: {
             items: ({
                 user: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -38,11 +38,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             })[];
             pagination: {
                 currentPage: number;
@@ -68,10 +68,10 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             item: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -79,11 +79,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             };
         };
         message?: undefined;
@@ -99,21 +99,21 @@ export declare class CallLogsService {
         data: {
             item: {
                 user: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -121,11 +121,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             };
         };
         message?: undefined;
@@ -141,21 +141,21 @@ export declare class CallLogsService {
         data: {
             item: {
                 user: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -163,11 +163,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             };
         };
         message?: undefined;
@@ -191,10 +191,10 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             callLogs: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -202,11 +202,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             }[];
         };
         message?: undefined;
@@ -222,21 +222,21 @@ export declare class CallLogsService {
         data: {
             callLogs: ({
                 user: {
+                    id: number;
                     firstName: string;
                     lastName: string;
-                    id: number;
                 };
                 lead: {
+                    id: number;
                     firstName: string | null;
                     lastName: string | null;
-                    id: number;
                     company: string | null;
                 };
             } & {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -244,11 +244,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             })[];
         };
         message?: undefined;
@@ -279,10 +279,10 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             item: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
@@ -290,11 +290,11 @@ export declare class CallLogsService {
                 outcome: string | null;
                 phoneNumber: string;
                 callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                recordingUrl: string | null;
                 startTime: Date | null;
                 endTime: Date | null;
+                callStatus: import("@prisma/client").$Enums.CallStatus;
                 isAnswered: boolean;
-                recordingUrl: string | null;
             };
         };
         message?: undefined;

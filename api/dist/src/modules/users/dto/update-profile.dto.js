@@ -18,6 +18,7 @@ class UpdateProfileDto {
     firstName;
     lastName;
     email;
+    language;
 }
 exports.UpdateProfileDto = UpdateProfileDto;
 __decorate([
@@ -49,4 +50,9 @@ __decorate([
     (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
 ], UpdateProfileDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], UpdateProfileDto.prototype, "language", void 0);
 //# sourceMappingURL=update-profile.dto.js.map

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Settings } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ColumnConfigItem {
   id: string;
@@ -30,6 +31,7 @@ const MetaBar: React.FC<MetaBarProps> = ({
   rightNode,
   columnConfig,
 }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const start = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(currentPage * itemsPerPage, totalItems);
@@ -52,7 +54,7 @@ const MetaBar: React.FC<MetaBarProps> = ({
   return (
     <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 px-3 sm:px-4 py-2">
       <div className="flex items-center gap-3 text-sm">
-        <span className="text-gray-600 dark:text-gray-400">Per Page</span>
+        <span className="text-gray-600 dark:text-gray-400">{t('common.perPage', 'Per Page')}</span>
         <select
           value={String(itemsPerPage)}
           onChange={(e) => onItemsPerPageChange?.(Number(e.target.value))}
@@ -62,7 +64,7 @@ const MetaBar: React.FC<MetaBarProps> = ({
             <option key={n} value={n}>{n}</option>
           ))}
         </select>
-        <span className="text-gray-500 dark:text-gray-400">{start} - {end} of {totalItems}</span>
+        <span className="text-gray-500 dark:text-gray-400">{start} - {end} {t('common.of', 'of')} {totalItems}</span>
       </div>
       <div className="relative flex items-center gap-2">
         {rightNode}
@@ -72,14 +74,14 @@ const MetaBar: React.FC<MetaBarProps> = ({
               type="button"
               onClick={() => setOpen((v) => !v)}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
-              title="Configure columns"
+              title={t('common.configureColumns', 'Configure columns')}
             >
               <Settings className="w-4 h-4" />
             </button>
             {open && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg z-20">
+              <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg z-20">
                 <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400">
-                  Columns
+                  {t('common.columns', 'Columns')}
                 </div>
                 <div className="max-h-64 overflow-y-auto py-1">
                   {columnConfig.columns.map((col) => {
