@@ -1,0 +1,21 @@
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getMessaging } from "firebase/messaging";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCD1pWLF1zGJ_vuVuv9p0foEBjeFB_9C8o",
+    authDomain: "weconnect-c70a4.firebaseapp.com",
+    projectId: "weconnect-c70a4",
+    storageBucket: "weconnect-c70a4.firebasestorage.app",
+    messagingSenderId: "406989897488",
+    appId: "1:406989897488:web:e805d62697d7d312f5af95",
+    measurementId: "G-QRL0MVYVQV"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const messaging = getMessaging(app);
+
+export { app, analytics, messaging };

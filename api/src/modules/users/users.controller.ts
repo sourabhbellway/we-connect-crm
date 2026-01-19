@@ -26,7 +26,7 @@ import { extname } from 'path';
 @UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
   findAll(
@@ -37,7 +37,7 @@ export class UsersController {
     @Query('isDeleted') isDeleted?: string,
   ) {
     const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
-    
+
     return this.usersService.findAll({
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
@@ -101,9 +101,16 @@ export class UsersController {
     if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
     if (!file) throw new BadRequestException('No file uploaded');
     const id = user.userId ?? user.id;
-    // Persist only the fileName so frontend can prefix /uploads/
     const fileName = file.filename;
     return this.usersService.updateAvatar(Number(id), fileName);
+  }
+
+  @Put('profile/device-token')
+  updateDeviceToken(@User() user: any, @Body() dto: { token: string }) {
+    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+    const id = user.userId ?? user.id;
+    if (!dto.token) throw new BadRequestException('Token is required');
+    return this.usersService.updateDeviceToken(Number(id), dto.token);
   }
 
   @Get(':id')

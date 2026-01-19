@@ -73,7 +73,7 @@ export declare class InvoicesService {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -143,7 +143,7 @@ export declare class InvoicesService {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -201,7 +201,7 @@ export declare class InvoicesService {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -251,7 +251,7 @@ export declare class InvoicesService {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;
@@ -334,7 +334,7 @@ export declare class InvoicesService {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;

@@ -11,7 +11,7 @@ export declare class BulkImportController {
                     createdAt: Date;
                     id: number;
                     leadId: number | null;
-                    status: import("@prisma/client").$Enums.LeadImportStatus;
+                    status: import(".prisma/client").$Enums.LeadImportStatus;
                     errors: import("@prisma/client/runtime/library").JsonValue | null;
                     rowIndex: number;
                     rawData: import("@prisma/client/runtime/library").JsonValue;
@@ -22,7 +22,7 @@ export declare class BulkImportController {
                 updatedAt: Date;
                 id: number;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.LeadImportStatus;
+                status: import(".prisma/client").$Enums.LeadImportStatus;
                 errorDetails: import("@prisma/client/runtime/library").JsonValue | null;
                 fileName: string;
                 totalRows: number;
@@ -39,7 +39,7 @@ export declare class BulkImportController {
                 updatedAt: Date;
                 id: number;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.LeadImportStatus;
+                status: import(".prisma/client").$Enums.LeadImportStatus;
                 errorDetails: import("@prisma/client/runtime/library").JsonValue | null;
                 fileName: string;
                 totalRows: number;
@@ -58,7 +58,7 @@ export declare class BulkImportController {
                 createdAt: Date;
                 id: number;
                 leadId: number | null;
-                status: import("@prisma/client").$Enums.LeadImportStatus;
+                status: import(".prisma/client").$Enums.LeadImportStatus;
                 errors: import("@prisma/client/runtime/library").JsonValue | null;
                 rowIndex: number;
                 rawData: import("@prisma/client/runtime/library").JsonValue;

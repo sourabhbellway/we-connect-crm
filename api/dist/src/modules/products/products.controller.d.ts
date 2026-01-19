@@ -18,7 +18,7 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                type: import("@prisma/client").$Enums.ProductType;
+                type: import(".prisma/client").$Enums.ProductType;
                 category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
@@ -53,7 +53,7 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                type: import("@prisma/client").$Enums.ProductType;
+                type: import(".prisma/client").$Enums.ProductType;
                 category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
@@ -83,7 +83,7 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                type: import("@prisma/client").$Enums.ProductType;
+                type: import(".prisma/client").$Enums.ProductType;
                 category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;
@@ -116,7 +116,7 @@ export declare class ProductsController {
                 name: string;
                 description: string | null;
                 currency: string;
-                type: import("@prisma/client").$Enums.ProductType;
+                type: import(".prisma/client").$Enums.ProductType;
                 category: string | null;
                 sku: string | null;
                 price: import("@prisma/client/runtime/library").Decimal;

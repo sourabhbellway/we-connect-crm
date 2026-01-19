@@ -826,14 +826,23 @@ export class UsersService {
       },
     });
 
-    await this.prisma.passwordHistory.create({
-      data: {
-        userId: userId,
-        password: hashed,
-      },
-    });
-
     return { success: true, data: { user: updated } };
+  }
+
+  async updateDeviceToken(userId: number, token: string) {
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          fcmToken: token,
+          deviceToken: token // Updating both for compatibility
+        }
+      });
+      return { success: true, message: 'Device token updated successfully' };
+    } catch (error) {
+      this.logger.error(`Failed to update device token for user ${userId}`, error);
+      throw new BadRequestException('Failed to update device token');
+    }
   }
 
   async updateAvatar(id: number, fileName: string) {

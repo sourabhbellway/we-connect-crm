@@ -15,7 +15,7 @@ export declare class CurrenciesService {
         code: string;
         exchangeRate: import("@prisma/client/runtime/library").Decimal;
     }>;
-    findAll(): import("@prisma/client").Prisma.PrismaPromise<{
+    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
         symbol: string;
         isActive: boolean;
         createdAt: Date;
@@ -26,7 +26,7 @@ export declare class CurrenciesService {
         code: string;
         exchangeRate: import("@prisma/client/runtime/library").Decimal;
     }[]>;
-    findOne(id: number): import("@prisma/client").Prisma.Prisma__CurrencyClient<{
+    findOne(id: number): import(".prisma/client").Prisma.Prisma__CurrencyClient<{
         symbol: string;
         isActive: boolean;
         createdAt: Date;
@@ -36,7 +36,7 @@ export declare class CurrenciesService {
         isDefault: boolean;
         code: string;
         exchangeRate: import("@prisma/client/runtime/library").Decimal;
-    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
     update(id: number, updateCurrencyDto: UpdateCurrencyDto): Promise<{
         symbol: string;
         isActive: boolean;
@@ -48,7 +48,7 @@ export declare class CurrenciesService {
         code: string;
         exchangeRate: import("@prisma/client/runtime/library").Decimal;
     }>;
-    remove(id: number): import("@prisma/client").Prisma.Prisma__CurrencyClient<{
+    remove(id: number): import(".prisma/client").Prisma.Prisma__CurrencyClient<{
         symbol: string;
         isActive: boolean;
         createdAt: Date;
@@ -58,5 +58,5 @@ export declare class CurrenciesService {
         isDefault: boolean;
         code: string;
         exchangeRate: import("@prisma/client/runtime/library").Decimal;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
 }

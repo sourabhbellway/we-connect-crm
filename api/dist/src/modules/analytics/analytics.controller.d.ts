@@ -250,7 +250,7 @@ export declare class AnalyticsController {
                 category: string;
                 amount: string;
                 date: string;
-                status: import("@prisma/client").$Enums.ExpenseStatus;
+                status: import(".prisma/client").$Enums.ExpenseStatus;
                 user: string;
             }[];
             pagination: {
@@ -281,7 +281,7 @@ export declare class AnalyticsController {
                 monthKey: string;
             }[];
             statusDistributionData: {
-                name: import("@prisma/client").$Enums.InvoiceStatus;
+                name: import(".prisma/client").$Enums.InvoiceStatus;
                 value: number;
             }[];
             highValueInvoices: {
@@ -289,7 +289,7 @@ export declare class AnalyticsController {
                 client: string;
                 amount: string;
                 rawAmount: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 date: string;
             }[];
             pagination: {
@@ -322,7 +322,7 @@ export declare class AnalyticsController {
                 accepted: number;
             }[];
             statusDistributionData: {
-                name: import("@prisma/client").$Enums.QuotationStatus;
+                name: import(".prisma/client").$Enums.QuotationStatus;
                 value: number;
             }[];
             quotations: {
@@ -330,7 +330,7 @@ export declare class AnalyticsController {
                 subject: string;
                 amount: string;
                 rawAmount: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 validUntil: string;
                 client: string;
             }[];

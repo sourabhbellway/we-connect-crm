@@ -86,6 +86,13 @@ export const userService = {
     return response.data;
   },
 
+  updateDeviceToken: async (token: string) => {
+    return retryWithBackoff(async () => {
+      const response = await apiClient.put("/users/profile/device-token", { token });
+      return response.data;
+    });
+  },
+
   getProfile: async () => {
     return retryWithBackoff(async () => {
       const response = await apiClient.get("/users/profile");

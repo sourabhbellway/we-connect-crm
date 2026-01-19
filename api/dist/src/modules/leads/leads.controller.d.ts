@@ -12,7 +12,7 @@ export declare class LeadsController {
         success: boolean;
         data: any;
     }>;
-    list(page?: string, limit?: string, status?: string, search?: string, email?: string, isDeleted?: string, assignedTo?: string, user?: any): Promise<{
+    list(page?: string, limit?: string, status?: string, search?: string, email?: string, isDeleted?: string, assignedTo?: string, sortBy?: string, sortOrder?: 'asc' | 'desc', user?: any): Promise<{
         success: boolean;
         data: {
             leads: {
@@ -100,11 +100,11 @@ export declare class LeadsController {
             phone: string | null;
             company: string | null;
             position: string | null;
-            status: import("@prisma/client").$Enums.LeadStatus;
+            status: import(".prisma/client").$Enums.LeadStatus;
             sourceId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
-            priority: import("@prisma/client").$Enums.LeadPriority;
+            priority: import(".prisma/client").$Enums.LeadPriority;
             website: string | null;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -118,7 +118,7 @@ export declare class LeadsController {
             timezone: string | null;
             preferredContactMethod: string | null;
             customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
         } | {
             status: string;
@@ -167,7 +167,7 @@ export declare class LeadsController {
             timezone: string | null;
             preferredContactMethod: string | null;
             customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
         };
     }>;
@@ -216,11 +216,11 @@ export declare class LeadsController {
             phone: string | null;
             company: string | null;
             position: string | null;
-            status: import("@prisma/client").$Enums.LeadStatus;
+            status: import(".prisma/client").$Enums.LeadStatus;
             sourceId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
-            priority: import("@prisma/client").$Enums.LeadPriority;
+            priority: import(".prisma/client").$Enums.LeadPriority;
             website: string | null;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -234,7 +234,7 @@ export declare class LeadsController {
             timezone: string | null;
             preferredContactMethod: string | null;
             customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+            previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
         };
     }>;
@@ -282,11 +282,11 @@ export declare class LeadsController {
                 phone: string | null;
                 company: string | null;
                 position: string | null;
-                status: import("@prisma/client").$Enums.LeadStatus;
+                status: import(".prisma/client").$Enums.LeadStatus;
                 sourceId: number | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
-                priority: import("@prisma/client").$Enums.LeadPriority;
+                priority: import(".prisma/client").$Enums.LeadPriority;
                 website: string | null;
                 companySize: number | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -300,7 +300,7 @@ export declare class LeadsController {
                 timezone: string | null;
                 preferredContactMethod: string | null;
                 customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                 convertedToDealId: number | null;
             };
         };

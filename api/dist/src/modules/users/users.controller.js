@@ -75,6 +75,14 @@ let UsersController = class UsersController {
         const fileName = file.filename;
         return this.usersService.updateAvatar(Number(id), fileName);
     }
+    updateDeviceToken(user, dto) {
+        if (!user?.userId && !user?.id)
+            throw new common_1.BadRequestException('Invalid user context');
+        const id = user.userId ?? user.id;
+        if (!dto.token)
+            throw new common_1.BadRequestException('Token is required');
+        return this.usersService.updateDeviceToken(Number(id), dto.token);
+    }
     findOne(id) {
         return this.usersService.findOne(+id);
     }
@@ -164,6 +172,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "uploadAvatar", null);
+__decorate([
+    (0, common_1.Put)('profile/device-token'),
+    __param(0, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "updateDeviceToken", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

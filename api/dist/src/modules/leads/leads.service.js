@@ -112,7 +112,7 @@ let LeadsService = class LeadsService {
             },
         };
     }
-    async list({ page, limit, status, search, email, isDeleted, assignedTo, }, user) {
+    async list({ page, limit, status, search, email, isDeleted, assignedTo, sortBy, sortOrder, }, user) {
         try {
             const pageNum = Math.max(1, Number(page) || 1);
             const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
@@ -166,11 +166,23 @@ let LeadsService = class LeadsService {
                     where.AND = [searchFilter];
                 }
             }
+            let orderBy = { createdAt: 'desc' };
+            if (sortBy) {
+                if (sortBy === 'name') {
+                    orderBy = [
+                        { firstName: sortOrder || 'asc' },
+                        { lastName: sortOrder || 'asc' },
+                    ];
+                }
+                else {
+                    orderBy = { [sortBy]: sortOrder || 'asc' };
+                }
+            }
             const [totalItems, rows] = await Promise.all([
                 this.prisma.lead.count({ where }),
                 this.prisma.lead.findMany({
                     where,
-                    orderBy: { createdAt: 'desc' },
+                    orderBy,
                     skip: (pageNum - 1) * pageSize,
                     take: pageSize,
                     include: {
@@ -885,15 +897,9 @@ let LeadsService = class LeadsService {
                     message: 'CSV file must contain headers and at least one row of data',
                 };
             }
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-            const requiredFields = ['name', 'email', 'phone'];
-            const missingFields = requiredFields.filter(field => !headers.includes(field));
-            if (missingFields.length > 0) {
-                return {
-                    success: false,
-                    message: `CSV must contain these columns: ${missingFields.join(', ')}`,
-                };
-            }
+            const firstLine = lines[0];
+            const delimiter = firstLine.includes('\t') ? '\t' : (firstLine.includes(';') ? ';' : ',');
+            const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
             const results = {
                 success: true,
                 data: {
@@ -913,88 +919,124 @@ let LeadsService = class LeadsService {
                 'status', 'priority', 'assignedTo', 'budget', 'currency', 'leadScore', 'notes',
                 'tags', 'lastContactedAt', 'nextFollowUpAt'
             ];
+            const normalizedHeaders = headers.map(h => h.replace(/\s+/g, '').replace(/[^a-z0-9]/g, ''));
             for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line)
+                    continue;
                 try {
-                    const values = lines[i].match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim())
-                        || lines[i].split(',').map(v => v.trim());
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index] || '';
-                    });
-                    if (row.name && !row.firstName) {
-                        const nameParts = (row.name || '').split(' ').filter(Boolean);
-                        row.firstName = nameParts.length > 0 ? nameParts[0] : '';
-                        row.lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-                    }
-                    const errorsInRow = [];
-                    fieldConfigs.forEach(config => {
-                        if (config.isRequired && !row[config.fieldName]) {
-                            errorsInRow.push(`${config.label || config.fieldName} is required`);
+                    let values = [];
+                    if (delimiter === ',') {
+                        const chars = line.split('');
+                        let current = '';
+                        let inQuotes = false;
+                        for (let j = 0; j < chars.length; j++) {
+                            const char = chars[j];
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            }
+                            else if (char === ',' && !inQuotes) {
+                                values.push(current.trim().replace(/^"|"$/g, ''));
+                                current = '';
+                            }
+                            else {
+                                current += char;
+                            }
                         }
-                    });
-                    if (errorsInRow.length > 0) {
-                        results.data.errors.push({
-                            row: i + 1,
-                            error: errorsInRow.join(', '),
-                        });
-                        results.data.failed++;
-                        continue;
+                        values.push(current.trim().replace(/^"|"$/g, ''));
                     }
-                    if (!row.email) {
-                        results.data.errors.push({
-                            row: i + 1,
-                            error: 'Email is required for import',
-                        });
-                        results.data.failed++;
-                        continue;
+                    else {
+                        values = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ''));
                     }
-                    const existingLead = await this.prisma.lead.findFirst({
-                        where: {
-                            email: row.email,
-                            deletedAt: null,
-                        },
+                    const row = {};
+                    normalizedHeaders.forEach((header, index) => {
+                        const val = values[index] || '';
+                        row[header] = val;
                     });
-                    if (existingLead) {
-                        results.data.errors.push({
-                            row: i + 1,
-                            error: `Lead with email "${row.email}" already exists`,
-                        });
-                        results.data.failed++;
-                        continue;
+                    if (row.name && !row.firstname) {
+                        const nameParts = (row.name || '').split(' ').filter(Boolean);
+                        row.firstname = nameParts.length > 0 ? nameParts[0] : '';
+                        row.lastname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
                     }
                     const leadData = {};
                     const customFieldsData = {};
+                    let tagsList = [];
                     Object.keys(row).forEach(key => {
-                        if (standardFields.includes(key)) {
-                            if (key === 'annualRevenue' || key === 'budget' || key === 'companySize' || key === 'leadScore' || key === 'sourceId') {
-                                leadData[key] = row[key] ? Number(row[key]) : null;
+                        const standardKey = standardFields.find(f => f.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') ===
+                            key.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, ''));
+                        if (standardKey) {
+                            const val = row[key];
+                            if (standardKey === 'annualRevenue' || standardKey === 'budget' || standardKey === 'companySize' || standardKey === 'leadScore' || standardKey === 'sourceId' || standardKey === 'assignedTo') {
+                                const num = val ? Number(val) : NaN;
+                                leadData[standardKey] = isNaN(num) ? null : num;
                             }
-                            else if (key === 'status') {
-                                leadData[key] = normalizeLeadStatus(row[key]);
+                            else if (standardKey === 'status') {
+                                leadData[standardKey] = normalizeLeadStatus(val);
                             }
-                            else if (key === 'priority') {
-                                leadData[key] = normalizeLeadPriority(row[key]);
+                            else if (standardKey === 'priority') {
+                                leadData[standardKey] = normalizeLeadPriority(val);
+                            }
+                            else if (standardKey === 'tags' && val) {
+                                tagsList = String(val).split(',').map(t => t.trim()).filter(Boolean);
                             }
                             else {
-                                leadData[key] = row[key] || null;
+                                leadData[standardKey] = val || null;
                             }
                         }
                         else if (key !== 'name') {
                             customFieldsData[key] = row[key];
                         }
                     });
+                    if (row.assignedto && isNaN(Number(row.assignedto))) {
+                        const name = String(row.assignedto).trim();
+                        const user = await this.prisma.user.findFirst({
+                            where: {
+                                OR: [
+                                    { email: { contains: name, mode: 'insensitive' } },
+                                    { firstName: { contains: name.split(' ')[0], mode: 'insensitive' } },
+                                    { lastName: { contains: name.split(' ').slice(1).join(' '), mode: 'insensitive' } },
+                                ],
+                                deletedAt: null,
+                            },
+                        });
+                        if (user) {
+                            leadData.assignedTo = user.id;
+                        }
+                        else {
+                            leadData.assignedTo = null;
+                        }
+                    }
+                    if (leadData.budget !== undefined && leadData.budget !== null) {
+                        leadData.budget = Number(leadData.budget);
+                    }
+                    if (leadData.annualRevenue !== undefined && leadData.annualRevenue !== null) {
+                        leadData.annualRevenue = Number(leadData.annualRevenue);
+                    }
                     await this.prisma.lead.create({
                         data: {
                             ...leadData,
                             customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : undefined,
-                            source: row.source
+                            source: (row.source || row.leadsource || row.sourceid)
                                 ? {
                                     connectOrCreate: {
-                                        where: { name: row.source },
-                                        create: { name: row.source, color: generateColorFromString(row.source) },
+                                        where: { name: String(row.source || row.leadsource || row.sourceid) },
+                                        create: {
+                                            name: String(row.source || row.leadsource || row.sourceid),
+                                            color: generateColorFromString(String(row.source || row.leadsource || row.sourceid))
+                                        },
                                     },
                                 }
                                 : undefined,
+                            tags: tagsList.length > 0 ? {
+                                create: tagsList.map(tagName => ({
+                                    tag: {
+                                        connectOrCreate: {
+                                            where: { name: tagName },
+                                            create: { name: tagName, color: generateColorFromString(tagName) },
+                                        }
+                                    }
+                                }))
+                            } : undefined,
                         },
                     });
                     results.data.imported++;

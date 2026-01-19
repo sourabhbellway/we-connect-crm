@@ -3660,7 +3660,7 @@ const LeadProfile: React.FC = () => {
             console.log('Call log created:', result);
 
             // Immediately update UI with safety check
-            let newCallLog = result.data || result;
+            let newCallLog = result.data?.item || result.data || result;
             if (!newCallLog.user && user) {
                 newCallLog = {
                     ...newCallLog,
@@ -3754,7 +3754,7 @@ const LeadProfile: React.FC = () => {
             console.log('Call log added:', result);
 
             // Immediately update UI with safety check
-            let newCallLog = result.data || result;
+            let newCallLog = result.data?.item || result.data || result;
 
             // Ensure user object is present to prevent rendering crash
             if (!newCallLog.user && user) {

@@ -14,7 +14,7 @@ export declare class CommunicationProvidersService {
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 config: import("@prisma/client/runtime/library").JsonValue;
             }[];
         };
@@ -31,7 +31,7 @@ export declare class CommunicationProvidersService {
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 config: import("@prisma/client/runtime/library").JsonValue;
             };
         };
@@ -52,7 +52,7 @@ export declare class CommunicationProvidersService {
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 config: import("@prisma/client/runtime/library").JsonValue;
             };
         };

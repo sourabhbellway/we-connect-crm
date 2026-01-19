@@ -133,6 +133,8 @@ export class LeadsService {
     email,
     isDeleted,
     assignedTo,
+    sortBy,
+    sortOrder,
   }: {
     page: number;
     limit: number;
@@ -141,6 +143,8 @@ export class LeadsService {
     email?: string;
     isDeleted?: boolean;
     assignedTo?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }, user?: any) {
     try {
       const pageNum = Math.max(1, Number(page) || 1);
@@ -208,11 +212,24 @@ export class LeadsService {
         }
       }
 
+      // Build orderBy object
+      let orderBy: any = { createdAt: 'desc' };
+      if (sortBy) {
+        if (sortBy === 'name') {
+          orderBy = [
+            { firstName: sortOrder || 'asc' },
+            { lastName: sortOrder || 'asc' },
+          ];
+        } else {
+          orderBy = { [sortBy]: sortOrder || 'asc' };
+        }
+      }
+
       const [totalItems, rows] = await Promise.all([
         this.prisma.lead.count({ where }),
         this.prisma.lead.findMany({
           where,
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           skip: (pageNum - 1) * pageSize,
           take: pageSize,
           include: {
@@ -1075,17 +1092,10 @@ export class LeadsService {
         };
       }
 
-      // Parse header
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      const requiredFields = ['name', 'email', 'phone'];
-      const missingFields = requiredFields.filter(field => !headers.includes(field));
-
-      if (missingFields.length > 0) {
-        return {
-          success: false,
-          message: `CSV must contain these columns: ${missingFields.join(', ')}`,
-        };
-      }
+      // Parse header and detect delimiter
+      const firstLine = lines[0];
+      const delimiter = firstLine.includes('\t') ? '\t' : (firstLine.includes(';') ? ';' : ',');
+      const headers = firstLine.split(delimiter).map(h => h.trim().toLowerCase());
 
       const results = {
         success: true,
@@ -1110,101 +1120,138 @@ export class LeadsService {
         'tags', 'lastContactedAt', 'nextFollowUpAt'
       ];
 
+      // Map headers to a normalized version (removed spaces, lowercase)
+      const normalizedHeaders = headers.map(h => h.replace(/\s+/g, '').replace(/[^a-z0-9]/g, ''));
+
       for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
         try {
-          // Handle quoted values correctly
-          const values = lines[i].match(/(".*?"|[^",\n\r]+)(?=\s*,|\s*$)/g)?.map(v => v.replace(/^"|"$/g, '').trim())
-            || lines[i].split(',').map(v => v.trim());
-
-          // Create a map of column name to value
-          const row: Record<string, any> = {};
-          headers.forEach((header, index) => {
-            row[header] = values[index] || '';
-          });
-
-          // Map 'name' to firstName/lastName if present
-          if (row.name && !row.firstName) {
-            const nameParts = (row.name || '').split(' ').filter(Boolean);
-            row.firstName = nameParts.length > 0 ? nameParts[0] : '';
-            row.lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-          }
-
-          // Validate required fields based on fieldConfigs
-          const errorsInRow: string[] = [];
-          fieldConfigs.forEach(config => {
-            if (config.isRequired && !row[config.fieldName]) {
-              errorsInRow.push(`${config.label || config.fieldName} is required`);
+          // Manual CSV parsing to handle empty columns and quotes correctly
+          let values: string[] = [];
+          if (delimiter === ',') {
+            // Robust CSV split that handles empty values and quotes
+            const chars = line.split('');
+            let current = '';
+            let inQuotes = false;
+            for (let j = 0; j < chars.length; j++) {
+              const char = chars[j];
+              if (char === '"') {
+                inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                values.push(current.trim().replace(/^"|"$/g, ''));
+                current = '';
+              } else {
+                current += char;
+              }
             }
-          });
-
-          if (errorsInRow.length > 0) {
-            results.data.errors.push({
-              row: i + 1,
-              error: errorsInRow.join(', '),
-            });
-            results.data.failed++;
-            continue;
+            values.push(current.trim().replace(/^"|"$/g, ''));
+          } else {
+            values = line.split(delimiter).map(v => v.trim().replace(/^"|"$/g, ''));
           }
 
-          // Basic validation for email if it's the primary identifier
-          if (!row.email) {
-            results.data.errors.push({
-              row: i + 1,
-              error: 'Email is required for import',
-            });
-            results.data.failed++;
-            continue;
-          }
-
-          // Check if lead with same email already exists
-          const existingLead = await this.prisma.lead.findFirst({
-            where: {
-              email: row.email,
-              deletedAt: null,
-            },
+          // Create a map of column name to value (using normalized headers)
+          const row: Record<string, any> = {};
+          normalizedHeaders.forEach((header, index) => {
+            const val = values[index] || '';
+            // Store the raw value using the normalized header name
+            row[header] = val;
           });
 
-          if (existingLead) {
-            results.data.errors.push({
-              row: i + 1,
-              error: `Lead with email "${row.email}" already exists`,
-            });
-            results.data.failed++;
-            continue;
+          // Map 'name' to firstName/lastName if present and firstName is not already provided
+          if (row.name && !row.firstname) {
+            const nameParts = (row.name || '').split(' ').filter(Boolean);
+            row.firstname = nameParts.length > 0 ? nameParts[0] : '';
+            row.lastname = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
           }
 
           // Separate standard and custom fields
           const leadData: any = {};
           const customFieldsData: any = {};
+          let tagsList: string[] = [];
 
           Object.keys(row).forEach(key => {
-            if (standardFields.includes(key)) {
-              if (key === 'annualRevenue' || key === 'budget' || key === 'companySize' || key === 'leadScore' || key === 'sourceId') {
-                leadData[key] = row[key] ? Number(row[key]) : null;
-              } else if (key === 'status') {
-                leadData[key] = normalizeLeadStatus(row[key]);
-              } else if (key === 'priority') {
-                leadData[key] = normalizeLeadPriority(row[key]);
+            // Find the matching standard field (Normalized check)
+            const standardKey = standardFields.find(f =>
+              f.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') ===
+              key.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+            );
+
+            if (standardKey) {
+              const val = row[key];
+              if (standardKey === 'annualRevenue' || standardKey === 'budget' || standardKey === 'companySize' || standardKey === 'leadScore' || standardKey === 'sourceId' || standardKey === 'assignedTo') {
+                const num = val ? Number(val) : NaN;
+                leadData[standardKey] = isNaN(num) ? null : num;
+              } else if (standardKey === 'status') {
+                leadData[standardKey] = normalizeLeadStatus(val);
+              } else if (standardKey === 'priority') {
+                leadData[standardKey] = normalizeLeadPriority(val);
+              } else if (standardKey === 'tags' && val) {
+                // Collect tags for later processing
+                tagsList = String(val).split(',').map(t => t.trim()).filter(Boolean);
               } else {
-                leadData[key] = row[key] || null;
+                leadData[standardKey] = val || null;
               }
             } else if (key !== 'name') {
               customFieldsData[key] = row[key];
             }
           });
 
+          // Handle assignedTo name lookup if it's not a number or if lookup is needed
+          if (row.assignedto && isNaN(Number(row.assignedto))) {
+            const name = String(row.assignedto).trim();
+            const user = await this.prisma.user.findFirst({
+              where: {
+                OR: [
+                  { email: { contains: name, mode: 'insensitive' } },
+                  { firstName: { contains: name.split(' ')[0], mode: 'insensitive' } },
+                  { lastName: { contains: name.split(' ').slice(1).join(' '), mode: 'insensitive' } },
+                ],
+                deletedAt: null,
+              },
+            });
+            if (user) {
+              leadData.assignedTo = user.id;
+            } else {
+              // If lookup fails, set to null to avoid Prisma type error
+              leadData.assignedTo = null;
+            }
+          }
+
+          // Ensure budget and other Decimals are handled as numbers for Prisma
+          if (leadData.budget !== undefined && leadData.budget !== null) {
+            leadData.budget = Number(leadData.budget);
+          }
+          if (leadData.annualRevenue !== undefined && leadData.annualRevenue !== null) {
+            leadData.annualRevenue = Number(leadData.annualRevenue);
+          }
+
           await this.prisma.lead.create({
             data: {
               ...leadData,
               customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : undefined,
-              source: row.source
+              source: (row.source || row.leadsource || row.sourceid)
                 ? {
                   connectOrCreate: {
-                    where: { name: row.source },
-                    create: { name: row.source, color: generateColorFromString(row.source) },
+                    where: { name: String(row.source || row.leadsource || row.sourceid) },
+                    create: {
+                      name: String(row.source || row.leadsource || row.sourceid),
+                      color: generateColorFromString(String(row.source || row.leadsource || row.sourceid))
+                    },
                   },
                 }
                 : undefined,
+              tags: tagsList.length > 0 ? {
+                create: tagsList.map(tagName => ({
+                  tag: {
+                    connectOrCreate: {
+                      where: { name: tagName },
+                      create: { name: tagName, color: generateColorFromString(tagName) },
+                    }
+                  }
+                }))
+              } : undefined,
             },
           });
 

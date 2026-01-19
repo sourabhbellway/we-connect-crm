@@ -16,7 +16,7 @@ export declare class IntegrationsService {
                 config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
-                authType: import("@prisma/client").$Enums.IntegrationAuthType;
+                authType: import(".prisma/client").$Enums.IntegrationAuthType;
             }[];
         };
     }>;
@@ -33,7 +33,7 @@ export declare class IntegrationsService {
                 config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
-                authType: import("@prisma/client").$Enums.IntegrationAuthType;
+                authType: import(".prisma/client").$Enums.IntegrationAuthType;
             };
         };
     }>;
@@ -50,7 +50,7 @@ export declare class IntegrationsService {
                 config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
-                authType: import("@prisma/client").$Enums.IntegrationAuthType;
+                authType: import(".prisma/client").$Enums.IntegrationAuthType;
             };
         };
     }>;
@@ -62,7 +62,7 @@ export declare class IntegrationsService {
                 createdAt: Date;
                 id: number;
                 message: string | null;
-                status: import("@prisma/client").$Enums.IntegrationLogStatus;
+                status: import(".prisma/client").$Enums.IntegrationLogStatus;
                 operation: string;
                 errorDetails: string | null;
                 recordsCount: number | null;

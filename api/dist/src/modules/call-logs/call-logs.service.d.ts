@@ -37,8 +37,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;
@@ -78,8 +78,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;
@@ -120,8 +120,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;
@@ -162,8 +162,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;
@@ -201,8 +201,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;
@@ -243,8 +243,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;
@@ -289,8 +289,8 @@ export declare class CallLogsService {
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
-                callType: import("@prisma/client").$Enums.CallType;
-                callStatus: import("@prisma/client").$Enums.CallStatus;
+                callType: import(".prisma/client").$Enums.CallType;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
                 isAnswered: boolean;

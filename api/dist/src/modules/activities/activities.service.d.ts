@@ -12,7 +12,7 @@ export declare class ActivitiesService {
                 id: number;
                 description: string;
                 title: string;
-                type: import("@prisma/client").$Enums.ActivityType;
+                type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
                 tags: string[];
@@ -90,11 +90,11 @@ export declare class ActivitiesService {
                     phone: string | null;
                     company: string | null;
                     position: string | null;
-                    status: import("@prisma/client").$Enums.LeadStatus;
+                    status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
-                    priority: import("@prisma/client").$Enums.LeadPriority;
+                    priority: import(".prisma/client").$Enums.LeadPriority;
                     website: string | null;
                     companySize: number | null;
                     annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -108,7 +108,7 @@ export declare class ActivitiesService {
                     timezone: string | null;
                     preferredContactMethod: string | null;
                     customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                    previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
                 }[];
                 total: number;
@@ -123,7 +123,7 @@ export declare class ActivitiesService {
                     id: number;
                     name: string;
                     description: string | null;
-                    accessScope: import("@prisma/client").$Enums.RoleAccessScope;
+                    accessScope: import(".prisma/client").$Enums.RoleAccessScope;
                 }[];
                 total: number;
                 pages: number;
@@ -152,7 +152,7 @@ export declare class ActivitiesService {
                 id: number;
                 description: string;
                 title: string;
-                type: import("@prisma/client").$Enums.ActivityType;
+                type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
                 tags: string[];
@@ -175,7 +175,7 @@ export declare class ActivitiesService {
                 id: number;
                 description: string;
                 title: string;
-                type: import("@prisma/client").$Enums.ActivityType;
+                type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
                 tags: string[];
@@ -205,7 +205,7 @@ export declare class ActivitiesService {
                 id: number;
                 description: string;
                 title: string;
-                type: import("@prisma/client").$Enums.ActivityType;
+                type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
                 tags: string[];
@@ -229,7 +229,7 @@ export declare class ActivitiesService {
                 id: number;
                 title: string;
                 description: string;
-                type: import("@prisma/client").$Enums.ActivityType;
+                type: import(".prisma/client").$Enums.ActivityType;
                 date: Date | null;
                 leadId: number | null;
                 userId: number | undefined;

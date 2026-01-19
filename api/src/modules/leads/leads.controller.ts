@@ -52,6 +52,8 @@ export class LeadsController {
     @Query('email') email?: string,
     @Query('isDeleted') isDeleted?: string, // Query parameter to filter by deletion status
     @Query('assignedTo') assignedTo?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
     @User() user?: any,
   ) {
     // Convert string to boolean - handle 'true', 'True', 'TRUE', etc.
@@ -65,6 +67,8 @@ export class LeadsController {
       email,
       isDeleted: isDeletedBool,
       assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
+      sortBy,
+      sortOrder,
     }, user);
   }
 

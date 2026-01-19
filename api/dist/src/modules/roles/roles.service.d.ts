@@ -17,7 +17,7 @@ export declare class RolesService {
                 name: string;
                 description: string | null;
                 isActive: boolean;
-                accessScope: import("@prisma/client").$Enums.RoleAccessScope;
+                accessScope: import(".prisma/client").$Enums.RoleAccessScope;
                 createdAt: Date;
                 updatedAt: Date;
                 deletedAt: Date | null;
@@ -58,7 +58,7 @@ export declare class RolesService {
             name: string;
             description: string | null;
             isActive: boolean;
-            accessScope: import("@prisma/client").$Enums.RoleAccessScope;
+            accessScope: import(".prisma/client").$Enums.RoleAccessScope;
             permissions: {
                 createdAt: Date;
                 updatedAt: Date;
@@ -100,7 +100,7 @@ export declare class RolesService {
             name: string;
             description: string | null;
             isActive: boolean;
-            accessScope: import("@prisma/client").$Enums.RoleAccessScope;
+            accessScope: import(".prisma/client").$Enums.RoleAccessScope;
             permissions: {
                 createdAt: Date;
                 updatedAt: Date;

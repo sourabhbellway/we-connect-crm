@@ -1,0 +1,3 @@
+2026-01-12 13:24:56.224 GMT [20240] LOG:  invalid value for parameter "dynamic_shared_memory_type": "posix"
+2026-01-12 13:24:56.224 GMT [20240] HINT:  Available values: windows.
+2026-01-12 18:54:56.251 IST [20240] FATAL:  configuration file "C:/Users/ABC/Desktop/weconnect-crm/postgres-data/postgresql.conf" contains errors

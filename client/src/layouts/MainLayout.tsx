@@ -34,6 +34,9 @@ import {
 import { NAV_EXTRA_ITEMS } from '../config/navigation';
 import WeConnectLogo from '../assets/WeConnect_Logo_C2C.svg';
 import { useLoader } from '../contexts/LoaderContext';
+import { requestForToken, onMessageListener } from '../services/FCMService';
+import { userService } from '../services/userService';
+import { toast } from 'react-toastify';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -200,6 +203,68 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         setShowLogoutModal(false);
         handleLogout();
     };
+
+    // FCM Token Management
+    useEffect(() => {
+        const handleFCM = async () => {
+            try {
+                const token = await requestForToken();
+                if (token && user?.id) {
+                    const savedToken = localStorage.getItem('fcm_token');
+                    if (savedToken !== token) {
+                        try {
+                            await userService.updateDeviceToken(token);
+                            localStorage.setItem('fcm_token', token);
+                            console.log('✅ FCM Token registered with backend');
+                        } catch (err) {
+                            console.error('Failed to register FCM token with backend:', err);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing FCM:', error);
+            }
+        };
+
+        if (user?.id) {
+            handleFCM();
+        }
+
+        const unsubscribe = onMessageListener((payload) => {
+            console.log('🔔 Foreground message received:', payload);
+            const title = payload?.notification?.title || 'New Notification';
+            const body = payload?.notification?.body || '';
+
+            // Show toast notification
+            toast.info(
+                <div>
+                    <h4 className="font-bold">{title}</h4>
+                    <p className="text-sm">{body}</p>
+                </div>,
+                {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                }
+            );
+
+            // Try browser notification if permitted (optional backup)
+            if (Notification.permission === 'granted') {
+                new Notification(title, {
+                    body,
+                    icon: '/logo192.png'
+                });
+            }
+        });
+
+        return () => {
+            if (unsubscribe && typeof unsubscribe === 'function') unsubscribe();
+        };
+    }, [user?.id]);
+
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-slate-950">
             {/* Mobile sidebar backdrop */}

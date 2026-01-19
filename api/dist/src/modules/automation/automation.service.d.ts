@@ -20,7 +20,7 @@ export declare class AutomationService {
         description: string | null;
         createdBy: number | null;
         conditions: Prisma.JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: Prisma.JsonValue | null;
         actions: Prisma.JsonValue;
     }>;
@@ -38,7 +38,7 @@ export declare class AutomationService {
         description: string | null;
         createdBy: number | null;
         conditions: Prisma.JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: Prisma.JsonValue | null;
         actions: Prisma.JsonValue;
     })[]>;
@@ -47,7 +47,7 @@ export declare class AutomationService {
             error: string | null;
             id: number;
             result: Prisma.JsonValue | null;
-            status: import("@prisma/client").$Enums.WorkflowExecutionStatus;
+            status: import(".prisma/client").$Enums.WorkflowExecutionStatus;
             duration: number | null;
             completedAt: Date | null;
             triggerData: Prisma.JsonValue;
@@ -64,7 +64,7 @@ export declare class AutomationService {
         description: string | null;
         createdBy: number | null;
         conditions: Prisma.JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: Prisma.JsonValue | null;
         actions: Prisma.JsonValue;
     }>;
@@ -78,7 +78,7 @@ export declare class AutomationService {
         description: string | null;
         createdBy: number | null;
         conditions: Prisma.JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: Prisma.JsonValue | null;
         actions: Prisma.JsonValue;
     }>;
@@ -92,7 +92,7 @@ export declare class AutomationService {
         description: string | null;
         createdBy: number | null;
         conditions: Prisma.JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: Prisma.JsonValue | null;
         actions: Prisma.JsonValue;
     }>;
@@ -106,7 +106,7 @@ export declare class AutomationService {
         description: string | null;
         createdBy: number | null;
         conditions: Prisma.JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: Prisma.JsonValue | null;
         actions: Prisma.JsonValue;
     }>;
@@ -264,13 +264,13 @@ export declare class AutomationService {
         workflow: {
             id: number;
             name: string;
-            trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+            trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         };
     } & {
         error: string | null;
         id: number;
         result: Prisma.JsonValue | null;
-        status: import("@prisma/client").$Enums.WorkflowExecutionStatus;
+        status: import(".prisma/client").$Enums.WorkflowExecutionStatus;
         duration: number | null;
         completedAt: Date | null;
         triggerData: Prisma.JsonValue;

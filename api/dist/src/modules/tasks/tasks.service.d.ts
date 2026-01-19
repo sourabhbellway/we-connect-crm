@@ -47,8 +47,8 @@ export declare class TasksService {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.TaskStatus;
-                priority: import("@prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
+                priority: import(".prisma/client").$Enums.TaskPriority;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -83,8 +83,8 @@ export declare class TasksService {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.TaskStatus;
-                priority: import("@prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
+                priority: import(".prisma/client").$Enums.TaskPriority;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -131,8 +131,8 @@ export declare class TasksService {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.TaskStatus;
-                priority: import("@prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
+                priority: import(".prisma/client").$Enums.TaskPriority;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -173,8 +173,8 @@ export declare class TasksService {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.TaskStatus;
-                priority: import("@prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
+                priority: import(".prisma/client").$Enums.TaskPriority;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -214,8 +214,8 @@ export declare class TasksService {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.TaskStatus;
-                priority: import("@prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
+                priority: import(".prisma/client").$Enums.TaskPriority;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -255,8 +255,8 @@ export declare class TasksService {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.TaskStatus;
-                priority: import("@prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
+                priority: import(".prisma/client").$Enums.TaskPriority;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;

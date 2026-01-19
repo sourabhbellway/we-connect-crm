@@ -22,7 +22,7 @@ export declare class NotificationsService {
             link: string | null;
             message: string;
             title: string;
-            type: import("@prisma/client").$Enums.NotificationType;
+            type: import(".prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             userId: number;
             read: boolean;
@@ -46,7 +46,7 @@ export declare class NotificationsService {
                 link: string | null;
                 message: string;
                 title: string;
-                type: import("@prisma/client").$Enums.NotificationType;
+                type: import(".prisma/client").$Enums.NotificationType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 read: boolean;
@@ -70,7 +70,7 @@ export declare class NotificationsService {
             link: string | null;
             message: string;
             title: string;
-            type: import("@prisma/client").$Enums.NotificationType;
+            type: import(".prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             userId: number;
             read: boolean;
@@ -138,7 +138,7 @@ export declare class NotificationsService {
             link: string | null;
             message: string;
             title: string;
-            type: import("@prisma/client").$Enums.NotificationType;
+            type: import(".prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             userId: number;
             read: boolean;

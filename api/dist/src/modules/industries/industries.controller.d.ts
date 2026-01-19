@@ -14,7 +14,7 @@ export declare class IndustriesController {
                     updatedAt: Date;
                     id: number;
                     name: string;
-                    type: import("@prisma/client").$Enums.FieldType;
+                    type: import(".prisma/client").$Enums.FieldType;
                     key: string;
                     isRequired: boolean;
                     industryId: number;
@@ -67,7 +67,7 @@ export declare class IndustriesController {
                 updatedAt: Date;
                 id: number;
                 name: string;
-                type: import("@prisma/client").$Enums.FieldType;
+                type: import(".prisma/client").$Enums.FieldType;
                 key: string;
                 isRequired: boolean;
                 industryId: number;
@@ -83,7 +83,7 @@ export declare class IndustriesController {
                 updatedAt: Date;
                 id: number;
                 name: string;
-                type: import("@prisma/client").$Enums.FieldType;
+                type: import(".prisma/client").$Enums.FieldType;
                 key: string;
                 isRequired: boolean;
                 industryId: number;

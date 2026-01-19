@@ -960,7 +960,7 @@ const Leads: React.FC = () => {
                         <SearchInput
                             value={searchValue}
                             onChange={handleSearch}
-                            placeholder={t("leads.searchLeads")}
+                            placeholder="Search by name, email or company..."
                             className="max-w-full"
                         />
                     </div>
@@ -1207,7 +1207,7 @@ const Leads: React.FC = () => {
                                                 />
                                             </th>
                                             <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('name') ? 'hidden' : ''}`}>
-                                                <TableSortHeader label={t("leads.table.lead") as string} column={'name'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c: any) => onHeaderSort(c)} />
+                                                <TableSortHeader label="Lead Name" column={'name'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c: any) => onHeaderSort(c)} />
                                             </th>
                                             <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('email') ? 'hidden' : ''}`}>
                                                 <TableSortHeader label={t("leads.form.email") as string} column={'email'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c: any) => onHeaderSort(c)} />

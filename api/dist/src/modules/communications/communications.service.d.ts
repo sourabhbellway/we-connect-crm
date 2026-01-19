@@ -26,7 +26,7 @@ export declare class CommunicationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
+                type: import(".prisma/client").$Enums.CommunicationType;
                 userId: number;
                 leadId: number;
                 subject: string | null;
@@ -53,7 +53,7 @@ export declare class CommunicationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
+                type: import(".prisma/client").$Enums.CommunicationType;
                 userId: number;
                 leadId: number;
                 subject: string | null;
@@ -86,7 +86,7 @@ export declare class CommunicationsService {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
-                type: import("@prisma/client").$Enums.CommunicationType;
+                type: import(".prisma/client").$Enums.CommunicationType;
                 userId: number;
                 leadId: number;
                 subject: string | null;
@@ -122,7 +122,7 @@ export declare class CommunicationsService {
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 createdBy: number;
                 subject: string | null;
                 content: string;
@@ -155,7 +155,7 @@ export declare class CommunicationsService {
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 createdBy: number;
                 subject: string | null;
                 content: string;
@@ -182,7 +182,7 @@ export declare class CommunicationsService {
                 companyId: number | null;
                 name: string;
                 isDefault: boolean;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 createdBy: number;
                 subject: string | null;
                 content: string;
@@ -244,17 +244,17 @@ export declare class CommunicationsService {
                 template: {
                     id: number;
                     name: string;
-                    type: import("@prisma/client").$Enums.TemplateType;
+                    type: import(".prisma/client").$Enums.TemplateType;
                 } | null;
             } & {
                 createdAt: Date;
                 updatedAt: Date;
                 id: number;
-                type: import("@prisma/client").$Enums.TemplateType;
+                type: import(".prisma/client").$Enums.TemplateType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
-                status: import("@prisma/client").$Enums.MessageStatus;
+                status: import(".prisma/client").$Enums.MessageStatus;
                 subject: string | null;
                 content: string;
                 readAt: Date | null;

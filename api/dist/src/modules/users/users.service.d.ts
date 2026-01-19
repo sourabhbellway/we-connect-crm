@@ -303,6 +303,10 @@ export declare class UsersService {
             };
         };
     }>;
+    updateDeviceToken(userId: number, token: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     updateAvatar(id: number, fileName: string): Promise<{
         success: boolean;
         message: string;

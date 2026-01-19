@@ -257,6 +257,12 @@ export declare class UsersController {
         };
         message?: undefined;
     }>;
+    updateDeviceToken(user: any, dto: {
+        token: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
     findOne(id: string): Promise<{
         success: boolean;
         message: string;

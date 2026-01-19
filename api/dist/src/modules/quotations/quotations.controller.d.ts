@@ -67,7 +67,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -110,11 +110,11 @@ export declare class QuotationsController {
                     assignedTo: number | null;
                     createdBy: number | null;
                     phone: string | null;
-                    status: import("@prisma/client").$Enums.CompanyStatus;
+                    status: import(".prisma/client").$Enums.CompanyStatus;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     website: string | null;
-                    companySize: import("@prisma/client").$Enums.CompanySize | null;
+                    companySize: import(".prisma/client").$Enums.CompanySize | null;
                     annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
                     leadScore: number | null;
                     address: string | null;
@@ -153,11 +153,11 @@ export declare class QuotationsController {
                     phone: string | null;
                     company: string | null;
                     position: string | null;
-                    status: import("@prisma/client").$Enums.LeadStatus;
+                    status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
-                    priority: import("@prisma/client").$Enums.LeadPriority;
+                    priority: import(".prisma/client").$Enums.LeadPriority;
                     website: string | null;
                     companySize: number | null;
                     annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -171,7 +171,7 @@ export declare class QuotationsController {
                     timezone: string | null;
                     preferredContactMethod: string | null;
                     customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import("@prisma/client").$Enums.LeadStatus | null;
+                    previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
                 } | null;
                 deal: {
@@ -222,7 +222,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -272,7 +272,7 @@ export declare class QuotationsController {
             title: string;
             leadId: number | null;
             createdBy: number;
-            status: import("@prisma/client").$Enums.QuotationStatus;
+            status: import(".prisma/client").$Enums.QuotationStatus;
             expiresAt: Date | null;
             dealId: number | null;
             subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -321,7 +321,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -403,7 +403,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -435,7 +435,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -467,7 +467,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.QuotationStatus;
+                status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
@@ -521,7 +521,7 @@ export declare class QuotationsController {
                 title: string;
                 leadId: number | null;
                 createdBy: number;
-                status: import("@prisma/client").$Enums.InvoiceStatus;
+                status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;
                 invoiceNumber: string;

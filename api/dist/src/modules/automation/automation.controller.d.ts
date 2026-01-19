@@ -14,7 +14,7 @@ export declare class AutomationController {
         description: string | null;
         createdBy: number | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
@@ -32,7 +32,7 @@ export declare class AutomationController {
         description: string | null;
         createdBy: number | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     })[]>;
@@ -41,7 +41,7 @@ export declare class AutomationController {
             error: string | null;
             id: number;
             result: import("@prisma/client/runtime/library").JsonValue | null;
-            status: import("@prisma/client").$Enums.WorkflowExecutionStatus;
+            status: import(".prisma/client").$Enums.WorkflowExecutionStatus;
             duration: number | null;
             completedAt: Date | null;
             triggerData: import("@prisma/client/runtime/library").JsonValue;
@@ -58,7 +58,7 @@ export declare class AutomationController {
         description: string | null;
         createdBy: number | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
@@ -72,7 +72,7 @@ export declare class AutomationController {
         description: string | null;
         createdBy: number | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
@@ -86,7 +86,7 @@ export declare class AutomationController {
         description: string | null;
         createdBy: number | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
@@ -100,7 +100,7 @@ export declare class AutomationController {
         description: string | null;
         createdBy: number | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
-        trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+        trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
@@ -177,13 +177,13 @@ export declare class AutomationController {
         workflow: {
             id: number;
             name: string;
-            trigger: import("@prisma/client").$Enums.WorkflowTrigger;
+            trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         };
     } & {
         error: string | null;
         id: number;
         result: import("@prisma/client/runtime/library").JsonValue | null;
-        status: import("@prisma/client").$Enums.WorkflowExecutionStatus;
+        status: import(".prisma/client").$Enums.WorkflowExecutionStatus;
         duration: number | null;
         completedAt: Date | null;
         triggerData: import("@prisma/client/runtime/library").JsonValue;

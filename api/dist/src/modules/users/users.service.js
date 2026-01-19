@@ -667,13 +667,23 @@ let UsersService = UsersService_1 = class UsersService {
                 failedLoginAttempts: 0,
             },
         });
-        await this.prisma.passwordHistory.create({
-            data: {
-                userId: userId,
-                password: hashed,
-            },
-        });
         return { success: true, data: { user: updated } };
+    }
+    async updateDeviceToken(userId, token) {
+        try {
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    fcmToken: token,
+                    deviceToken: token
+                }
+            });
+            return { success: true, message: 'Device token updated successfully' };
+        }
+        catch (error) {
+            this.logger.error(`Failed to update device token for user ${userId}`, error);
+            throw new common_1.BadRequestException('Failed to update device token');
+        }
     }
     async updateAvatar(id, fileName) {
         const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
