@@ -9,6 +9,8 @@ import { UpdateNotificationPreferenceDto } from './dto/notification-preference.d
 import { NotificationType } from '@prisma/client';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as admin from 'firebase-admin';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class NotificationsService {
