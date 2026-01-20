@@ -22,10 +22,18 @@ export class NotificationsService {
     if (!admin.apps.length) {
       try {
         // Check if Firebase credentials are provided in environment
-        const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
-        if (serviceAccount) {
+        const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+        if (serviceAccountJson) {
+          const serviceAccount = JSON.parse(serviceAccountJson);
+          // Robust handling of private key formatting (common issue on VPS/Docker)
+          if (serviceAccount.private_key) {
+            serviceAccount.private_key = serviceAccount.private_key.replace(
+              /\\n/g,
+              '\n',
+            );
+          }
           admin.initializeApp({
-            credential: admin.credential.cert(JSON.parse(serviceAccount)),
+            credential: admin.credential.cert(serviceAccount),
           });
           this.logger.log('Firebase Admin SDK initialized successfully');
         } else {
