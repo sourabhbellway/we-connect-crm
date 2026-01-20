@@ -21,11 +21,22 @@ export class NotificationsService {
     // Initialize Firebase Admin SDK if not already initialized
     if (!admin.apps.length) {
       try {
-        // Check if Firebase credentials are provided in environment
-        const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
-        if (serviceAccountJson) {
-          const serviceAccount = JSON.parse(serviceAccountJson);
-          // Robust handling of private key formatting (common issue on VPS/Docker)
+        let serviceAccount: any;
+        const keyFilePath = path.join(process.cwd(), 'firebase-key.json');
+
+        // Priority 1: Check for firebase-key.json file (More stable for VPS)
+        if (fs.existsSync(keyFilePath)) {
+          this.logger.log('Loading Firebase credentials from firebase-key.json');
+          serviceAccount = JSON.parse(fs.readFileSync(keyFilePath, 'utf8'));
+        }
+        // Priority 2: Check environment variable
+        else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+          this.logger.log('Loading Firebase credentials from environment variable');
+          serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        }
+
+        if (serviceAccount) {
+          // Robust handling of private key formatting
           if (serviceAccount.private_key) {
             serviceAccount.private_key = serviceAccount.private_key.replace(
               /\\n/g,
