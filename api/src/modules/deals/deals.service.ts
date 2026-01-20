@@ -24,17 +24,20 @@ export class DealsService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly automationService: AutomationService,
-  ) { }
+  ) {}
 
-  async list({
-    page = 1,
-    limit = 10,
-    search,
-  }: {
-    page?: number;
-    limit?: number;
-    search?: string;
-  }, user?: any) {
+  async list(
+    {
+      page = 1,
+      limit = 10,
+      search,
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+    user?: any,
+  ) {
     const pageNum = Math.max(1, Number(page) || 1);
     const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
 
@@ -42,7 +45,10 @@ export class DealsService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -58,10 +64,7 @@ export class DealsService {
 
       if (where.OR) {
         // If there are existing OR conditions (from role-based filtering), combine them
-        where.AND = [
-          { OR: where.OR },
-          { OR: searchConditions }
-        ];
+        where.AND = [{ OR: where.OR }, { OR: searchConditions }];
         delete where.OR; // Remove the original OR as it's now part of AND
       } else {
         // If no existing OR conditions, just apply search OR
@@ -76,8 +79,19 @@ export class DealsService {
         take: pageSize,
         orderBy: [{ value: 'desc' }, { createdAt: 'desc' }],
         include: {
-          assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
-          lead: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, company: true } },
+          assignedUser: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
+          lead: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              company: true,
+            },
+          },
           companies: { select: { id: true, name: true } },
         },
       }),
@@ -109,7 +123,10 @@ export class DealsService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -118,15 +135,30 @@ export class DealsService {
     const deal = await this.prisma.deal.findFirst({
       where,
       include: {
-        assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
-        lead: { select: { id: true, firstName: true, lastName: true, email: true, phone: true, company: true } },
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        lead: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            company: true,
+          },
+        },
         companies: { select: { id: true, name: true } },
         invoices: {
           include: {
             payments: {
-              include: { createdByUser: { select: { id: true, firstName: true, lastName: true } } }
-            }
-          }
+              include: {
+                createdByUser: {
+                  select: { id: true, firstName: true, lastName: true },
+                },
+              },
+            },
+          },
         },
         quotations: true,
       },
@@ -134,7 +166,14 @@ export class DealsService {
     if (!deal) return { success: false, message: 'Deal not found' };
 
     // Flatten payments from invoices
-    const payments = deal.invoices?.flatMap(inv => inv.payments?.map(p => ({ ...p, invoiceNumber: inv.invoiceNumber })) || []) || [];
+    const payments =
+      deal.invoices?.flatMap(
+        (inv) =>
+          inv.payments?.map((p) => ({
+            ...p,
+            invoiceNumber: inv.invoiceNumber,
+          })) || [],
+      ) || [];
 
     const normalized: any = {
       ...deal,
@@ -205,7 +244,7 @@ export class DealsService {
           userId: userId || 1,
           leadId: deal.leadId || undefined,
           metadata: { dealId: deal.id } as any,
-        }
+        },
       });
     } catch (error) {
       console.error('Failed to log deal creation activity:', error);
@@ -316,7 +355,7 @@ export class DealsService {
             oldStatus: previousStatus,
             newStatus: deal.status,
           } as any,
-        }
+        },
       });
     } catch (error) {
       console.error('Failed to log deal update activity:', error);
@@ -349,18 +388,29 @@ export class DealsService {
       }
 
       const csvContent = file.buffer.toString('utf-8');
-      const lines = csvContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+      const lines = csvContent
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
 
       if (lines.length < 2) {
-        return { success: false, message: 'CSV file must contain headers and at least one row of data' };
+        return {
+          success: false,
+          message: 'CSV file must contain headers and at least one row of data',
+        };
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
       const requiredFields = ['title', 'value'];
-      const missingFields = requiredFields.filter(field => !headers.includes(field));
+      const missingFields = requiredFields.filter(
+        (field) => !headers.includes(field),
+      );
 
       if (missingFields.length > 0) {
-        return { success: false, message: `CSV must contain these columns: ${missingFields.join(', ')}` };
+        return {
+          success: false,
+          message: `CSV must contain these columns: ${missingFields.join(', ')}`,
+        };
       }
 
       const results = {
@@ -375,14 +425,17 @@ export class DealsService {
 
       for (let i = 1; i < lines.length; i++) {
         try {
-          const values = lines[i].split(',').map(v => v.trim());
+          const values = lines[i].split(',').map((v) => v.trim());
           const row: Record<string, string> = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || '';
           });
 
           if (!row.title || !row.value) {
-            results.data.errors.push({ row: i + 1, error: 'Missing required fields: title or value' });
+            results.data.errors.push({
+              row: i + 1,
+              error: 'Missing required fields: title or value',
+            });
             results.data.failed++;
             continue;
           }
@@ -395,7 +448,9 @@ export class DealsService {
               currency: row.currency || 'USD',
               status: row.status ? row.status.toUpperCase() : 'DRAFT',
               probability: parseInt(row.probability) || 0,
-              expectedCloseDate: row.expectedclosedate ? new Date(row.expectedclosedate) : null,
+              expectedCloseDate: row.expectedclosedate
+                ? new Date(row.expectedclosedate)
+                : null,
               createdBy: userId,
               assignedTo: userId,
             },
@@ -403,7 +458,10 @@ export class DealsService {
 
           results.data.imported++;
         } catch (error: any) {
-          results.data.errors.push({ row: i + 1, error: error.message || 'Unknown error' });
+          results.data.errors.push({
+            row: i + 1,
+            error: error.message || 'Unknown error',
+          });
           results.data.failed++;
         }
       }
@@ -411,7 +469,10 @@ export class DealsService {
       results.data.message = `Import completed. Imported: ${results.data.imported}, Failed: ${results.data.failed}`;
       return results;
     } catch (error: any) {
-      return { success: false, message: error.message || 'Failed to import deals from CSV' };
+      return {
+        success: false,
+        message: error.message || 'Failed to import deals from CSV',
+      };
     }
   }
 
@@ -419,7 +480,10 @@ export class DealsService {
     const where: any = { deletedAt: null };
 
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -467,10 +531,18 @@ export class DealsService {
         escapeCsv(d.currency),
         escapeCsv(d.status),
         escapeCsv(d.probability),
-        escapeCsv(d.expectedCloseDate ? new Date(d.expectedCloseDate).toISOString() : ''),
+        escapeCsv(
+          d.expectedCloseDate
+            ? new Date(d.expectedCloseDate).toISOString()
+            : '',
+        ),
         escapeCsv(d.companies?.name || ''),
         escapeCsv(d.lead ? `${d.lead.firstName} ${d.lead.lastName}` : ''),
-        escapeCsv(d.assignedUser ? `${d.assignedUser.firstName} ${d.assignedUser.lastName}` : ''),
+        escapeCsv(
+          d.assignedUser
+            ? `${d.assignedUser.firstName} ${d.assignedUser.lastName}`
+            : '',
+        ),
         escapeCsv(d.createdAt ? new Date(d.createdAt).toISOString() : ''),
       ];
       rows.push(row.join(','));

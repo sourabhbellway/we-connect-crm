@@ -21,5 +21,4 @@ export class CreateCallLogDto {
   @IsOptional() metadata?: Record<string, unknown>;
   @IsOptional() @IsString() deviceToken?: string;
   @IsOptional() @IsString() recordingUrl?: string;
-
 }

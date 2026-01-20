@@ -26,8 +26,10 @@ export class RolesController {
     @Query('status') status?: string,
     @Query('isDeleted') isDeleted?: string,
   ) {
-    const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
-    
+    const isDeletedBool =
+      isDeleted !== undefined &&
+      String(isDeleted).toLowerCase().trim() === 'true';
+
     return this.service.list({
       search,
       status,

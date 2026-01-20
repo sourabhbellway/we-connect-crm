@@ -1,16 +1,22 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
-import { getAccessibleUserIds, getRoleBasedWhereClause } from '../../common/utils/permission.util';
+import {
+  getAccessibleUserIds,
+  getRoleBasedWhereClause,
+} from '../../common/utils/permission.util';
 
 @Injectable()
 export class ActivitiesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getRecent(limit = 5, user?: any, targetUserId?: number) {
     const where: any = {};
     if (user && user.userId) {
-      const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+      const accessibleIds = await getAccessibleUserIds(
+        user.userId,
+        this.prisma,
+      );
       if (accessibleIds) {
         where.OR = [
           { userId: { in: accessibleIds } },
@@ -107,9 +113,21 @@ export class ActivitiesService {
       return {
         success: true,
         data: {
-          users: { records: users, total: usersTotal, pages: Math.ceil(usersTotal / limit) },
-          leads: { records: leads, total: leadsTotal, pages: Math.ceil(leadsTotal / limit) },
-          roles: { records: roles, total: rolesTotal, pages: Math.ceil(rolesTotal / limit) },
+          users: {
+            records: users,
+            total: usersTotal,
+            pages: Math.ceil(usersTotal / limit),
+          },
+          leads: {
+            records: leads,
+            total: leadsTotal,
+            pages: Math.ceil(leadsTotal / limit),
+          },
+          roles: {
+            records: roles,
+            total: rolesTotal,
+            pages: Math.ceil(rolesTotal / limit),
+          },
         },
       };
     } catch (error: any) {
@@ -124,19 +142,22 @@ export class ActivitiesService {
     }
   }
 
-  async list({
-    page = 1,
-    limit = 10,
-    type,
-    search,
-    userId,
-  }: {
-    page?: number;
-    limit?: number;
-    type?: string;
-    search?: string;
-    userId?: number;
-  }, user?: any) {
+  async list(
+    {
+      page = 1,
+      limit = 10,
+      type,
+      search,
+      userId,
+    }: {
+      page?: number;
+      limit?: number;
+      type?: string;
+      search?: string;
+      userId?: number;
+    },
+    user?: any,
+  ) {
     const andConditions: any[] = [];
 
     // Category mapping for type
@@ -147,22 +168,55 @@ export class ActivitiesService {
           typeCondition = { type: { in: ['USER_LOGIN', 'USER_LOGOUT'] } };
           break;
         case 'LEAD':
-          typeCondition = { type: { in: ['LEAD_CREATED', 'LEAD_UPDATED', 'LEAD_DELETED', 'LEAD_ASSIGNED', 'LEAD_STATUS_CHANGED', 'LEAD_CONVERTED', 'LEAD_FOLLOW_UP_CREATED', 'LEAD_FOLLOW_UP_COMPLETED'] } };
+          typeCondition = {
+            type: {
+              in: [
+                'LEAD_CREATED',
+                'LEAD_UPDATED',
+                'LEAD_DELETED',
+                'LEAD_ASSIGNED',
+                'LEAD_STATUS_CHANGED',
+                'LEAD_CONVERTED',
+                'LEAD_FOLLOW_UP_CREATED',
+                'LEAD_FOLLOW_UP_COMPLETED',
+              ],
+            },
+          };
           break;
         case 'QUOTATION':
-          typeCondition = { type: { in: ['QUOTATION_CREATED', 'QUOTATION_UPDATED', 'QUOTATION_SENT'] } };
+          typeCondition = {
+            type: {
+              in: ['QUOTATION_CREATED', 'QUOTATION_UPDATED', 'QUOTATION_SENT'],
+            },
+          };
           break;
         case 'INVOICE':
-          typeCondition = { type: { in: ['INVOICE_CREATED', 'INVOICE_UPDATED', 'INVOICE_SENT'] } };
+          typeCondition = {
+            type: {
+              in: ['INVOICE_CREATED', 'INVOICE_UPDATED', 'INVOICE_SENT'],
+            },
+          };
           break;
         case 'TASK':
-          typeCondition = { type: { in: ['TASK_CREATED', 'TASK_UPDATED', 'TASK_COMPLETED'] } };
+          typeCondition = {
+            type: { in: ['TASK_CREATED', 'TASK_UPDATED', 'TASK_COMPLETED'] },
+          };
           break;
         case 'CALL':
           typeCondition = { type: 'COMMUNICATION_LOGGED' };
           break;
         case 'AUTOMATION':
-          typeCondition = { type: { in: ['AUTOMATION_EXECUTED', 'AUTOMATION_FAILED', 'AUTOMATION_CREATED', 'AUTOMATION_UPDATED', 'AUTOMATION_DELETED'] } };
+          typeCondition = {
+            type: {
+              in: [
+                'AUTOMATION_EXECUTED',
+                'AUTOMATION_FAILED',
+                'AUTOMATION_CREATED',
+                'AUTOMATION_UPDATED',
+                'AUTOMATION_DELETED',
+              ],
+            },
+          };
           break;
         default:
           typeCondition = { type: type };
@@ -176,13 +230,16 @@ export class ActivitiesService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+      const accessibleIds = await getAccessibleUserIds(
+        user.userId,
+        this.prisma,
+      );
       if (accessibleIds) {
         andConditions.push({
           OR: [
             { userId: { in: accessibleIds } },
             { lead: { assignedTo: { in: accessibleIds } } },
-          ]
+          ],
         });
       }
     }
@@ -194,7 +251,7 @@ export class ActivitiesService {
         OR: [
           { title: { contains: q, mode: 'insensitive' } },
           { description: { contains: q, mode: 'insensitive' } },
-        ]
+        ],
       });
     }
 
@@ -277,19 +334,25 @@ export class ActivitiesService {
   /**
    * Get activities for calendar display within a date range
    */
-  async getActivitiesForCalendar({
-    startDate,
-    endDate,
-  }: {
-    startDate?: Date;
-    endDate?: Date;
-  }, user?: any) {
+  async getActivitiesForCalendar(
+    {
+      startDate,
+      endDate,
+    }: {
+      startDate?: Date;
+      endDate?: Date;
+    },
+    user?: any,
+  ) {
     try {
       let leadFilter: any = {};
       let userFilter: any = {};
 
       if (user && user.userId) {
-        const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+        const accessibleIds = await getAccessibleUserIds(
+          user.userId,
+          this.prisma,
+        );
         if (accessibleIds) {
           leadFilter = { assignedTo: { in: accessibleIds } };
           userFilter = { id: { in: accessibleIds } };
@@ -302,10 +365,12 @@ export class ActivitiesService {
           type: 'MEETING',
           scheduledAt: {
             not: null,
-            ...(startDate && endDate ? {
-              gte: startDate,
-              lte: endDate,
-            } : {}),
+            ...(startDate && endDate
+              ? {
+                  gte: startDate,
+                  lte: endDate,
+                }
+              : {}),
           },
           // Filter by lead assignment if not global
           ...(Object.keys(leadFilter).length > 0 ? { lead: leadFilter } : {}),
@@ -333,18 +398,17 @@ export class ActivitiesService {
 
       // Get activities that might have scheduled dates
       // For now, just get activities related to leads that have meetings
-      const leadIds = meetings.map(m => m.leadId);
+      const leadIds = meetings.map((m) => m.leadId);
 
       // Also fetch activities for the user or their leads
       const activities = await this.prisma.activity.findMany({
         where: {
           type: 'COMMUNICATION_LOGGED', // Meeting activities
-          ...(Object.keys(leadFilter).length > 0 ? {
-            OR: [
-              { userId: user.userId },
-              { lead: leadFilter }
-            ]
-          } : {}),
+          ...(Object.keys(leadFilter).length > 0
+            ? {
+                OR: [{ userId: user.userId }, { lead: leadFilter }],
+              }
+            : {}),
         },
         include: {
           user: {
@@ -361,21 +425,25 @@ export class ActivitiesService {
 
       // Combine and format the results
       const calendarActivities = [
-        ...activities.map(activity => {
-          const metadata = activity.metadata as any;
-          return {
-            id: activity.id,
-            title: activity.title,
-            description: activity.description,
-            type: activity.type,
-            date: metadata?.scheduledAt ? new Date(metadata.scheduledAt) : null,
-            leadId: activity.leadId,
-            userId: activity.userId ?? undefined, // Fix number | null to number | undefined
-            user: activity.user,
-            source: 'activity',
-          };
-        }).filter(item => item.date),
-        ...meetings.map(meeting => ({
+        ...activities
+          .map((activity) => {
+            const metadata = activity.metadata as any;
+            return {
+              id: activity.id,
+              title: activity.title,
+              description: activity.description,
+              type: activity.type,
+              date: metadata?.scheduledAt
+                ? new Date(metadata.scheduledAt)
+                : null,
+              leadId: activity.leadId,
+              userId: activity.userId ?? undefined, // Fix number | null to number | undefined
+              user: activity.user,
+              source: 'activity',
+            };
+          })
+          .filter((item) => item.date),
+        ...meetings.map((meeting) => ({
           id: meeting.id,
           title: meeting.subject || 'Meeting',
           description: meeting.content,
@@ -387,7 +455,7 @@ export class ActivitiesService {
           user: meeting.user,
           source: 'meeting',
         })),
-      ].filter(item => item.date); // Only include items with dates
+      ].filter((item) => item.date); // Only include items with dates
 
       return {
         success: true,

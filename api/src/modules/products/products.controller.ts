@@ -25,7 +25,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 @UseGuards(AuthGuard('jwt'))
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly service: ProductsService) { }
+  constructor(private readonly service: ProductsService) {}
 
   @Get()
   list(
@@ -67,7 +67,10 @@ export class ProductsController {
       if (error instanceof HttpException) {
         throw error;
       }
-      const errorMessage = error?.response?.message || error?.message || 'Failed to create product';
+      const errorMessage =
+        error?.response?.message ||
+        error?.message ||
+        'Failed to create product';
       throw new HttpException(
         { success: false, message: errorMessage },
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -92,7 +95,10 @@ export class ProductsController {
         throw error;
       }
       throw new HttpException(
-        { success: false, message: error.message || 'Failed to update product' },
+        {
+          success: false,
+          message: error.message || 'Failed to update product',
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -112,10 +118,7 @@ export class ProductsController {
   }
 
   @Get('bulk/export')
-  async bulkExport(
-    @Res() res: Response,
-    @Query('search') search?: string,
-  ) {
+  async bulkExport(@Res() res: Response, @Query('search') search?: string) {
     const csv = await this.service.bulkExport({ search });
     const filename = `products_export_${new Date().toISOString().slice(0, 10)}.csv`;
     const bom = '\uFEFF';

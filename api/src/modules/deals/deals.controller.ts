@@ -24,7 +24,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('deals')
 export class DealsController {
-  constructor(private readonly deals: DealsService) { }
+  constructor(private readonly deals: DealsService) {}
 
   @Get()
   list(
@@ -33,11 +33,14 @@ export class DealsController {
     @Query('search') search?: string,
     @User() user?: any,
   ) {
-    return this.deals.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      search,
-    }, user);
+    return this.deals.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        search,
+      },
+      user,
+    );
   }
 
   @Get(':id')
@@ -66,15 +69,23 @@ export class DealsController {
   }
 
   @Post('bulk/import')
-  @UseInterceptors(FileInterceptor('csvFile', {
-    fileFilter: (req, file, cb) => {
-      if (!file.originalname.endsWith('.csv')) {
-        return cb(new BadRequestException('Only CSV files are allowed'), false);
-      }
-      cb(null, true);
-    },
-  }))
-  async bulkImportDeals(@UploadedFile() file: Express.Multer.File, @User() user?: any) {
+  @UseInterceptors(
+    FileInterceptor('csvFile', {
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.endsWith('.csv')) {
+          return cb(
+            new BadRequestException('Only CSV files are allowed'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async bulkImportDeals(
+    @UploadedFile() file: Express.Multer.File,
+    @User() user?: any,
+  ) {
     if (!file) {
       throw new BadRequestException('CSV file is required');
     }

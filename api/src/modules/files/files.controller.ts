@@ -23,7 +23,7 @@ import * as path from 'path';
 @UseGuards(AuthGuard('jwt'))
 @Controller('files')
 export class FilesController {
-  constructor(private readonly service: FilesService) { }
+  constructor(private readonly service: FilesService) {}
 
   @Get()
   list(
@@ -31,10 +31,13 @@ export class FilesController {
     @Query('entityId') entityId?: string,
     @User() user?: any,
   ) {
-    return this.service.list({
-      entityType,
-      entityId: entityId ? parseInt(entityId) : undefined,
-    }, user);
+    return this.service.list(
+      {
+        entityType,
+        entityId: entityId ? parseInt(entityId) : undefined,
+      },
+      user,
+    );
   }
 
   @Post('upload')

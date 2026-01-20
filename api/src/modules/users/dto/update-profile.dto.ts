@@ -38,5 +38,4 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsEmail()
   email?: string;
-
 }

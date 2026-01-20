@@ -18,7 +18,7 @@ import { BusinessSettingsService } from './business-settings.service';
 @UseGuards(AuthGuard('jwt'))
 @Controller('business-settings')
 export class BusinessSettingsController {
-  constructor(private readonly service: BusinessSettingsService) { }
+  constructor(private readonly service: BusinessSettingsService) {}
 
   @Get('company')
   getCompany() {
@@ -67,7 +67,6 @@ export class BusinessSettingsController {
   updateNumbering(@Body() body: any) {
     return this.service.updateNumbering(body);
   }
-
 
   @Get('deal-statuses')
   listDealStatuses() {
@@ -269,5 +268,4 @@ export class BusinessSettingsController {
   updateDashboardSettings(@Body() body: any) {
     return this.service.updateDashboardSettings(body);
   }
-
 }

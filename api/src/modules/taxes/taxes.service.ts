@@ -5,7 +5,7 @@ import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class TaxesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   create(createTaxDto: CreateTaxDto) {
     return this.prisma.tax.create({

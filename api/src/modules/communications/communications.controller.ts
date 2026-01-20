@@ -24,7 +24,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('communications')
 export class CommunicationsController {
-  constructor(private readonly service: CommunicationsService) { }
+  constructor(private readonly service: CommunicationsService) {}
 
   // Specific routes first (more specific before generic)
   @Get('leads/:leadId/meetings')
@@ -51,12 +51,15 @@ export class CommunicationsController {
     @Query('limit') limit?: string,
     @User() user?: any,
   ) {
-    return this.service.listTemplates({
-      type,
-      active,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-    }, user);
+    return this.service.listTemplates(
+      {
+        type,
+        active,
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+      },
+      user,
+    );
   }
 
   @Post('templates')
@@ -98,13 +101,16 @@ export class CommunicationsController {
   // Messages listing
   @Get('messages')
   listMessages(@Query() q: ListMessagesQuery, @User() user?: any) {
-    return this.service.listMessages({
-      leadId: q.leadId ? parseInt(q.leadId) : undefined,
-      type: q.type,
-      status: q.status,
-      page: q.page ? parseInt(q.page) : 1,
-      limit: q.limit ? parseInt(q.limit) : 10,
-    }, user);
+    return this.service.listMessages(
+      {
+        leadId: q.leadId ? parseInt(q.leadId) : undefined,
+        type: q.type,
+        status: q.status,
+        page: q.page ? parseInt(q.page) : 1,
+        limit: q.limit ? parseInt(q.limit) : 10,
+      },
+      user,
+    );
   }
 
   @Post('leads')

@@ -6,22 +6,28 @@ import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
 
 @Injectable()
 export class CompaniesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async list({
-    page = 1,
-    limit = 10,
-    search,
-  }: {
-    page?: number;
-    limit?: number;
-    search?: string;
-  }, user?: any) {
+  async list(
+    {
+      page = 1,
+      limit = 10,
+      search,
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+    },
+    user?: any,
+  ) {
     const where: any = {};
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -36,10 +42,7 @@ export class CompaniesService {
 
       if (where.OR) {
         // If there are existing OR conditions (from role-based filtering), combine them
-        where.AND = [
-          { OR: where.OR },
-          { OR: searchConditions }
-        ];
+        where.AND = [{ OR: where.OR }, { OR: searchConditions }];
         delete where.OR; // Remove the original OR as it's now part of AND
       } else {
         // If no existing OR conditions, just apply search OR
@@ -51,7 +54,9 @@ export class CompaniesService {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         industry: true,
       },
     });
@@ -63,7 +68,10 @@ export class CompaniesService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -72,7 +80,9 @@ export class CompaniesService {
     const company = await this.prisma.companies.findFirst({
       where,
       include: {
-        assignedUser: { select: { id: true, firstName: true, lastName: true, email: true } },
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         industry: true,
       },
     });

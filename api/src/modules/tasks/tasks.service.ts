@@ -11,30 +11,36 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
-  ) { }
+  ) {}
 
-  async list({
-    page = 1,
-    limit = 10,
-    status,
-    search,
-    leadId,
-    dealId,
-    assignedTo,
-  }: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    search?: string;
-    leadId?: number;
-    dealId?: number;
-    assignedTo?: number;
-  }, user?: any) {
+  async list(
+    {
+      page = 1,
+      limit = 10,
+      status,
+      search,
+      leadId,
+      dealId,
+      assignedTo,
+    }: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      search?: string;
+      leadId?: number;
+      dealId?: number;
+      assignedTo?: number;
+    },
+    user?: any,
+  ) {
     const where: any = { deletedAt: null };
 
     // Role-based filtering
     if (user && user.userId) {
-      const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+      const accessibleIds = await getAccessibleUserIds(
+        user.userId,
+        this.prisma,
+      );
       if (accessibleIds) {
         where.AND = [
           {
@@ -49,7 +55,10 @@ export class TasksService {
       }
     }
     if (status) {
-      const values = status.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean);
+      const values = status
+        .split(',')
+        .map((s) => s.trim().toUpperCase())
+        .filter(Boolean);
       where.status = values.length > 1 ? { in: values as any } : values[0];
     }
     if (leadId) where.leadId = leadId;
@@ -75,15 +84,15 @@ export class TasksService {
             select: {
               id: true,
               firstName: true,
-              lastName: true
-            }
+              lastName: true,
+            },
           },
           createdByUser: {
             select: {
               id: true,
               firstName: true,
-              lastName: true
-            }
+              lastName: true,
+            },
           },
           // --- NEW: Lead की पूरी information लाने के लिए ---
           lead: {
@@ -108,7 +117,10 @@ export class TasksService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+      const accessibleIds = await getAccessibleUserIds(
+        user.userId,
+        this.prisma,
+      );
       if (accessibleIds) {
         where.AND = [
           {
@@ -129,7 +141,9 @@ export class TasksService {
       // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
-        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
         // --- NEW: Lead की पूरी information लाने के लिए ---
         lead: {
           select: {
@@ -153,13 +167,21 @@ export class TasksService {
         title: dto.title,
         description: dto.description ?? null,
         // Sanitize status - default to PENDING if invalid or empty
-        status: (['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'MEDIUM'].includes((dto.status || '').toUpperCase())
+        status: [
+          'PENDING',
+          'IN_PROGRESS',
+          'COMPLETED',
+          'CANCELLED',
+          'MEDIUM',
+        ].includes((dto.status || '').toUpperCase())
           ? (dto.status!.toUpperCase() as any)
-          : 'PENDING'),
+          : 'PENDING',
         // Sanitize priority - default to MEDIUM if invalid or empty
-        priority: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes((dto.priority || '').toUpperCase())
+        priority: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(
+          (dto.priority || '').toUpperCase(),
+        )
           ? (dto.priority!.toUpperCase() as any)
-          : 'MEDIUM'),
+          : 'MEDIUM',
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         assignedTo: dto.assignedTo ?? null,
         createdBy: dto.createdBy,
@@ -169,7 +191,9 @@ export class TasksService {
       // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
-        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
         // --- NEW: Lead की पूरी information लाने के लिए ---
         lead: {
           select: {
@@ -251,7 +275,9 @@ export class TasksService {
       // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
-        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
         // --- NEW: Lead की पूरी information लाने के लिए ---
         lead: {
           select: {
@@ -320,7 +346,9 @@ export class TasksService {
       // --- UPDATED INCLUDE CLAUSE ---
       include: {
         assignedUser: { select: { id: true, firstName: true, lastName: true } },
-        createdByUser: { select: { id: true, firstName: true, lastName: true } },
+        createdByUser: {
+          select: { id: true, firstName: true, lastName: true },
+        },
         // --- NEW: Lead की पूरी information लाने के लिए ---
         lead: {
           select: {

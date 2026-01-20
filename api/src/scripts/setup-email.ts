@@ -36,11 +36,15 @@ async function setupEmailProvider() {
 
   console.log('✅ Email provider created successfully!');
   console.log('📧 Provider ID:', provider.id);
-  console.log('⚠️  Please update the SMTP configuration in the database with your actual email provider settings');
+  console.log(
+    '⚠️  Please update the SMTP configuration in the database with your actual email provider settings',
+  );
   console.log('   - smtpHost: Your SMTP server hostname');
   console.log('   - smtpPort: Usually 587 (TLS) or 465 (SSL)');
   console.log('   - smtpUser: Your email address or SMTP username');
-  console.log('   - smtpPassword: Your email password or app-specific password');
+  console.log(
+    '   - smtpPassword: Your email password or app-specific password',
+  );
   console.log('   - fromEmail: The email address emails will be sent from');
   console.log('   - fromName: The name that appears as the sender');
   console.log('');

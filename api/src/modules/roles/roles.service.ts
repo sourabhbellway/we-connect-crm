@@ -4,7 +4,7 @@ import { UpsertRoleDto } from './dto/upsert-role.dto';
 
 @Injectable()
 export class RolesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async list({
     search,
@@ -84,7 +84,7 @@ export class RolesService {
           pageSize: limit,
           totalPages,
         },
-      }
+      },
     };
   }
 
@@ -164,9 +164,7 @@ export class RolesService {
     };
   }
 
-
   async update(id: number, dto: UpsertRoleDto) {
-
     let warning: string | null = null;
     let affectedUsers: any[] = [];
     let affectedUserIds: number[] = [];
@@ -257,7 +255,6 @@ export class RolesService {
     }
   }
 
-
   async remove(id: number) {
     const role = await this.prisma.role.findFirst({
       where: { id, deletedAt: null },
@@ -283,7 +280,6 @@ export class RolesService {
     return { success: true, message: 'Role moved to trash' };
   }
 
-
   async restore(id: number) {
     const role = await this.prisma.role.findFirst({
       where: { id, deletedAt: { not: null } },
@@ -296,7 +292,6 @@ export class RolesService {
     });
     return { success: true, message: 'Role restored successfully' };
   }
-
 
   async deletePermanently(id: number) {
     const role = await this.prisma.role.findFirst({

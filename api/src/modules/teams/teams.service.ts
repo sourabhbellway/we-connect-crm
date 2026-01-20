@@ -5,21 +5,27 @@ import { UpdateTeamDto } from './dto/update-team.dto';
 
 @Injectable()
 export class TeamsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async create(createTeamDto: CreateTeamDto) {
-    console.log('Creating team with DTO:', JSON.stringify(createTeamDto, null, 2));
+    console.log(
+      'Creating team with DTO:',
+      JSON.stringify(createTeamDto, null, 2),
+    );
     const { memberIds, ...rest } = createTeamDto;
 
     // Filter out manager from members if they are in the list
-    const filteredMemberIds = memberIds?.filter(id => id !== rest.managerId);
+    const filteredMemberIds = memberIds?.filter((id) => id !== rest.managerId);
 
     const result = await (this.prisma.team as any).create({
       data: {
         ...rest,
-        members: filteredMemberIds && filteredMemberIds.length > 0 ? {
-          connect: filteredMemberIds.map((id) => ({ id })),
-        } : undefined,
+        members:
+          filteredMemberIds && filteredMemberIds.length > 0
+            ? {
+                connect: filteredMemberIds.map((id) => ({ id })),
+              }
+            : undefined,
       },
       include: {
         manager: true,
@@ -61,19 +67,26 @@ export class TeamsService {
   }
 
   async update(id: number, updateTeamDto: UpdateTeamDto) {
-    console.log(`Updating team ${id} with DTO:`, JSON.stringify(updateTeamDto, null, 2));
+    console.log(
+      `Updating team ${id} with DTO:`,
+      JSON.stringify(updateTeamDto, null, 2),
+    );
     const { memberIds, ...rest } = updateTeamDto;
 
     // Filter out manager from members if they are in the list
-    const filteredMemberIds = memberIds?.filter(mid => mid !== (rest.managerId || undefined));
+    const filteredMemberIds = memberIds?.filter(
+      (mid) => mid !== (rest.managerId || undefined),
+    );
 
     const result = await (this.prisma.team as any).update({
       where: { id },
       data: {
         ...rest,
-        members: memberIds ? {
-          set: filteredMemberIds?.map((id) => ({ id })) || [],
-        } : undefined,
+        members: memberIds
+          ? {
+              set: filteredMemberIds?.map((id) => ({ id })) || [],
+            }
+          : undefined,
       },
       include: {
         manager: true,

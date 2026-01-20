@@ -16,15 +16,15 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly businessSettingsService: BusinessSettingsService,
-  ) { }
+  ) {}
 
   private renderTemplate(template: string, data: Record<string, string>) {
     // Support both {{variable}} and {variable} formats
     let result = template;
     // First replace {{variable}} format
-    result = result.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? "");
+    result = result.replace(/\{\{(\w+)\}\}/g, (_, key) => data[key] ?? '');
     // Then replace {variable} format for backward compatibility
-    result = result.replace(/\{(\w+)\}/g, (_, key) => data[key] ?? "");
+    result = result.replace(/\{(\w+)\}/g, (_, key) => data[key] ?? '');
     return result;
   }
 
@@ -42,10 +42,11 @@ export class UsersService {
     }));
     const manager = u.manager
       ? {
-        id: u.manager.id,
-        fullName: `${u.manager.firstName ?? ''} ${u.manager.lastName ?? ''}`.trim(),
-        email: u.manager.email,
-      }
+          id: u.manager.id,
+          fullName:
+            `${u.manager.firstName ?? ''} ${u.manager.lastName ?? ''}`.trim(),
+          email: u.manager.email,
+        }
       : null;
     return {
       id: u.id,
@@ -118,7 +119,14 @@ export class UsersService {
           skip: (pageNum - 1) * pageSize,
           take: pageSize,
           include: {
-            manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+            manager: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
             roles: {
               include: {
                 role: {
@@ -151,9 +159,9 @@ export class UsersService {
     // Legacy: return all users without pagination
     const where: any = { deletedAt: null };
     if (status && String(status).toLowerCase().trim() === 'active') {
-      (where as any).isActive = true;
+      where.isActive = true;
     } else if (status && String(status).toLowerCase().trim() === 'inactive') {
-      (where as any).isActive = false;
+      where.isActive = false;
     }
     if (search && String(search).trim() !== '') {
       const q = String(search).trim();
@@ -174,7 +182,9 @@ export class UsersService {
             },
           },
         },
-        manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+        manager: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         team: { select: { id: true, name: true } },
         _count: { select: { subordinates: true } },
       },
@@ -190,7 +200,9 @@ export class UsersService {
     const [totalUsers, activeUsers, newUsers] = await Promise.all([
       this.prisma.user.count({ where: { deletedAt: null } }),
       this.prisma.user.count({ where: { deletedAt: null, isActive: true } }),
-      this.prisma.user.count({ where: { deletedAt: null, createdAt: { gte: thirtyDaysAgo } } }),
+      this.prisma.user.count({
+        where: { deletedAt: null, createdAt: { gte: thirtyDaysAgo } },
+      }),
     ]);
     const inactiveUsers = Math.max(0, totalUsers - activeUsers);
     return {
@@ -205,7 +217,9 @@ export class UsersService {
     const u = await this.prisma.user.findFirst({
       where: { id, deletedAt: null },
       include: {
-        manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+        manager: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         roles: {
           include: {
             role: {
@@ -352,7 +366,7 @@ export class UsersService {
   private async sendEmail(
     to: string,
     template: { subject: string; text: string; html: string },
-    data: Record<string, string>
+    data: Record<string, string>,
   ) {
     // Attempt to load SMTP configuration from communication_providers (preferred)
     let host: string | undefined;
@@ -369,36 +383,65 @@ export class UsersService {
       });
       if (provider) {
         const cfg = (provider as any).config || {};
-        this.logger.log(`Loading SMTP config from Communication Provider: ${provider.name} (ID: ${provider.id})`);
+        this.logger.log(
+          `Loading SMTP config from Communication Provider: ${provider.name} (ID: ${provider.id})`,
+        );
 
         // Try multiple field name variations to support different config formats
         host = cfg.smtpHost || cfg.host || cfg.EMAIL_HOST;
-        port = cfg.smtpPort ? Number(cfg.smtpPort) : (cfg.port ? Number(cfg.port) : (cfg.EMAIL_PORT ? Number(cfg.EMAIL_PORT) : 587));
+        port = cfg.smtpPort
+          ? Number(cfg.smtpPort)
+          : cfg.port
+            ? Number(cfg.port)
+            : cfg.EMAIL_PORT
+              ? Number(cfg.EMAIL_PORT)
+              : 587;
         user = cfg.smtpUser || cfg.username || cfg.EMAIL_HOST_USER || cfg.user;
-        pass = cfg.smtpPassword || cfg.password || cfg.EMAIL_HOST_PASSWORD || cfg.pass;
-        from = cfg.fromEmail || cfg.from || cfg.smtpUser || cfg.EMAIL_FROM || user;
+        pass =
+          cfg.smtpPassword ||
+          cfg.password ||
+          cfg.EMAIL_HOST_PASSWORD ||
+          cfg.pass;
+        from =
+          cfg.fromEmail || cfg.from || cfg.smtpUser || cfg.EMAIL_FROM || user;
         fromName = cfg.fromName || cfg.from_name;
 
-        this.logger.log(`SMTP Config loaded - Host: ${host ? '✓' : '✗'}, Port: ${port}, User: ${user ? '✓' : '✗'}, From: ${from ? '✓' : '✗'}`);
+        this.logger.log(
+          `SMTP Config loaded - Host: ${host ? '✓' : '✗'}, Port: ${port}, User: ${user ? '✓' : '✗'}, From: ${from ? '✓' : '✗'}`,
+        );
 
         if (host && user && pass && from) {
-          this.logger.log(`Using SMTP configuration from Communication Provider: ${provider.name}`);
+          this.logger.log(
+            `Using SMTP configuration from Communication Provider: ${provider.name}`,
+          );
         } else {
-          this.logger.warn(`Communication Provider config incomplete. Missing: ${!host ? 'host ' : ''}${!user ? 'user ' : ''}${!pass ? 'password ' : ''}${!from ? 'from ' : ''}`);
+          this.logger.warn(
+            `Communication Provider config incomplete. Missing: ${!host ? 'host ' : ''}${!user ? 'user ' : ''}${!pass ? 'password ' : ''}${!from ? 'from ' : ''}`,
+          );
         }
       } else {
-        this.logger.log('No active default EMAIL provider found in Communication Providers');
+        this.logger.log(
+          'No active default EMAIL provider found in Communication Providers',
+        );
       }
     } catch (err) {
-      this.logger.error('Failed to load email provider from communication_providers', err?.stack || err);
+      this.logger.error(
+        'Failed to load email provider from communication_providers',
+        err?.stack || err,
+      );
     }
 
     // Fallback to env variables if provider not configured or incomplete
     // Support both EMAIL_* and SMTP_* environment variable formats
     if (!host || !user || !pass || !from) {
       host = host || process.env.EMAIL_HOST || process.env.SMTP_HOST;
-      port = port || (process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) :
-        (process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587));
+      port =
+        port ||
+        (process.env.EMAIL_PORT
+          ? Number(process.env.EMAIL_PORT)
+          : process.env.SMTP_PORT
+            ? Number(process.env.SMTP_PORT)
+            : 587);
       user = user || process.env.EMAIL_HOST_USER || process.env.SMTP_USER;
       pass = pass || process.env.EMAIL_HOST_PASSWORD || process.env.SMTP_PASS;
       from = from || process.env.EMAIL_FROM || process.env.SMTP_FROM || user;
@@ -412,11 +455,12 @@ export class UsersService {
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const nodemailer = require('nodemailer');
 
     // Check if TLS should be used (EMAIL_USE_TLS or default to true for port 587)
-    const useTLS = process.env.EMAIL_USE_TLS === 'True' || process.env.EMAIL_USE_TLS === 'true' ||
+    const useTLS =
+      process.env.EMAIL_USE_TLS === 'True' ||
+      process.env.EMAIL_USE_TLS === 'true' ||
       process.env.EMAIL_USE_TLS === '1' ||
       (process.env.EMAIL_USE_TLS === undefined && (port ?? 587) !== 465);
 
@@ -427,8 +471,8 @@ export class UsersService {
       auth: { user, pass },
       tls: {
         // Do not fail on invalid certs (useful for self-signed certificates)
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
 
     const subject = this.renderTemplate(template.subject, { ...data, appName });
@@ -439,11 +483,22 @@ export class UsersService {
 
     try {
       this.logger.log(`Sending email to ${to} from ${fromHeader}`);
-      const result = await transporter.sendMail({ from: fromHeader, to, subject, text, html });
-      this.logger.log(`Email sent successfully to ${to}. MessageId: ${result.messageId}`);
+      const result = await transporter.sendMail({
+        from: fromHeader,
+        to,
+        subject,
+        text,
+        html,
+      });
+      this.logger.log(
+        `Email sent successfully to ${to}. MessageId: ${result.messageId}`,
+      );
       return result;
     } catch (error: any) {
-      this.logger.error(`Failed to send email to ${to}: ${error?.message || error}`, error?.stack || error);
+      this.logger.error(
+        `Failed to send email to ${to}: ${error?.message || error}`,
+        error?.stack || error,
+      );
       // Don't throw - log error but don't break user creation
       return null;
     }
@@ -460,10 +515,13 @@ export class UsersService {
     });
 
     if (rolesCount !== uniqueRoleIds.length) {
-      throw new BadRequestException('One or more selected roles are invalid or inactive');
+      throw new BadRequestException(
+        'One or more selected roles are invalid or inactive',
+      );
     }
 
-    const rawPassword = (dto.password || '').trim() || this.generateRandomPassword();
+    const rawPassword =
+      (dto.password || '').trim() || this.generateRandomPassword();
     const hashed = await bcrypt.hash(rawPassword, 10);
 
     try {
@@ -480,7 +538,10 @@ export class UsersService {
         });
 
         await tx.userRole.createMany({
-          data: uniqueRoleIds.map((roleId) => ({ userId: createdUser.id, roleId })),
+          data: uniqueRoleIds.map((roleId) => ({
+            userId: createdUser.id,
+            roleId,
+          })),
         });
 
         return createdUser;
@@ -489,7 +550,9 @@ export class UsersService {
       const hydratedUser = await this.prisma.user.findFirst({
         where: { id: user.id },
         include: {
-          manager: { select: { id: true, firstName: true, lastName: true, email: true } },
+          manager: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
           roles: {
             include: {
               role: {
@@ -507,61 +570,102 @@ export class UsersService {
       // Try to get database template first
       try {
         this.logger.log(`Attempting to send welcome email to ${user.email}`);
-        const welcomeTemplateResponse = await this.businessSettingsService.getWelcomeEmailTemplate();
+        const welcomeTemplateResponse =
+          await this.businessSettingsService.getWelcomeEmailTemplate();
         const template = welcomeTemplateResponse?.data;
 
-        if (template && template.subject && template.htmlContent && template.textContent) {
-          this.logger.log(`Using database welcome email template for ${user.email}`);
-          this.logger.log(`Template variables being sent: firstName=${user.firstName}, email=${user.email}, password=${rawPassword ? '[SET]' : '[NOT SET]'}`);
-          const result = await this.sendEmail(user.email, {
-            subject: template.subject,
-            text: template.textContent,
-            html: template.htmlContent,
-          }, {
-            firstName: user.firstName,
-            email: user.email,
-            password: rawPassword,
-          });
+        if (
+          template &&
+          template.subject &&
+          template.htmlContent &&
+          template.textContent
+        ) {
+          this.logger.log(
+            `Using database welcome email template for ${user.email}`,
+          );
+          this.logger.log(
+            `Template variables being sent: firstName=${user.firstName}, email=${user.email}, password=${rawPassword ? '[SET]' : '[NOT SET]'}`,
+          );
+          const result = await this.sendEmail(
+            user.email,
+            {
+              subject: template.subject,
+              text: template.textContent,
+              html: template.htmlContent,
+            },
+            {
+              firstName: user.firstName,
+              email: user.email,
+              password: rawPassword,
+            },
+          );
 
           if (result !== null) {
             emailSent = true;
-            this.logger.log(`Welcome email sent successfully to ${user.email} using database template`);
+            this.logger.log(
+              `Welcome email sent successfully to ${user.email} using database template`,
+            );
           } else {
-            this.logger.warn(`Database template email send returned null, will try fallback for ${user.email}`);
+            this.logger.warn(
+              `Database template email send returned null, will try fallback for ${user.email}`,
+            );
           }
         } else {
-          this.logger.warn(`Database template incomplete or missing, using fallback template for ${user.email}`);
+          this.logger.warn(
+            `Database template incomplete or missing, using fallback template for ${user.email}`,
+          );
         }
       } catch (error: any) {
-        this.logger.error(`Failed to fetch or send database welcome email template to ${user.email}: ${error?.message || error}`, error?.stack);
+        this.logger.error(
+          `Failed to fetch or send database welcome email template to ${user.email}: ${error?.message || error}`,
+          error?.stack,
+        );
       }
 
       // ALWAYS try fallback template if database template didn't work
       if (!emailSent) {
         try {
-          this.logger.log(`Attempting to send fallback welcome email to ${user.email}`);
-          const result = await this.sendEmail(user.email, EmailTemplates.WELCOME_NEW_USER, {
-            firstName: user.firstName,
-            email: user.email,
-            password: rawPassword,
-          });
+          this.logger.log(
+            `Attempting to send fallback welcome email to ${user.email}`,
+          );
+          const result = await this.sendEmail(
+            user.email,
+            EmailTemplates.WELCOME_NEW_USER,
+            {
+              firstName: user.firstName,
+              email: user.email,
+              password: rawPassword,
+            },
+          );
 
           if (result !== null) {
             emailSent = true;
-            this.logger.log(`Fallback welcome email sent successfully to ${user.email}`);
+            this.logger.log(
+              `Fallback welcome email sent successfully to ${user.email}`,
+            );
           } else {
-            this.logger.error(`Fallback welcome email send returned null for ${user.email}. SMTP may not be configured.`);
+            this.logger.error(
+              `Fallback welcome email send returned null for ${user.email}. SMTP may not be configured.`,
+            );
           }
         } catch (fallbackError: any) {
-          this.logger.error(`Failed to send fallback welcome email to ${user.email}: ${fallbackError?.message || fallbackError}`, fallbackError?.stack);
+          this.logger.error(
+            `Failed to send fallback welcome email to ${user.email}: ${fallbackError?.message || fallbackError}`,
+            fallbackError?.stack,
+          );
         }
       }
 
       if (!emailSent) {
-        this.logger.error(`CRITICAL: Welcome email could not be sent to ${user.email}. Please check SMTP configuration.`);
+        this.logger.error(
+          `CRITICAL: Welcome email could not be sent to ${user.email}. Please check SMTP configuration.`,
+        );
       }
 
-      return { success: true, data: { user: await this.mapUser(hydratedUser) } };
+      return {
+        success: true,
+        data: { user: await this.mapUser(hydratedUser) },
+      };
     } catch (error: any) {
       if (error?.code === 'P2002') {
         // Prisma unique constraint violation (e.g. duplicate email)
@@ -609,60 +713,100 @@ export class UsersService {
 
         // Try to get database template first
         try {
-          this.logger.log(`Attempting to send welcome email to ${updated.email} after email update`);
-          const welcomeTemplateResponse = await this.businessSettingsService.getWelcomeEmailTemplate();
+          this.logger.log(
+            `Attempting to send welcome email to ${updated.email} after email update`,
+          );
+          const welcomeTemplateResponse =
+            await this.businessSettingsService.getWelcomeEmailTemplate();
           const template = welcomeTemplateResponse?.data;
 
-          if (template && template.subject && template.htmlContent && template.textContent) {
-            this.logger.log(`Using database welcome email template for ${updated.email}`);
-            const result = await this.sendEmail(updated.email, {
-              subject: template.subject,
-              text: template.textContent,
-              html: template.htmlContent,
-            }, {
-              firstName: updated.firstName,
-              email: updated.email,
-              password: tempPassword, // Include temp password in welcome email (same as creation)
-            });
+          if (
+            template &&
+            template.subject &&
+            template.htmlContent &&
+            template.textContent
+          ) {
+            this.logger.log(
+              `Using database welcome email template for ${updated.email}`,
+            );
+            const result = await this.sendEmail(
+              updated.email,
+              {
+                subject: template.subject,
+                text: template.textContent,
+                html: template.htmlContent,
+              },
+              {
+                firstName: updated.firstName,
+                email: updated.email,
+                password: tempPassword, // Include temp password in welcome email (same as creation)
+              },
+            );
 
             if (result !== null) {
               emailSent = true;
-              this.logger.log(`Welcome email sent successfully to ${updated.email} using database template`);
+              this.logger.log(
+                `Welcome email sent successfully to ${updated.email} using database template`,
+              );
             } else {
-              this.logger.warn(`Database template email send returned null, will try fallback for ${updated.email}`);
+              this.logger.warn(
+                `Database template email send returned null, will try fallback for ${updated.email}`,
+              );
             }
           } else {
-            this.logger.warn(`Database template incomplete or missing, using fallback template for ${updated.email}`);
+            this.logger.warn(
+              `Database template incomplete or missing, using fallback template for ${updated.email}`,
+            );
           }
         } catch (error: any) {
-          this.logger.error(`Failed to fetch or send database welcome email template to ${updated.email}: ${error?.message || error}`, error?.stack);
+          this.logger.error(
+            `Failed to fetch or send database welcome email template to ${updated.email}: ${error?.message || error}`,
+            error?.stack,
+          );
         }
 
         // ALWAYS try fallback template if database template didn't work
         if (!emailSent) {
           try {
-            this.logger.log(`Attempting to send fallback welcome email to ${updated.email}`);
-            const result = await this.sendEmail(updated.email, EmailTemplates.WELCOME_NEW_USER, {
-              firstName: updated.firstName,
-              email: updated.email,
-              password: tempPassword,
-            });
+            this.logger.log(
+              `Attempting to send fallback welcome email to ${updated.email}`,
+            );
+            const result = await this.sendEmail(
+              updated.email,
+              EmailTemplates.WELCOME_NEW_USER,
+              {
+                firstName: updated.firstName,
+                email: updated.email,
+                password: tempPassword,
+              },
+            );
 
             if (result !== null) {
               emailSent = true;
-              this.logger.log(`Fallback welcome email sent successfully to ${updated.email}`);
+              this.logger.log(
+                `Fallback welcome email sent successfully to ${updated.email}`,
+              );
             } else {
-              this.logger.error(`Fallback welcome email send returned null for ${updated.email}. SMTP may not be configured.`);
+              this.logger.error(
+                `Fallback welcome email send returned null for ${updated.email}. SMTP may not be configured.`,
+              );
             }
           } catch (fallbackError: any) {
-            this.logger.error(`Failed to send fallback welcome email to ${updated.email}: ${fallbackError?.message || fallbackError}`, fallbackError?.stack);
+            this.logger.error(
+              `Failed to send fallback welcome email to ${updated.email}: ${fallbackError?.message || fallbackError}`,
+              fallbackError?.stack,
+            );
           }
         }
 
         if (!emailSent) {
-          this.logger.error(`CRITICAL: Welcome email could not be sent to ${updated.email} after email update. Please check SMTP configuration.`);
+          this.logger.error(
+            `CRITICAL: Welcome email could not be sent to ${updated.email} after email update. Please check SMTP configuration.`,
+          );
         } else {
-          this.logger.log(`Welcome email sent to ${updated.email} after email update with temp password`);
+          this.logger.log(
+            `Welcome email sent to ${updated.email} after email update with temp password`,
+          );
         }
       }
 
@@ -674,8 +818,6 @@ export class UsersService {
       throw error;
     }
   }
-
-
 
   async updateProfile(
     id: number,
@@ -695,7 +837,9 @@ export class UsersService {
 
     const isAdmin = (user.roles || []).some((ur: any) => {
       const name = (ur.role?.name || '').toLowerCase();
-      return name === 'admin' || name === 'super_admin' || name === 'super admin';
+      return (
+        name === 'admin' || name === 'super_admin' || name === 'super admin'
+      );
     });
 
     const data: any = {};
@@ -704,11 +848,12 @@ export class UsersService {
 
     if (dto.email !== undefined) {
       if (!isAdmin) {
-        throw new BadRequestException('Only admin users can change email address');
+        throw new BadRequestException(
+          'Only admin users can change email address',
+        );
       }
       data.email = dto.email;
     }
-
 
     try {
       const updated = await this.prisma.user.update({ where: { id }, data });
@@ -722,8 +867,14 @@ export class UsersService {
     }
   }
 
-  async changePasswordForUser(userId: number, currentPassword: string, newPassword: string) {
-    const user = await this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
+  async changePasswordForUser(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+    });
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -743,19 +894,29 @@ export class UsersService {
     const hasLength = newPassword.length >= 8;
 
     if (!hasLength) {
-      throw new BadRequestException('Password must be at least 8 characters long');
+      throw new BadRequestException(
+        'Password must be at least 8 characters long',
+      );
     }
     if (!hasLower) {
-      throw new BadRequestException('Password must contain at least one lowercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one lowercase letter',
+      );
     }
     if (!hasUpper) {
-      throw new BadRequestException('Password must contain at least one uppercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one uppercase letter',
+      );
     }
     if (!hasNumber) {
-      throw new BadRequestException('Password must contain at least one number');
+      throw new BadRequestException(
+        'Password must contain at least one number',
+      );
     }
     if (!hasSpecial) {
-      throw new BadRequestException('Password must contain at least one special character');
+      throw new BadRequestException(
+        'Password must contain at least one special character',
+      );
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
@@ -780,14 +941,18 @@ export class UsersService {
   }
 
   async changePasswordForNewUser(userId: number, newPassword: string) {
-    const user = await this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+    });
     if (!user) {
       throw new BadRequestException('User not found');
     }
 
     // Check if user actually needs to change password
     if (!user.mustChangePassword) {
-      throw new BadRequestException('Password change is not required for this user');
+      throw new BadRequestException(
+        'Password change is not required for this user',
+      );
     }
 
     // Strong password rules (same as user creation UI):
@@ -800,19 +965,29 @@ export class UsersService {
     const hasLength = newPassword.length >= 8;
 
     if (!hasLength) {
-      throw new BadRequestException('Password must be at least 8 characters long');
+      throw new BadRequestException(
+        'Password must be at least 8 characters long',
+      );
     }
     if (!hasLower) {
-      throw new BadRequestException('Password must contain at least one lowercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one lowercase letter',
+      );
     }
     if (!hasUpper) {
-      throw new BadRequestException('Password must contain at least one uppercase letter');
+      throw new BadRequestException(
+        'Password must contain at least one uppercase letter',
+      );
     }
     if (!hasNumber) {
-      throw new BadRequestException('Password must contain at least one number');
+      throw new BadRequestException(
+        'Password must contain at least one number',
+      );
     }
     if (!hasSpecial) {
-      throw new BadRequestException('Password must contain at least one special character');
+      throw new BadRequestException(
+        'Password must contain at least one special character',
+      );
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
@@ -835,20 +1010,28 @@ export class UsersService {
         where: { id: userId },
         data: {
           fcmToken: token,
-          deviceToken: token // Updating both for compatibility
-        }
+          deviceToken: token, // Updating both for compatibility
+        },
       });
       return { success: true, message: 'Device token updated successfully' };
     } catch (error) {
-      this.logger.error(`Failed to update device token for user ${userId}`, error);
+      this.logger.error(
+        `Failed to update device token for user ${userId}`,
+        error,
+      );
       throw new BadRequestException('Failed to update device token');
     }
   }
 
   async updateAvatar(id: number, fileName: string) {
-    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
+    const user = await this.prisma.user.findFirst({
+      where: { id, deletedAt: null },
+    });
     if (!user) return { success: false, message: 'User not found' };
-    const updated = await this.prisma.user.update({ where: { id }, data: { profilePicture: fileName } });
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { profilePicture: fileName },
+    });
     return { success: true, data: { user: updated } };
   }
 
@@ -899,4 +1082,3 @@ export class UsersService {
     }
   }
 }
-

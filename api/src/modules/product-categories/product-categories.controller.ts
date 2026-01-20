@@ -16,7 +16,9 @@ import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 
 @Controller('business-settings/product-categories')
 export class ProductCategoriesController {
-  constructor(private readonly productCategoriesService: ProductCategoriesService) {}
+  constructor(
+    private readonly productCategoriesService: ProductCategoriesService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

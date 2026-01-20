@@ -18,7 +18,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('notes')
 export class NotesController {
-  constructor(private readonly service: NotesService) { }
+  constructor(private readonly service: NotesService) {}
 
   @Get()
   list(@Query('leadId') leadId: string, @User() user?: any) {
@@ -53,4 +53,3 @@ export class NotesController {
     return this.service.remove(Number(id));
   }
 }
-

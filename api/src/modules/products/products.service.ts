@@ -5,7 +5,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async list({
     page = 1,
@@ -64,7 +64,11 @@ export class ProductsService {
         return { success: false, message: 'Product name is required' };
       }
 
-      if (dto.price === undefined || dto.price === null || isNaN(Number(dto.price))) {
+      if (
+        dto.price === undefined ||
+        dto.price === null ||
+        isNaN(Number(dto.price))
+      ) {
         return { success: false, message: 'Valid price is required' };
       }
 
@@ -73,11 +77,14 @@ export class ProductsService {
         const existingProduct = await this.prisma.product.findFirst({
           where: {
             sku: dto.sku.trim(),
-            deletedAt: null
+            deletedAt: null,
           },
         });
         if (existingProduct) {
-          return { success: false, message: 'SKU already exists. Please use a different SKU.' };
+          return {
+            success: false,
+            message: 'SKU already exists. Please use a different SKU.',
+          };
         }
       }
 
@@ -92,20 +99,38 @@ export class ProductsService {
       const product = await this.prisma.product.create({
         data: {
           name: dto.name.trim(),
-          description: dto.description && dto.description.trim() ? dto.description.trim() : null,
+          description:
+            dto.description && dto.description.trim()
+              ? dto.description.trim()
+              : null,
           sku: dto.sku && String(dto.sku).trim() !== '' ? dto.sku.trim() : null,
           type: productType as any,
-          category: dto.category && String(dto.category).trim() !== '' ? dto.category.trim() : null,
+          category:
+            dto.category && String(dto.category).trim() !== ''
+              ? dto.category.trim()
+              : null,
           price: Number(dto.price) as any,
-          cost: dto.cost !== undefined && dto.cost !== null ? Number(dto.cost) as any : null,
+          cost:
+            dto.cost !== undefined && dto.cost !== null
+              ? (Number(dto.cost) as any)
+              : null,
           currency: dto.currency ?? 'USD',
           unit: dto.unit ?? 'pcs',
-          taxRate: dto.taxRate !== undefined && dto.taxRate !== null ? Number(dto.taxRate) as any : null,
-          hsnCode: dto.hsnCode && String(dto.hsnCode).trim() !== '' ? dto.hsnCode.trim() : null,
+          taxRate:
+            dto.taxRate !== undefined && dto.taxRate !== null
+              ? (Number(dto.taxRate) as any)
+              : null,
+          hsnCode:
+            dto.hsnCode && String(dto.hsnCode).trim() !== ''
+              ? dto.hsnCode.trim()
+              : null,
           stockQuantity: dto.stockQuantity ?? 0,
           minStockLevel: dto.minStockLevel ?? 0,
           maxStockLevel: dto.maxStockLevel ?? 0,
-          image: dto.image && String(dto.image).trim() !== '' ? dto.image.trim() : null,
+          image:
+            dto.image && String(dto.image).trim() !== ''
+              ? dto.image.trim()
+              : null,
           isActive: dto.isActive ?? true,
         },
       });
@@ -119,14 +144,22 @@ export class ProductsService {
         stack: error.stack,
       });
       if (error.code === 'P2002') {
-        return { success: false, message: 'SKU already exists. Please use a different SKU.' };
+        return {
+          success: false,
+          message: 'SKU already exists. Please use a different SKU.',
+        };
       }
       if (error.code === 'P2003') {
-        return { success: false, message: 'Invalid reference. Please check all field values.' };
+        return {
+          success: false,
+          message: 'Invalid reference. Please check all field values.',
+        };
       }
       return {
         success: false,
-        message: error.message || 'Failed to create product. Please check all required fields.'
+        message:
+          error.message ||
+          'Failed to create product. Please check all required fields.',
       };
     }
   }
@@ -142,7 +175,10 @@ export class ProductsService {
       }
 
       // Validate price if provided
-      if (dto.price !== undefined && (dto.price === null || isNaN(Number(dto.price)))) {
+      if (
+        dto.price !== undefined &&
+        (dto.price === null || isNaN(Number(dto.price)))
+      ) {
         return { success: false, message: 'Valid price is required' };
       }
 
@@ -152,21 +188,28 @@ export class ProductsService {
           where: {
             sku: dto.sku.trim(),
             deletedAt: null,
-            id: { not: id }
+            id: { not: id },
           },
         });
         if (duplicateProduct) {
-          return { success: false, message: 'SKU already exists. Please use a different SKU.' };
+          return {
+            success: false,
+            message: 'SKU already exists. Please use a different SKU.',
+          };
         }
       }
 
       const updateData: any = {};
       if (dto.name !== undefined) updateData.name = dto.name.trim();
       if (dto.description !== undefined) {
-        updateData.description = dto.description && dto.description.trim() ? dto.description.trim() : null;
+        updateData.description =
+          dto.description && dto.description.trim()
+            ? dto.description.trim()
+            : null;
       }
       if (dto.sku !== undefined) {
-        updateData.sku = dto.sku && String(dto.sku).trim() !== '' ? dto.sku.trim() : null;
+        updateData.sku =
+          dto.sku && String(dto.sku).trim() !== '' ? dto.sku.trim() : null;
       }
       if (dto.type !== undefined) {
         const validTypes = ['PHYSICAL', 'DIGITAL', 'SERVICE'];
@@ -175,25 +218,38 @@ export class ProductsService {
           : 'PHYSICAL';
       }
       if (dto.category !== undefined) {
-        updateData.category = dto.category && String(dto.category).trim() !== '' ? dto.category.trim() : null;
+        updateData.category =
+          dto.category && String(dto.category).trim() !== ''
+            ? dto.category.trim()
+            : null;
       }
       if (dto.price !== undefined) updateData.price = Number(dto.price) as any;
       if (dto.cost !== undefined) {
-        updateData.cost = dto.cost !== null ? Number(dto.cost) as any : null;
+        updateData.cost = dto.cost !== null ? (Number(dto.cost) as any) : null;
       }
       if (dto.currency !== undefined) updateData.currency = dto.currency;
       if (dto.unit !== undefined) updateData.unit = dto.unit;
       if (dto.taxRate !== undefined) {
-        updateData.taxRate = dto.taxRate !== null ? Number(dto.taxRate) as any : null;
+        updateData.taxRate =
+          dto.taxRate !== null ? (Number(dto.taxRate) as any) : null;
       }
       if (dto.hsnCode !== undefined) {
-        updateData.hsnCode = dto.hsnCode && String(dto.hsnCode).trim() !== '' ? dto.hsnCode.trim() : null;
+        updateData.hsnCode =
+          dto.hsnCode && String(dto.hsnCode).trim() !== ''
+            ? dto.hsnCode.trim()
+            : null;
       }
-      if (dto.stockQuantity !== undefined) updateData.stockQuantity = dto.stockQuantity;
-      if (dto.minStockLevel !== undefined) updateData.minStockLevel = dto.minStockLevel;
-      if (dto.maxStockLevel !== undefined) updateData.maxStockLevel = dto.maxStockLevel;
+      if (dto.stockQuantity !== undefined)
+        updateData.stockQuantity = dto.stockQuantity;
+      if (dto.minStockLevel !== undefined)
+        updateData.minStockLevel = dto.minStockLevel;
+      if (dto.maxStockLevel !== undefined)
+        updateData.maxStockLevel = dto.maxStockLevel;
       if (dto.image !== undefined) {
-        updateData.image = dto.image && String(dto.image).trim() !== '' ? dto.image.trim() : null;
+        updateData.image =
+          dto.image && String(dto.image).trim() !== ''
+            ? dto.image.trim()
+            : null;
       }
       if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
       updateData.updatedAt = new Date();
@@ -206,14 +262,18 @@ export class ProductsService {
     } catch (error: any) {
       console.error('Error updating product:', error);
       if (error.code === 'P2002') {
-        return { success: false, message: 'SKU already exists. Please use a different SKU.' };
+        return {
+          success: false,
+          message: 'SKU already exists. Please use a different SKU.',
+        };
       }
       if (error.code === 'P2025') {
         return { success: false, message: 'Product not found' };
       }
       return {
         success: false,
-        message: error.message || 'Failed to update product. Please check all fields.'
+        message:
+          error.message || 'Failed to update product. Please check all fields.',
       };
     }
   }
@@ -287,18 +347,27 @@ export class ProductsService {
       }
 
       const csvContent = file.buffer.toString('utf-8');
-      const lines = csvContent.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const lines = csvContent
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
 
       if (lines.length < 2) {
-        return { success: false, message: 'CSV file must contain headers and at least one row of data' };
+        return {
+          success: false,
+          message: 'CSV file must contain headers and at least one row of data',
+        };
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
       const requiredFields = ['name', 'price'];
-      const missingFields = requiredFields.filter(f => !headers.includes(f));
+      const missingFields = requiredFields.filter((f) => !headers.includes(f));
 
       if (missingFields.length > 0) {
-        return { success: false, message: `CSV must contain these columns: ${missingFields.join(', ')}` };
+        return {
+          success: false,
+          message: `CSV must contain these columns: ${missingFields.join(', ')}`,
+        };
       }
 
       const results = {
@@ -309,7 +378,7 @@ export class ProductsService {
 
       for (let i = 1; i < lines.length; i++) {
         try {
-          const values = lines[i].split(',').map(v => v.trim());
+          const values = lines[i].split(',').map((v) => v.trim());
           const row: Record<string, string> = {};
           headers.forEach((h, idx) => (row[h] = values[idx] || ''));
 
@@ -325,7 +394,10 @@ export class ProductsService {
               where: { sku: row.sku, deletedAt: null },
             });
             if (existing) {
-              results.errors.push({ row: i + 1, error: `SKU "${row.sku}" already exists` });
+              results.errors.push({
+                row: i + 1,
+                error: `SKU "${row.sku}" already exists`,
+              });
               results.failed++;
               continue;
             }
@@ -344,7 +416,9 @@ export class ProductsService {
             taxRate: row.taxrate ? parseFloat(row.taxrate) : undefined,
             stockQuantity: row.stockquantity ? parseInt(row.stockquantity) : 0,
             minStockLevel: row.minstocklevel ? parseInt(row.minstocklevel) : 0,
-            isActive: row.isactive?.toUpperCase() === 'YES' || row.isactive?.toUpperCase() === 'TRUE',
+            isActive:
+              row.isactive?.toUpperCase() === 'YES' ||
+              row.isactive?.toUpperCase() === 'TRUE',
           } as any);
 
           results.imported++;
@@ -360,7 +434,10 @@ export class ProductsService {
         data: results,
       };
     } catch (error: any) {
-      return { success: false, message: error.message || 'Failed to import products' };
+      return {
+        success: false,
+        message: error.message || 'Failed to import products',
+      };
     }
   }
 
@@ -376,10 +453,14 @@ export class ProductsService {
 function escapeCsv(val: any): string {
   if (val === null || val === undefined) return '""';
   let s = String(val);
-  if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
+  if (
+    s.includes('"') ||
+    s.includes(',') ||
+    s.includes('\n') ||
+    s.includes('\r')
+  ) {
     s = s.replace(/"/g, '""');
     return `"${s}"`;
   }
   return s;
 }
-

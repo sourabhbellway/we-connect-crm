@@ -13,4 +13,4 @@ import { UnitTypesModule } from '../unit-types/unit-types.module';
   providers: [BusinessSettingsService, InvoiceTemplatesService, PrismaService],
   exports: [BusinessSettingsService, InvoiceTemplatesService],
 })
-export class BusinessSettingsModule { }
+export class BusinessSettingsModule {}

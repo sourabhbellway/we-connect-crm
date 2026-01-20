@@ -1,27 +1,33 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateCurrencyDto {
-    @IsString()
-    @IsNotEmpty()
-    name: string;
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsString()
-    @IsNotEmpty()
-    code: string;
+  @IsString()
+  @IsNotEmpty()
+  code: string;
 
-    @IsString()
-    @IsNotEmpty()
-    symbol: string;
+  @IsString()
+  @IsNotEmpty()
+  symbol: string;
 
-    @IsNumber()
-    @IsOptional()
-    exchangeRate?: number;
+  @IsNumber()
+  @IsOptional()
+  exchangeRate?: number;
 
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 
-    @IsBoolean()
-    @IsOptional()
-    isDefault?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  isDefault?: boolean;
 }

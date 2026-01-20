@@ -45,10 +45,22 @@ async function main() {
   // Ensure key permissions exist for admin (dashboard + core entities)
   const permKeys = [
     'dashboard.read',
-    'user.read', 'user.create', 'user.update', 'user.delete',
-    'role.read', 'role.create', 'role.update', 'role.delete',
-    'permission.read', 'permission.create', 'permission.update', 'permission.delete',
-    'lead.read', 'lead.create', 'lead.update', 'lead.delete',
+    'user.read',
+    'user.create',
+    'user.update',
+    'user.delete',
+    'role.read',
+    'role.create',
+    'role.update',
+    'role.delete',
+    'permission.read',
+    'permission.create',
+    'permission.update',
+    'permission.delete',
+    'lead.read',
+    'lead.create',
+    'lead.update',
+    'lead.delete',
   ];
   for (const key of permKeys) {
     await prisma.permission.upsert({
@@ -60,10 +72,14 @@ async function main() {
   console.log('✅ Base permissions ensured');
 
   // Attach all ensured permissions to Admin role
-  const perms = await prisma.permission.findMany({ where: { key: { in: permKeys } } });
+  const perms = await prisma.permission.findMany({
+    where: { key: { in: permKeys } },
+  });
   for (const p of perms) {
     await prisma.rolePermission.upsert({
-      where: { roleId_permissionId: { roleId: adminRole.id, permissionId: p.id } },
+      where: {
+        roleId_permissionId: { roleId: adminRole.id, permissionId: p.id },
+      },
       update: {},
       create: { roleId: adminRole.id, permissionId: p.id },
     });

@@ -5,4 +5,3 @@ export class UpdateNoteDto {
   @IsOptional() @IsString() content?: string;
   @IsOptional() @IsBoolean() isPinned?: boolean;
 }
-

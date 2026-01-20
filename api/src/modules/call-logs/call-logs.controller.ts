@@ -18,7 +18,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('call-logs')
 export class CallLogsController {
-  constructor(private readonly service: CallLogsService) { }
+  constructor(private readonly service: CallLogsService) {}
 
   @Get()
   list(
@@ -26,21 +26,27 @@ export class CallLogsController {
     @Query('userId') userId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @User() user?: any
+    @User() user?: any,
   ) {
-    return this.service.list({
-      leadId: leadId ? parseInt(leadId) : undefined,
-      userId: userId ? parseInt(userId) : undefined,
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-    }, user);
+    return this.service.list(
+      {
+        leadId: leadId ? parseInt(leadId) : undefined,
+        userId: userId ? parseInt(userId) : undefined,
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+      },
+      user,
+    );
   }
 
   @Get('lead/:leadId')
   listByLead(@Param('leadId') leadId: string, @User() user?: any) {
-    return this.service.list({
-      leadId: parseInt(leadId),
-    }, user);
+    return this.service.list(
+      {
+        leadId: parseInt(leadId),
+      },
+      user,
+    );
   }
 
   @Get(':id')
@@ -65,12 +71,10 @@ export class CallLogsController {
 
   @Post('initiate')
   async initiate(@Body() dto: CreateCallLogDto, @Body('fcm') fcm?: string) {
-
     const result = await this.service.create(dto);
 
     if (fcm) {
       try {
-
       } catch (error) {
         console.error('Failed to send mobile notification:', error);
       }

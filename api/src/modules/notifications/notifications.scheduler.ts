@@ -76,8 +76,8 @@ export class NotificationCronService {
           link: task.leadId
             ? `/leads/${task.leadId}`
             : task.dealId
-            ? `/deals/${task.dealId}`
-            : undefined,
+              ? `/deals/${task.dealId}`
+              : undefined,
           metadata: {
             taskId: task.id,
             leadId: task.leadId,
@@ -115,7 +115,12 @@ export class NotificationCronService {
         // Prefer notifying the lead owner if available; otherwise, the follow-up owner
         const lead = await this.prisma.lead.findUnique({
           where: { id: fu.leadId },
-          select: { id: true, firstName: true, lastName: true, assignedTo: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            assignedTo: true,
+          },
         });
 
         const targetUserId = lead?.assignedTo || fu.userId;

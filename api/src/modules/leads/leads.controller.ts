@@ -27,7 +27,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leads: LeadsService) { }
+  constructor(private readonly leads: LeadsService) {}
 
   @Get('stats')
   getStats() {
@@ -57,19 +57,24 @@ export class LeadsController {
     @User() user?: any,
   ) {
     // Convert string to boolean - handle 'true', 'True', 'TRUE', etc.
-    const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
+    const isDeletedBool =
+      isDeleted !== undefined &&
+      String(isDeleted).toLowerCase().trim() === 'true';
 
-    return this.leads.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      status,
-      search,
-      email,
-      isDeleted: isDeletedBool,
-      assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
-      sortBy,
-      sortOrder,
-    }, user);
+    return this.leads.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        status,
+        search,
+        email,
+        isDeleted: isDeletedBool,
+        assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
+        sortBy,
+        sortOrder,
+      },
+      user,
+    );
   }
 
   /**
@@ -166,14 +171,19 @@ export class LeadsController {
    * @param file - The CSV file to import.
    */
   @Post('bulk/import')
-  @UseInterceptors(FileInterceptor('csvFile', {
-    fileFilter: (req, file, cb) => {
-      if (!file.originalname.endsWith('.csv')) {
-        return cb(new BadRequestException('Only CSV files are allowed'), false);
-      }
-      cb(null, true);
-    },
-  }))
+  @UseInterceptors(
+    FileInterceptor('csvFile', {
+      fileFilter: (req, file, cb) => {
+        if (!file.originalname.endsWith('.csv')) {
+          return cb(
+            new BadRequestException('Only CSV files are allowed'),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
   async bulkImportLeads(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('CSV file is required');

@@ -28,12 +28,11 @@ export class PermissionsService {
         tasks: ['create', 'read', 'update', 'delete'],
         communications: ['create', 'read'],
         expense: ['create', 'read', 'update', 'delete', 'approve'],
-      
+
         // ✅ New modules added
         automation: ['create', 'read', 'update', 'delete'],
         dashboard_widgets: ['create', 'read', 'update', 'delete'],
       };
-      
 
       const toCreate = Object.entries(defs).flatMap(([module, actions]) =>
         actions.map((action) => ({
@@ -56,29 +55,68 @@ export class PermissionsService {
     } else {
       // Ensure expense permissions exist even if permissions are already seeded
       const expensePerms = [
-        { name: 'Expense create', key: 'expense.create', module: 'EXPENSE', description: 'Allows create on expense' },
-        { name: 'Expense read', key: 'expense.read', module: 'EXPENSE', description: 'Allows read on expense' },
-        { name: 'Expense update', key: 'expense.update', module: 'EXPENSE', description: 'Allows update on expense' },
-        { name: 'Expense delete', key: 'expense.delete', module: 'EXPENSE', description: 'Allows delete on expense' },
-        { name: 'Expense approve', key: 'expense.approve', module: 'EXPENSE', description: 'Allows approve on expense' },
+        {
+          name: 'Expense create',
+          key: 'expense.create',
+          module: 'EXPENSE',
+          description: 'Allows create on expense',
+        },
+        {
+          name: 'Expense read',
+          key: 'expense.read',
+          module: 'EXPENSE',
+          description: 'Allows read on expense',
+        },
+        {
+          name: 'Expense update',
+          key: 'expense.update',
+          module: 'EXPENSE',
+          description: 'Allows update on expense',
+        },
+        {
+          name: 'Expense delete',
+          key: 'expense.delete',
+          module: 'EXPENSE',
+          description: 'Allows delete on expense',
+        },
+        {
+          name: 'Expense approve',
+          key: 'expense.approve',
+          module: 'EXPENSE',
+          description: 'Allows approve on expense',
+        },
       ];
-      await this.prisma.permission.createMany({ data: expensePerms, skipDuplicates: true });
+      await this.prisma.permission.createMany({
+        data: expensePerms,
+        skipDuplicates: true,
+      });
 
       // Assign missing expense permissions to Admin role
-      const admin = await this.prisma.role.findFirst({ where: { name: 'Admin' }, include: { permissions: true } });
+      const admin = await this.prisma.role.findFirst({
+        where: { name: 'Admin' },
+        include: { permissions: true },
+      });
       if (admin) {
         const expenseKeys = expensePerms.map((p) => p.key);
-        const perms = await this.prisma.permission.findMany({ where: { key: { in: expenseKeys } } });
-        const existingIds = new Set(admin.permissions.map((rp) => rp.permissionId));
+        const perms = await this.prisma.permission.findMany({
+          where: { key: { in: expenseKeys } },
+        });
+        const existingIds = new Set(
+          admin.permissions.map((rp) => rp.permissionId),
+        );
         for (const p of perms) {
           if (!existingIds.has(p.id)) {
-            await this.prisma.rolePermission.create({ data: { roleId: admin.id, permissionId: p.id } });
+            await this.prisma.rolePermission.create({
+              data: { roleId: admin.id, permissionId: p.id },
+            });
           }
         }
       }
 
       // Refresh items to include any new permissions
-      items = await this.prisma.permission.findMany({ orderBy: { module: 'asc' } });
+      items = await this.prisma.permission.findMany({
+        orderBy: { module: 'asc' },
+      });
     }
 
     return { success: true, data: items };

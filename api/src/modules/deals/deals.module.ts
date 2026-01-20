@@ -10,4 +10,4 @@ import { AutomationModule } from '../automation/automation.module';
   controllers: [DealsController],
   providers: [DealsService, PrismaService],
 })
-export class DealsModule { }
+export class DealsModule {}

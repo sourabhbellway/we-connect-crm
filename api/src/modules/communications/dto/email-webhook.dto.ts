@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEmail, IsObject, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsObject,
+  IsArray,
+} from 'class-validator';
 
 export class EmailWebhookDto {
   @IsEmail()

@@ -22,7 +22,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('quotations')
 export class QuotationsController {
-  constructor(private readonly service: QuotationsService) { }
+  constructor(private readonly service: QuotationsService) {}
 
   @Get('template')
   getTemplate() {
@@ -44,14 +44,17 @@ export class QuotationsController {
     @Query('entityId') entityId?: string,
     @User() user?: any,
   ) {
-    return this.service.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      search,
-      status,
-      entityType,
-      entityId,
-    }, user);
+    return this.service.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        search,
+        status,
+        entityType,
+        entityId,
+      },
+      user,
+    );
   }
 
   @Get(':id')
@@ -64,24 +67,25 @@ export class QuotationsController {
     console.log('QuotationsController.create called with body:', body);
 
     // Normalize payloads from different client forms
-    const normalizeStatus = (s?: string) => (s ? String(s).toUpperCase() : undefined);
+    const normalizeStatus = (s?: string) =>
+      s ? String(s).toUpperCase() : undefined;
 
     const items = Array.isArray(body.items)
       ? body.items.map((it: any) => ({
-        productId: it.productId ? Number(it.productId) : undefined,
-        name: it.name ?? it.description ?? 'Item',
-        description: it.longDescription ?? it.description ?? undefined,
-        quantity: Number(it.quantity ?? 1),
-        unit: it.unit ?? 'pcs',
-        unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
-        taxRate: it.taxRate !== undefined ? Number(it.taxRate) : undefined,
-        discountRate:
-          it.discountRate !== undefined
-            ? Number(it.discountRate)
-            : body.discountType === '%'
-              ? Number(body.discountValue || 0)
-              : undefined,
-      }))
+          productId: it.productId ? Number(it.productId) : undefined,
+          name: it.name ?? it.description ?? 'Item',
+          description: it.longDescription ?? it.description ?? undefined,
+          quantity: Number(it.quantity ?? 1),
+          unit: it.unit ?? 'pcs',
+          unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
+          taxRate: it.taxRate !== undefined ? Number(it.taxRate) : undefined,
+          discountRate:
+            it.discountRate !== undefined
+              ? Number(it.discountRate)
+              : body.discountType === '%'
+                ? Number(body.discountValue || 0)
+                : undefined,
+        }))
       : [];
 
     const payload: CreateQuotationDto = {
@@ -98,10 +102,22 @@ export class QuotationsController {
       notes: body.notes,
       terms: body.terms,
       companyId: body.companyId ? Number(body.companyId) : undefined,
-      leadId: body.relatedType === 'lead' && body.relatedId ? Number(body.relatedId) : (body.leadId ? Number(body.leadId) : undefined),
+      leadId:
+        body.relatedType === 'lead' && body.relatedId
+          ? Number(body.relatedId)
+          : body.leadId
+            ? Number(body.leadId)
+            : undefined,
       dealId: body.dealId ? Number(body.dealId) : undefined,
-      contactId: body.relatedType === 'contact' && body.relatedId ? Number(body.relatedId) : (body.contactId ? Number(body.contactId) : undefined),
-      createdBy: (user?.userId ? Number(user.userId) : undefined) || (body.createdBy ? Number(body.createdBy) : undefined),
+      contactId:
+        body.relatedType === 'contact' && body.relatedId
+          ? Number(body.relatedId)
+          : body.contactId
+            ? Number(body.contactId)
+            : undefined,
+      createdBy:
+        (user?.userId ? Number(user.userId) : undefined) ||
+        (body.createdBy ? Number(body.createdBy) : undefined),
       items,
     } as CreateQuotationDto;
 

@@ -6,7 +6,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly service: AnalyticsService) { }
+  constructor(private readonly service: AnalyticsService) {}
 
   @Get('dashboard/kpis')
   kpis(
@@ -19,7 +19,13 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.kpis(startDate, endDate, parsedUserId, includeTeamData, user);
+    return this.service.kpis(
+      startDate,
+      endDate,
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/lead-status-distribution')
@@ -31,7 +37,11 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getLeadStatusDistribution(parsedUserId, includeTeamData, user);
+    return this.service.getLeadStatusDistribution(
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/revenue-trends')
@@ -45,7 +55,12 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getRevenueTrends(parsedMonths, parsedUserId, includeTeamData, user);
+    return this.service.getRevenueTrends(
+      parsedMonths,
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/activity-trends')
@@ -59,7 +74,12 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getActivityTrends(parsedMonths, parsedUserId, includeTeamData, user);
+    return this.service.getActivityTrends(
+      parsedMonths,
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/user-growth')
@@ -77,7 +97,11 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getLeadConversionFunnel(parsedUserId, includeTeamData, user);
+    return this.service.getLeadConversionFunnel(
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/sales-pipeline-flow')
@@ -91,7 +115,12 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getSalesPipelineFlow(parsedMonths, parsedUserId, includeTeamData, user);
+    return this.service.getSalesPipelineFlow(
+      parsedMonths,
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/top-performers')
@@ -105,7 +134,12 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getTopPerformers(parsedLimit, parsedUserId, includeTeamData, user);
+    return this.service.getTopPerformers(
+      parsedLimit,
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/lead-velocity')
@@ -119,7 +153,12 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getDealVelocity(parsedMonths, parsedUserId, includeTeamData, user);
+    return this.service.getDealVelocity(
+      parsedMonths,
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('charts/lead-source-distribution')
@@ -131,7 +170,11 @@ export class AnalyticsController {
     const parsedUserId =
       userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
     const includeTeamData = scope === 'all';
-    return this.service.getLeadSourceDistribution(parsedUserId, includeTeamData, user);
+    return this.service.getLeadSourceDistribution(
+      parsedUserId,
+      includeTeamData,
+      user,
+    );
   }
 
   @Get('reports/task')
@@ -150,7 +193,15 @@ export class AnalyticsController {
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
     const parsedFilters = filters ? JSON.parse(filters) : undefined;
-    return this.service.getTaskReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
+    return this.service.getTaskReport(
+      parsedMonths,
+      parsedUserId,
+      scope as any,
+      user,
+      parsedPage,
+      parsedLimit,
+      parsedFilters,
+    );
   }
 
   @Get('reports/lead')
@@ -169,7 +220,15 @@ export class AnalyticsController {
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
     const parsedFilters = filters ? JSON.parse(filters) : undefined;
-    return this.service.getLeadReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
+    return this.service.getLeadReport(
+      parsedMonths,
+      parsedUserId,
+      scope as any,
+      user,
+      parsedPage,
+      parsedLimit,
+      parsedFilters,
+    );
   }
 
   @Get('reports/deal')
@@ -188,7 +247,15 @@ export class AnalyticsController {
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
     const parsedFilters = filters ? JSON.parse(filters) : undefined;
-    return this.service.getDealReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
+    return this.service.getDealReport(
+      parsedMonths,
+      parsedUserId,
+      scope as any,
+      user,
+      parsedPage,
+      parsedLimit,
+      parsedFilters,
+    );
   }
 
   @Get('reports/expense')
@@ -207,7 +274,15 @@ export class AnalyticsController {
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
     const parsedFilters = filters ? JSON.parse(filters) : undefined;
-    return this.service.getExpenseReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
+    return this.service.getExpenseReport(
+      parsedMonths,
+      parsedUserId,
+      scope as any,
+      user,
+      parsedPage,
+      parsedLimit,
+      parsedFilters,
+    );
   }
 
   @Get('reports/invoice')
@@ -226,7 +301,15 @@ export class AnalyticsController {
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
     const parsedFilters = filters ? JSON.parse(filters) : undefined;
-    return this.service.getInvoiceReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
+    return this.service.getInvoiceReport(
+      parsedMonths,
+      parsedUserId,
+      scope as any,
+      user,
+      parsedPage,
+      parsedLimit,
+      parsedFilters,
+    );
   }
 
   @Get('reports/quotation')
@@ -245,6 +328,14 @@ export class AnalyticsController {
     const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
     const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
     const parsedFilters = filters ? JSON.parse(filters) : undefined;
-    return this.service.getQuotationReport(parsedMonths, parsedUserId, scope as any, user, parsedPage, parsedLimit, parsedFilters);
+    return this.service.getQuotationReport(
+      parsedMonths,
+      parsedUserId,
+      scope as any,
+      user,
+      parsedPage,
+      parsedLimit,
+      parsedFilters,
+    );
   }
 }

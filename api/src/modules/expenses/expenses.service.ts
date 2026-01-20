@@ -7,40 +7,46 @@ import { ApproveExpenseDto } from './dto/approve-expense.dto';
 
 @Injectable()
 export class ExpensesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async list({
-    page = 1,
-    limit = 10,
-    status,
-    search,
-    submittedBy,
-    startDate,
-    endDate,
-    type,
-    projectId,
-    dealId,
-    leadId,
-    currency,
-  }: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    search?: string;
-    submittedBy?: number;
-    startDate?: string;
-    endDate?: string;
-    type?: string;
-    projectId?: number;
-    dealId?: number;
-    leadId?: number;
-    currency?: string;
-  }, user?: any) {
+  async list(
+    {
+      page = 1,
+      limit = 10,
+      status,
+      search,
+      submittedBy,
+      startDate,
+      endDate,
+      type,
+      projectId,
+      dealId,
+      leadId,
+      currency,
+    }: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      search?: string;
+      submittedBy?: number;
+      startDate?: string;
+      endDate?: string;
+      type?: string;
+      projectId?: number;
+      dealId?: number;
+      leadId?: number;
+      currency?: string;
+    },
+    user?: any,
+  ) {
     const where: any = { deletedAt: null };
 
     // Role-based filtering
     if (user && user.userId) {
-      const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+      const accessibleIds = await getAccessibleUserIds(
+        user.userId,
+        this.prisma,
+      );
       if (accessibleIds) {
         where.AND = [
           {
@@ -148,13 +154,15 @@ export class ExpensesService {
     }
   }
 
-
   async getById(id: number, user?: any) {
     const where: any = { id, deletedAt: null };
 
     // Role-based filtering
     if (user && user.userId) {
-      const accessibleIds = await getAccessibleUserIds(user.userId, this.prisma);
+      const accessibleIds = await getAccessibleUserIds(
+        user.userId,
+        this.prisma,
+      );
       if (accessibleIds) {
         where.AND = [
           {
@@ -270,7 +278,8 @@ export class ExpensesService {
         {
           success: false,
           message: error?.message || 'Failed to create expense',
-          error: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+          error:
+            process.env.NODE_ENV === 'development' ? error.stack : undefined,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -368,7 +377,8 @@ export class ExpensesService {
     try {
       await this.prisma.activity.create({
         data: {
-          title: dto.status === 'APPROVED' ? 'Expense approved' : 'Expense rejected',
+          title:
+            dto.status === 'APPROVED' ? 'Expense approved' : 'Expense rejected',
           description:
             dto.status === 'APPROVED'
               ? `Your expense #${expense.id} has been approved.`
@@ -400,7 +410,6 @@ export class ExpensesService {
 
     return { success: true, message: 'Expense deleted successfully' };
   }
-
 
   async getStats(userId?: number) {
     const where: any = { deletedAt: null };

@@ -13,7 +13,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           try {
             // Look for token in query params: ?token= or ?access_token=
             // Works for Server-Sent Events where headers cannot be set
-            const token = (req?.query?.token as string) || (req?.query?.access_token as string);
+            const token =
+              (req?.query?.token as string) ||
+              (req?.query?.access_token as string);
             return token || null;
           } catch {
             return null;

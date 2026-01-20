@@ -21,7 +21,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('expenses')
 export class ExpensesController {
-  constructor(private readonly service: ExpensesService) { }
+  constructor(private readonly service: ExpensesService) {}
 
   @Get()
   list(
@@ -39,27 +39,29 @@ export class ExpensesController {
     @Query('currency') currency?: string,
     @User() user?: any,
   ) {
-    return this.service.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      status,
-      search,
-      submittedBy: submittedBy ? parseInt(submittedBy) : undefined,
-      startDate,
-      endDate,
-      type,
-      projectId: projectId ? parseInt(projectId) : undefined,
-      dealId: dealId ? parseInt(dealId) : undefined,
-      leadId: leadId ? parseInt(leadId) : undefined,
-      currency,
-    }, user);
+    return this.service.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        status,
+        search,
+        submittedBy: submittedBy ? parseInt(submittedBy) : undefined,
+        startDate,
+        endDate,
+        type,
+        projectId: projectId ? parseInt(projectId) : undefined,
+        dealId: dealId ? parseInt(dealId) : undefined,
+        leadId: leadId ? parseInt(leadId) : undefined,
+        currency,
+      },
+      user,
+    );
   }
 
   @Get('stats')
   getStats(@Query('userId') userId?: string) {
     return this.service.getStats(userId ? parseInt(userId) : undefined);
   }
-
 
   @Get(':id')
   get(@Param('id') id: string, @User() user?: any) {

@@ -4,9 +4,9 @@ import { TrashController } from './trash.controller';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
-    imports: [DatabaseModule],
-    controllers: [TrashController],
-    providers: [TrashService],
-    exports: [TrashService],
+  imports: [DatabaseModule],
+  controllers: [TrashController],
+  providers: [TrashService],
+  exports: [TrashService],
 })
-export class TrashModule { }
+export class TrashModule {}

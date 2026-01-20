@@ -30,7 +30,9 @@ export class AppController {
 
     return {
       success: dbConnected,
-      message: dbConnected ? 'CRM API is running and database is connected' : 'CRM API is running but database is not connected',
+      message: dbConnected
+        ? 'CRM API is running and database is connected'
+        : 'CRM API is running but database is not connected',
       timestamp: new Date().toISOString(),
       database: {
         connected: dbConnected,

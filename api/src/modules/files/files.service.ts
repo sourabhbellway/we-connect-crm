@@ -4,22 +4,29 @@ import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
 
 @Injectable()
 export class FilesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async list({
-    entityType,
-    entityId,
-  }: {
-    entityType?: string;
-    entityId?: number;
-  }, user?: any) {
+  async list(
+    {
+      entityType,
+      entityId,
+    }: {
+      entityType?: string;
+      entityId?: number;
+    },
+    user?: any,
+  ) {
     const where: any = { deletedAt: null };
     if (entityType) where.entityType = entityType;
     if (entityId) where.entityId = entityId;
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['uploadedBy']);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+        ['uploadedBy'],
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         if (where.AND) {
           where.AND.push(roleBasedWhere);
@@ -42,7 +49,11 @@ export class FilesService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['uploadedBy']);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+        ['uploadedBy'],
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }

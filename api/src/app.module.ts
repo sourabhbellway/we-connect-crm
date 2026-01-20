@@ -95,4 +95,4 @@ import { TrashModule } from './modules/trash/trash.module';
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],
 })
-export class AppModule { }
+export class AppModule {}

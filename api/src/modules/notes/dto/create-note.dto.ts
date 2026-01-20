@@ -7,4 +7,3 @@ export class CreateNoteDto {
   @IsNumber() leadId: number;
   @IsNumber() createdBy: number;
 }
-

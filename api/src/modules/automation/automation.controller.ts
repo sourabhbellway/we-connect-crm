@@ -20,7 +20,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @Controller('automation')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 export class AutomationController {
-  constructor(private readonly automationService: AutomationService) { }
+  constructor(private readonly automationService: AutomationService) {}
 
   @Post('workflows')
   @RequirePermission('automation.create')
@@ -43,7 +43,10 @@ export class AutomationController {
 
   @Patch('workflows/:id')
   @RequirePermission('automation.update')
-  update(@Param('id') id: string, @Body() updateWorkflowDto: UpdateWorkflowDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateWorkflowDto: UpdateWorkflowDto,
+  ) {
     return this.automationService.update(+id, updateWorkflowDto);
   }
 

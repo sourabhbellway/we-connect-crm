@@ -9,7 +9,15 @@ import { CommunicationProvidersService } from './communication-providers.service
 
 @Module({
   imports: [NotificationsModule],
-  controllers: [CommunicationsController, WebhooksController, CommunicationProvidersController],
-  providers: [CommunicationsService, CommunicationProvidersService, PrismaService],
+  controllers: [
+    CommunicationsController,
+    WebhooksController,
+    CommunicationProvidersController,
+  ],
+  providers: [
+    CommunicationsService,
+    CommunicationProvidersService,
+    PrismaService,
+  ],
 })
 export class CommunicationsModule {}

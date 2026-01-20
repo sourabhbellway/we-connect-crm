@@ -19,10 +19,7 @@ export class LeadSourcesService {
   async list() {
     const items = await this.prisma.leadSource.findMany({
       where: { isActive: true },
-      orderBy: [
-        { sortOrder: 'asc' },
-        { createdAt: 'asc' },
-      ],
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
     return { success: true, data: items };
   }
@@ -40,7 +37,7 @@ export class LeadSourcesService {
     if (!color) {
       let isUnique = false;
       while (!isUnique) {
-        color = this.generateUniqueColor();    // ⭐ ADDED
+        color = this.generateUniqueColor(); // ⭐ ADDED
         const exists = await this.prisma.leadSource.findUnique({
           where: { color },
         });
@@ -85,10 +82,16 @@ export class LeadSourcesService {
         const field = error.meta?.target?.[0];
         throw new BadRequestException(`${field} must be unique`);
         if (field === 'color') {
-          return { success: false, message: 'Color must be unique. This color is already used.' };
+          return {
+            success: false,
+            message: 'Color must be unique. This color is already used.',
+          };
         }
         if (field === 'name') {
-          return { success: false, message: 'Name must be unique. This name already exists.' };
+          return {
+            success: false,
+            message: 'Name must be unique. This name already exists.',
+          };
         }
       }
 

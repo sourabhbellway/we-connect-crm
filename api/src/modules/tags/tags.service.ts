@@ -8,15 +8,27 @@ export class TagsService {
 
   // Predefined palette
   private predefinedColors = [
-    '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6',
-    '#EC4899', '#14B8A6', '#F97316', '#84CC16', '#6366F1',
-    '#64748B', '#374151', '#7C2D12', '#B91C1C', '#365314'
+    '#EF4444',
+    '#F59E0B',
+    '#10B981',
+    '#3B82F6',
+    '#8B5CF6',
+    '#EC4899',
+    '#14B8A6',
+    '#F97316',
+    '#84CC16',
+    '#6366F1',
+    '#64748B',
+    '#374151',
+    '#7C2D12',
+    '#B91C1C',
+    '#365314',
   ];
 
   // Generate a unique color
   private async generateUniqueColor(): Promise<string> {
     const existing = await this.prisma.tag.findMany({
-      select: { color: true }
+      select: { color: true },
     });
 
     const used = existing.map((x) => x.color);
@@ -30,9 +42,11 @@ export class TagsService {
     // If palette exhausted → generate random unique hex
     let color = '';
     do {
-      color = '#' + Math.floor(Math.random() * 16777215)
-        .toString(16)
-        .padStart(6, '0');
+      color =
+        '#' +
+        Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, '0');
     } while (used.includes(color));
 
     return color;
@@ -46,11 +60,11 @@ export class TagsService {
   }
 
   async create(dto: UpsertTagDto) {
-    const finalColor = dto.color || await this.generateUniqueColor();
+    const finalColor = dto.color || (await this.generateUniqueColor());
 
     // Validate if user passed a duplicate color manually
     const exists = await this.prisma.tag.findFirst({
-      where: { color: finalColor }
+      where: { color: finalColor },
     });
 
     if (exists) {
@@ -73,7 +87,7 @@ export class TagsService {
     // If user tries to update color → ensure new color is unique
     if (dto.color) {
       const exists = await this.prisma.tag.findFirst({
-        where: { color: dto.color, NOT: { id } }
+        where: { color: dto.color, NOT: { id } },
       });
 
       if (exists) {
@@ -87,7 +101,8 @@ export class TagsService {
     };
 
     if (dto.color !== undefined) updateData.color = dto.color;
-    if (dto.description !== undefined) updateData.description = dto.description ?? null;
+    if (dto.description !== undefined)
+      updateData.description = dto.description ?? null;
     if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
 
     const tag = await this.prisma.tag.update({

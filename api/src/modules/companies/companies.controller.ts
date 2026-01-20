@@ -18,7 +18,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('companies')
 export class CompaniesController {
-  constructor(private readonly companies: CompaniesService) { }
+  constructor(private readonly companies: CompaniesService) {}
 
   @Get()
   list(
@@ -27,11 +27,14 @@ export class CompaniesController {
     @Query('search') search?: string,
     @User() user?: any,
   ) {
-    return this.companies.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      search,
-    }, user);
+    return this.companies.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        search,
+      },
+      user,
+    );
   }
 
   @Get(':id')

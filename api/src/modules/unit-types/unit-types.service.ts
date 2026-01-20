@@ -1,4 +1,8 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateUnitTypeDto } from './dto/create-unit-type.dto';
 import { UpdateUnitTypeDto } from './dto/update-unit-type.dto';
@@ -74,7 +78,9 @@ export class UnitTypesService {
     });
 
     if (productsUsingUnitType) {
-      throw new ConflictException('Cannot delete unit type as it is being used by products');
+      throw new ConflictException(
+        'Cannot delete unit type as it is being used by products',
+      );
     }
 
     return this.prisma.unitType.delete({

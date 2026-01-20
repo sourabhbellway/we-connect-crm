@@ -14,7 +14,10 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto, BulkNotificationDto } from './dto/create-notification.dto';
+import {
+  CreateNotificationDto,
+  BulkNotificationDto,
+} from './dto/create-notification.dto';
 import { QueryNotificationsDto } from './dto/query-notifications.dto';
 import { UpdateNotificationPreferenceDto } from './dto/notification-preference.dto';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -36,7 +39,10 @@ export class NotificationsController {
 
   // Get all notifications for current user
   @Get()
-  async getNotifications(@Req() req: any, @Query() query: QueryNotificationsDto) {
+  async getNotifications(
+    @Req() req: any,
+    @Query() query: QueryNotificationsDto,
+  ) {
     const userId = req.user.userId;
     return this.notificationsService.findAll(userId, query);
   }
@@ -90,7 +96,10 @@ export class NotificationsController {
 
   // Update notification preferences
   @Patch('preferences')
-  async updatePreferences(@Req() req: any, @Body() dto: UpdateNotificationPreferenceDto) {
+  async updatePreferences(
+    @Req() req: any,
+    @Body() dto: UpdateNotificationPreferenceDto,
+  ) {
     const userId = req.user.userId;
     return this.notificationsService.updatePreferences(userId, dto);
   }

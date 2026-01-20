@@ -9,4 +9,4 @@ import { DatabaseModule } from '../../database/database.module';
   providers: [TeamsService],
   exports: [TeamsService],
 })
-export class TeamsModule { }
+export class TeamsModule {}

@@ -11,4 +11,4 @@ import { ActivitiesModule } from '../activities/activities.module';
   providers: [AutomationService, PrismaService],
   exports: [AutomationService],
 })
-export class AutomationModule { }
+export class AutomationModule {}

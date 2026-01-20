@@ -1,24 +1,30 @@
-import { IsString, IsOptional, IsInt, IsArray, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsArray,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateTeamDto {
-    @IsString()
-    @IsNotEmpty()
-    name: string;
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsString()
-    @IsOptional()
-    description?: string;
+  @IsString()
+  @IsOptional()
+  description?: string;
 
-    @IsInt()
-    @IsOptional()
-    managerId?: number;
+  @IsInt()
+  @IsOptional()
+  managerId?: number;
 
-    @IsArray()
-    @IsOptional()
-    @IsInt({ each: true })
-    memberIds?: number[];
+  @IsArray()
+  @IsOptional()
+  @IsInt({ each: true })
+  memberIds?: number[];
 
-    @IsInt()
-    @IsOptional()
-    productId?: number;
+  @IsInt()
+  @IsOptional()
+  productId?: number;
 }

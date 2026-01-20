@@ -26,7 +26,7 @@ import { extname } from 'path';
 @UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   findAll(
@@ -36,7 +36,9 @@ export class UsersController {
     @Query('status') status?: string,
     @Query('isDeleted') isDeleted?: string,
   ) {
-    const isDeletedBool = isDeleted !== undefined && String(isDeleted).toLowerCase().trim() === 'true';
+    const isDeletedBool =
+      isDeleted !== undefined &&
+      String(isDeleted).toLowerCase().trim() === 'true';
 
     return this.usersService.findAll({
       page: page ? parseInt(page) : undefined,
@@ -54,30 +56,44 @@ export class UsersController {
 
   @Get('profile')
   getMyProfile(@User() user: any) {
-    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+    if (!user?.userId && !user?.id)
+      throw new BadRequestException('Invalid user context');
     const id = user.userId ?? user.id;
     return this.usersService.findOne(Number(id));
   }
 
   @Put('profile')
   updateMyProfile(@User() user: any, @Body() dto: UpdateProfileDto) {
-    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+    if (!user?.userId && !user?.id)
+      throw new BadRequestException('Invalid user context');
     const id = user.userId ?? user.id;
     return this.usersService.updateProfile(Number(id), dto);
   }
 
   @Put('password')
   changeMyPassword(@User() user: any, @Body() dto: ChangePasswordDto) {
-    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+    if (!user?.userId && !user?.id)
+      throw new BadRequestException('Invalid user context');
     const id = user.userId ?? user.id;
-    return this.usersService.changePasswordForUser(Number(id), dto.currentPassword, dto.newPassword);
+    return this.usersService.changePasswordForUser(
+      Number(id),
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 
   @Put('password/new-user')
-  changePasswordForNewUser(@User() user: any, @Body() dto: { newPassword: string }) {
-    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+  changePasswordForNewUser(
+    @User() user: any,
+    @Body() dto: { newPassword: string },
+  ) {
+    if (!user?.userId && !user?.id)
+      throw new BadRequestException('Invalid user context');
     const id = user.userId ?? user.id;
-    return this.usersService.changePasswordForNewUser(Number(id), dto.newPassword);
+    return this.usersService.changePasswordForNewUser(
+      Number(id),
+      dto.newPassword,
+    );
   }
 
   @Post('profile/avatar')
@@ -97,8 +113,12 @@ export class UsersController {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
-  async uploadAvatar(@User() user: any, @UploadedFile() file?: Express.Multer.File) {
-    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+  async uploadAvatar(
+    @User() user: any,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!user?.userId && !user?.id)
+      throw new BadRequestException('Invalid user context');
     if (!file) throw new BadRequestException('No file uploaded');
     const id = user.userId ?? user.id;
     const fileName = file.filename;
@@ -107,7 +127,8 @@ export class UsersController {
 
   @Put('profile/device-token')
   updateDeviceToken(@User() user: any, @Body() dto: { token: string }) {
-    if (!user?.userId && !user?.id) throw new BadRequestException('Invalid user context');
+    if (!user?.userId && !user?.id)
+      throw new BadRequestException('Invalid user context');
     const id = user.userId ?? user.id;
     if (!dto.token) throw new BadRequestException('Token is required');
     return this.usersService.updateDeviceToken(Number(id), dto.token);

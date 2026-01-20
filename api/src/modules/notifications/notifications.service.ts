@@ -1,6 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateNotificationDto, BulkNotificationDto } from './dto/create-notification.dto';
+import {
+  CreateNotificationDto,
+  BulkNotificationDto,
+} from './dto/create-notification.dto';
 import { QueryNotificationsDto } from './dto/query-notifications.dto';
 import { UpdateNotificationPreferenceDto } from './dto/notification-preference.dto';
 import { NotificationType } from '@prisma/client';
@@ -26,7 +29,9 @@ export class NotificationsService {
           });
           this.logger.log('Firebase Admin SDK initialized successfully');
         } else {
-          this.logger.warn('Firebase service account not configured. FCM push notifications will not work.');
+          this.logger.warn(
+            'Firebase service account not configured. FCM push notifications will not work.',
+          );
         }
       } catch (error) {
         this.logger.error('Failed to initialize Firebase Admin SDK:', error);
@@ -39,7 +44,9 @@ export class NotificationsService {
     // Check user's notification preferences
     const shouldSend = await this.shouldSendNotification(dto.userId, dto.type);
     if (!shouldSend) {
-      this.logger.log(`Notification skipped for user ${dto.userId}, type ${dto.type} (preferences)`);
+      this.logger.log(
+        `Notification skipped for user ${dto.userId}, type ${dto.type} (preferences)`,
+      );
       return { success: true, skipped: true };
     }
 
@@ -60,7 +67,9 @@ export class NotificationsService {
       notification,
     });
 
-    this.logger.log(`Notification created: ${notification.id} for user ${dto.userId}`);
+    this.logger.log(
+      `Notification created: ${notification.id} for user ${dto.userId}`,
+    );
 
     return { success: true, data: notification };
   }
@@ -93,7 +102,9 @@ export class NotificationsService {
       }
     }
 
-    this.logger.log(`Bulk notifications created: ${notifications.length} out of ${dto.userIds.length}`);
+    this.logger.log(
+      `Bulk notifications created: ${notifications.length} out of ${dto.userIds.length}`,
+    );
 
     return { success: true, data: { count: notifications.length } };
   }
@@ -203,7 +214,10 @@ export class NotificationsService {
     return { success: true, data: preferences };
   }
 
-  async updatePreferences(userId: number, dto: UpdateNotificationPreferenceDto) {
+  async updatePreferences(
+    userId: number,
+    dto: UpdateNotificationPreferenceDto,
+  ) {
     const existingPrefs = await this.prisma.notificationPreference.findUnique({
       where: { userId },
     });
@@ -223,7 +237,7 @@ export class NotificationsService {
           inAppEnabled: dto.inAppEnabled,
           emailEnabled: dto.emailEnabled,
           soundEnabled: dto.soundEnabled,
-          preferences: newPrefs as any,
+          preferences: newPrefs,
           doNotDisturbStart: dto.doNotDisturbStart,
           doNotDisturbEnd: dto.doNotDisturbEnd,
         },
@@ -247,7 +261,10 @@ export class NotificationsService {
   }
 
   // Helper: Check if notification should be sent based on preferences
-  private async shouldSendNotification(userId: number, type: NotificationType): Promise<boolean> {
+  private async shouldSendNotification(
+    userId: number,
+    type: NotificationType,
+  ): Promise<boolean> {
     const prefs = await this.prisma.notificationPreference.findUnique({
       where: { userId },
     });
@@ -318,8 +335,17 @@ export class NotificationsService {
   }
 
   // Helper method to create notification for lead events
-  async notifyLeadEvent(type: NotificationType, userId: number, leadId: number, leadName: string, additionalInfo?: string) {
-    const messages: Record<NotificationType, { title: string; message: string } | undefined> = {
+  async notifyLeadEvent(
+    type: NotificationType,
+    userId: number,
+    leadId: number,
+    leadName: string,
+    additionalInfo?: string,
+  ) {
+    const messages: Record<
+      NotificationType,
+      { title: string; message: string } | undefined
+    > = {
       [NotificationType.LEAD_CREATED]: {
         title: 'New Lead Created',
         message: `A new lead "${leadName}" has been created${additionalInfo ? ': ' + additionalInfo : ''}`,
@@ -377,11 +403,13 @@ export class NotificationsService {
     deviceToken: string,
     title: string,
     body: string,
-    data?: Record<string, string>
+    data?: Record<string, string>,
   ): Promise<boolean> {
     try {
       if (!admin.apps.length) {
-        this.logger.warn('Firebase not initialized. Cannot send push notification.');
+        this.logger.warn(
+          'Firebase not initialized. Cannot send push notification.',
+        );
         return false;
       }
 

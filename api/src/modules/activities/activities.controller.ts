@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards, Param } from '@nestjs/common'; // <-- Param import kiya
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  UseGuards,
+  Param,
+} from '@nestjs/common'; // <-- Param import kiya
 import { AuthGuard } from '@nestjs/passport';
 import { ActivitiesService } from './activities.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
@@ -7,18 +15,18 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('activities')
 export class ActivitiesController {
-  constructor(private readonly service: ActivitiesService) { }
+  constructor(private readonly service: ActivitiesService) {}
 
   @Get('recent')
   getRecent(
     @Query('limit') limit?: string,
     @Query('userId') userId?: string,
-    @User() user?: any
+    @User() user?: any,
   ) {
     return this.service.getRecent(
       limit ? parseInt(limit) : 5,
       user,
-      userId ? parseInt(userId) : undefined
+      userId ? parseInt(userId) : undefined,
     );
   }
 
@@ -28,10 +36,7 @@ export class ActivitiesController {
   }
 
   @Get('deleted-data')
-  getDeletedData(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  getDeletedData(@Query('page') page?: string, @Query('limit') limit?: string) {
     return this.service.getDeletedData({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
@@ -46,12 +51,15 @@ export class ActivitiesController {
     @Query('userId') userId?: string,
     @User() user?: any,
   ) {
-    return this.service.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      type,
-      userId: userId ? parseInt(userId) : undefined,
-    }, user);
+    return this.service.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        type,
+        userId: userId ? parseInt(userId) : undefined,
+      },
+      user,
+    );
   }
 
   @Post()
@@ -92,9 +100,12 @@ export class ActivitiesController {
     @Query('endDate') endDate?: string,
     @User() user?: any,
   ) {
-    return this.service.getActivitiesForCalendar({
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-    }, user);
+    return this.service.getActivitiesForCalendar(
+      {
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+      },
+      user,
+    );
   }
 }

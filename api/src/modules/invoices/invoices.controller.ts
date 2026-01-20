@@ -23,7 +23,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('invoices')
 export class InvoicesController {
-  constructor(private readonly service: InvoicesService) { }
+  constructor(private readonly service: InvoicesService) {}
 
   @Get()
   list(
@@ -35,14 +35,17 @@ export class InvoicesController {
     @Query('entityId') entityId?: string,
     @User() user?: any,
   ) {
-    return this.service.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      search,
-      status,
-      entityType,
-      entityId,
-    }, user);
+    return this.service.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        search,
+        status,
+        entityType,
+        entityId,
+      },
+      user,
+    );
   }
 
   @Get('next-number')

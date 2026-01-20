@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { EmailTemplateCategory, LeadStatus } from '@prisma/client';
 
@@ -28,7 +32,7 @@ function mapToCompanySettings(bs: any) {
 
 @Injectable()
 export class BusinessSettingsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   private generateUniqueColor() {
     return (
       '#' +
@@ -64,7 +68,14 @@ export class BusinessSettingsService {
     }
   }
 
-  private async saveExtended(bs: any, patch: Partial<{ defaultTerms: string; paymentTerms: string; shippingTerms: string }>) {
+  private async saveExtended(
+    bs: any,
+    patch: Partial<{
+      defaultTerms: string;
+      paymentTerms: string;
+      shippingTerms: string;
+    }>,
+  ) {
     const current = this.parseExtended(bs);
     const next = { ...current, ...patch };
     await this.prisma.businessSettings.update({
@@ -95,14 +106,21 @@ export class BusinessSettingsService {
   async updateCompany(body: any) {
     const bs = await this.ensureSettings();
     try {
-      console.log('Updating company settings with body:', JSON.stringify(body, null, 2));
+      console.log(
+        'Updating company settings with body:',
+        JSON.stringify(body, null, 2),
+      );
 
       // Migration Logic: If preferences is null but description has JSON, move it to preferences
       let currentPreferences = bs.preferences;
-      if (!currentPreferences && bs.description && bs.description.trim().startsWith('{')) {
+      if (
+        !currentPreferences &&
+        bs.description &&
+        bs.description.trim().startsWith('{')
+      ) {
         try {
           currentPreferences = JSON.parse(bs.description);
-        } catch { }
+        } catch {}
       }
 
       // If body has invalid invoiceTemplate, we might want to store it in preferences?
@@ -224,7 +242,6 @@ export class BusinessSettingsService {
     return { success: true, data: ls };
   }
 
-
   // Aggregate endpoint used by client context initialize
   async getAllBusinessSettings() {
     const bs = await this.ensureSettings();
@@ -241,7 +258,14 @@ export class BusinessSettingsService {
 
     if (dealStatuses.length === 0) {
       // Seed default statuses if table is empty
-      const statusesToCreate = ['DRAFT', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST', 'CLOSED'];
+      const statusesToCreate = [
+        'DRAFT',
+        'PROPOSAL',
+        'NEGOTIATION',
+        'WON',
+        'LOST',
+        'CLOSED',
+      ];
 
       for (let i = 0; i < statusesToCreate.length; i++) {
         await this.prisma.dealStatus.upsert({
@@ -267,7 +291,7 @@ export class BusinessSettingsService {
       name,
       color: '#6B7280',
       isActive: true,
-      sortOrder: index
+      sortOrder: index,
     }));
 
     // Fetch all active currencies
@@ -284,8 +308,8 @@ export class BusinessSettingsService {
       thousandSeparator: ',',
       decimalSeparator: '.',
       autoUpdateRates: false,
-      supportedCurrencies: dbCurrencies.map(c => c.code),
-      currencies: dbCurrencies.map(c => ({
+      supportedCurrencies: dbCurrencies.map((c) => c.code),
+      currencies: dbCurrencies.map((c) => ({
         id: c.id,
         name: c.name,
         code: c.code,
@@ -307,7 +331,15 @@ export class BusinessSettingsService {
     } as any;
     return {
       success: true,
-      data: { company, currency, tax, leadSources, leadStatuses, dealStatuses, numbering },
+      data: {
+        company,
+        currency,
+        tax,
+        leadSources,
+        leadStatuses,
+        dealStatuses,
+        numbering,
+      },
     };
   }
 
@@ -339,8 +371,10 @@ export class BusinessSettingsService {
         invoicePrefix: body.invoicePrefix ?? bs.invoicePrefix,
         invoiceSuffix: body.invoiceSuffix ?? bs.invoiceSuffix,
         invoicePad: body.invoicePad ?? bs.invoicePad,
-        quoteNumberingEnabled: body.quoteNumberingEnabled ?? bs.quoteNumberingEnabled,
-        invoiceNumberingEnabled: body.invoiceNumberingEnabled ?? bs.invoiceNumberingEnabled,
+        quoteNumberingEnabled:
+          body.quoteNumberingEnabled ?? bs.quoteNumberingEnabled,
+        invoiceNumberingEnabled:
+          body.invoiceNumberingEnabled ?? bs.invoiceNumberingEnabled,
       },
     });
     return {
@@ -358,7 +392,6 @@ export class BusinessSettingsService {
     };
   }
 
-
   // Integrations: provide available integration definitions, status and settings
   async getAvailableIntegrations() {
     // Minimal set of integrations; extend as needed
@@ -366,12 +399,19 @@ export class BusinessSettingsService {
       {
         name: 'meta-ads',
         displayName: 'Meta Ads (Facebook/Instagram)',
-        description: 'Import leads from Meta Ads (Facebook / Instagram lead forms).',
+        description:
+          'Import leads from Meta Ads (Facebook / Instagram lead forms).',
         fields: [
           { name: 'apiKey', label: 'API Key', type: 'text', required: true },
-          { name: 'apiSecret', label: 'API Secret', type: 'password', required: true },
+          {
+            name: 'apiSecret',
+            label: 'API Secret',
+            type: 'password',
+            required: true,
+          },
         ],
-        instructions: 'Enter your Meta App credentials and enable syncing to import leads from campaigns.',
+        instructions:
+          'Enter your Meta App credentials and enable syncing to import leads from campaigns.',
       },
       {
         name: 'indiamart',
@@ -380,7 +420,8 @@ export class BusinessSettingsService {
         fields: [
           { name: 'apiKey', label: 'API Key', type: 'text', required: true },
         ],
-        instructions: 'Generate an API key on IndiaMART and paste it here. Enable syncing to pull leads.',
+        instructions:
+          'Generate an API key on IndiaMART and paste it here. Enable syncing to pull leads.',
       },
       {
         name: 'tradindia',
@@ -388,7 +429,12 @@ export class BusinessSettingsService {
         description: 'Import leads from TradeIndia enquiries.',
         fields: [
           { name: 'apiKey', label: 'API Key', type: 'text', required: true },
-          { name: 'apiSecret', label: 'API Secret', type: 'password', required: false },
+          {
+            name: 'apiSecret',
+            label: 'API Secret',
+            type: 'password',
+            required: false,
+          },
         ],
         instructions: 'Provide TradeIndia API credentials to sync leads.',
       },
@@ -415,7 +461,9 @@ export class BusinessSettingsService {
     for (const name of list) {
       const key = name.replace(/-/g, '');
       const item = cfg[key] || {};
-      const configured = Boolean(item.apiKey || item.apiKey === '' ? item.apiKey : false) || Boolean(item.apiSecret);
+      const configured =
+        Boolean(item.apiKey || item.apiKey === '' ? item.apiKey : false) ||
+        Boolean(item.apiSecret);
       integrationsState[key] = {
         enabled: Boolean(item.enabled) || false,
         configured: configured,
@@ -459,12 +507,21 @@ export class BusinessSettingsService {
 
   async testIntegration(name: string) {
     // Minimal simulated test. In real implementation, perform API handshake.
-    return { success: true, data: { success: true, message: `${name} connection successful (simulated)` } };
+    return {
+      success: true,
+      data: {
+        success: true,
+        message: `${name} connection successful (simulated)`,
+      },
+    };
   }
 
   async syncIntegration(name: string) {
     // Simulated sync response; implement real sync logic as needed.
-    return { success: true, data: { synced: 0, message: `${name} sync executed (simulated)` } };
+    return {
+      success: true,
+      data: { synced: 0, message: `${name} sync executed (simulated)` },
+    };
   }
 
   // Quotation Templates Methods
@@ -493,7 +550,8 @@ export class BusinessSettingsService {
         termsAndConditions: body.termsAndConditions || null,
         validityDays: body.validityDays || 30,
         showTax: body.showTax !== undefined ? body.showTax : true,
-        showDiscount: body.showDiscount !== undefined ? body.showDiscount : true,
+        showDiscount:
+          body.showDiscount !== undefined ? body.showDiscount : true,
         logoPosition: body.logoPosition || 'left',
         isDefault: body.isDefault || false,
         isActive: body.isActive !== undefined ? body.isActive : true,
@@ -608,7 +666,11 @@ export class BusinessSettingsService {
         },
       });
 
-      console.log('[Email Template] Created successfully:', template.id, template.name);
+      console.log(
+        '[Email Template] Created successfully:',
+        template.id,
+        template.name,
+      );
       return { success: true, data: template };
     } catch (error: any) {
       console.error('[Email Template] Create failed:', error.message);
@@ -654,7 +716,11 @@ export class BusinessSettingsService {
         },
       });
 
-      console.log('[Email Template] Updated successfully:', template.id, template.name);
+      console.log(
+        '[Email Template] Updated successfully:',
+        template.id,
+        template.name,
+      );
       return { success: true, data: template };
     } catch (error: any) {
       console.error('[Email Template] Update failed:', error.message);
@@ -677,7 +743,7 @@ export class BusinessSettingsService {
       where: {
         category: category,
         isDefault: true,
-        deletedAt: null
+        deletedAt: null,
       },
       data: { isDefault: false },
     });
@@ -697,10 +763,7 @@ export class BusinessSettingsService {
         isActive: true,
         deletedAt: null,
       },
-      orderBy: [
-        { isDefault: 'desc' },
-        { createdAt: 'desc' }
-      ],
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
     });
     return { success: true, data: templates };
   }
@@ -718,16 +781,26 @@ export class BusinessSettingsService {
       });
 
       // If template exists and has all required fields, return it
-      if (template && template.subject && template.htmlContent && template.textContent) {
+      if (
+        template &&
+        template.subject &&
+        template.htmlContent &&
+        template.textContent
+      ) {
         return { success: true, data: template };
       }
 
       // If template exists but is incomplete, log warning and return default
       if (template) {
-        console.warn('Welcome email template found but is incomplete, using default template');
+        console.warn(
+          'Welcome email template found but is incomplete, using default template',
+        );
       }
     } catch (error) {
-      console.error('Error fetching welcome email template from database:', error);
+      console.error(
+        'Error fetching welcome email template from database:',
+        error,
+      );
     }
 
     // ALWAYS return a default welcome template if none exists or if there's an error
@@ -892,8 +965,10 @@ export class BusinessSettingsService {
           variables: body.variables ?? existing.variables,
           metadata: body.metadata ?? existing.metadata,
           status: body.status ?? existing.status,
-          isActive: body.isActive !== undefined ? body.isActive : existing.isActive,
-          isDefault: body.isDefault !== undefined ? body.isDefault : existing.isDefault,
+          isActive:
+            body.isActive !== undefined ? body.isActive : existing.isActive,
+          isDefault:
+            body.isDefault !== undefined ? body.isDefault : existing.isDefault,
           updatedAt: new Date(),
         },
       });
@@ -908,7 +983,12 @@ export class BusinessSettingsService {
         subject: body.subject || '{appName} - Welcome {firstName}',
         htmlContent: body.htmlContent || body.html || '',
         textContent: body.textContent || body.text || '',
-        variables: body.variables || { firstName: true, email: true, password: true, appName: true },
+        variables: body.variables || {
+          firstName: true,
+          email: true,
+          password: true,
+          appName: true,
+        },
         metadata: body.metadata || {},
         status: body.status || 'ACTIVE',
         isActive: body.isActive !== undefined ? body.isActive : true,
@@ -944,7 +1024,10 @@ export class BusinessSettingsService {
 
     // Apply variable substitution
     const renderTemplate = (content: string) => {
-      return content.replace(/\{(\w+)\}/g, (_, key) => (defaultData as any)[key] ?? `{${key}}`);
+      return content.replace(
+        /\{(\w+)\}/g,
+        (_, key) => (defaultData as any)[key] ?? `{${key}}`,
+      );
     };
 
     const preview = {
@@ -1021,7 +1104,13 @@ export class BusinessSettingsService {
   async deleteFieldConfig(id: number) {
     const field = await this.prisma.fieldConfig.findUnique({ where: { id } });
     if (field) {
-      const protectedFields = ['firstName', 'lastName', 'email', 'phone', 'company'];
+      const protectedFields = [
+        'firstName',
+        'lastName',
+        'email',
+        'phone',
+        'company',
+      ];
       if (protectedFields.includes(field.fieldName)) {
         throw new BadRequestException('Cannot delete core system fields');
       }
@@ -1035,54 +1124,286 @@ export class BusinessSettingsService {
   async initializeDefaultFieldConfigs() {
     const defaultConfigs = [
       // Personal Information
-      { entityType: 'lead', fieldName: 'firstName', label: 'First Name', isRequired: true, section: 'personal', displayOrder: 1, validation: { type: 'text', minLength: 2, maxLength: 50 } },
-      { entityType: 'lead', fieldName: 'lastName', label: 'Last Name', isRequired: true, section: 'personal', displayOrder: 2, validation: { type: 'text', minLength: 2, maxLength: 50 } },
-      { entityType: 'lead', fieldName: 'email', label: 'Email', isRequired: true, section: 'personal', displayOrder: 3, validation: { type: 'email' } },
-      { entityType: 'lead', fieldName: 'phone', label: 'Phone', isRequired: true, section: 'personal', displayOrder: 4, validation: { type: 'phone' } },
+      {
+        entityType: 'lead',
+        fieldName: 'firstName',
+        label: 'First Name',
+        isRequired: true,
+        section: 'personal',
+        displayOrder: 1,
+        validation: { type: 'text', minLength: 2, maxLength: 50 },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'lastName',
+        label: 'Last Name',
+        isRequired: true,
+        section: 'personal',
+        displayOrder: 2,
+        validation: { type: 'text', minLength: 2, maxLength: 50 },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'email',
+        label: 'Email',
+        isRequired: true,
+        section: 'personal',
+        displayOrder: 3,
+        validation: { type: 'email' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'phone',
+        label: 'Phone',
+        isRequired: true,
+        section: 'personal',
+        displayOrder: 4,
+        validation: { type: 'phone' },
+      },
 
       // Company Information
-      { entityType: 'lead', fieldName: 'company', label: 'Company', isRequired: true, section: 'company', displayOrder: 5, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'position', label: 'Position/Job Title', isRequired: false, section: 'company', displayOrder: 6, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'industry', label: 'Industry', isRequired: false, section: 'company', displayOrder: 7, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'website', label: 'Company Website', isRequired: false, section: 'company', displayOrder: 8, validation: { type: 'url' } },
-      { entityType: 'lead', fieldName: 'companySize', label: 'Company Size', isRequired: false, section: 'company', displayOrder: 9, validation: { type: 'number', min: 0 } },
-      { entityType: 'lead', fieldName: 'annualRevenue', label: 'Annual Revenue', isRequired: false, section: 'company', displayOrder: 10, validation: { type: 'number', min: 0 } },
+      {
+        entityType: 'lead',
+        fieldName: 'company',
+        label: 'Company',
+        isRequired: true,
+        section: 'company',
+        displayOrder: 5,
+        validation: { type: 'text' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'position',
+        label: 'Position/Job Title',
+        isRequired: false,
+        section: 'company',
+        displayOrder: 6,
+        validation: { type: 'text' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'industry',
+        label: 'Industry',
+        isRequired: false,
+        section: 'company',
+        displayOrder: 7,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'website',
+        label: 'Company Website',
+        isRequired: false,
+        section: 'company',
+        displayOrder: 8,
+        validation: { type: 'url' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'companySize',
+        label: 'Company Size',
+        isRequired: false,
+        section: 'company',
+        displayOrder: 9,
+        validation: { type: 'number', min: 0 },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'annualRevenue',
+        label: 'Annual Revenue',
+        isRequired: false,
+        section: 'company',
+        displayOrder: 10,
+        validation: { type: 'number', min: 0 },
+      },
 
       // Location Information
-      { entityType: 'lead', fieldName: 'country', label: 'Country', isRequired: false, section: 'location', displayOrder: 11, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'state', label: 'State/Province', isRequired: false, section: 'location', displayOrder: 12, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'city', label: 'City', isRequired: false, section: 'location', displayOrder: 13, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'zipCode', label: 'ZIP/Postal Code', isRequired: false, section: 'location', displayOrder: 14, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'address', label: 'Address', isRequired: false, section: 'location', displayOrder: 15, validation: { type: 'textarea' } },
-      { entityType: 'lead', fieldName: 'timezone', label: 'Timezone', isRequired: false, section: 'location', displayOrder: 16, validation: { type: 'text' } },
-      { entityType: 'lead', fieldName: 'linkedinProfile', label: 'LinkedIn Profile', isRequired: false, section: 'location', displayOrder: 17, validation: { type: 'url' } },
+      {
+        entityType: 'lead',
+        fieldName: 'country',
+        label: 'Country',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 11,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'state',
+        label: 'State/Province',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 12,
+        validation: { type: 'text' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'city',
+        label: 'City',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 13,
+        validation: { type: 'text' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'zipCode',
+        label: 'ZIP/Postal Code',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 14,
+        validation: { type: 'text' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'address',
+        label: 'Address',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 15,
+        validation: { type: 'textarea' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'timezone',
+        label: 'Timezone',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 16,
+        validation: { type: 'text' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'linkedinProfile',
+        label: 'LinkedIn Profile',
+        isRequired: false,
+        section: 'location',
+        displayOrder: 17,
+        validation: { type: 'url' },
+      },
 
       // Lead Management
-      { entityType: 'lead', fieldName: 'sourceId', label: 'Lead Source', isRequired: false, section: 'lead_management', displayOrder: 18, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'status', label: 'Status', isRequired: true, section: 'lead_management', displayOrder: 19, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'priority', label: 'Priority', isRequired: false, section: 'lead_management', displayOrder: 20, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'assignedTo', label: 'Assigned To', isRequired: false, section: 'lead_management', displayOrder: 21, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'budget', label: 'Expected Budget', isRequired: false, section: 'lead_management', displayOrder: 22, validation: { type: 'number', min: 0 } },
-      { entityType: 'lead', fieldName: 'currency', label: 'Currency', isRequired: false, section: 'lead_management', displayOrder: 23, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'leadScore', label: 'Lead Score', isRequired: false, section: 'lead_management', displayOrder: 24, validation: { type: 'number', min: 0, max: 100 } },
-      { entityType: 'lead', fieldName: 'preferredContactMethod', label: 'Preferred Contact Method', isRequired: false, section: 'lead_management', displayOrder: 25, validation: { type: 'select' } },
-      { entityType: 'lead', fieldName: 'nextFollowUpAt', label: 'Next Follow-up Date', isRequired: false, section: 'lead_management', displayOrder: 26, validation: { type: 'datetime' } },
+      {
+        entityType: 'lead',
+        fieldName: 'sourceId',
+        label: 'Lead Source',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 18,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'status',
+        label: 'Status',
+        isRequired: true,
+        section: 'lead_management',
+        displayOrder: 19,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'priority',
+        label: 'Priority',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 20,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'assignedTo',
+        label: 'Assigned To',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 21,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'budget',
+        label: 'Expected Budget',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 22,
+        validation: { type: 'number', min: 0 },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'currency',
+        label: 'Currency',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 23,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'leadScore',
+        label: 'Lead Score',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 24,
+        validation: { type: 'number', min: 0, max: 100 },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'preferredContactMethod',
+        label: 'Preferred Contact Method',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 25,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'nextFollowUpAt',
+        label: 'Next Follow-up Date',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 26,
+        validation: { type: 'datetime' },
+      },
 
       // Notes and Tags
-      { entityType: 'lead', fieldName: 'notes', label: 'Notes', isRequired: false, section: 'notes', displayOrder: 27, validation: { type: 'textarea' } },
-      { entityType: 'lead', fieldName: 'tags', label: 'Tags', isRequired: false, section: 'notes', displayOrder: 28, validation: { type: 'multiselect' } },
+      {
+        entityType: 'lead',
+        fieldName: 'notes',
+        label: 'Notes',
+        isRequired: false,
+        section: 'notes',
+        displayOrder: 27,
+        validation: { type: 'textarea' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'tags',
+        label: 'Tags',
+        isRequired: false,
+        section: 'notes',
+        displayOrder: 28,
+        validation: { type: 'multiselect' },
+      },
     ];
 
     for (const config of defaultConfigs) {
       const existing = await this.prisma.fieldConfig.findUnique({
-        where: { entityType_fieldName: { entityType: config.entityType, fieldName: config.fieldName } },
+        where: {
+          entityType_fieldName: {
+            entityType: config.entityType,
+            fieldName: config.fieldName,
+          },
+        },
       });
       if (!existing) {
         await this.prisma.fieldConfig.create({ data: config });
       }
     }
 
-    return { success: true, message: 'Default field configurations initialized' };
+    return {
+      success: true,
+      message: 'Default field configurations initialized',
+    };
   }
 
   // Dashboard Settings Methods
@@ -1256,7 +1577,9 @@ export class BusinessSettingsService {
   }
 
   async deleteDealStatus(id: number) {
-    const status = await this.prisma.dealStatus.findUnique({ where: { id: Number(id) } });
+    const status = await this.prisma.dealStatus.findUnique({
+      where: { id: Number(id) },
+    });
     if (!status) throw new NotFoundException('Status not found');
 
     const dealsCount = await this.prisma.deal.count({
@@ -1264,7 +1587,9 @@ export class BusinessSettingsService {
     });
 
     if (dealsCount > 0) {
-      throw new BadRequestException('Cannot delete status that is currently used by deals');
+      throw new BadRequestException(
+        'Cannot delete status that is currently used by deals',
+      );
     }
 
     await this.prisma.dealStatus.delete({

@@ -20,7 +20,7 @@ export class AutomationService {
     private prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly activitiesService: ActivitiesService,
-  ) { }
+  ) {}
 
   // CRUD Operations
   async create(createWorkflowDto: CreateWorkflowDto, userId?: number) {
@@ -163,10 +163,7 @@ export class AutomationService {
   }
 
   // Execution Engine
-  async executeWorkflowsForTrigger(
-    trigger: WorkflowTrigger,
-    triggerData: any,
-  ) {
+  async executeWorkflowsForTrigger(trigger: WorkflowTrigger, triggerData: any) {
     this.logger.log(`Executing workflows for trigger: ${trigger}`);
 
     const workflows = await this.prisma.workflow.findMany({
@@ -177,7 +174,9 @@ export class AutomationService {
       },
     });
 
-    this.logger.log(`Found ${workflows.length} workflows for trigger ${trigger}`);
+    this.logger.log(
+      `Found ${workflows.length} workflows for trigger ${trigger}`,
+    );
 
     const results = await Promise.allSettled(
       workflows.map((workflow: any) =>
@@ -195,13 +194,15 @@ export class AutomationService {
     const execution = await this.prisma.workflowExecution.create({
       data: {
         workflowId,
-        triggerData: triggerData as any,
+        triggerData: triggerData,
         status: WorkflowExecutionStatus.RUNNING,
       },
     });
 
     try {
-      this.logger.log(`Executing workflow: ${workflow.name} (ID: ${workflowId})`);
+      this.logger.log(
+        `Executing workflow: ${workflow.name} (ID: ${workflowId})`,
+      );
 
       // Evaluate conditions
       const conditionsPass = this.evaluateConditions(
@@ -254,11 +255,14 @@ export class AutomationService {
             workflowId: workflow.id,
             executionId: execution.id,
             trigger: workflow.trigger,
-            actionResults
+            actionResults,
           } as any,
         });
       } catch (activityError) {
-        this.logger.error('Failed to create automation activity:', activityError);
+        this.logger.error(
+          'Failed to create automation activity:',
+          activityError,
+        );
       }
 
       // Optional: send a SYSTEM notification to the workflow creator if configured
@@ -277,7 +281,10 @@ export class AutomationService {
           });
         }
       } catch (notifyError) {
-        this.logger.error('Failed to send automation execution notification:', notifyError);
+        this.logger.error(
+          'Failed to send automation execution notification:',
+          notifyError,
+        );
       }
 
       return { success: true, actionResults };
@@ -306,7 +313,7 @@ export class AutomationService {
             workflowId: workflow.id,
             executionId: execution.id,
             trigger: workflow.trigger,
-            error: error.message
+            error: error.message,
           } as any,
         });
 
@@ -324,7 +331,10 @@ export class AutomationService {
           });
         }
       } catch (notifyError) {
-        this.logger.error('Failed to send automation failure notification/activity:', notifyError);
+        this.logger.error(
+          'Failed to send automation failure notification/activity:',
+          notifyError,
+        );
       }
 
       throw error;
@@ -395,7 +405,11 @@ export class AutomationService {
         results.push({ action: action.type, success: true, result });
       } catch (error) {
         this.logger.error(`Action ${action.type} failed:`, error);
-        results.push({ action: action.type, success: false, error: error.message });
+        results.push({
+          action: action.type,
+          success: false,
+          error: error.message,
+        });
       }
     }
 

@@ -5,12 +5,18 @@ import { getAccessibleUserIds } from '../../common/utils/permission.util';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  private async getAuthorizedUserIds(userId: number | undefined, currentUser: any): Promise<number[] | null> {
+  private async getAuthorizedUserIds(
+    userId: number | undefined,
+    currentUser: any,
+  ): Promise<number[] | null> {
     if (!currentUser || !currentUser.userId) return null;
 
-    const accessibleUserIds = await getAccessibleUserIds(currentUser.userId, this.prisma);
+    const accessibleUserIds = await getAccessibleUserIds(
+      currentUser.userId,
+      this.prisma,
+    );
 
     // If global access (null)
     if (accessibleUserIds === null) {
@@ -34,15 +40,23 @@ export class AnalyticsService {
     const currencies = await this.prisma.currency.findMany({
       where: { isActive: true },
     });
-    const defaultCurrency = currencies.find((c) => c.isDefault) || currencies[0] || { code: 'USD', exchangeRate: 1, symbol: '$' };
+    const defaultCurrency = currencies.find((c) => c.isDefault) ||
+      currencies[0] || { code: 'USD', exchangeRate: 1, symbol: '$' };
     return { currencies, defaultCurrency };
   }
 
-  private convertToDefault(amount: number, recordCurrency: string | null, defaultCurrency: any, allCurrencies: any[]): number {
+  private convertToDefault(
+    amount: number,
+    recordCurrency: string | null,
+    defaultCurrency: any,
+    allCurrencies: any[],
+  ): number {
     const val = Number(amount) || 0;
     if (!recordCurrency || recordCurrency === defaultCurrency.code) return val;
 
-    const currentCurrency = allCurrencies.find(c => c.code === recordCurrency);
+    const currentCurrency = allCurrencies.find(
+      (c) => c.code === recordCurrency,
+    );
     if (!currentCurrency) return val;
 
     // Convert to USD (base) then to Default
@@ -76,7 +90,10 @@ export class AnalyticsService {
         prismaFilters[key] = value;
       } else if (typeof value === 'string') {
         if (value.includes('*')) {
-          prismaFilters[key] = { contains: value.replace(/\*/g, ''), mode: 'insensitive' };
+          prismaFilters[key] = {
+            contains: value.replace(/\*/g, ''),
+            mode: 'insensitive',
+          };
         } else if (value === 'true' || value === 'false') {
           prismaFilters[key] = value === 'true';
         } else if (!isNaN(Number(value)) && key.toLowerCase().includes('id')) {
@@ -92,7 +109,13 @@ export class AnalyticsService {
     return prismaFilters;
   }
 
-  async kpis(startDate?: string, endDate?: string, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
+  async kpis(
+    startDate?: string,
+    endDate?: string,
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
     const dateFilter: any = {};
     if (startDate) dateFilter.gte = new Date(startDate);
     if (endDate) dateFilter.lte = new Date(endDate);
@@ -100,7 +123,10 @@ export class AnalyticsService {
     const createdAtFilter =
       Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {};
 
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
     const { currencies, defaultCurrency } = await this.getCurrencyData();
 
     const dealWhereBase: any = { ...createdAtFilter };
@@ -125,10 +151,16 @@ export class AnalyticsService {
     });
 
     let totalRevenue = 0;
-    wonDealsInRange.forEach(deal => {
-      totalRevenue += this.convertToDefault(Number(deal.value || 0), deal.currency, defaultCurrency, currencies);
+    wonDealsInRange.forEach((deal) => {
+      totalRevenue += this.convertToDefault(
+        Number(deal.value || 0),
+        deal.currency,
+        defaultCurrency,
+        currencies,
+      );
     });
-    const avgDealSize = wonDealsInRange.length > 0 ? totalRevenue / wonDealsInRange.length : 0;
+    const avgDealSize =
+      wonDealsInRange.length > 0 ? totalRevenue / wonDealsInRange.length : 0;
 
     // Counts
     const [wonDeals, lostDeals, activeDeals, totalLeads, convertedLeads] =
@@ -190,7 +222,7 @@ export class AnalyticsService {
         if (d.lead?.createdAt && d.actualCloseDate) {
           const days = Math.floor(
             (d.actualCloseDate.getTime() - d.lead.createdAt.getTime()) /
-            (1000 * 60 * 60 * 24),
+              (1000 * 60 * 60 * 24),
           );
           return sum + days;
         }
@@ -228,12 +260,13 @@ export class AnalyticsService {
           where: {
             isActive: true,
             deletedAt: null,
-            ...(Object.keys(dateFilter).length ? { createdAt: dateFilter } : {}),
+            ...(Object.keys(dateFilter).length
+              ? { createdAt: dateFilter }
+              : {}),
             deals: { some: { status: 'WON' } },
             ...(authorizedUserIds !== null
               ? { assignedTo: { in: authorizedUserIds } }
-              : {}
-            ),
+              : {}),
           },
           include: {
             deals: {
@@ -252,13 +285,15 @@ export class AnalyticsService {
         const total = src.leads.reduce(
           (sum: number, lead: any) =>
             sum +
-            lead.deals.reduce(
-              (ds: number, deal: any) => {
-                const convertedValue = this.convertToDefault(Number(deal.value || 0), deal.currency, defaultCurrency, currencies);
-                return ds + convertedValue;
-              },
-              0,
-            ),
+            lead.deals.reduce((ds: number, deal: any) => {
+              const convertedValue = this.convertToDefault(
+                Number(deal.value || 0),
+                deal.currency,
+                defaultCurrency,
+                currencies,
+              );
+              return ds + convertedValue;
+            }, 0),
           0,
         );
         return {
@@ -285,7 +320,7 @@ export class AnalyticsService {
         (sum: number, lead: any) =>
           sum +
           (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) /
-          (1000 * 60 * 60),
+            (1000 * 60 * 60),
         0,
       );
       avgResponseTimeHours =
@@ -301,7 +336,7 @@ export class AnalyticsService {
           mrr: 0,
           currency: {
             code: defaultCurrency.code,
-            symbol: defaultCurrency.symbol
+            symbol: defaultCurrency.symbol,
           },
           wonDeals,
           lostDeals,
@@ -326,8 +361,15 @@ export class AnalyticsService {
     };
   }
 
-  async getLeadStatusDistribution(userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getLeadStatusDistribution(
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const whereClause: any = { deletedAt: null };
     if (authorizedUserIds !== null) {
@@ -341,17 +383,17 @@ export class AnalyticsService {
     });
 
     const statusMap: Record<string, string> = {
-      'NEW': 'New',
-      'CONTACTED': 'Contacted',
-      'QUALIFIED': 'Qualified',
-      'PROPOSAL': 'Proposal',
-      'NEGOTIATION': 'Negotiation',
-      'CLOSED': 'Closed',
-      'LOST': 'Lost',
-      'CONVERTED': 'Converted',
+      NEW: 'New',
+      CONTACTED: 'Contacted',
+      QUALIFIED: 'Qualified',
+      PROPOSAL: 'Proposal',
+      NEGOTIATION: 'Negotiation',
+      CLOSED: 'Closed',
+      LOST: 'Lost',
+      CONVERTED: 'Converted',
     };
 
-    const data = statusCounts.map(item => ({
+    const data = statusCounts.map((item) => ({
       name: statusMap[item.status] || item.status,
       value: item._count.status,
     }));
@@ -359,8 +401,16 @@ export class AnalyticsService {
     return { success: true, data };
   }
 
-  async getRevenueTrends(months: number = 12, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getRevenueTrends(
+    months: number = 12,
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
     const { currencies, defaultCurrency } = await this.getCurrencyData();
 
     const endDate = new Date();
@@ -369,7 +419,7 @@ export class AnalyticsService {
 
     const whereClause: any = {
       status: 'WON',
-      actualCloseDate: { gte: startDate, lte: endDate }
+      actualCloseDate: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -379,27 +429,43 @@ export class AnalyticsService {
     const wonDeals = await this.prisma.deal.findMany({
       where: whereClause,
       select: { actualCloseDate: true, value: true, currency: true },
-      orderBy: { actualCloseDate: 'asc' }
+      orderBy: { actualCloseDate: 'asc' },
     });
 
     // Group by month and convert
     const monthlyData: Record<string, number> = {};
-    wonDeals.forEach(deal => {
+    wonDeals.forEach((deal) => {
       const month = new Date(deal.actualCloseDate!).toISOString().slice(0, 7); // YYYY-MM
-      const convertedValue = this.convertToDefault(Number(deal.value || 0), deal.currency, defaultCurrency, currencies);
+      const convertedValue = this.convertToDefault(
+        Number(deal.value || 0),
+        deal.currency,
+        defaultCurrency,
+        currencies,
+      );
       monthlyData[month] = (monthlyData[month] || 0) + convertedValue;
     });
 
     const data = Object.entries(monthlyData).map(([month, revenue]) => ({
-      name: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      name: new Date(month + '-01').toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      }),
       revenue: Math.round(revenue * 100) / 100,
     }));
 
     return { success: true, data };
   }
 
-  async getActivityTrends(months: number = 12, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getActivityTrends(
+    months: number = 12,
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -419,13 +485,16 @@ export class AnalyticsService {
 
     // Group by month
     const monthlyData: Record<string, number> = {};
-    activityData.forEach(item => {
+    activityData.forEach((item) => {
       const month = new Date(item.createdAt).toISOString().slice(0, 7); // YYYY-MM
       monthlyData[month] = (monthlyData[month] || 0) + item._count.id;
     });
 
     const data = Object.entries(monthlyData).map(([month, count]) => ({
-      name: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      name: new Date(month + '-01').toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      }),
       activities: count,
     }));
 
@@ -441,7 +510,7 @@ export class AnalyticsService {
       by: ['createdAt'],
       where: {
         createdAt: { gte: startDate, lte: endDate },
-        isActive: true
+        isActive: true,
       },
       _count: { id: true },
       orderBy: { createdAt: 'asc' },
@@ -451,7 +520,7 @@ export class AnalyticsService {
     const monthlyData: Record<string, number> = {};
     let cumulative = 0;
 
-    userData.forEach(item => {
+    userData.forEach((item) => {
       const month = new Date(item.createdAt).toISOString().slice(0, 7); // YYYY-MM
       monthlyData[month] = (monthlyData[month] || 0) + item._count.id;
     });
@@ -459,7 +528,10 @@ export class AnalyticsService {
     const data = Object.entries(monthlyData).map(([month, count]) => {
       cumulative += count;
       return {
-        name: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        name: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+          year: 'numeric',
+        }),
         users: cumulative,
       };
     });
@@ -467,8 +539,15 @@ export class AnalyticsService {
     return { success: true, data };
   }
 
-  async getLeadConversionFunnel(userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getLeadConversionFunnel(
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     // Build where clause based on scope
     const baseWhereClause: any = { deletedAt: null };
@@ -477,14 +556,37 @@ export class AnalyticsService {
     }
 
     try {
-      const [totalLeads, contacted, qualified, proposal, negotiation, closed, won] = await Promise.all([
+      const [
+        totalLeads,
+        contacted,
+        qualified,
+        proposal,
+        negotiation,
+        closed,
+        won,
+      ] = await Promise.all([
         this.prisma.lead.count({ where: baseWhereClause }),
-        this.prisma.lead.count({ where: { ...baseWhereClause, status: 'CONTACTED' } }),
-        this.prisma.lead.count({ where: { ...baseWhereClause, status: { in: ['QUALIFIED', 'PROPOSAL'] } } }),
-        this.prisma.lead.count({ where: { ...baseWhereClause, status: 'PROPOSAL' } }),
-        this.prisma.lead.count({ where: { ...baseWhereClause, status: 'NEGOTIATION' } }),
-        this.prisma.lead.count({ where: { ...baseWhereClause, status: 'CLOSED' } }),
-        this.prisma.lead.count({ where: { ...baseWhereClause, status: 'CONVERTED' } }),
+        this.prisma.lead.count({
+          where: { ...baseWhereClause, status: 'CONTACTED' },
+        }),
+        this.prisma.lead.count({
+          where: {
+            ...baseWhereClause,
+            status: { in: ['QUALIFIED', 'PROPOSAL'] },
+          },
+        }),
+        this.prisma.lead.count({
+          where: { ...baseWhereClause, status: 'PROPOSAL' },
+        }),
+        this.prisma.lead.count({
+          where: { ...baseWhereClause, status: 'NEGOTIATION' },
+        }),
+        this.prisma.lead.count({
+          where: { ...baseWhereClause, status: 'CLOSED' },
+        }),
+        this.prisma.lead.count({
+          where: { ...baseWhereClause, status: 'CONVERTED' },
+        }),
       ]);
 
       const data = [
@@ -511,13 +613,21 @@ export class AnalyticsService {
           { name: 'Negotiation', value: 0 },
           { name: 'Closed', value: 0 },
           { name: 'Won', value: 0 },
-        ]
+        ],
       };
     }
   }
 
-  async getSalesPipelineFlow(months: number = 6, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getSalesPipelineFlow(
+    months: number = 6,
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -525,7 +635,7 @@ export class AnalyticsService {
 
     const whereClause: any = {
       deletedAt: null,
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -539,14 +649,14 @@ export class AnalyticsService {
         id: true,
         status: true,
         createdAt: true,
-        updatedAt: true
-      }
+        updatedAt: true,
+      },
     });
 
     // Group by month and status
     const monthlyData: Record<string, Record<string, number>> = {};
 
-    leads.forEach(lead => {
+    leads.forEach((lead) => {
       const month = new Date(lead.createdAt).toISOString().slice(0, 7); // YYYY-MM
       if (!monthlyData[month]) {
         monthlyData[month] = {
@@ -555,20 +665,20 @@ export class AnalyticsService {
           qualified: 0,
           proposal: 0,
           negotiation: 0,
-          closed: 0
+          closed: 0,
         };
       }
 
       // Map status to our pipeline stages
       const statusMap: Record<string, string> = {
-        'NEW': 'new',
-        'CONTACTED': 'contacted',
-        'QUALIFIED': 'qualified',
-        'PROPOSAL': 'proposal',
-        'NEGOTIATION': 'negotiation',
-        'CLOSED': 'closed',
-        'LOST': 'closed',
-        'CONVERTED': 'closed',
+        NEW: 'new',
+        CONTACTED: 'contacted',
+        QUALIFIED: 'qualified',
+        PROPOSAL: 'proposal',
+        NEGOTIATION: 'negotiation',
+        CLOSED: 'closed',
+        LOST: 'closed',
+        CONVERTED: 'closed',
       };
 
       const pipelineStage = statusMap[lead.status] || 'new';
@@ -579,20 +689,30 @@ export class AnalyticsService {
     const data = Object.entries(monthlyData)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, counts]) => ({
-        name: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        name: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         new: counts.new,
         contacted: counts.contacted,
         qualified: counts.qualified,
         proposal: counts.proposal,
         negotiation: counts.negotiation,
-        closed: counts.closed
+        closed: counts.closed,
       }));
 
     return { success: true, data };
   }
 
-  async getTopPerformers(limit: number = 5, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getTopPerformers(
+    limit: number = 5,
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
     const { currencies, defaultCurrency } = await this.getCurrencyData();
 
     const whereClause: any = { status: 'WON' };
@@ -604,8 +724,8 @@ export class AnalyticsService {
       where: {
         isActive: true,
         deals: {
-          some: whereClause
-        }
+          some: whereClause,
+        },
       },
       select: {
         id: true,
@@ -616,22 +736,27 @@ export class AnalyticsService {
           select: {
             value: true,
             currency: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     const performersData = topPerformers
-      .map(user => {
+      .map((user) => {
         const dealsCount = user.deals.length;
         const revenue = user.deals.reduce((sum, deal) => {
-          const convertedValue = this.convertToDefault(Number(deal.value || 0), deal.currency, defaultCurrency, currencies);
+          const convertedValue = this.convertToDefault(
+            Number(deal.value || 0),
+            deal.currency,
+            defaultCurrency,
+            currencies,
+          );
           return sum + convertedValue;
         }, 0);
         return {
           name: `${user.firstName} ${user.lastName}`,
           deals: dealsCount,
-          revenue: Math.round(revenue * 100) / 100
+          revenue: Math.round(revenue * 100) / 100,
         };
       })
       .sort((a, b) => b.revenue - a.revenue)
@@ -640,8 +765,16 @@ export class AnalyticsService {
     return { success: true, data: performersData };
   }
 
-  async getDealVelocity(months: number = 6, userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getDealVelocity(
+    months: number = 6,
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -650,7 +783,7 @@ export class AnalyticsService {
     const whereClause: any = {
       status: 'WON',
       actualCloseDate: { not: null, gte: startDate, lte: endDate },
-      lead: { isNot: null }
+      lead: { isNot: null },
     };
 
     if (authorizedUserIds !== null) {
@@ -661,19 +794,21 @@ export class AnalyticsService {
       where: whereClause,
       include: {
         lead: {
-          select: { createdAt: true }
-        }
-      }
+          select: { createdAt: true },
+        },
+      },
     });
 
     // Group by month
-    const monthlyData: Record<string, { totalDays: number; count: number }> = {};
+    const monthlyData: Record<string, { totalDays: number; count: number }> =
+      {};
 
-    closedDeals.forEach(deal => {
+    closedDeals.forEach((deal) => {
       if (deal.lead?.createdAt && deal.actualCloseDate) {
         const month = new Date(deal.actualCloseDate).toISOString().slice(0, 7); // YYYY-MM
         const days = Math.floor(
-          (deal.actualCloseDate!.getTime() - deal.lead.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+          (deal.actualCloseDate.getTime() - deal.lead.createdAt.getTime()) /
+            (1000 * 60 * 60 * 24),
         );
 
         if (!monthlyData[month]) {
@@ -689,16 +824,26 @@ export class AnalyticsService {
     const data = Object.entries(monthlyData)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([month, stats]) => ({
-        name: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
-        avgDays: stats.count > 0 ? Math.round(stats.totalDays / stats.count) : 0,
-        deals: stats.count
+        name: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
+        avgDays:
+          stats.count > 0 ? Math.round(stats.totalDays / stats.count) : 0,
+        deals: stats.count,
       }));
 
     return { success: true, data };
   }
 
-  async getLeadSourceDistribution(userId?: number, includeTeamData: boolean = false, currentUser?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getLeadSourceDistribution(
+    userId?: number,
+    includeTeamData: boolean = false,
+    currentUser?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const whereClause: any = { deletedAt: null };
     if (authorizedUserIds !== null) {
@@ -716,32 +861,37 @@ export class AnalyticsService {
     });
 
     const sourceMap: Record<number, string> = {};
-    sources.forEach(s => {
+    sources.forEach((s) => {
       sourceMap[s.id] = s.name;
     });
 
-    const data = await Promise.all(leadsBySource.map(async (item) => {
-      const sourceId = item.sourceId;
-      const totalLeads = item._count.id;
+    const data = await Promise.all(
+      leadsBySource.map(async (item) => {
+        const sourceId = item.sourceId;
+        const totalLeads = item._count.id;
 
-      const convertedLeads = await this.prisma.lead.count({
-        where: {
-          ...whereClause,
-          sourceId,
-          status: 'CONVERTED',
-        },
-      });
+        const convertedLeads = await this.prisma.lead.count({
+          where: {
+            ...whereClause,
+            sourceId,
+            status: 'CONVERTED',
+          },
+        });
 
-      const sourceName = sourceId ? (sourceMap[sourceId] || 'Unknown') : 'No Source';
-      const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
+        const sourceName = sourceId
+          ? sourceMap[sourceId] || 'Unknown'
+          : 'No Source';
+        const conversionRate =
+          totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
-      return {
-        name: sourceName,
-        total: totalLeads,
-        converted: convertedLeads,
-        rate: `${conversionRate}%`,
-      };
-    }));
+        return {
+          name: sourceName,
+          total: totalLeads,
+          converted: convertedLeads,
+          rate: `${conversionRate}%`,
+        };
+      }),
+    );
 
     // Sort by total leads descending
     data.sort((a, b) => b.total - a.total);
@@ -749,8 +899,19 @@ export class AnalyticsService {
     return { success: true, data };
   }
 
-  async getTaskReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getTaskReport(
+    months: number = 6,
+    userId?: number,
+    scope: 'all' | 'me' = 'all',
+    currentUser?: any,
+    page: number = 1,
+    limit: number = 10,
+    filters?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -759,7 +920,7 @@ export class AnalyticsService {
     const taskWhereBase: any = {
       deletedAt: null,
       isActive: true,
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -775,18 +936,19 @@ export class AnalyticsService {
     const [totalTasks, completedTasks, overdueTasks] = await Promise.all([
       this.prisma.task.count({ where: taskWhereBase }),
       this.prisma.task.count({
-        where: { ...taskWhereBase, status: 'COMPLETED' }
+        where: { ...taskWhereBase, status: 'COMPLETED' },
       }),
       this.prisma.task.count({
         where: {
           ...taskWhereBase,
           status: { not: 'COMPLETED' },
-          dueDate: { lt: new Date() }
-        }
-      })
+          dueDate: { lt: new Date() },
+        },
+      }),
     ]);
 
-    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    const completionRate =
+      totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
     // 2. Completion Trends (Monthly)
     const trendsRaw = await this.prisma.task.findMany({
@@ -794,11 +956,14 @@ export class AnalyticsService {
       select: {
         createdAt: true,
         status: true,
-        dueDate: true
-      }
+        dueDate: true,
+      },
     });
 
-    const monthlyTrends: Record<string, { completed: number; overdue: number; total: number }> = {};
+    const monthlyTrends: Record<
+      string,
+      { completed: number; overdue: number; total: number }
+    > = {};
 
     // Initialize months
     for (let i = 0; i < months; i++) {
@@ -808,7 +973,7 @@ export class AnalyticsService {
       monthlyTrends[key] = { completed: 0, overdue: 0, total: 0 };
     }
 
-    trendsRaw.forEach(task => {
+    trendsRaw.forEach((task) => {
       const month = task.createdAt.toISOString().slice(0, 7);
       if (monthlyTrends[month]) {
         monthlyTrends[month].total++;
@@ -820,12 +985,27 @@ export class AnalyticsService {
       }
     });
 
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     const completionTrendData = Object.entries(monthlyTrends)
       .map(([month, stats]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        month: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         monthKey: month,
-        ...stats
+        ...stats,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
@@ -833,20 +1013,20 @@ export class AnalyticsService {
     const priorityStats = await this.prisma.task.groupBy({
       by: ['priority'],
       where: taskWhereBase,
-      _count: { id: true }
+      _count: { id: true },
     });
 
     const priorityColors: Record<string, string> = {
-      'HIGH': '#10b981',
-      'URGENT': '#ef4444',
-      'MEDIUM': '#f59e0b',
-      'LOW': '#3b82f6'
+      HIGH: '#10b981',
+      URGENT: '#ef4444',
+      MEDIUM: '#f59e0b',
+      LOW: '#3b82f6',
     };
 
-    const priorityDistributionData = priorityStats.map(stat => ({
+    const priorityDistributionData = priorityStats.map((stat) => ({
       name: stat.priority.charAt(0) + stat.priority.slice(1).toLowerCase(),
       value: stat._count.id,
-      color: priorityColors[stat.priority] || '#94a3b8'
+      color: priorityColors[stat.priority] || '#94a3b8',
     }));
 
     // 4. Team Performance
@@ -855,26 +1035,36 @@ export class AnalyticsService {
       include: {
         assignedTasks: {
           where: taskWhereBase,
-          select: { status: true, dueDate: true }
-        }
-      }
+          select: { status: true, dueDate: true },
+        },
+      },
     });
 
-    const teamPerformanceData = members.map(user => {
-      const completed = user.assignedTasks.filter(t => t.status === 'COMPLETED').length;
-      const overdue = user.assignedTasks.filter(t => t.status !== 'COMPLETED' && t.dueDate && new Date(t.dueDate) < new Date()).length;
-      return {
-        name: `${user.firstName} ${user.lastName}`,
-        completed,
-        overdue
-      };
-    }).filter(p => p.completed > 0 || p.overdue > 0).slice(0, 10);
+    const teamPerformanceData = members
+      .map((user) => {
+        const completed = user.assignedTasks.filter(
+          (t) => t.status === 'COMPLETED',
+        ).length;
+        const overdue = user.assignedTasks.filter(
+          (t) =>
+            t.status !== 'COMPLETED' &&
+            t.dueDate &&
+            new Date(t.dueDate) < new Date(),
+        ).length;
+        return {
+          name: `${user.firstName} ${user.lastName}`,
+          completed,
+          overdue,
+        };
+      })
+      .filter((p) => p.completed > 0 || p.overdue > 0)
+      .slice(0, 10);
 
     // 5. Recent Overdue Tasks (Paginated)
     const overdueWhere = {
       ...taskWhereBase,
       status: { not: 'COMPLETED' },
-      dueDate: { lt: new Date() }
+      dueDate: { lt: new Date() },
     };
     const [recentOverdueTasks, totalRecentOverdueTasks] = await Promise.all([
       this.prisma.task.findMany({
@@ -884,11 +1074,11 @@ export class AnalyticsService {
         take: limit,
         include: {
           assignedUser: {
-            select: { firstName: true, lastName: true }
-          }
-        }
+            select: { firstName: true, lastName: true },
+          },
+        },
       }),
-      this.prisma.task.count({ where: overdueWhere })
+      this.prisma.task.count({ where: overdueWhere }),
     ]);
 
     return {
@@ -898,29 +1088,48 @@ export class AnalyticsService {
           totalTasks,
           completedTasks,
           overdueTasks,
-          completionRate: completionRate.toFixed(1) + '%'
+          completionRate: completionRate.toFixed(1) + '%',
         },
         completionTrendData,
         priorityDistributionData,
         teamPerformanceData,
-        recentOverdueTasks: recentOverdueTasks.map(t => ({
+        recentOverdueTasks: recentOverdueTasks.map((t) => ({
           name: t.title,
-          user: t.assignedUser ? `${t.assignedUser.firstName} ${t.assignedUser.lastName}` : 'Unassigned',
-          date: t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No Date',
-          status: 'Overdue'
+          user: t.assignedUser
+            ? `${t.assignedUser.firstName} ${t.assignedUser.lastName}`
+            : 'Unassigned',
+          date: t.dueDate
+            ? new Date(t.dueDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })
+            : 'No Date',
+          status: 'Overdue',
         })),
         pagination: {
           total: totalRecentOverdueTasks,
           page,
           limit,
-          pages: Math.ceil(totalRecentOverdueTasks / limit)
-        }
-      }
+          pages: Math.ceil(totalRecentOverdueTasks / limit),
+        },
+      },
     };
   }
 
-  async getLeadReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getLeadReport(
+    months: number = 6,
+    userId?: number,
+    scope: 'all' | 'me' = 'all',
+    currentUser?: any,
+    page: number = 1,
+    limit: number = 10,
+    filters?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -933,13 +1142,13 @@ export class AnalyticsService {
     const leadWhereBase: any = {
       deletedAt: null,
       isActive: true,
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
     };
 
     const prevLeadWhereBase: any = {
       deletedAt: null,
       isActive: true,
-      createdAt: { gte: prevStartDate, lte: prevEndDate }
+      createdAt: { gte: prevStartDate, lte: prevEndDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -959,24 +1168,30 @@ export class AnalyticsService {
       leadsWithResponse,
       prevTotalLeads,
       prevConvertedLeads,
-      prevLeadsWithResponse
+      prevLeadsWithResponse,
     ] = await Promise.all([
       this.prisma.lead.count({ where: leadWhereBase }),
-      this.prisma.lead.count({ where: { ...leadWhereBase, status: 'CONVERTED' } }),
+      this.prisma.lead.count({
+        where: { ...leadWhereBase, status: 'CONVERTED' },
+      }),
       this.prisma.lead.findMany({
         where: { ...leadWhereBase, lastContactedAt: { not: null } },
-        select: { createdAt: true, lastContactedAt: true }
+        select: { createdAt: true, lastContactedAt: true },
       }),
       this.prisma.lead.count({ where: prevLeadWhereBase }),
-      this.prisma.lead.count({ where: { ...prevLeadWhereBase, status: 'CONVERTED' } }),
+      this.prisma.lead.count({
+        where: { ...prevLeadWhereBase, status: 'CONVERTED' },
+      }),
       this.prisma.lead.findMany({
         where: { ...prevLeadWhereBase, lastContactedAt: { not: null } },
-        select: { createdAt: true, lastContactedAt: true }
-      })
+        select: { createdAt: true, lastContactedAt: true },
+      }),
     ]);
 
-    const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
-    const prevConversionRate = prevTotalLeads > 0 ? (prevConvertedLeads / prevTotalLeads) * 100 : 0;
+    const conversionRate =
+      totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
+    const prevConversionRate =
+      prevTotalLeads > 0 ? (prevConvertedLeads / prevTotalLeads) * 100 : 0;
 
     const calculateChange = (current: number, previous: number) => {
       if (previous === 0) return current > 0 ? 100 : 0;
@@ -986,7 +1201,11 @@ export class AnalyticsService {
     let avgResponseTimeHours = 0;
     if (leadsWithResponse.length > 0) {
       const totalHours = leadsWithResponse.reduce((sum, lead) => {
-        return sum + (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) / (1000 * 60 * 60);
+        return (
+          sum +
+          (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) /
+            (1000 * 60 * 60)
+        );
       }, 0);
       avgResponseTimeHours = totalHours / leadsWithResponse.length;
     }
@@ -994,21 +1213,37 @@ export class AnalyticsService {
     let prevAvgResponseTimeHours = 0;
     if (prevLeadsWithResponse.length > 0) {
       const totalHours = prevLeadsWithResponse.reduce((sum, lead) => {
-        return sum + (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) / (1000 * 60 * 60);
+        return (
+          sum +
+          (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) /
+            (1000 * 60 * 60)
+        );
       }, 0);
       prevAvgResponseTimeHours = totalHours / prevLeadsWithResponse.length;
     }
 
     // 2. Conversion Funnel (Dynamic)
     // We'll use the LeadStatus enum values as stages
-    const stages = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED', 'CONVERTED'];
-    const funnelCounts = await Promise.all(stages.map(status =>
-      this.prisma.lead.count({ where: { ...leadWhereBase, status: status as any } })
-    ));
+    const stages = [
+      'NEW',
+      'CONTACTED',
+      'QUALIFIED',
+      'PROPOSAL',
+      'NEGOTIATION',
+      'CLOSED',
+      'CONVERTED',
+    ];
+    const funnelCounts = await Promise.all(
+      stages.map((status) =>
+        this.prisma.lead.count({
+          where: { ...leadWhereBase, status: status as any },
+        }),
+      ),
+    );
 
     const funnelData = stages.map((stage, idx) => ({
       name: stage.charAt(0) + stage.slice(1).toLowerCase(),
-      value: funnelCounts[idx]
+      value: funnelCounts[idx],
     }));
 
     // 3. Source Distribution (Paginated)
@@ -1019,30 +1254,38 @@ export class AnalyticsService {
     });
 
     const totalSources = leadsBySourceAll.length;
-    const sortedLeadsBySource = leadsBySourceAll.sort((a, b) => b._count.id - a._count.id);
-    const paginatedLeadsBySource = sortedLeadsBySource.slice((page - 1) * limit, page * limit);
+    const sortedLeadsBySource = leadsBySourceAll.sort(
+      (a, b) => b._count.id - a._count.id,
+    );
+    const paginatedLeadsBySource = sortedLeadsBySource.slice(
+      (page - 1) * limit,
+      page * limit,
+    );
 
     const sources = await this.prisma.leadSource.findMany({
       where: { isActive: true },
     });
 
     const sourceMap: Record<number, string> = {};
-    sources.forEach(s => sourceMap[s.id] = s.name);
+    sources.forEach((s) => (sourceMap[s.id] = s.name));
 
-    const sourceDistributionData = await Promise.all(paginatedLeadsBySource.map(async (item) => {
-      const sourceId = item.sourceId;
-      const total = item._count.id;
-      const converted = await this.prisma.lead.count({
-        where: { ...leadWhereBase, sourceId, status: 'CONVERTED' }
-      });
-      const name = sourceId ? (sourceMap[sourceId] || 'Unknown') : 'No Source';
-      const rate = total > 0 ? Math.round((converted / total) * 100) : 0;
+    const sourceDistributionData = await Promise.all(
+      paginatedLeadsBySource.map(async (item) => {
+        const sourceId = item.sourceId;
+        const total = item._count.id;
+        const converted = await this.prisma.lead.count({
+          where: { ...leadWhereBase, sourceId, status: 'CONVERTED' },
+        });
+        const name = sourceId ? sourceMap[sourceId] || 'Unknown' : 'No Source';
+        const rate = total > 0 ? Math.round((converted / total) * 100) : 0;
 
-      return { name, total, converted, rate: `${rate}%` };
-    }));
+        return { name, total, converted, rate: `${rate}%` };
+      }),
+    );
 
     // 4. Conversion Trends (Monthly)
-    const monthlyData: Record<string, { leads: number; converted: number }> = {};
+    const monthlyData: Record<string, { leads: number; converted: number }> =
+      {};
     for (let i = 0; i < months; i++) {
       const d = new Date(endDate);
       d.setMonth(d.getMonth() - i);
@@ -1052,10 +1295,10 @@ export class AnalyticsService {
 
     const allLeadsInRange = await this.prisma.lead.findMany({
       where: leadWhereBase,
-      select: { createdAt: true, status: true }
+      select: { createdAt: true, status: true },
     });
 
-    allLeadsInRange.forEach(lead => {
+    allLeadsInRange.forEach((lead) => {
       const month = lead.createdAt.toISOString().slice(0, 7);
       if (monthlyData[month]) {
         monthlyData[month].leads++;
@@ -1067,9 +1310,11 @@ export class AnalyticsService {
 
     const conversionTrendData = Object.entries(monthlyData)
       .map(([month, stats]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        month: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         monthKey: month,
-        ...stats
+        ...stats,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
@@ -1084,7 +1329,10 @@ export class AnalyticsService {
           conversionRate: conversionRate.toFixed(1) + '%',
           conversionChange: Math.round(conversionRate - prevConversionRate),
           avgResponseTimeHours: avgResponseTimeHours.toFixed(1),
-          responseChange: calculateChange(avgResponseTimeHours, prevAvgResponseTimeHours)
+          responseChange: calculateChange(
+            avgResponseTimeHours,
+            prevAvgResponseTimeHours,
+          ),
         },
         funnelData,
         sourceDistributionData,
@@ -1093,14 +1341,25 @@ export class AnalyticsService {
           total: totalSources,
           page,
           limit,
-          pages: Math.ceil(totalSources / limit)
-        }
-      }
+          pages: Math.ceil(totalSources / limit),
+        },
+      },
     };
   }
 
-  async getDealReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getDealReport(
+    months: number = 6,
+    userId?: number,
+    scope: 'all' | 'me' = 'all',
+    currentUser?: any,
+    page: number = 1,
+    limit: number = 10,
+    filters?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -1109,7 +1368,7 @@ export class AnalyticsService {
     const dealWhereBase: any = {
       deletedAt: null,
       isActive: true,
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -1122,31 +1381,50 @@ export class AnalyticsService {
     }
 
     // 1. KPIs
-    const [totalDeals, wonDeals, lostDeals, allDealsInRange] = await Promise.all([
-      this.prisma.deal.count({ where: dealWhereBase }),
-      this.prisma.deal.count({ where: { ...dealWhereBase, status: 'WON' } }),
-      this.prisma.deal.count({ where: { ...dealWhereBase, status: 'LOST' } }),
-      this.prisma.deal.findMany({ where: dealWhereBase, include: { lead: { select: { createdAt: true } } } })
-    ]);
+    const [totalDeals, wonDeals, lostDeals, allDealsInRange] =
+      await Promise.all([
+        this.prisma.deal.count({ where: dealWhereBase }),
+        this.prisma.deal.count({ where: { ...dealWhereBase, status: 'WON' } }),
+        this.prisma.deal.count({ where: { ...dealWhereBase, status: 'LOST' } }),
+        this.prisma.deal.findMany({
+          where: dealWhereBase,
+          include: { lead: { select: { createdAt: true } } },
+        }),
+      ]);
 
     const { currencies, defaultCurrency } = await this.getCurrencyData();
 
-    const activeDeals = allDealsInRange.filter(d => !['WON', 'LOST'].includes(d.status));
+    const activeDeals = allDealsInRange.filter(
+      (d) => !['WON', 'LOST'].includes(d.status),
+    );
     const pipelineValue = activeDeals.reduce((sum, d) => {
-      const converted = this.convertToDefault(Number(d.value || 0), d.currency, defaultCurrency, currencies);
+      const converted = this.convertToDefault(
+        Number(d.value || 0),
+        d.currency,
+        defaultCurrency,
+        currencies,
+      );
       return sum + converted;
     }, 0);
-    const closedDealsValue = allDealsInRange.filter(d => d.status === 'WON').reduce((sum, d) => {
-      const converted = this.convertToDefault(Number(d.value || 0), d.currency, defaultCurrency, currencies);
-      return sum + converted;
-    }, 0);
+    const closedDealsValue = allDealsInRange
+      .filter((d) => d.status === 'WON')
+      .reduce((sum, d) => {
+        const converted = this.convertToDefault(
+          Number(d.value || 0),
+          d.currency,
+          defaultCurrency,
+          currencies,
+        );
+        return sum + converted;
+      }, 0);
 
     const totalClosed = wonDeals + lostDeals;
     const winRate = totalClosed > 0 ? (wonDeals / totalClosed) * 100 : 0;
     const avgDealSize = wonDeals > 0 ? closedDealsValue / wonDeals : 0;
 
     // 2. Monthly Sales Trend (Actual vs Forecast)
-    const monthlyData: Record<string, { actual: number; forecast: number }> = {};
+    const monthlyData: Record<string, { actual: number; forecast: number }> =
+      {};
     for (let i = 0; i < months; i++) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
@@ -1154,9 +1432,14 @@ export class AnalyticsService {
       monthlyData[key] = { actual: 0, forecast: 0 };
     }
 
-    allDealsInRange.forEach(deal => {
+    allDealsInRange.forEach((deal) => {
       const createdMonth = deal.createdAt.toISOString().slice(0, 7);
-      const convertedValue = this.convertToDefault(Number(deal.value || 0), deal.currency, defaultCurrency, currencies);
+      const convertedValue = this.convertToDefault(
+        Number(deal.value || 0),
+        deal.currency,
+        defaultCurrency,
+        currencies,
+      );
       if (monthlyData[createdMonth]) {
         monthlyData[createdMonth].forecast += convertedValue;
       }
@@ -1170,17 +1453,28 @@ export class AnalyticsService {
 
     const salesTrendData = Object.entries(monthlyData)
       .map(([month, stats]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        month: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         monthKey: month,
-        ...stats
+        ...stats,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
     // 3. Deal Velocity (Avg Days to Close)
-    const wonDealsWithDates = allDealsInRange.filter(d => d.status === 'WON' && d.actualCloseDate && d.createdAt);
-    const avgDaysToClose = wonDealsWithDates.length > 0
-      ? wonDealsWithDates.reduce((sum, d) => sum + (d.actualCloseDate!.getTime() - d.createdAt.getTime()) / (1000 * 60 * 60 * 24), 0) / wonDealsWithDates.length
-      : 0;
+    const wonDealsWithDates = allDealsInRange.filter(
+      (d) => d.status === 'WON' && d.actualCloseDate && d.createdAt,
+    );
+    const avgDaysToClose =
+      wonDealsWithDates.length > 0
+        ? wonDealsWithDates.reduce(
+            (sum, d) =>
+              sum +
+              (d.actualCloseDate!.getTime() - d.createdAt.getTime()) /
+                (1000 * 60 * 60 * 24),
+            0,
+          ) / wonDealsWithDates.length
+        : 0;
 
     // 4. Recent Closed Deals (Paginated)
     const [recentClosedDeals, totalRecentClosedDeals] = await Promise.all([
@@ -1190,12 +1484,12 @@ export class AnalyticsService {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          assignedUser: { select: { firstName: true, lastName: true } }
-        }
+          assignedUser: { select: { firstName: true, lastName: true } },
+        },
       }),
       this.prisma.deal.count({
-        where: { ...dealWhereBase, status: 'WON' }
-      })
+        where: { ...dealWhereBase, status: 'WON' },
+      }),
     ]);
 
     return {
@@ -1203,34 +1497,60 @@ export class AnalyticsService {
       data: {
         stats: {
           pipelineValue: this.formatCurrency(pipelineValue, defaultCurrency),
-          closedDealsValue: this.formatCurrency(closedDealsValue, defaultCurrency),
+          closedDealsValue: this.formatCurrency(
+            closedDealsValue,
+            defaultCurrency,
+          ),
           winRate: winRate.toFixed(1) + '%',
           avgDealSize: this.formatCurrency(avgDealSize, defaultCurrency),
-          avgDaysToClose: Math.round(avgDaysToClose)
+          avgDaysToClose: Math.round(avgDaysToClose),
         },
         salesTrendData,
-        recentClosedDeals: recentClosedDeals.map(d => ({
+        recentClosedDeals: recentClosedDeals.map((d) => ({
           name: d.title,
-          owner: d.assignedUser ? `${d.assignedUser.firstName} ${d.assignedUser.lastName}` : 'Unassigned',
-          value: this.formatCurrency(this.convertToDefault(Number(d.value || 0), d.currency, defaultCurrency, currencies), defaultCurrency),
-          date: d.actualCloseDate ? new Date(d.actualCloseDate).toLocaleDateString() : 'N/A'
+          owner: d.assignedUser
+            ? `${d.assignedUser.firstName} ${d.assignedUser.lastName}`
+            : 'Unassigned',
+          value: this.formatCurrency(
+            this.convertToDefault(
+              Number(d.value || 0),
+              d.currency,
+              defaultCurrency,
+              currencies,
+            ),
+            defaultCurrency,
+          ),
+          date: d.actualCloseDate
+            ? new Date(d.actualCloseDate).toLocaleDateString()
+            : 'N/A',
         })),
         pagination: {
           total: totalRecentClosedDeals,
           page,
           limit,
-          pages: Math.ceil(totalRecentClosedDeals / limit)
+          pages: Math.ceil(totalRecentClosedDeals / limit),
         },
         currency: {
           code: defaultCurrency.code,
-          symbol: defaultCurrency.symbol
-        }
-      }
+          symbol: defaultCurrency.symbol,
+        },
+      },
     };
   }
 
-  async getExpenseReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getExpenseReport(
+    months: number = 6,
+    userId?: number,
+    scope: 'all' | 'me' = 'all',
+    currentUser?: any,
+    page: number = 1,
+    limit: number = 10,
+    filters?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -1239,7 +1559,7 @@ export class AnalyticsService {
     const expenseWhereBase: any = {
       deletedAt: null,
       isActive: true,
-      expenseDate: { gte: startDate, lte: endDate }
+      expenseDate: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -1256,7 +1576,15 @@ export class AnalyticsService {
     // 1. KPIs - Fetch all relevant expenses to convert
     const allExpensesInRange = await this.prisma.expense.findMany({
       where: expenseWhereBase,
-      select: { amount: true, currency: true, status: true, category: true, expenseDate: true, description: true, submittedByUser: { select: { firstName: true, lastName: true } } }
+      select: {
+        amount: true,
+        currency: true,
+        status: true,
+        category: true,
+        expenseDate: true,
+        description: true,
+        submittedByUser: { select: { firstName: true, lastName: true } },
+      },
     });
 
     let totalAmount = 0;
@@ -1264,13 +1592,18 @@ export class AnalyticsService {
     let pendingAmount = 0;
     let rejectedAmount = 0;
 
-    let totalCount = allExpensesInRange.length;
+    const totalCount = allExpensesInRange.length;
     let approvedCount = 0;
     let pendingCount = 0;
     let rejectedCount = 0;
 
-    allExpensesInRange.forEach(exp => {
-      const converted = this.convertToDefault(Number(exp.amount), exp.currency, defaultCurrency, currencies);
+    allExpensesInRange.forEach((exp) => {
+      const converted = this.convertToDefault(
+        Number(exp.amount),
+        exp.currency,
+        defaultCurrency,
+        currencies,
+      );
       totalAmount += converted;
 
       if (exp.status === 'APPROVED') {
@@ -1288,7 +1621,7 @@ export class AnalyticsService {
     // 2. Monthly Trend
     const trendsRaw = await this.prisma.expense.findMany({
       where: expenseWhereBase,
-      select: { expenseDate: true, amount: true, status: true }
+      select: { expenseDate: true, amount: true, status: true },
     });
 
     const monthlyTrends: Record<string, { amount: number; count: number }> = {};
@@ -1299,37 +1632,51 @@ export class AnalyticsService {
       monthlyTrends[key] = { amount: 0, count: 0 };
     }
 
-    allExpensesInRange.forEach(exp => {
+    allExpensesInRange.forEach((exp) => {
       const month = exp.expenseDate.toISOString().slice(0, 7);
       if (monthlyTrends[month]) {
-        monthlyTrends[month].amount += this.convertToDefault(Number(exp.amount), exp.currency, defaultCurrency, currencies);
+        monthlyTrends[month].amount += this.convertToDefault(
+          Number(exp.amount),
+          exp.currency,
+          defaultCurrency,
+          currencies,
+        );
         monthlyTrends[month].count++;
       }
     });
 
     const expenseTrendData = Object.entries(monthlyTrends)
       .map(([month, stats]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        month: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         monthKey: month,
-        ...stats
+        ...stats,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
     // 3. Category Distribution
     const categoryMap: Record<string, { value: number; count: number }> = {};
-    allExpensesInRange.forEach(exp => {
+    allExpensesInRange.forEach((exp) => {
       if (!categoryMap[exp.category]) {
         categoryMap[exp.category] = { value: 0, count: 0 };
       }
-      categoryMap[exp.category].value += this.convertToDefault(Number(exp.amount), exp.currency, defaultCurrency, currencies);
+      categoryMap[exp.category].value += this.convertToDefault(
+        Number(exp.amount),
+        exp.currency,
+        defaultCurrency,
+        currencies,
+      );
       categoryMap[exp.category].count++;
     });
 
-    const categoryDistributionData = Object.entries(categoryMap).map(([name, stats]) => ({
-      name,
-      value: Math.round(stats.value * 100) / 100,
-      count: stats.count
-    })).sort((a, b) => b.value - a.value);
+    const categoryDistributionData = Object.entries(categoryMap)
+      .map(([name, stats]) => ({
+        name,
+        value: Math.round(stats.value * 100) / 100,
+        count: stats.count,
+      }))
+      .sort((a, b) => b.value - a.value);
 
     // 4. Recent Expenses (Paginated)
     const [recentExpenses, totalRecentExpenses] = await Promise.all([
@@ -1340,11 +1687,11 @@ export class AnalyticsService {
         take: limit,
         include: {
           submittedByUser: {
-            select: { firstName: true, lastName: true }
-          }
-        }
+            select: { firstName: true, lastName: true },
+          },
+        },
       }),
-      this.prisma.expense.count({ where: expenseWhereBase })
+      this.prisma.expense.count({ where: expenseWhereBase }),
     ]);
 
     return {
@@ -1358,37 +1705,62 @@ export class AnalyticsService {
           pendingAmount: this.formatCurrency(pendingAmount, defaultCurrency),
           pendingCount,
           rejectedAmount: this.formatCurrency(rejectedAmount, defaultCurrency),
-          rejectedCount
+          rejectedCount,
         },
         expenseTrendData,
         categoryDistributionData,
         recentExpenses: allExpensesInRange
           .sort((a, b) => b.expenseDate.getTime() - a.expenseDate.getTime())
           .slice((page - 1) * limit, page * limit)
-          .map(e => ({
+          .map((e) => ({
             description: e.description || 'No description',
             category: e.category,
-            amount: this.formatCurrency(this.convertToDefault(Number(e.amount), e.currency, defaultCurrency, currencies), defaultCurrency),
-            date: new Date(e.expenseDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            amount: this.formatCurrency(
+              this.convertToDefault(
+                Number(e.amount),
+                e.currency,
+                defaultCurrency,
+                currencies,
+              ),
+              defaultCurrency,
+            ),
+            date: new Date(e.expenseDate).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }),
             status: e.status,
-            user: e.submittedByUser ? `${e.submittedByUser.firstName} ${e.submittedByUser.lastName}` : 'N/A'
+            user: e.submittedByUser
+              ? `${e.submittedByUser.firstName} ${e.submittedByUser.lastName}`
+              : 'N/A',
           })),
         pagination: {
           total: totalCount,
           page,
           limit,
-          pages: Math.ceil(totalCount / limit)
+          pages: Math.ceil(totalCount / limit),
         },
         currency: {
           code: defaultCurrency.code,
-          symbol: defaultCurrency.symbol
-        }
-      }
+          symbol: defaultCurrency.symbol,
+        },
+      },
     };
   }
 
-  async getInvoiceReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getInvoiceReport(
+    months: number = 6,
+    userId?: number,
+    scope: 'all' | 'me' = 'all',
+    currentUser?: any,
+    page: number = 1,
+    limit: number = 10,
+    filters?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -1396,7 +1768,7 @@ export class AnalyticsService {
 
     const invoiceWhereBase: any = {
       deletedAt: null,
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -1413,24 +1785,43 @@ export class AnalyticsService {
     // 1. KPIs - Fetch all invoices in range to convert
     const allInvoicesInRange = await this.prisma.invoice.findMany({
       where: invoiceWhereBase,
-      select: { totalAmount: true, paidAmount: true, status: true, createdAt: true, dueDate: true, invoiceNumber: true, lead: { select: { firstName: true, lastName: true } }, currency: true }
+      select: {
+        totalAmount: true,
+        paidAmount: true,
+        status: true,
+        createdAt: true,
+        dueDate: true,
+        invoiceNumber: true,
+        lead: { select: { firstName: true, lastName: true } },
+        currency: true,
+      },
     });
 
     let totalBilled = 0;
     let totalPaid = 0;
     let overdueAmount = 0;
 
-    allInvoicesInRange.forEach(inv => {
+    allInvoicesInRange.forEach((inv) => {
       if (inv.status === 'CANCELLED') return;
 
-      const convertedTotal = this.convertToDefault(Number(inv.totalAmount), inv.currency, defaultCurrency, currencies);
-      const convertedPaid = this.convertToDefault(Number(inv.paidAmount), inv.currency, defaultCurrency, currencies);
+      const convertedTotal = this.convertToDefault(
+        Number(inv.totalAmount),
+        inv.currency,
+        defaultCurrency,
+        currencies,
+      );
+      const convertedPaid = this.convertToDefault(
+        Number(inv.paidAmount),
+        inv.currency,
+        defaultCurrency,
+        currencies,
+      );
 
       totalBilled += convertedTotal;
       totalPaid += convertedPaid;
 
       if (inv.status === 'OVERDUE') {
-        overdueAmount += (convertedTotal - convertedPaid);
+        overdueAmount += convertedTotal - convertedPaid;
       }
     });
 
@@ -1439,10 +1830,11 @@ export class AnalyticsService {
     // 2. Monthly Trend
     const invoicesRaw = await this.prisma.invoice.findMany({
       where: { ...invoiceWhereBase, status: { not: 'CANCELLED' } },
-      select: { createdAt: true, totalAmount: true, paidAmount: true }
+      select: { createdAt: true, totalAmount: true, paidAmount: true },
     });
 
-    const monthlyData: Record<string, { billed: number; collected: number }> = {};
+    const monthlyData: Record<string, { billed: number; collected: number }> =
+      {};
     for (let i = 0; i < months; i++) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
@@ -1450,20 +1842,32 @@ export class AnalyticsService {
       monthlyData[key] = { billed: 0, collected: 0 };
     }
 
-    allInvoicesInRange.forEach(inv => {
+    allInvoicesInRange.forEach((inv) => {
       if (inv.status === 'CANCELLED') return;
       const month = inv.createdAt.toISOString().slice(0, 7);
       if (monthlyData[month]) {
-        monthlyData[month].billed += this.convertToDefault(Number(inv.totalAmount), inv.currency, defaultCurrency, currencies);
-        monthlyData[month].collected += this.convertToDefault(Number(inv.paidAmount), inv.currency, defaultCurrency, currencies);
+        monthlyData[month].billed += this.convertToDefault(
+          Number(inv.totalAmount),
+          inv.currency,
+          defaultCurrency,
+          currencies,
+        );
+        monthlyData[month].collected += this.convertToDefault(
+          Number(inv.paidAmount),
+          inv.currency,
+          defaultCurrency,
+          currencies,
+        );
       }
     });
 
     const revenueTrendData = Object.entries(monthlyData)
       .map(([month, values]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        month: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         monthKey: month,
-        ...values
+        ...values,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
@@ -1471,12 +1875,12 @@ export class AnalyticsService {
     const statusStats = await this.prisma.invoice.groupBy({
       by: ['status'],
       where: invoiceWhereBase,
-      _count: { id: true }
+      _count: { id: true },
     });
 
-    const statusDistributionData = statusStats.map(stat => ({
+    const statusDistributionData = statusStats.map((stat) => ({
       name: stat.status,
-      value: stat._count.id
+      value: stat._count.id,
     }));
 
     // 4. Recent High-Value Invoices (Paginated)
@@ -1487,10 +1891,10 @@ export class AnalyticsService {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          lead: { select: { firstName: true, lastName: true } }
-        }
+          lead: { select: { firstName: true, lastName: true } },
+        },
       }),
-      this.prisma.invoice.count({ where: invoiceWhereBase })
+      this.prisma.invoice.count({ where: invoiceWhereBase }),
     ]);
 
     return {
@@ -1500,37 +1904,60 @@ export class AnalyticsService {
           totalBilled: this.formatCurrency(totalBilled, defaultCurrency),
           totalPaid: this.formatCurrency(totalPaid, defaultCurrency),
           outstanding: this.formatCurrency(outstanding, defaultCurrency),
-          overdue: this.formatCurrency(overdueAmount, defaultCurrency)
+          overdue: this.formatCurrency(overdueAmount, defaultCurrency),
         },
         revenueTrendData,
         statusDistributionData,
         highValueInvoices: allInvoicesInRange
           .sort((a, b) => Number(b.totalAmount) - Number(a.totalAmount))
           .slice((page - 1) * limit, page * limit)
-          .map(inv => ({
+          .map((inv) => ({
             id: inv.invoiceNumber,
-            client: inv.lead ? `${inv.lead.firstName} ${inv.lead.lastName}` : 'N/A',
-            amount: this.formatCurrency(this.convertToDefault(Number(inv.totalAmount), inv.currency, defaultCurrency, currencies), defaultCurrency),
+            client: inv.lead
+              ? `${inv.lead.firstName} ${inv.lead.lastName}`
+              : 'N/A',
+            amount: this.formatCurrency(
+              this.convertToDefault(
+                Number(inv.totalAmount),
+                inv.currency,
+                defaultCurrency,
+                currencies,
+              ),
+              defaultCurrency,
+            ),
             rawAmount: Number(inv.totalAmount),
             status: inv.status,
-            date: inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : new Date(inv.createdAt).toLocaleDateString()
+            date: inv.dueDate
+              ? new Date(inv.dueDate).toLocaleDateString()
+              : new Date(inv.createdAt).toLocaleDateString(),
           })),
         pagination: {
           total: allInvoicesInRange.length,
           page,
           limit,
-          pages: Math.ceil(allInvoicesInRange.length / limit)
+          pages: Math.ceil(allInvoicesInRange.length / limit),
         },
         currency: {
           code: defaultCurrency.code,
-          symbol: defaultCurrency.symbol
-        }
-      }
+          symbol: defaultCurrency.symbol,
+        },
+      },
     };
   }
 
-  async getQuotationReport(months: number = 6, userId?: number, scope: 'all' | 'me' = 'all', currentUser?: any, page: number = 1, limit: number = 10, filters?: any) {
-    const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+  async getQuotationReport(
+    months: number = 6,
+    userId?: number,
+    scope: 'all' | 'me' = 'all',
+    currentUser?: any,
+    page: number = 1,
+    limit: number = 10,
+    filters?: any,
+  ) {
+    const authorizedUserIds = await this.getAuthorizedUserIds(
+      userId,
+      currentUser,
+    );
 
     const endDate = new Date();
     const startDate = new Date();
@@ -1538,7 +1965,7 @@ export class AnalyticsService {
 
     const quotationWhereBase: any = {
       deletedAt: null,
-      createdAt: { gte: startDate, lte: endDate }
+      createdAt: { gte: startDate, lte: endDate },
     };
 
     if (authorizedUserIds !== null) {
@@ -1553,24 +1980,46 @@ export class AnalyticsService {
     const { currencies, defaultCurrency } = await this.getCurrencyData();
 
     // 1. KPIs
-    const [totalCount, acceptedCount, waitingCount, rejectedCount, allQuotationsInRange] = await Promise.all([
+    const [
+      totalCount,
+      acceptedCount,
+      waitingCount,
+      rejectedCount,
+      allQuotationsInRange,
+    ] = await Promise.all([
       this.prisma.quotation.count({ where: quotationWhereBase }),
-      this.prisma.quotation.count({ where: { ...quotationWhereBase, status: 'ACCEPTED' } }),
-      this.prisma.quotation.count({ where: { ...quotationWhereBase, status: { in: ['SENT', 'VIEWED'] } } }),
-      this.prisma.quotation.count({ where: { ...quotationWhereBase, status: 'REJECTED' } }),
+      this.prisma.quotation.count({
+        where: { ...quotationWhereBase, status: 'ACCEPTED' },
+      }),
+      this.prisma.quotation.count({
+        where: { ...quotationWhereBase, status: { in: ['SENT', 'VIEWED'] } },
+      }),
+      this.prisma.quotation.count({
+        where: { ...quotationWhereBase, status: 'REJECTED' },
+      }),
       this.prisma.quotation.findMany({
         where: quotationWhereBase,
-        select: { totalAmount: true, currency: true, status: true, quotationNumber: true, title: true, validUntil: true, createdAt: true, lead: { select: { firstName: true, lastName: true } } }
-      })
+        select: {
+          totalAmount: true,
+          currency: true,
+          status: true,
+          quotationNumber: true,
+          title: true,
+          validUntil: true,
+          createdAt: true,
+          lead: { select: { firstName: true, lastName: true } },
+        },
+      }),
     ]);
 
     // Conversion percentage
-    const conversionRate = totalCount > 0 ? (acceptedCount / totalCount) * 100 : 0;
+    const conversionRate =
+      totalCount > 0 ? (acceptedCount / totalCount) * 100 : 0;
 
     // 2. Trend Data (Monthly Acceptance Rate)
     const quotesRaw = await this.prisma.quotation.findMany({
       where: quotationWhereBase,
-      select: { createdAt: true, status: true }
+      select: { createdAt: true, status: true },
     });
 
     const monthlyData: Record<string, { total: number; accepted: number }> = {};
@@ -1581,7 +2030,7 @@ export class AnalyticsService {
       monthlyData[key] = { total: 0, accepted: 0 };
     }
 
-    quotesRaw.forEach(q => {
+    quotesRaw.forEach((q) => {
       const month = q.createdAt.toISOString().slice(0, 7);
       if (monthlyData[month]) {
         monthlyData[month].total++;
@@ -1593,11 +2042,16 @@ export class AnalyticsService {
 
     const trendData = Object.entries(monthlyData)
       .map(([month, values]) => ({
-        month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        month: new Date(month + '-01').toLocaleDateString('en-US', {
+          month: 'short',
+        }),
         monthKey: month,
-        rate: values.total > 0 ? Number(((values.accepted / values.total) * 100).toFixed(1)) : 0,
+        rate:
+          values.total > 0
+            ? Number(((values.accepted / values.total) * 100).toFixed(1))
+            : 0,
         total: values.total,
-        accepted: values.accepted
+        accepted: values.accepted,
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
@@ -1605,12 +2059,12 @@ export class AnalyticsService {
     const statusStats = await this.prisma.quotation.groupBy({
       by: ['status'],
       where: quotationWhereBase,
-      _count: { id: true }
+      _count: { id: true },
     });
 
-    const statusDistributionData = statusStats.map(stat => ({
+    const statusDistributionData = statusStats.map((stat) => ({
       name: stat.status,
-      value: stat._count.id
+      value: stat._count.id,
     }));
 
     // 4. Quotations Table (Paginated)
@@ -1622,10 +2076,10 @@ export class AnalyticsService {
         take: limit,
         include: {
           lead: { select: { firstName: true, lastName: true } },
-          createdByUser: { select: { firstName: true, lastName: true } }
-        }
+          createdByUser: { select: { firstName: true, lastName: true } },
+        },
       }),
-      this.prisma.quotation.count({ where: quotationWhereBase })
+      this.prisma.quotation.count({ where: quotationWhereBase }),
     ]);
 
     return {
@@ -1636,33 +2090,43 @@ export class AnalyticsService {
           accepted: acceptedCount,
           waiting: waitingCount,
           rejected: rejectedCount,
-          conversionRate: Number(conversionRate.toFixed(1))
+          conversionRate: Number(conversionRate.toFixed(1)),
         },
         trendData,
         statusDistributionData,
         quotations: allQuotationsInRange
           .sort((a, b) => Number(b.totalAmount) - Number(a.totalAmount))
           .slice((page - 1) * limit, page * limit)
-          .map(q => ({
+          .map((q) => ({
             id: q.quotationNumber,
             subject: q.title,
-            amount: this.formatCurrency(this.convertToDefault(Number(q.totalAmount), q.currency, defaultCurrency, currencies), defaultCurrency),
+            amount: this.formatCurrency(
+              this.convertToDefault(
+                Number(q.totalAmount),
+                q.currency,
+                defaultCurrency,
+                currencies,
+              ),
+              defaultCurrency,
+            ),
             rawAmount: Number(q.totalAmount),
             status: q.status,
-            validUntil: q.validUntil ? new Date(q.validUntil).toLocaleDateString() : 'N/A',
-            client: q.lead ? `${q.lead.firstName} ${q.lead.lastName}` : 'N/A'
+            validUntil: q.validUntil
+              ? new Date(q.validUntil).toLocaleDateString()
+              : 'N/A',
+            client: q.lead ? `${q.lead.firstName} ${q.lead.lastName}` : 'N/A',
           })),
         pagination: {
           total: allQuotationsInRange.length,
           page,
           limit,
-          pages: Math.ceil(allQuotationsInRange.length / limit)
+          pages: Math.ceil(allQuotationsInRange.length / limit),
         },
         currency: {
           code: defaultCurrency.code,
-          symbol: defaultCurrency.symbol
-        }
-      }
+          symbol: defaultCurrency.symbol,
+        },
+      },
     };
   }
 }

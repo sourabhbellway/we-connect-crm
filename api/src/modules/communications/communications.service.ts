@@ -18,14 +18,18 @@ export class CommunicationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
-  ) { }
+  ) {}
 
   async listLeadComms(leadId: number, user?: any) {
     const where: any = { leadId };
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['userId']);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+        ['userId'],
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -51,7 +55,11 @@ export class CommunicationsService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['userId']);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+        ['userId'],
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         where.AND = [roleBasedWhere];
       }
@@ -124,7 +132,7 @@ export class CommunicationsService {
             firstName: true,
             lastName: true,
             email: true,
-            assignedTo: true
+            assignedTo: true,
           },
         });
 
@@ -155,20 +163,32 @@ export class CommunicationsService {
                 meetingTitle: dto.subject || 'Meeting',
                 meetingDate: new Date(dto.scheduledAt).toLocaleDateString(),
                 meetingTime: new Date(dto.scheduledAt).toLocaleTimeString(),
-                location: dto.content?.includes('Location:') ? dto.content.split('Location:')[1]?.split('\n')[0]?.trim() : undefined,
-                link: dto.content?.includes('Link:') ? dto.content.split('Link:')[1]?.split('\n')[0]?.trim() : undefined,
-                notes: dto.content?.includes('Notes:') ? dto.content.split('Notes:')[1]?.trim() : undefined,
+                location: dto.content?.includes('Location:')
+                  ? dto.content.split('Location:')[1]?.split('\n')[0]?.trim()
+                  : undefined,
+                link: dto.content?.includes('Link:')
+                  ? dto.content.split('Link:')[1]?.split('\n')[0]?.trim()
+                  : undefined,
+                notes: dto.content?.includes('Notes:')
+                  ? dto.content.split('Notes:')[1]?.trim()
+                  : undefined,
                 leadId: dto.leadId,
                 userId: dto.userId,
               });
             } catch (emailError) {
-              this.logger.warn('Failed to send meeting email to lead:', emailError);
+              this.logger.warn(
+                'Failed to send meeting email to lead:',
+                emailError,
+              );
               // Don't fail the meeting creation if email fails
             }
           }
         }
       } catch (error) {
-        this.logger.error('Error creating meeting activity or notification:', error);
+        this.logger.error(
+          'Error creating meeting activity or notification:',
+          error,
+        );
       }
     }
 
@@ -176,24 +196,31 @@ export class CommunicationsService {
   }
 
   // Templates
-  async listTemplates({
-    type,
-    active,
-    page = 1,
-    limit = 10,
-  }: {
-    type?: string;
-    active?: string;
-    page?: number;
-    limit?: number;
-  }, user?: any) {
+  async listTemplates(
+    {
+      type,
+      active,
+      page = 1,
+      limit = 10,
+    }: {
+      type?: string;
+      active?: string;
+      page?: number;
+      limit?: number;
+    },
+    user?: any,
+  ) {
     const where: any = { deletedAt: null };
     if (type) where.type = type as any;
     if (active !== undefined) where.isActive = active === 'true';
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['createdBy']);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+        ['createdBy'],
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         if (where.AND) {
           where.AND.push(roleBasedWhere);
@@ -328,49 +355,82 @@ export class CommunicationsService {
 
         if (provider) {
           const cfg = (provider as any).config || {};
-          this.logger.log(`Loading SMTP config from Communication Provider: ${provider.name} (ID: ${provider.id})`);
+          this.logger.log(
+            `Loading SMTP config from Communication Provider: ${provider.name} (ID: ${provider.id})`,
+          );
 
           // Try multiple field name variations to support different config formats
           host = cfg.smtpHost || cfg.host || cfg.EMAIL_HOST;
-          port = cfg.smtpPort ? Number(cfg.smtpPort) : (cfg.port ? Number(cfg.port) : (cfg.EMAIL_PORT ? Number(cfg.EMAIL_PORT) : 587));
-          user = cfg.smtpUser || cfg.username || cfg.EMAIL_HOST_USER || cfg.user;
-          pass = cfg.smtpPassword || cfg.password || cfg.EMAIL_HOST_PASSWORD || cfg.pass;
-          from = cfg.fromEmail || cfg.from || cfg.smtpUser || cfg.EMAIL_FROM || user;
+          port = cfg.smtpPort
+            ? Number(cfg.smtpPort)
+            : cfg.port
+              ? Number(cfg.port)
+              : cfg.EMAIL_PORT
+                ? Number(cfg.EMAIL_PORT)
+                : 587;
+          user =
+            cfg.smtpUser || cfg.username || cfg.EMAIL_HOST_USER || cfg.user;
+          pass =
+            cfg.smtpPassword ||
+            cfg.password ||
+            cfg.EMAIL_HOST_PASSWORD ||
+            cfg.pass;
+          from =
+            cfg.fromEmail || cfg.from || cfg.smtpUser || cfg.EMAIL_FROM || user;
           fromName = cfg.fromName || cfg.from_name;
 
-          this.logger.log(`SMTP Config loaded - Host: ${host ? '✓' : '✗'}, Port: ${port}, User: ${user ? '✓' : '✗'}, From: ${from ? '✓' : '✗'}`);
+          this.logger.log(
+            `SMTP Config loaded - Host: ${host ? '✓' : '✗'}, Port: ${port}, User: ${user ? '✓' : '✗'}, From: ${from ? '✓' : '✗'}`,
+          );
 
           if (host && user && pass && from) {
-            this.logger.log(`Using SMTP configuration from Communication Provider: ${provider.name}`);
+            this.logger.log(
+              `Using SMTP configuration from Communication Provider: ${provider.name}`,
+            );
           } else {
-            this.logger.warn(`Communication Provider config incomplete. Missing: ${!host ? 'host ' : ''}${!user ? 'user ' : ''}${!pass ? 'password ' : ''}${!from ? 'from ' : ''}`);
+            this.logger.warn(
+              `Communication Provider config incomplete. Missing: ${!host ? 'host ' : ''}${!user ? 'user ' : ''}${!pass ? 'password ' : ''}${!from ? 'from ' : ''}`,
+            );
           }
         } else {
-          this.logger.log('No active default EMAIL provider found in Communication Providers');
+          this.logger.log(
+            'No active default EMAIL provider found in Communication Providers',
+          );
         }
       } catch (err) {
-        this.logger.error('Failed to load email provider from communication_providers', err?.stack || err);
+        this.logger.error(
+          'Failed to load email provider from communication_providers',
+          err?.stack || err,
+        );
       }
 
       // Fallback to legacy ENV configuration if provider not configured or incomplete
       // Support both EMAIL_* and SMTP_* environment variable formats
       if (!host || !user || !pass || !from) {
         host = host || process.env.EMAIL_HOST || process.env.SMTP_HOST;
-        port = port || (process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) :
-          (process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587));
+        port =
+          port ||
+          (process.env.EMAIL_PORT
+            ? Number(process.env.EMAIL_PORT)
+            : process.env.SMTP_PORT
+              ? Number(process.env.SMTP_PORT)
+              : 587);
         user = user || process.env.EMAIL_HOST_USER || process.env.SMTP_USER;
         pass = pass || process.env.EMAIL_HOST_PASSWORD || process.env.SMTP_PASS;
         from = from || process.env.EMAIL_FROM || process.env.SMTP_FROM || user;
       }
 
       if (!host || !user || !pass || !from) {
-        this.logger.warn('SMTP configuration incomplete (from provider or env); skipping outbound email send');
+        this.logger.warn(
+          'SMTP configuration incomplete (from provider or env); skipping outbound email send',
+        );
         sendStatus = 'FAILED';
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const nodemailer = require('nodemailer');
         // Check if TLS should be used (EMAIL_USE_TLS or default to true for port 587)
-        const useTLS = process.env.EMAIL_USE_TLS === 'True' || process.env.EMAIL_USE_TLS === 'true' ||
+        const useTLS =
+          process.env.EMAIL_USE_TLS === 'True' ||
+          process.env.EMAIL_USE_TLS === 'true' ||
           process.env.EMAIL_USE_TLS === '1' ||
           (process.env.EMAIL_USE_TLS === undefined && (port ?? 587) !== 465);
 
@@ -381,8 +441,8 @@ export class CommunicationsService {
           auth: { user, pass },
           tls: {
             // Do not fail on invalid certs (useful for self-signed certificates)
-            rejectUnauthorized: false
-          }
+            rejectUnauthorized: false,
+          },
         });
 
         const fromHeader = fromName ? `${fromName} <${from}>` : from;
@@ -397,11 +457,16 @@ export class CommunicationsService {
           html: htmlBody,
         });
 
-        this.logger.log(`Outbound email sent to ${dto.to} for leadId=${dto.leadId}`);
+        this.logger.log(
+          `Outbound email sent to ${dto.to} for leadId=${dto.leadId}`,
+        );
       }
     } catch (error) {
       sendStatus = 'FAILED';
-      this.logger.error(`Failed to send outbound email to ${dto.to}`, (error as any)?.stack || error);
+      this.logger.error(
+        `Failed to send outbound email to ${dto.to}`,
+        error?.stack || error,
+      );
     }
 
     const message = await this.prisma.communicationMessage.create({
@@ -420,7 +485,10 @@ export class CommunicationsService {
 
     return {
       success: sendStatus === 'SENT',
-      message: sendStatus === 'SENT' ? 'Email sent successfully' : 'Failed to send email via SMTP',
+      message:
+        sendStatus === 'SENT'
+          ? 'Email sent successfully'
+          : 'Failed to send email via SMTP',
       data: { messageId: message.id },
     };
   }
@@ -508,19 +576,22 @@ export class CommunicationsService {
     };
   }
 
-  async listMessages({
-    leadId,
-    type,
-    status,
-    page = 1,
-    limit = 10,
-  }: {
-    leadId?: number;
-    type?: string;
-    status?: string;
-    page?: number;
-    limit?: number;
-  }, user?: any) {
+  async listMessages(
+    {
+      leadId,
+      type,
+      status,
+      page = 1,
+      limit = 10,
+    }: {
+      leadId?: number;
+      type?: string;
+      status?: string;
+      page?: number;
+      limit?: number;
+    },
+    user?: any,
+  ) {
     const where: any = {};
     if (leadId) where.leadId = leadId;
     if (type) where.type = type as any;
@@ -528,7 +599,11 @@ export class CommunicationsService {
 
     // Role-based filtering
     if (user && user.userId) {
-      const roleBasedWhere = await getRoleBasedWhereClause(user.userId, this.prisma, ['userId']);
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+        ['userId'],
+      );
       if (Object.keys(roleBasedWhere).length > 0) {
         if (where.AND) {
           where.AND.push(roleBasedWhere);
@@ -642,7 +717,9 @@ export class CommunicationsService {
         },
       });
 
-      this.logger.log(`WhatsApp message saved: ${message.id} for lead: ${lead.id}`);
+      this.logger.log(
+        `WhatsApp message saved: ${message.id} for lead: ${lead.id}`,
+      );
 
       // Send notification to assigned user
       if (lead.assignedTo) {
@@ -653,7 +730,11 @@ export class CommunicationsService {
             title: 'WhatsApp Reply Received',
             message: `${dto.contactName || dto.from} replied: "${dto.content.substring(0, 100)}${dto.content.length > 100 ? '...' : ''}"`,
             link: `/leads/${lead.id}`,
-            metadata: { leadId: lead.id, messageId: message.id, type: 'WHATSAPP' },
+            metadata: {
+              leadId: lead.id,
+              messageId: message.id,
+              type: 'WHATSAPP',
+            },
           });
         } catch (error) {
           this.logger.error('Failed to send notification:', error);
@@ -751,7 +832,9 @@ export class CommunicationsService {
         },
       });
 
-      this.logger.log(`Email message saved: ${message.id} for lead: ${lead.id}`);
+      this.logger.log(
+        `Email message saved: ${message.id} for lead: ${lead.id}`,
+      );
 
       // Send notification to assigned user
       if (lead.assignedTo) {
@@ -792,8 +875,10 @@ export class CommunicationsService {
         whatsapp: `${baseUrl}/communications/webhooks/whatsapp`,
         email: `${baseUrl}/communications/webhooks/email`,
         instructions: {
-          whatsapp: 'Configure this URL in your WhatsApp Business API provider webhook settings',
-          email: 'Configure this URL as the inbound webhook in your email provider (e.g., SendGrid, Mailgun)',
+          whatsapp:
+            'Configure this URL in your WhatsApp Business API provider webhook settings',
+          email:
+            'Configure this URL as the inbound webhook in your email provider (e.g., SendGrid, Mailgun)',
         },
       },
     };
@@ -801,7 +886,17 @@ export class CommunicationsService {
 
   async sendMeetingEmail(body: any) {
     try {
-      const { leadEmail, meetingTitle, meetingDate, meetingTime, location, link, notes, leadId, userId } = body;
+      const {
+        leadEmail,
+        meetingTitle,
+        meetingDate,
+        meetingTime,
+        location,
+        link,
+        notes,
+        leadId,
+        userId,
+      } = body;
 
       if (!leadEmail) {
         return { success: false, message: 'Lead email is required' };
@@ -842,7 +937,11 @@ export class CommunicationsService {
       return { success: true, message: 'Meeting email sent to lead' };
     } catch (error) {
       this.logger.error('Error sending meeting email:', error);
-      return { success: false, message: 'Failed to send meeting email', error: error.message };
+      return {
+        success: false,
+        message: 'Failed to send meeting email',
+        error: error.message,
+      };
     }
   }
 }

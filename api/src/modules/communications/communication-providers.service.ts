@@ -55,12 +55,18 @@ export class CommunicationProvidersService {
   }
 
   async updateProvider(id: number, body: any) {
-    const existing = await this.prisma.communicationProvider.findUnique({ where: { id } });
+    const existing = await this.prisma.communicationProvider.findUnique({
+      where: { id },
+    });
     if (!existing) {
       return { success: false, message: 'Provider not found' };
     }
 
-    const type = (body.type || existing.type || 'EMAIL').toUpperCase() as TemplateType;
+    const type = (
+      body.type ||
+      existing.type ||
+      'EMAIL'
+    ).toUpperCase() as TemplateType;
     const isDefault = body.isDefault ?? existing.isDefault;
 
     if (isDefault) {
@@ -102,14 +108,20 @@ export class CommunicationProvidersService {
     return { success: true, message: 'Provider deleted successfully' };
   }
 
-  async testProvider(id: number, body: { testType?: string; recipient?: string }) {
-    const provider = await this.prisma.communicationProvider.findUnique({ where: { id } });
+  async testProvider(
+    id: number,
+    body: { testType?: string; recipient?: string },
+  ) {
+    const provider = await this.prisma.communicationProvider.findUnique({
+      where: { id },
+    });
     if (!provider) {
       return { success: false, message: 'Provider not found' };
     }
 
     const cfg: any = (provider as any).config || {};
-    const recipient = body.recipient || (provider.type === 'EMAIL' ? cfg.fromEmail : undefined);
+    const recipient =
+      body.recipient || (provider.type === 'EMAIL' ? cfg.fromEmail : undefined);
 
     if (!recipient) {
       return { success: false, message: 'Recipient not provided for test' };
@@ -125,11 +137,13 @@ export class CommunicationProvidersService {
       const fromName = cfg.fromName;
 
       if (!host || !user || !pass || !from) {
-        return { success: false, message: 'SMTP configuration incomplete for this provider' };
+        return {
+          success: false,
+          message: 'SMTP configuration incomplete for this provider',
+        };
       }
 
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const nodemailer = require('nodemailer');
         const transporter = nodemailer.createTransport({
           host,
@@ -151,7 +165,11 @@ export class CommunicationProvidersService {
         return { success: true, message: 'Test email sent successfully' };
       } catch (error) {
         this.logger.error('Test email failed', error?.stack || error);
-        return { success: false, message: 'Test email failed', error: String(error?.message || error) };
+        return {
+          success: false,
+          message: 'Test email failed',
+          error: String(error?.message || error),
+        };
       }
     }
 

@@ -9,4 +9,4 @@ import { NotificationsModule } from '../notifications/notifications.module';
   controllers: [CallLogsController],
   providers: [CallLogsService, PrismaService],
 })
-export class CallLogsModule { }
+export class CallLogsModule {}

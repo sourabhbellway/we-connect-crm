@@ -18,7 +18,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly service: TasksService) { }
+  constructor(private readonly service: TasksService) {}
 
   @Get()
   list(
@@ -44,19 +44,21 @@ export class TasksController {
       const idNum = parseInt(entityId);
       if (entityType === 'lead') lead = idNum;
       if (entityType === 'deal') deal = idNum;
-
     }
 
-    return this.service.list({
-      page: page ? parseInt(page) : 1,
-      limit: limit ? parseInt(limit) : 10,
-      status,
-      search,
-      leadId: lead,
-      dealId: deal,
+    return this.service.list(
+      {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        status,
+        search,
+        leadId: lead,
+        dealId: deal,
 
-      assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
-    }, user);
+        assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
+      },
+      user,
+    );
   }
 
   @Get(':id')
