@@ -1,0 +1,32 @@
+export declare class CreateLeadDto {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+    position?: string;
+    industry?: string;
+    website?: string;
+    companySize?: number;
+    annualRevenue?: number;
+    address?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    zipCode?: string;
+    linkedinProfile?: string;
+    timezone?: string;
+    preferredContactMethod?: string;
+    sourceId?: number;
+    status?: string;
+    priority?: string;
+    assignedTo?: number;
+    budget?: number;
+    currency?: string;
+    leadScore?: number;
+    notes?: string;
+    tags?: number[];
+    lastContactedAt?: string;
+    nextFollowUpAt?: string;
+    customFields?: Record<string, any>;
+}

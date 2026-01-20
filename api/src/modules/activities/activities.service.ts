@@ -8,7 +8,7 @@ import {
 
 @Injectable()
 export class ActivitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getRecent(limit = 5, user?: any, targetUserId?: number) {
     const where: any = {};
@@ -367,9 +367,9 @@ export class ActivitiesService {
             not: null,
             ...(startDate && endDate
               ? {
-                  gte: startDate,
-                  lte: endDate,
-                }
+                gte: startDate,
+                lte: endDate,
+              }
               : {}),
           },
           // Filter by lead assignment if not global
@@ -403,11 +403,11 @@ export class ActivitiesService {
       // Also fetch activities for the user or their leads
       const activities = await this.prisma.activity.findMany({
         where: {
-          type: 'COMMUNICATION_LOGGED', // Meeting activities
-          ...(Object.keys(leadFilter).length > 0
+          type: 'COMMUNICATION_LOGGED',
+          ...(user && user.userId && Object.keys(leadFilter).length > 0
             ? {
-                OR: [{ userId: user.userId }, { lead: leadFilter }],
-              }
+              OR: [{ userId: user.userId }, { lead: leadFilter }],
+            }
             : {}),
         },
         include: {
@@ -437,8 +437,8 @@ export class ActivitiesService {
                 ? new Date(metadata.scheduledAt)
                 : null,
               leadId: activity.leadId,
-              userId: activity.userId ?? undefined, // Fix number | null to number | undefined
-              user: activity.user,
+              userId: activity.userId ?? undefined,
+              user: (activity as any).user,
               source: 'activity',
             };
           })

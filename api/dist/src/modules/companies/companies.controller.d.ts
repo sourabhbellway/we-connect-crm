@@ -1,0 +1,222 @@
+import { CompaniesService } from './companies.service';
+import { CreateCompanyDto } from './dto/create-company.dto';
+import { UpdateCompanyDto } from './dto/update-company.dto';
+export declare class CompaniesController {
+    private readonly companies;
+    constructor(companies: CompaniesService);
+    list(page?: string, limit?: string, search?: string, user?: any): Promise<{
+        success: boolean;
+        data: ({
+            industry: {
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                id: number;
+                name: string;
+                slug: string;
+            } | null;
+            assignedUser: {
+                email: string;
+                firstName: string;
+                lastName: string;
+                id: number;
+            } | null;
+        } & {
+            email: string | null;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            deletedAt: Date | null;
+            notes: string | null;
+            id: number;
+            name: string;
+            description: string | null;
+            currency: string | null;
+            tags: string[];
+            assignedTo: number | null;
+            createdBy: number | null;
+            phone: string | null;
+            status: import(".prisma/client").$Enums.CompanyStatus;
+            lastContactedAt: Date | null;
+            nextFollowUpAt: Date | null;
+            website: string | null;
+            companySize: import(".prisma/client").$Enums.CompanySize | null;
+            annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+            leadScore: number | null;
+            address: string | null;
+            country: string | null;
+            state: string | null;
+            city: string | null;
+            zipCode: string | null;
+            linkedinProfile: string | null;
+            timezone: string | null;
+            employeeCount: string | null;
+            domain: string | null;
+            slug: string | null;
+            industryId: number | null;
+            alternatePhone: string | null;
+            facebookPage: string | null;
+            foundedYear: number | null;
+            parentCompanyId: number | null;
+            twitterHandle: string | null;
+        })[];
+    }>;
+    get(id: string, user?: any): Promise<{
+        success: boolean;
+        message: string;
+        data?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            company: {
+                industry: {
+                    isActive: boolean;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    id: number;
+                    name: string;
+                    slug: string;
+                } | null;
+                assignedUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+            } & {
+                email: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                notes: string | null;
+                id: number;
+                name: string;
+                description: string | null;
+                currency: string | null;
+                tags: string[];
+                assignedTo: number | null;
+                createdBy: number | null;
+                phone: string | null;
+                status: import(".prisma/client").$Enums.CompanyStatus;
+                lastContactedAt: Date | null;
+                nextFollowUpAt: Date | null;
+                website: string | null;
+                companySize: import(".prisma/client").$Enums.CompanySize | null;
+                annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                leadScore: number | null;
+                address: string | null;
+                country: string | null;
+                state: string | null;
+                city: string | null;
+                zipCode: string | null;
+                linkedinProfile: string | null;
+                timezone: string | null;
+                employeeCount: string | null;
+                domain: string | null;
+                slug: string | null;
+                industryId: number | null;
+                alternatePhone: string | null;
+                facebookPage: string | null;
+                foundedYear: number | null;
+                parentCompanyId: number | null;
+                twitterHandle: string | null;
+            };
+        };
+        message?: undefined;
+    }>;
+    create(dto: CreateCompanyDto, user?: any): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            company: {
+                email: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                notes: string | null;
+                id: number;
+                name: string;
+                description: string | null;
+                currency: string | null;
+                tags: string[];
+                assignedTo: number | null;
+                createdBy: number | null;
+                phone: string | null;
+                status: import(".prisma/client").$Enums.CompanyStatus;
+                lastContactedAt: Date | null;
+                nextFollowUpAt: Date | null;
+                website: string | null;
+                companySize: import(".prisma/client").$Enums.CompanySize | null;
+                annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                leadScore: number | null;
+                address: string | null;
+                country: string | null;
+                state: string | null;
+                city: string | null;
+                zipCode: string | null;
+                linkedinProfile: string | null;
+                timezone: string | null;
+                employeeCount: string | null;
+                domain: string | null;
+                slug: string | null;
+                industryId: number | null;
+                alternatePhone: string | null;
+                facebookPage: string | null;
+                foundedYear: number | null;
+                parentCompanyId: number | null;
+                twitterHandle: string | null;
+            };
+        };
+    }>;
+    update(id: string, dto: UpdateCompanyDto): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            company: {
+                email: string | null;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
+                notes: string | null;
+                id: number;
+                name: string;
+                description: string | null;
+                currency: string | null;
+                tags: string[];
+                assignedTo: number | null;
+                createdBy: number | null;
+                phone: string | null;
+                status: import(".prisma/client").$Enums.CompanyStatus;
+                lastContactedAt: Date | null;
+                nextFollowUpAt: Date | null;
+                website: string | null;
+                companySize: import(".prisma/client").$Enums.CompanySize | null;
+                annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                leadScore: number | null;
+                address: string | null;
+                country: string | null;
+                state: string | null;
+                city: string | null;
+                zipCode: string | null;
+                linkedinProfile: string | null;
+                timezone: string | null;
+                employeeCount: string | null;
+                domain: string | null;
+                slug: string | null;
+                industryId: number | null;
+                alternatePhone: string | null;
+                facebookPage: string | null;
+                foundedYear: number | null;
+                parentCompanyId: number | null;
+                twitterHandle: string | null;
+            };
+        };
+    }>;
+    remove(id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+}
