@@ -2988,6 +2988,7 @@ const LeadProfile: React.FC = () => {
     const [quotations, setQuotations] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<any[]>([]);
     const [quotationsLoading, setQuotationsLoading] = useState(false);
+    const [quotationsRefreshKey, setQuotationsRefreshKey] = useState(0);
 
 
     // Meetings states
@@ -3071,7 +3072,7 @@ const LeadProfile: React.FC = () => {
         if (activeTab === 'quotations') {
             fetchQuotations(leadId);
         }
-    }, [id, activeTab]);
+    }, [id, activeTab, quotationsRefreshKey]);
 
     // Fetch activities for lead
     const fetchLeadActivities = async (leadId: number) => {
@@ -4341,7 +4342,7 @@ const LeadProfile: React.FC = () => {
 
                     {/* Tab Content - Full Width */}
                     <div>
-                        {activeTab === 'overview' && (
+                        {activeTab === 'overview' && (                  
                             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                                 <div className="flex items-center justify-between mb-6">
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -4350,6 +4351,93 @@ const LeadProfile: React.FC = () => {
                                     <div className="text-sm text-gray-500 dark:text-gray-400">
                                         Created {new Date(lead.createdAt).toLocaleDateString()}
                                     </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="space-y-4">
+                                        {lead.leadType && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                    Lead Type
+                                                </label>
+                                                <p className="text-sm text-gray-900 dark:text-white">
+                                                {lead.leadType
+                                                    .toLowerCase()
+                                                    .replace(/_/g, ' ')
+                                                    .replace(/\b\w/g, char => char.toUpperCase())}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {lead.customerType && (
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                    Customer Type
+                                                </label>
+                                                <p className="text-sm text-gray-900 dark:text-white">
+                                                {lead.customerType
+                                                    .toLowerCase()
+                                                    .replace(/_/g, ' ')
+                                                    .replace(/\b\w/g, char => char.toUpperCase())}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>   
+                                    <div className="space-y-4">
+                                        {lead.servicePreference && (
+                                            <div>
+                                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Service Preference
+                                            </label>
+                                            <p className="text-sm text-gray-900 dark:text-white">
+                                                {Array.isArray(lead.servicePreference)
+                                                    ? lead.servicePreference.join(', ')
+                                                    : lead.servicePreference}
+                                            </p>
+                                            </div>
+                                        )}
+                                        {lead.serviceFrequency && (
+                                            <div>
+                                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Service Frequency
+                                            </label>
+                                            <p className="text-sm text-gray-900 dark:text-white">
+                                                {lead.serviceFrequency}
+                                            </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="space-y-4">
+                                        {lead.primaryServiceCategory && (
+                                            <div>
+                                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Primary Service Category
+                                            </label>
+                                            <p className="text-sm text-gray-900 dark:text-white">
+                                                {lead.primaryServiceCategory
+                                                .toLowerCase()
+                                                .replace(/_/g, ' ')
+                                                .replace(/\b\w/g, char => char.toUpperCase())}
+                                            </p>
+                                            </div>
+                                        )}
+                                        {lead.billingPreference && (
+                                            <div>
+                                            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                                Billing Preference
+                                            </label>
+                                            <p className="text-sm text-gray-900 dark:text-white">
+                                                {lead.billingPreference}
+                                            </p>
+                                            </div>
+                                        )}
+                                    </div>    
+                                </div>   
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        Company Details
+                                    </h3>
+                                    {/* <div className="text-sm text-gray-500 dark:text-gray-400">
+                                        Created {new Date(lead.createdAt).toLocaleDateString()}
+                                    </div> */}
                                 </div>
 
                                 {/* 4 Column Grid */}
@@ -4398,7 +4486,6 @@ const LeadProfile: React.FC = () => {
                                                 <p className="text-sm text-gray-900 dark:text-white">{lead.industry}</p>
                                             </div>
                                         )}
-
                                         {getLeadAddress(lead) && (
                                             <div>
                                                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">

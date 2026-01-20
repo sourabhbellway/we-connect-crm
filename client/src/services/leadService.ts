@@ -83,6 +83,18 @@ export interface Lead {
   lastContactedAt?: string | null;
   nextFollowUpAt?: string | null;
   products?: Array<{ id: number; name: string; price?: number }>;
+  
+  // Service Interest - Core Nidukki Requirement
+  primaryServiceCategory?: string; // Waste Transportation, High Pressure Jetting, Deep Cleaning, Manpower Supply
+  wasteCategory?: string; // Solid Waste, Liquid Waste (conditional - shown only if service = Waste Transportation)
+  servicePreference?: string[]; // Tanker Service, Skip Services, Jetting Service, Road Sweeper, Combination Truck, Rough Use, Compactor, Six Wheel, Janitorial, Deep Cleaning
+  serviceFrequency?: string; // One-time, Daily, Alternate Days, Weekly, Monthly
+  expectedStartDate?: string;
+  urgencyLevel?: "High" | "Medium" | "Low";
+
+  // Commercial Expectation
+  billingPreference?: string; // Per Load, Per Hour, Lump Sum
+  estimatedJobDuration?: number;
 }
 
 // Payload used by create/update endpoints. Backend expects tag IDs (number[]) not tag objects.

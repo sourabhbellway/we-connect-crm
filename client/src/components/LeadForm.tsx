@@ -1620,10 +1620,17 @@ const LeadForm: React.FC<LeadFormProps> = ({
     } catch (err: any) {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
       
-      // Log full error for debugging
-      console.log('Full error response:', err.response);
+      // Log full error for debugging - this helps identify the issue
+      console.log('========================================');
+      console.log('🔍 LEAD SUBMISSION ERROR DEBUG');
+      console.log('========================================');
+      console.log('Full error object:', err);
+      console.log('Error response:', err.response);
       console.log('Error data:', err.response?.data);
-      console.log('Error data.errors:', err.response?.data?.errors);
+      console.log('Error status:', err.response?.status);
+      console.log('Error statusText:', err.response?.statusText);
+      console.log('Error message:', err.message);
+      console.log('========================================\n');
       
       // Handle validation errors from backend
       const errorData = err.response?.data;
@@ -1668,9 +1675,21 @@ const LeadForm: React.FC<LeadFormProps> = ({
           }
         }));
         toast.error(errorMessage);
+      } else if (errorData?._debug) {
+        // Debug info available - show structured error
+        const debugMessage = `Validation failed: ${errorData._debug.errorCount} field(s) have errors. Check console for details.`;
+        setFormState(prev => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            general: debugMessage
+          }
+        }));
+        toast.error(debugMessage);
+        console.log('🔍 Debug info:', errorData._debug);
       } else {
-        // Unknown error
-        const errorMessage = t('leads.validation.submitError', 'An error occurred');
+        // Unknown error - provide helpful fallback
+        const errorMessage = t('leads.validation.submitError', 'An error occurred. Check console for details.');
         setFormState(prev => ({
           ...prev,
           errors: {
