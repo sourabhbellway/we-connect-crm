@@ -187,6 +187,7 @@ let LeadsService = class LeadsService {
             const leads = rows.map((r) => {
                 const rawTags = r.tags || [];
                 const rawSource = r.source || null;
+                const leadCustomFields = r.customFields || {};
                 return {
                     id: r.id,
                     firstName: r.firstName,
@@ -224,6 +225,16 @@ let LeadsService = class LeadsService {
                     preferredContactMethod: r.preferredContactMethod,
                     previousStatus: r.previousStatus,
                     convertedToDealId: r.convertedToDealId,
+                    leadType: r.leadType,
+                    customerType: r.customerType,
+                    primaryServiceCategory: leadCustomFields.primaryServiceCategory || null,
+                    wasteCategory: leadCustomFields.wasteCategory || null,
+                    servicePreference: leadCustomFields.servicePreference || [],
+                    serviceFrequency: leadCustomFields.serviceFrequency || null,
+                    expectedStartDate: leadCustomFields.expectedStartDate || null,
+                    urgencyLevel: leadCustomFields.urgencyLevel || null,
+                    billingPreference: leadCustomFields.billingPreference || null,
+                    estimatedJobDuration: leadCustomFields.estimatedJobDuration || null,
                     assignedUser: r.assignedUser,
                     tags: Array.isArray(rawTags) && rawTags.length > 0
                         ? rawTags.map((lt) => ({
@@ -233,6 +244,7 @@ let LeadsService = class LeadsService {
                         }))
                         : [],
                     source: rawSource,
+                    customFields: leadCustomFields,
                 };
             });
             const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -295,6 +307,7 @@ let LeadsService = class LeadsService {
         if (!leadRow)
             return { success: false, message: 'Lead not found' };
         const payments = leadRow.invoices?.flatMap((inv) => inv.payments?.map((p) => ({ ...p, invoiceNumber: inv.invoiceNumber })) || []) || [];
+        const leadCustomFields = leadRow.customFields || {};
         const lead = {
             ...leadRow,
             status: String(leadRow.status || '').toLowerCase(),
@@ -309,6 +322,15 @@ let LeadsService = class LeadsService {
                 }))
                 : [],
             payments,
+            primaryServiceCategory: leadCustomFields.primaryServiceCategory || null,
+            wasteCategory: leadCustomFields.wasteCategory || null,
+            servicePreference: leadCustomFields.servicePreference || [],
+            serviceFrequency: leadCustomFields.serviceFrequency || null,
+            expectedStartDate: leadCustomFields.expectedStartDate || null,
+            urgencyLevel: leadCustomFields.urgencyLevel || null,
+            billingPreference: leadCustomFields.billingPreference || null,
+            estimatedJobDuration: leadCustomFields.estimatedJobDuration || null,
+            customFields: leadCustomFields,
         };
         return { success: true, data: { lead } };
     }
@@ -317,12 +339,25 @@ let LeadsService = class LeadsService {
             where: { entityType: 'lead', isVisible: true },
             orderBy: { displayOrder: 'asc' },
         });
+        if (!fieldConfigs || fieldConfigs.length === 0) {
+            return;
+        }
         const errors = {};
         for (const config of fieldConfigs) {
             const fieldName = config.fieldName;
-            const value = data[fieldName] !== undefined ? data[fieldName] : (data.customFields?.[fieldName]);
+            const directValue = data[fieldName] !== undefined ? data[fieldName] : undefined;
+            const customFieldValue = data.customFields?.[fieldName];
+            const serviceInterestFields = ['primaryServiceCategory', 'wasteCategory', 'servicePreference', 'serviceFrequency', 'expectedStartDate', 'urgencyLevel'];
+            const commercialExpectationFields = ['billingPreference', 'estimatedJobDuration'];
+            let value = directValue;
+            if (directValue === undefined && (serviceInterestFields.includes(fieldName) || commercialExpectationFields.includes(fieldName))) {
+                value = customFieldValue;
+            }
             if (config.isRequired) {
                 if (isUpdate && value === undefined) {
+                    continue;
+                }
+                if (isUpdate && (directValue === undefined || directValue === null) && customFieldValue === undefined) {
                     continue;
                 }
                 if (value === undefined || value === null || value === '' ||
@@ -393,11 +428,20 @@ let LeadsService = class LeadsService {
             }
         }
         if (Object.keys(errors).length > 0) {
-            throw new common_1.HttpException({ success: false, message: 'Validation failed', errors }, common_1.HttpStatus.BAD_REQUEST);
+            console.error('Validation failed for fields:', JSON.stringify(errors, null, 2));
+            console.error('Data received:', JSON.stringify(data, null, 2));
+            return {
+                success: false,
+                message: 'Validation failed',
+                errors: errors
+            };
         }
     }
     async create(dto, userId) {
-        await this.validateDynamicFields(dto);
+        const validationResult = await this.validateDynamicFields(dto);
+        if (validationResult && validationResult.success === false) {
+            throw new common_1.HttpException(validationResult, common_1.HttpStatus.BAD_REQUEST);
+        }
         let currency = dto.currency;
         if (!currency && dto.country) {
             const defaultCurrency = getCurrencyByCountry(dto.country);
@@ -416,14 +460,29 @@ let LeadsService = class LeadsService {
             'firstName', 'lastName', 'firstNameAr', 'lastNameAr', 'email', 'phone', 'company', 'companyAr',
             'position', 'industry', 'website', 'companySize', 'annualRevenue', 'address', 'addressAr',
             'country', 'state', 'city', 'zipCode', 'linkedinProfile', 'timezone',
-            'preferredContactMethod', 'sourceId', 'status', 'priority', 'assignedTo',
+            'preferredContactMethod', 'sourceId', 'status', 'priority', 'leadType', 'customerType', 'assignedTo',
             'budget', 'currency', 'leadScore', 'notes', 'tags', 'lastContactedAt', 'nextFollowUpAt'
+        ];
+        const serviceInterestFields = [
+            'primaryServiceCategory',
+            'wasteCategory',
+            'servicePreference',
+            'serviceFrequency',
+            'expectedStartDate',
+            'urgencyLevel',
+        ];
+        const commercialExpectationFields = [
+            'billingPreference',
+            'estimatedJobDuration',
         ];
         const standardFieldData = {};
         const customFieldsData = { ...(customFields || {}) };
         Object.keys(dto).forEach(key => {
             if (standardFields.includes(key)) {
                 standardFieldData[key] = dto[key];
+            }
+            else if (serviceInterestFields.includes(key) || commercialExpectationFields.includes(key)) {
+                customFieldsData[key] = dto[key];
             }
             else if (!['tags', 'customFields'].includes(key)) {
                 customFieldsData[key] = dto[key];
@@ -455,6 +514,8 @@ let LeadsService = class LeadsService {
                 preferredContactMethod: dto.preferredContactMethod ?? 'email',
                 status: normalizeLeadStatus(dto.status),
                 priority: normalizeLeadPriority(dto.priority),
+                leadType: dto.leadType ? dto.leadType.toUpperCase() : 'SALES_LEAD',
+                customerType: dto.customerType ? dto.customerType.toUpperCase() : 'FIXED_CUSTOMER',
                 sourceId: dto.sourceId || null,
                 assignedTo: dto.assignedTo || userId || null,
                 createdBy: userId || null,
@@ -540,9 +601,36 @@ let LeadsService = class LeadsService {
         });
         if (!lead)
             return { success: false, message: 'Lead not found' };
-        await this.validateDynamicFields(dto, true);
-        const { tags, productIds, ...rest } = dto;
-        const updateData = { ...rest, updatedAt: new Date() };
+        const validationResult = await this.validateDynamicFields(dto, true);
+        if (validationResult && validationResult.success === false) {
+            throw new common_1.HttpException(validationResult, common_1.HttpStatus.BAD_REQUEST);
+        }
+        const { tags, productIds, customFields, ...rest } = dto;
+        const serviceInterestFields = [
+            'primaryServiceCategory',
+            'wasteCategory',
+            'servicePreference',
+            'serviceFrequency',
+            'expectedStartDate',
+            'urgencyLevel',
+        ];
+        const commercialExpectationFields = [
+            'billingPreference',
+            'estimatedJobDuration',
+        ];
+        const existingCustomFields = lead.customFields || {};
+        const newCustomFields = { ...(customFields || {}) };
+        Object.keys(dto).forEach(key => {
+            if (serviceInterestFields.includes(key) || commercialExpectationFields.includes(key)) {
+                newCustomFields[key] = dto[key];
+            }
+        });
+        const mergedCustomFields = { ...existingCustomFields, ...newCustomFields };
+        const updateData = {
+            ...rest,
+            updatedAt: new Date(),
+            customFields: Object.keys(mergedCustomFields).length > 0 ? mergedCustomFields : undefined,
+        };
         if (productIds) {
             updateData.products = {
                 set: productIds.map((id) => ({ id })),
@@ -669,12 +757,22 @@ let LeadsService = class LeadsService {
                 },
             },
         });
+        const customFieldsFromTags = updatedWithTags?.customFields || {};
+        const customFieldsFromUpdated = updated.customFields || {};
         const normalized = updatedWithTags ? {
             ...updatedWithTags,
             status: String(updatedWithTags.status || '').toLowerCase(),
             priority: updatedWithTags.priority
                 ? String(updatedWithTags.priority).toLowerCase()
                 : undefined,
+            primaryServiceCategory: customFieldsFromTags.primaryServiceCategory || null,
+            wasteCategory: customFieldsFromTags.wasteCategory || null,
+            servicePreference: customFieldsFromTags.servicePreference || [],
+            serviceFrequency: customFieldsFromTags.serviceFrequency || null,
+            expectedStartDate: customFieldsFromTags.expectedStartDate || null,
+            urgencyLevel: customFieldsFromTags.urgencyLevel || null,
+            billingPreference: customFieldsFromTags.billingPreference || null,
+            estimatedJobDuration: customFieldsFromTags.estimatedJobDuration || null,
             tags: Array.isArray(updatedWithTags.tags)
                 ? updatedWithTags.tags.map((lt) => ({
                     id: lt.tag.id,
@@ -683,14 +781,24 @@ let LeadsService = class LeadsService {
                 }))
                 : [],
             source: updatedWithTags.source || null,
+            customFields: customFieldsFromTags,
         } : {
             ...updated,
             status: String(updated.status || '').toLowerCase(),
             priority: updated.priority
                 ? String(updated.priority).toLowerCase()
                 : undefined,
+            primaryServiceCategory: customFieldsFromUpdated.primaryServiceCategory || null,
+            wasteCategory: customFieldsFromUpdated.wasteCategory || null,
+            servicePreference: customFieldsFromUpdated.servicePreference || [],
+            serviceFrequency: customFieldsFromUpdated.serviceFrequency || null,
+            expectedStartDate: customFieldsFromUpdated.expectedStartDate || null,
+            urgencyLevel: customFieldsFromUpdated.urgencyLevel || null,
+            billingPreference: customFieldsFromUpdated.billingPreference || null,
+            estimatedJobDuration: customFieldsFromUpdated.estimatedJobDuration || null,
             tags: [],
             source: null,
+            customFields: customFieldsFromUpdated,
         };
         try {
             await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_UPDATED, { ...normalized, entityType: 'lead', previousStatus: lead.status });

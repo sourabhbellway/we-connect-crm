@@ -1,50 +1,15 @@
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  IsNumber,
-  IsIn,
-  IsArray,
-  IsDateString,
-  MinLength,
-  MaxLength,
-  Matches,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsArray, IsDateString, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 
+// All fields are optional - validation is handled dynamically based on field configs
 export class CreateLeadDto {
-  // Basic - Now optional, validation will be dynamic based on field configs
-  @IsOptional()
-  @IsString({ message: 'First name must be a string' })
-  @MinLength(2, { message: 'First name must be at least 2 characters' })
-  @MaxLength(50, { message: 'First name must not exceed 50 characters' })
-  firstName?: string;
-
-  @IsOptional()
-  @IsString({ message: 'First name (Arabic) must be a string' })
-  firstNameAr?: string;
-
-  @IsOptional()
-  @IsString({ message: 'Last name must be a string' })
-  @MinLength(2, { message: 'Last name must be at least 2 characters' })
-  @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
-  lastName?: string;
-
-  @IsOptional()
-  @IsString({ message: 'Last name (Arabic) must be a string' })
-  lastNameAr?: string;
-
-  @IsOptional()
-  @IsEmail({}, { message: 'Please enter a valid email address' })
-  email?: string;
-
-  @IsOptional()
-  @IsString({ message: 'Phone must be a string' })
-  @Matches(/^[0-9+\s()-]+$/, { message: 'Phone can only contain digits, spaces, +, -, (, )' })
-  @MinLength(7, { message: 'Phone must be at least 7 characters' })
-  @MaxLength(15, { message: 'Phone must not exceed 15 characters' })
-  phone?: string;
+  // Basic
+  @IsOptional() @IsString() firstName?: string;
+  @IsOptional() @IsString() firstNameAr?: string;
+  @IsOptional() @IsString() lastName?: string;
+  @IsOptional() @IsString() lastNameAr?: string;
+  @IsOptional() @IsString() email?: string;
+  @IsOptional() @IsString() phone?: string;
 
   // Company
   @IsOptional() @IsString() company?: string;
@@ -66,14 +31,14 @@ export class CreateLeadDto {
   // Contact & Social
   @IsOptional() @IsString() linkedinProfile?: string;
   @IsOptional() @IsString() timezone?: string;
-  @IsOptional()
-  @IsIn(['email', 'phone', 'sms', 'whatsapp', 'linkedin'])
-  preferredContactMethod?: string;
+  @IsOptional() @IsIn(['email', 'phone', 'sms', 'whatsapp', 'linkedin']) preferredContactMethod?: string;
 
   // Lead Management
   @IsOptional() @Type(() => Number) @IsNumber() sourceId?: number;
-  @IsOptional() @IsString() status?: string; // maps to LeadStatus (uppercased)
-  @IsOptional() @IsIn(['low', 'medium', 'high', 'urgent']) priority?: string; // maps to LeadPriority (uppercased)
+  @IsOptional() @IsString() status?: string;
+  @IsOptional() @IsIn(['low', 'medium', 'high', 'urgent']) priority?: string;
+  @IsOptional() @IsIn(['SERVICE_LEAD', 'SALES_LEAD']) leadType?: string;
+  @IsOptional() @IsIn(['FIXED_CUSTOMER', 'ON_CALL_CUSTOMER', 'WALK_IN_CUSTOMER']) customerType?: string;
   @IsOptional() @Type(() => Number) @IsNumber() assignedTo?: number;
 
   // Business
@@ -90,7 +55,19 @@ export class CreateLeadDto {
   @IsOptional() @IsDateString() lastContactedAt?: string;
   @IsOptional() @IsDateString() nextFollowUpAt?: string;
 
-  // Custom Fields - Dynamic fields configured in business settings
-  @IsOptional()
-  customFields?: Record<string, any>;
+  // Custom Fields
+  @IsOptional() customFields?: Record<string, any>;
+
+  // Service Interest Fields
+  @IsOptional() @IsString() primaryServiceCategory?: string;
+  @IsOptional() @IsString() wasteCategory?: string;
+  @IsOptional() @IsArray() servicePreference?: string[];
+  @IsOptional() @IsString() serviceFrequency?: string;
+  @IsOptional() @IsDateString() expectedStartDate?: string;
+  @IsOptional() @IsString() urgencyLevel?: string;
+
+  // Commercial Expectation Fields
+  @IsOptional() @IsString() billingPreference?: string;
+  @IsOptional() @Type(() => Number) @IsNumber() estimatedJobDuration?: number;
 }
+

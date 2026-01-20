@@ -231,6 +231,9 @@ export class LeadsService {
         // Extract tags and source from Prisma response
         const rawTags = r.tags || [];
         const rawSource = r.source || null;
+        
+        // Extract Service Interest and Commercial Expectation fields from customFields
+        const leadCustomFields = (r.customFields as any) || {};
 
         // Build the lead object explicitly
         return {
@@ -270,6 +273,18 @@ export class LeadsService {
           preferredContactMethod: r.preferredContactMethod,
           previousStatus: r.previousStatus,
           convertedToDealId: r.convertedToDealId,
+          leadType: r.leadType,
+          customerType: r.customerType,
+          // Service Interest fields
+          primaryServiceCategory: leadCustomFields.primaryServiceCategory || null,
+          wasteCategory: leadCustomFields.wasteCategory || null,
+          servicePreference: leadCustomFields.servicePreference || [],
+          serviceFrequency: leadCustomFields.serviceFrequency || null,
+          expectedStartDate: leadCustomFields.expectedStartDate || null,
+          urgencyLevel: leadCustomFields.urgencyLevel || null,
+          // Commercial Expectation fields
+          billingPreference: leadCustomFields.billingPreference || null,
+          estimatedJobDuration: leadCustomFields.estimatedJobDuration || null,
           assignedUser: r.assignedUser,
           tags: Array.isArray(rawTags) && rawTags.length > 0
             ? rawTags.map((lt: any) => ({
@@ -279,8 +294,11 @@ export class LeadsService {
             }))
             : [],
           source: rawSource,
+          customFields: leadCustomFields,
         };
       });
+
+
 
       const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
       return {
@@ -349,6 +367,8 @@ export class LeadsService {
     // Flatten payments from invoices
     const payments = leadRow.invoices?.flatMap((inv: any) => inv.payments?.map((p: any) => ({ ...p, invoiceNumber: inv.invoiceNumber })) || []) || [];
 
+    const leadCustomFields = (leadRow.customFields as any) || {};
+
     const lead = {
       ...leadRow,
       status: String(leadRow.status || '').toLowerCase(),
@@ -363,7 +383,19 @@ export class LeadsService {
         }))
         : [],
       payments,
+      // Extract Service Interest and Commercial Expectation fields from customFields
+      primaryServiceCategory: leadCustomFields.primaryServiceCategory || null,
+      wasteCategory: leadCustomFields.wasteCategory || null,
+      servicePreference: leadCustomFields.servicePreference || [],
+      serviceFrequency: leadCustomFields.serviceFrequency || null,
+      expectedStartDate: leadCustomFields.expectedStartDate || null,
+      urgencyLevel: leadCustomFields.urgencyLevel || null,
+      billingPreference: leadCustomFields.billingPreference || null,
+      estimatedJobDuration: leadCustomFields.estimatedJobDuration || null,
+      customFields: leadCustomFields,
     };
+
+
 
     return { success: true, data: { lead } };
   }
@@ -375,18 +407,40 @@ export class LeadsService {
       orderBy: { displayOrder: 'asc' },
     });
 
+    // If no field configs exist, skip validation
+    if (!fieldConfigs || fieldConfigs.length === 0) {
+      return;
+    }
+
     const errors: Record<string, string> = {};
 
     for (const config of fieldConfigs) {
       const fieldName = config.fieldName;
-      // Check both direct fields and customFields
-      const value = data[fieldName] !== undefined ? data[fieldName] : (data.customFields?.[fieldName]);
+      
+      // Check if this field is part of the data being sent directly
+      const directValue = data[fieldName] !== undefined ? data[fieldName] : undefined;
+      // Also check customFields for the value
+      const customFieldValue = (data.customFields as any)?.[fieldName];
+      
+      // For Service Interest and Commercial Expectation fields, check both direct and customFields
+      const serviceInterestFields = ['primaryServiceCategory', 'wasteCategory', 'servicePreference', 'serviceFrequency', 'expectedStartDate', 'urgencyLevel'];
+      const commercialExpectationFields = ['billingPreference', 'estimatedJobDuration'];
+      
+      let value = directValue;
+      if (directValue === undefined && (serviceInterestFields.includes(fieldName) || commercialExpectationFields.includes(fieldName))) {
+        value = customFieldValue;
+      }
 
       // Required validation
       if (config.isRequired) {
         // For updates, if the field is not present in the payload (undefined), we skip validation
         // This allows partial updates (like just changing status) without sending all required fields
         if (isUpdate && value === undefined) {
+          continue;
+        }
+
+        // Also skip if it's an update and value is not being changed (undefined/null in payload means don't change)
+        if (isUpdate && (directValue === undefined || directValue === null) && customFieldValue === undefined) {
           continue;
         }
 
@@ -465,17 +519,31 @@ export class LeadsService {
     }
 
     if (Object.keys(errors).length > 0) {
-      throw new HttpException(
-        { success: false, message: 'Validation failed', errors },
-        HttpStatus.BAD_REQUEST,
-      );
+      // Log the validation errors to console for debugging
+      console.error('Validation failed for fields:', JSON.stringify(errors, null, 2));
+      console.error('Data received:', JSON.stringify(data, null, 2));
+      
+      // Return error response directly (don't throw) so the error details are preserved
+      return {
+        success: false,
+        message: 'Validation failed',
+        errors: errors
+      };
     }
   }
 
   // --- UPDATED METHOD: create ---
   async create(dto: CreateLeadDto, userId?: number) {
     // Validate dynamic fields
-    await this.validateDynamicFields(dto);
+    const validationResult = await this.validateDynamicFields(dto);
+    
+    // Check if validation returned an error response
+    if (validationResult && validationResult.success === false) {
+      throw new HttpException(
+        validationResult,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     // 1. Check if user provided a currency manually
     let currency = dto.currency;
@@ -504,8 +572,24 @@ export class LeadsService {
       'firstName', 'lastName', 'firstNameAr', 'lastNameAr', 'email', 'phone', 'company', 'companyAr',
       'position', 'industry', 'website', 'companySize', 'annualRevenue', 'address', 'addressAr',
       'country', 'state', 'city', 'zipCode', 'linkedinProfile', 'timezone',
-      'preferredContactMethod', 'sourceId', 'status', 'priority', 'assignedTo',
+      'preferredContactMethod', 'sourceId', 'status', 'priority', 'leadType', 'customerType', 'assignedTo',
       'budget', 'currency', 'leadScore', 'notes', 'tags', 'lastContactedAt', 'nextFollowUpAt'
+    ];
+
+    // Service Interest fields - store in customFields
+    const serviceInterestFields = [
+      'primaryServiceCategory',
+      'wasteCategory',
+      'servicePreference',
+      'serviceFrequency',
+      'expectedStartDate',
+      'urgencyLevel',
+    ];
+
+    // Commercial Expectation fields - store in customFields
+    const commercialExpectationFields = [
+      'billingPreference',
+      'estimatedJobDuration',
     ];
 
     // Separate standard fields from custom fields
@@ -515,6 +599,9 @@ export class LeadsService {
     Object.keys(dto).forEach(key => {
       if (standardFields.includes(key)) {
         standardFieldData[key] = (dto as any)[key];
+      } else if (serviceInterestFields.includes(key) || commercialExpectationFields.includes(key)) {
+        // Add Service Interest and Commercial Expectation fields to customFields
+        customFieldsData[key] = (dto as any)[key];
       } else if (!['tags', 'customFields'].includes(key)) {
         // This is a custom field
         customFieldsData[key] = (dto as any)[key];
@@ -547,6 +634,8 @@ export class LeadsService {
         preferredContactMethod: dto.preferredContactMethod ?? 'email',
         status: normalizeLeadStatus(dto.status),
         priority: normalizeLeadPriority(dto.priority),
+        leadType: dto.leadType ? (dto.leadType as any).toUpperCase() : 'SALES_LEAD',
+        customerType: dto.customerType ? (dto.customerType as any).toUpperCase() : 'FIXED_CUSTOMER',
         sourceId: dto.sourceId || null,
         assignedTo: dto.assignedTo || userId || null, // <--- Auto-assign to creator if not specified
         createdBy: userId || null, // <--- Save creator ID
@@ -651,10 +740,53 @@ export class LeadsService {
     if (!lead) return { success: false, message: 'Lead not found' };
 
     // Validate dynamic fields
-    await this.validateDynamicFields(dto, true);
+    const validationResult = await this.validateDynamicFields(dto, true);
+    
+    // Check if validation returned an error response
+    if (validationResult && validationResult.success === false) {
+      throw new HttpException(
+        validationResult,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    const { tags, productIds, ...rest } = dto as any;
-    const updateData: any = { ...rest, updatedAt: new Date() };
+    const { tags, productIds, customFields, ...rest } = dto as any;
+    
+    // Service Interest fields - store in customFields
+    const serviceInterestFields = [
+      'primaryServiceCategory',
+      'wasteCategory',
+      'servicePreference',
+      'serviceFrequency',
+      'expectedStartDate',
+      'urgencyLevel',
+    ];
+
+    // Commercial Expectation fields - store in customFields
+    const commercialExpectationFields = [
+      'billingPreference',
+      'estimatedJobDuration',
+    ];
+
+    // Get existing custom fields and merge with new ones
+    const existingCustomFields = (lead.customFields as any) || {};
+    const newCustomFields: any = { ...(customFields || {}) };
+    
+    // Add Service Interest and Commercial Expectation fields to customFields
+    Object.keys(dto).forEach(key => {
+      if (serviceInterestFields.includes(key) || commercialExpectationFields.includes(key)) {
+        newCustomFields[key] = (dto as any)[key];
+      }
+    });
+
+    // Merge existing custom fields with new ones
+    const mergedCustomFields = { ...existingCustomFields, ...newCustomFields };
+
+    const updateData: any = {
+      ...rest,
+      updatedAt: new Date(),
+      customFields: Object.keys(mergedCustomFields).length > 0 ? mergedCustomFields : undefined,
+    };
 
     if (productIds) {
       updateData.products = {
@@ -800,12 +932,24 @@ export class LeadsService {
       },
     });
 
+    const customFieldsFromTags = (updatedWithTags?.customFields as any) || {};
+    const customFieldsFromUpdated = (updated.customFields as any) || {};
+
     const normalized = updatedWithTags ? {
       ...updatedWithTags,
       status: String(updatedWithTags.status || '').toLowerCase(),
       priority: updatedWithTags.priority
         ? String(updatedWithTags.priority).toLowerCase()
         : undefined,
+      // Extract Service Interest and Commercial Expectation fields from customFields
+      primaryServiceCategory: customFieldsFromTags.primaryServiceCategory || null,
+      wasteCategory: customFieldsFromTags.wasteCategory || null,
+      servicePreference: customFieldsFromTags.servicePreference || [],
+      serviceFrequency: customFieldsFromTags.serviceFrequency || null,
+      expectedStartDate: customFieldsFromTags.expectedStartDate || null,
+      urgencyLevel: customFieldsFromTags.urgencyLevel || null,
+      billingPreference: customFieldsFromTags.billingPreference || null,
+      estimatedJobDuration: customFieldsFromTags.estimatedJobDuration || null,
       tags: Array.isArray(updatedWithTags.tags)
         ? updatedWithTags.tags.map((lt: any) => ({
           id: lt.tag.id,
@@ -814,15 +958,28 @@ export class LeadsService {
         }))
         : [],
       source: updatedWithTags.source || null,
+      customFields: customFieldsFromTags,
     } : {
       ...updated,
       status: String(updated.status || '').toLowerCase(),
       priority: updated.priority
         ? String(updated.priority).toLowerCase()
         : undefined,
+      // Extract Service Interest and Commercial Expectation fields from customFields
+      primaryServiceCategory: customFieldsFromUpdated.primaryServiceCategory || null,
+      wasteCategory: customFieldsFromUpdated.wasteCategory || null,
+      servicePreference: customFieldsFromUpdated.servicePreference || [],
+      serviceFrequency: customFieldsFromUpdated.serviceFrequency || null,
+      expectedStartDate: customFieldsFromUpdated.expectedStartDate || null,
+      urgencyLevel: customFieldsFromUpdated.urgencyLevel || null,
+      billingPreference: customFieldsFromUpdated.billingPreference || null,
+      estimatedJobDuration: customFieldsFromUpdated.estimatedJobDuration || null,
       tags: [],
       source: null,
+      customFields: customFieldsFromUpdated,
     } as any;
+
+
 
     // Trigger automation workflows based on what changed
     try {

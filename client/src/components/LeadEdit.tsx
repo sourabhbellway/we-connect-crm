@@ -78,8 +78,8 @@ const LeadEdit: React.FC = () => {
   }, [id]);
 
   const handleSubmit = async (data: LeadPayload) => {
+    setSubmitting(true);
     try {
-      setSubmitting(true);
       await leadService.updateLead(Number(id), {
         ...data,
         sourceId: data.sourceId ? Number(data.sourceId) : undefined,
@@ -90,8 +90,6 @@ const LeadEdit: React.FC = () => {
       await refreshLeadsCount();
       toast.success("Lead updated");
       navigate("/leads");
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || e?.message || "Update failed");
     } finally {
       setSubmitting(false);
     }
@@ -130,3 +128,4 @@ const LeadEdit: React.FC = () => {
 };
 
 export default LeadEdit;
+

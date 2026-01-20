@@ -74,6 +74,8 @@ export interface Lead {
   annualRevenue?: number | string;
   timezone?: string;
   priority?: "low" | "medium" | "high" | "urgent";
+  leadType?: "SERVICE_LEAD" | "SALES_LEAD";
+  customerType?: "FIXED_CUSTOMER" | "ON_CALL_CUSTOMER" | "WALK_IN_CUSTOMER";
   budget?: number | string;
   currency?: string;
   preferredContactMethod?: string;
@@ -128,11 +130,14 @@ export interface LeadPayload {
   | "lost"
   | "converted";
   priority?: "low" | "medium" | "high" | "urgent";
+  leadType?: "SERVICE_LEAD" | "SALES_LEAD";
+  customerType?: "FIXED_CUSTOMER" | "ON_CALL_CUSTOMER" | "WALK_IN_CUSTOMER";
   assignedTo?: number;
 
   // Business Information
   budget?: number;
   currency?: string;
+  expectedBudget?: number;
   leadScore?: number;
 
   // Notes and Tags
@@ -145,6 +150,18 @@ export interface LeadPayload {
 
   // Custom Fields
   customFields?: Record<string, any>;
+
+  // Service Interest - Core Nidukki Requirement
+  primaryServiceCategory?: string; // Waste Transportation, High Pressure Jetting, Deep Cleaning, Manpower Supply
+  wasteCategory?: string; // Solid Waste, Liquid Waste (conditional - shown only if service = Waste Transportation)
+  servicePreference?: string[]; // Tanker Service, Skip Services, Jetting Service, Road Sweeper, Combination Truck, Rough Use, Compactor, Six Wheel, Janitorial, Deep Cleaning
+  serviceFrequency?: string; // One-time, Daily, Alternate Days, Weekly, Monthly
+  expectedStartDate?: string;
+  urgencyLevel?: "High" | "Medium" | "Low";
+
+  // Commercial Expectation
+  billingPreference?: string; // Per Load, Per Hour, Lump Sum
+  estimatedJobDuration?: number;
 }
 
 export interface LeadStats {

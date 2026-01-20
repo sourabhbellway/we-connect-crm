@@ -1,0 +1,1809 @@
+import React, { useEffect, useState } from "react";
+import InputField, { TextAreaField } from "./InputField";
+import { EnhancedSelectField } from "./EnhancedSelectField";
+import PhoneInputWithCountry from "./PhoneInputWithCountry";
+import { LeadPayload } from "../services/leadService";
+import { userService } from "../services/userService";
+import { tagService, Tag } from "../services/tagService";
+import { industryService, Industry } from "../services/industryService";
+import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
+import { useTranslation } from "react-i18next";
+import { countries } from "../data/countries";
+import { countryToCurrency } from "../utils/countryUtils";
+import { Country as CSCCountry, State, City } from 'country-state-city';
+import apiClient from "../services/apiClient";
+import {
+  Mail, Phone as PhoneIcon, User as UserIcon, Building as BuildingIcon,
+  Briefcase as BriefcaseIcon, ListFilter, UserCheck, Flag, Globe, MapPin,
+  Users, TrendingUp, Award, Clock, Calendar, Linkedin, MessageSquare,
+  DollarSign, ShoppingBag, Truck, Settings, Zap, ClipboardList,
+  CalendarClock, AlertTriangle, DollarSign as DollarIcon, Timer,
+} from "lucide-react";
+import { productsService, Product } from "../services/productsService";
+import { EnhancedMultiSelectField } from "./EnhancedMultiSelectField";
+
+export interface LeadFormProps {
+  initial?: LeadPayload;
+  onSubmit: (data: LeadPayload) => Promise<void> | void;
+  submitting?: boolean;
+  skipInternalLoadingUI?: boolean;
+}
+
+interface ValidationErrors {
+  [key: string]: string;
+}
+
+interface FormState {
+  form: LeadPayload;
+  errors: ValidationErrors;
+  isSubmitting: boolean;
+  hasSubmitted: boolean;
+}
+
+interface FieldConfig {
+  id: number;
+  entityType: string;
+  fieldName: string;
+  label: string;
+  isRequired: boolean;
+  isVisible: boolean;
+  displayOrder: number;
+  section: string;
+  placeholder?: string;
+  helpText?: string;
+  validation?: any;
+  options?: any;
+}
+
+interface FormSection {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  fields: FieldConfig[];
+  color: string;
+}
+
+const defaultState: LeadPayload = {
+  firstName: "", lastName: "", email: "", phone: "", company: "", position: "",
+  sourceId: undefined, status: "new", notes: "", assignedTo: undefined, tags: [],
+  budget: undefined, currency: "USD", priority: "medium", website: "", address: "",
+  industry: "", companySize: undefined, annualRevenue: undefined, leadScore: undefined,
+  leadType: "SALES_LEAD", customerType: "FIXED_CUSTOMER", country: "", state: "",
+  city: "", zipCode: "", linkedinProfile: "", timezone: "",
+  preferredContactMethod: "email", lastContactedAt: undefined, nextFollowUpAt: undefined,
+  customFields: {}, productIds: [],
+  primaryServiceCategory: "", wasteCategory: "", servicePreference: [],
+  serviceFrequency: "", expectedStartDate: "", urgencyLevel: "Medium",
+  billingPreference: "", estimatedJobDuration: undefined,
+};
+
+const LeadForm: React.FC<LeadFormProps> = ({ initial, onSubmit, submitting }) => {
+  const { t } = useTranslation();
+  const { currencySettings } = useBusinessSettings();
+  
+  const [formState, setFormState] = useState<FormState>({
+    form: { ...defaultState, currency: currencySettings?.primary || "USD", ...(initial || {}) },
+    errors: {}, isSubmitting: false, hasSubmitted: false,
+  });
+  
+  const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>([]);
+  const { leadSources: settingsLeadSources } = useBusinessSettings();
+  const [selectedLeadSourceId, setSelectedLeadSourceId] = useState<string | number>("");
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [industries, setIndustries] = useState<Industry[]>([]);
+  const [showOtherIndustryInput, setShowOtherIndustryInput] = useState(false);
+  const [fieldConfigs, setFieldConfigs] = useState<FieldConfig[]>([]);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const getCurrencyOptions = () => {
+    const commonCurrencies = [
+      { value: "USD", label: "USD ($)", description: "US Dollar", symbol: "$" },
+      { value: "EUR", label: "EUR (€)", description: "Euro", symbol: "€" },
+      { value: "GBP", label: "GBP (£)", description: "British Pound", symbol: "£" },
+      { value: "INR", label: "INR (₹)", description: "Indian Rupee", symbol: "₹" },
+      { value: "JPY", label: "JPY (¥)", description: "Japanese Yen", symbol: "¥" },
+      { value: "CNY", label: "CNY (¥)", description: "Chinese Yuan", symbol: "¥" },
+      { value: "CAD", label: "CAD ($)", description: "Canadian Dollar", symbol: "$" },
+      { value: "AUD", label: "AUD ($)", description: "Australian Dollar", symbol: "$" },
+    ];
+    let filtered = commonCurrencies;
+    if (currencySettings?.supportedCurrencies?.length) {
+      const supportedSet = new Set(currencySettings.supportedCurrencies);
+      if (currencySettings.primary) supportedSet.add(currencySettings.primary);
+      filtered = commonCurrencies.filter(c => supportedSet.has(c.value));
+    }
+    const primary = currencySettings?.primary || "USD";
+    return filtered.sort((a, b) => (a.value === primary ? -1 : b.value === primary ? 1 : a.label.localeCompare(b.label)));
+  };
+
+  const getCurrencySymbol = (currencyCode: string): string => {
+    const currencyMap: { [key: string]: string } = {
+      "USD": "$", "EUR": "€", "GBP": "£", "INR": "₹", "JPY": "¥", "CNY": "¥",
+      "CAD": "C$", "AUD": "A$", "SGD": "S$", "HKD": "HK$",
+    };
+    return currencyMap[currencyCode] || currencyCode;
+  };
+
+  useEffect(() => {
+    if (initial) {
+      const tagsArray = initial.tags
+        ? Array.isArray(initial.tags)
+          ? initial.tags.map((t: any) => typeof t === 'object' ? t.id : t).filter(Boolean)
+          : []
+        : [];
+
+      const customFields = initial.customFields || {};
+      const extractedFields: any = {};
+      const serviceInterestFields = ['primaryServiceCategory', 'wasteCategory', 'servicePreference', 'serviceFrequency', 'expectedStartDate', 'urgencyLevel'];
+      const commercialExpectationFields = ['billingPreference', 'estimatedJobDuration'];
+      const allSpecialFields = [...serviceInterestFields, ...commercialExpectationFields];
+      
+      allSpecialFields.forEach(field => {
+        if (customFields[field] !== undefined) {
+          extractedFields[field] = customFields[field];
+        }
+      });
+
+      setFormState((prev) => ({
+        ...prev,
+        form: {
+          ...defaultState,
+          currency: currencySettings?.primary || "USD",
+          ...initial,
+          ...extractedFields,
+          tags: tagsArray,
+          customFields: { ...customFields },
+        },
+      }));
+
+      if (initial.sourceId) {
+        setSelectedLeadSourceId(initial.sourceId);
+      }
+    }
+  }, [initial, currencySettings]);
+
+  useEffect(() => {
+    if (currencySettings && !initial) {
+      setFormState((prev) => ({
+        ...prev,
+        form: { ...prev.form, currency: prev.form.currency || currencySettings.primary },
+      }));
+    }
+  }, [currencySettings, initial]);
+
+  useEffect(() => {
+    if (formState.form.country) {
+      const countryObj = CSCCountry.getAllCountries().find(c => c.name === formState.form.country);
+      if (countryObj) {
+        setStates(State.getStatesOfCountry(countryObj.isoCode));
+      } else {
+        setStates([]);
+      }
+    } else {
+      setStates([]);
+    }
+  }, [formState.form.country]);
+
+  useEffect(() => {
+    if (formState.form.country && formState.form.state) {
+      const countryObj = CSCCountry.getAllCountries().find(c => c.name === formState.form.country);
+      const stateObj = states.find(s => s.name === formState.form.state);
+      if (countryObj && stateObj) {
+        setCities(City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode));
+      } else {
+        setCities([]);
+      }
+    } else {
+      setCities([]);
+    }
+  }, [formState.form.country, formState.form.state, states]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [usersRes, tagsRes, industriesRes, productsRes] = await Promise.all([
+          userService.getUsers(),
+          tagService.getTags(),
+          industryService.getIndustries().catch(() => []),
+          productsService.list({ limit: 100 }).catch(() => []),
+        ]);
+
+        const usersData = (usersRes as any)?.data ?? (usersRes as any)?.users ?? usersRes;
+        const tagsData = (tagsRes as any)?.data ?? (tagsRes as any)?.tags ?? tagsRes;
+        const productsList = (productsRes as any)?.data?.items ?? (productsRes as any)?.data?.products ??
+          (Array.isArray((productsRes as any)?.data) ? (productsRes as any).data : []) ?? (productsRes as any)?.products ??
+          (Array.isArray(productsRes) ? productsRes : []);
+
+        setUsers(Array.isArray(usersData) ? usersData : []);
+        setAllTags(Array.isArray(tagsData) ? tagsData : []);
+        setIndustries(Array.isArray(industriesRes) ? industriesRes : []);
+        setProducts(Array.isArray(productsList) ? productsList : []);
+      } catch (e) {
+        console.error("Error loading form data:", e);
+        setUsers([]); setAllTags([]); setIndustries([]);
+      }
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (formState.form.industry) {
+      const industryExists = industries.some(
+        (ind) => ind.isActive && ind.name.toLowerCase() === formState.form.industry?.toLowerCase()
+      );
+      setShowOtherIndustryInput(!industryExists);
+    } else {
+      setShowOtherIndustryInput(false);
+    }
+  }, [formState.form.industry, industries]);
+
+  const fetchFieldConfigs = async () => {
+    try {
+      const response = await apiClient.get('/business-settings/field-configs/lead');
+      if (response.data?.success) {
+        setFieldConfigs(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching field configs:', error);
+      setFieldConfigs([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchFieldConfigs();
+    const handler = () => fetchFieldConfigs();
+    window.addEventListener('fieldConfigsUpdated', handler as EventListener);
+    return () => window.removeEventListener('fieldConfigsUpdated', handler as EventListener);
+  }, []);
+
+  const validateEmail = (email: string): string | null => {
+    const value = (email || "").trim();
+    if (!value) return t("auth.emailRequired", "Email is required");
+    const basicPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!basicPattern.test(value)) return t("auth.invalidEmail", "Please enter a valid email address");
+    return null;
+  };
+
+  const phoneDigitRules: Record<string, { min: number; max?: number }> = {
+    IN: { min: 10, max: 10 }, US: { min: 10, max: 10 }, CA: { min: 10, max: 10 },
+    GB: { min: 10, max: 10 }, AU: { min: 9, max: 9 }, AE: { min: 9, max: 9 },
+    SA: { min: 9, max: 9 }, SG: { min: 8, max: 8 },
+  };
+
+  const validatePhone = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return t("leads.validation.phoneRequired", "Phone is required");
+    if (!/^[0-9+\s()-]+$/.test(v)) return t("leads.validation.phoneFormat", "Invalid phone format");
+    return null;
+  };
+
+  const getGroupedAndSortedFields = (): FormSection[] => {
+    if (!fieldConfigs.length) return [];
+
+    const sectionMap: { [key: string]: FormSection } = {};
+    const sectionConfig: Record<string, { title: string; icon: React.ReactNode; color: string }> = {
+      lead: { title: t('leads.sections.lead', 'Lead Type & Intent'), icon: <UserIcon className="h-5 w-5" />, color: 'red' },
+      personal: { title: t('leads.sections.personal', 'Personal Information'), icon: <UserIcon className="h-5 w-5" />, color: 'blue' },
+      company: { title: t('leads.sections.company', 'Company Information'), icon: <BuildingIcon className="h-5 w-5" />, color: 'green' },
+      location: { title: t('leads.sections.location', 'Location & Contact'), icon: <MapPin className="h-5 w-5" />, color: 'purple' },
+      lead_management: { title: t('leads.sections.management', 'Lead Management'), icon: <Award className="h-5 w-5" />, color: 'orange' },
+      notes: { title: t('leads.sections.notes', 'Notes & Tags'), icon: <MessageSquare className="h-5 w-5" />, color: 'indigo' },
+    };
+
+    fieldConfigs.filter(f => f.isVisible).sort((a, b) => a.displayOrder - b.displayOrder).forEach(field => {
+      const section = field.section || 'other';
+      if (!sectionMap[section]) {
+        const config = sectionConfig[section] || { title: section.replace(/_/g, ' '), icon: <MessageSquare className="h-5 w-5" />, color: 'gray' };
+        sectionMap[section] = { id: section, ...config, fields: [] };
+      }
+      sectionMap[section].fields.push(field);
+    });
+
+    const preferredOrder = ['lead', 'personal', 'company', 'location', 'lead_management', 'notes'];
+    return preferredOrder.filter(key => sectionMap[key]).map(key => sectionMap[key]).concat(Object.values(sectionMap).filter(s => !preferredOrder.includes(s.id)));
+  };
+
+  const getSectionColorClass = (color: string) => {
+    const colors: Record<string, { bg: string; icon: string; border: string }> = {
+      blue: { bg: 'bg-transparent', icon: 'text-blue-600 dark:text-blue-400', border: 'border-gray-200 dark:border-gray-700' },
+      green: { bg: 'bg-transparent', icon: 'text-green-600 dark:text-green-400', border: 'border-gray-200 dark:border-gray-700' },
+      purple: { bg: 'bg-transparent', icon: 'text-purple-600 dark:text-purple-400', border: 'border-gray-200 dark:border-gray-700' },
+      orange: { bg: 'bg-transparent', icon: 'text-orange-600 dark:text-orange-400', border: 'border-gray-200 dark:border-gray-700' },
+      indigo: { bg: 'bg-transparent', icon: 'text-indigo-600 dark:text-indigo-400', border: 'border-gray-200 dark:border-gray-700' },
+      gray: { bg: 'bg-transparent', icon: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700' },
+    };
+    return colors[color] || colors.gray;
+  };
+
+  const renderCustomField = (field: FieldConfig) => {
+    const value = (formState.form as any)[field.fieldName] !== undefined
+      ? (formState.form as any)[field.fieldName]
+      : ((formState.form as any).customFields?.[field.fieldName] || '');
+    const error = (formState.errors as any)[field.fieldName];
+    const fieldType = (field.validation as any)?.type || 'text';
+
+    switch (fieldType.toLowerCase()) {
+      case 'number':
+        return <InputField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} type="number" value={value || ""} onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)} required={field.isRequired} error={error} placeholder={field.placeholder} />;
+      case 'date':
+        return <InputField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} type="date" value={value || ""} onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value || undefined)} required={field.isRequired} error={error} placeholder={field.placeholder} />;
+      case 'textarea':
+        return <TextAreaField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} value={value || ""} onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)} required={field.isRequired} error={error} rows={3} placeholder={field.placeholder} />;
+      case 'select':
+      case 'dropdown':
+        const options = (field.options as any)?.options || (field.options as any) || [];
+        return <EnhancedSelectField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} value={value || ""} placeholder={field.placeholder || `Select ${field.label}`} options={Array.isArray(options) ? options.map((opt: any) => ({ value: typeof opt === 'string' ? opt : (opt.value || opt), label: typeof opt === 'string' ? opt : (opt.label || opt.value || opt) })) : []} onChange={(v) => handleCustomFieldChange(field.fieldName, v)} searchable={true} clearable={!field.isRequired} required={field.isRequired} />;
+      default:
+        return <InputField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} value={value || ""} onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)} required={field.isRequired} error={error} placeholder={field.placeholder} />;
+    }
+  };
+
+  const renderField = (field: FieldConfig) => {
+    const value = (formState.form as any)[field.fieldName] !== undefined
+      ? (formState.form as any)[field.fieldName]
+      : ((formState.form as any).customFields?.[field.fieldName]);
+    const error = (formState.errors as any)[field.fieldName];
+
+    const isCustomField = !['firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry', 'website', 'companySize', 'annualRevenue', 'country', 'state', 'city', 'zipCode', 'address', 'timezone', 'linkedinProfile', 'sourceId', 'status', 'priority', 'leadType', 'customerType', 'assignedTo', 'budget', 'currency', 'leadScore', 'preferredContactMethod', 'nextFollowUpAt', 'notes', 'tags'].includes(field.fieldName);
+
+    if (isCustomField) return renderCustomField(field);
+
+    switch (field.fieldName) {
+      case 'firstName':
+      case 'lastName':
+        return <InputField key={field.fieldName} label={t('leads.fields.firstName', field.label)} leftIcon={<UserIcon className="h-4 w-4 text-gray-400" />} value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value)} required={field.isRequired} error={error} placeholder={field.placeholder} />;
+      case 'email':
+        return <InputField key={field.fieldName} label={t('leads.fields.email', field.label)} leftIcon={<Mail className="h-4 w-4 text-gray-400" />} type="email" value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value)} required={field.isRequired} error={error} placeholder={field.placeholder} />;
+      case 'phone':
+        return <PhoneInputWithCountry key={field.fieldName} label={t('leads.fields.phone', field.label)} value={value || ""} onChange={(fullPhone) => handleChange(field.fieldName, fullPhone)} error={error} placeholder={field.placeholder || t("leads.form.enterPhone", "Enter number")} required={field.isRequired} />;
+      case 'company':
+        return <InputField key={field.fieldName} label={t('leads.fields.company', field.label)} leftIcon={<BuildingIcon className="h-4 w-4 text-gray-400" />} value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value)} error={error} required={field.isRequired} placeholder={field.placeholder} />;
+      case 'position':
+        if (formState.form.leadType === 'SALES_LEAD') {
+          return <InputField key={field.fieldName} label={t('leads.fields.position', field.label)} leftIcon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />} value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value)} error={error} required={field.isRequired} placeholder={field.placeholder} />;
+        }
+        return null;
+      case 'industry':
+        return (
+          <div key={field.fieldName}>
+            <EnhancedSelectField label={t('leads.fields.industry', field.label)} leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />} value={showOtherIndustryInput ? "Other" : (value || "")} onChange={(v) => { if (v === "Other") { setShowOtherIndustryInput(true); handleChange(field.fieldName, ""); } else { setShowOtherIndustryInput(false); handleChange(field.fieldName, v); } }} options={[...industries.filter((ind) => ind.isActive).map((ind) => ({ value: ind.name, label: ind.name })), { value: "Other", label: t("common.other", "Other") }]} placeholder={field.placeholder || t("leads.form.selectStatus", "Select status")} required={field.isRequired} />
+            {showOtherIndustryInput && <div className="mt-2"><InputField label={t("leads.form.specifyIndustry", "Specify Industry")} leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />} value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value)} placeholder={t("leads.form.industryExample", "e.g. Technology, Healthcare")} /></div>}
+          </div>
+        );
+      case 'website':
+        return <InputField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} leftIcon={<Globe className="h-4 w-4 text-gray-400" />} type="url" value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value)} placeholder={field.placeholder || "https://company.com"} required={field.isRequired} />;
+      case 'companySize':
+        return <InputField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} leftIcon={<Users className="h-4 w-4 text-gray-400" />} type="number" value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)} placeholder={field.placeholder || t("leads.form.companySizePlaceholder", "Number of employees")} required={field.isRequired} />;
+      case 'annualRevenue':
+        return <InputField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />} type="number" value={value || ""} onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)} placeholder={field.placeholder || t("leads.form.enterAmount", "Enter amount")} required={field.isRequired} />;
+      case 'country':
+        return <EnhancedSelectField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} leftIcon={<Flag className="h-4 w-4 text-gray-400" />} value={value || ""} placeholder={field.placeholder || t("leads.form.selectCountry", "Select country")} options={CSCCountry.getAllCountries().map((country) => ({ value: country.name, label: `${country.flag} ${country.name}` }))} onChange={(v) => { handleChange(field.fieldName, v || ""); handleChange("state", ""); handleChange("city", ""); if (v) { const countryObj = CSCCountry.getAllCountries().find(c => c.name === v); if (countryObj?.currency) handleChange("currency", countryObj.currency); else { const fallback = countryToCurrency[v]; if (fallback) handleChange("currency", fallback); } } }} searchable={true} clearable={true} required={field.isRequired} />;
+      case 'state':
+        return <EnhancedSelectField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} leftIcon={<MapPin className="h-4 w-4 text-gray-400" />} value={value || ""} placeholder={field.placeholder || t("leads.form.selectState", "Select state")} options={states.map((state) => ({ value: state.name, label: state.name }))} onChange={(v) => { handleChange(field.fieldName, v || ""); handleChange("city", ""); }} searchable={true} disabled={!formState.form.country} required={field.isRequired} />;
+      case 'city':
+        return <EnhancedSelectField key={field.fieldName} label={t(`leads.fields.${field.fieldName}`, field.label)} leftIcon={<MapPin className="h-4 w-4 text-gray-400" />} value={value || ""} placeholder={field.placeholder || t("leads.form.selectCity", "Select city")} options={cities.map((city) => ({ value: city.name, label: city.name }))} onChange={(v) => { handleChange(field.fieldName, v || ""); handleChange("zipCode", ""); }} searchable={true} disabled={!formState.form.state} required={field.isRequired} />;
+      }
+    };
+    load();
+  }, []);
+
+  // Check if current industry is in the list or needs "Other" input
+  useEffect(() => {
+    if (formState.form.industry) {
+      const industryExists = industries.some(
+        (ind) => ind.isActive && ind.name.toLowerCase() === formState.form.industry?.toLowerCase()
+      );
+      // If industry doesn't exist in the list, show "Other" input
+      setShowOtherIndustryInput(!industryExists);
+    } else {
+      setShowOtherIndustryInput(false);
+    }
+  }, [formState.form.industry, industries]);
+
+  // Fetch field configurations (exposed so other components can trigger a refresh)
+  const fetchFieldConfigs = async () => {
+    try {
+      const response = await apiClient.get('/business-settings/field-configs/lead');
+      if (response.data?.success) {
+        setFieldConfigs(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching field configs:', error);
+      // Fallback to empty configs if API fails
+      setFieldConfigs([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchFieldConfigs();
+    const handler = () => fetchFieldConfigs();
+    window.addEventListener('fieldConfigsUpdated', handler as EventListener);
+    return () => window.removeEventListener('fieldConfigsUpdated', handler as EventListener);
+  }, []);
+
+
+  // Validation functions
+  const validateEmail = (email: string): string | null => {
+    const value = (email || "").trim();
+    if (!value) return t("auth.emailRequired", "Email is required");
+    // Basic pattern: allowed local chars, domain labels, and TLD length >= 2
+    const basicPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!basicPattern.test(value)) return t("auth.invalidEmail", "Please enter a valid email address");
+
+    const [localPart, domainPart] = value.split("@");
+    // Local part cannot start/end with dot and cannot contain consecutive dots
+    if (localPart.startsWith(".") || localPart.endsWith(".") || localPart.includes("..")) {
+      return "Please enter a valid email address";
+    }
+    // Domain cannot contain consecutive dots
+    if (domainPart.includes("..")) {
+      return "Please enter a valid email address";
+    }
+    // Each domain label must not start/end with hyphen and must be non-empty
+    const labels = domainPart.split(".");
+    if (
+      labels.some(
+        (label) => !label || label.startsWith("-") || label.endsWith("-")
+      )
+    ) {
+      return t("auth.invalidEmail", "Please enter a valid email address");
+    }
+    return null;
+  };
+
+
+  // Country-specific phone digit rules (local/national part, excluding country code)
+  // For every country in the phone dropdown (from ../data/countries), we apply
+  // either a specific rule below or a default rule (7–15 digits) if not listed.
+  const phoneDigitRules: Record<string, { min: number; max?: number }> = {
+    // Keyed by ISO country code from ../data/countries
+    IN: { min: 10, max: 10 }, // India
+    US: { min: 10, max: 10 }, // United States
+    CA: { min: 10, max: 10 }, // Canada
+    GB: { min: 10, max: 10 }, // United Kingdom
+    AU: { min: 9, max: 9 },   // Australia (without leading 0)
+    AE: { min: 9, max: 9 },   // United Arab Emirates
+    SA: { min: 9, max: 9 },   // Saudi Arabia
+    SG: { min: 8, max: 8 },   // Singapore
+    MY: { min: 9, max: 10 },  // Malaysia
+    ID: { min: 10, max: 12 }, // Indonesia
+    PK: { min: 10, max: 10 }, // Pakistan
+    BD: { min: 10, max: 10 }, // Bangladesh
+    NP: { min: 10, max: 10 }, // Nepal
+    LK: { min: 9, max: 9 },   // Sri Lanka
+    PH: { min: 10, max: 10 }, // Philippines
+    ZA: { min: 9, max: 9 },   // South Africa
+    NG: { min: 8, max: 10 },  // Nigeria
+  };
+
+  // Group fields by section and sort
+  const getGroupedAndSortedFields = (): FormSection[] => {
+    if (!fieldConfigs.length) return [];
+
+    const sectionMap: { [key: string]: FormSection } = {};
+
+    const sectionConfig: Record<string, { title: string; icon: React.ReactNode; color: string }> = {
+      lead: { title: t('leads.sections.lead', 'Lead Type & Intent'), icon: <UserIcon className="h-5 w-5" />, color: 'red' },
+      personal: { title: t('leads.sections.personal', 'Personal Information'), icon: <UserIcon className="h-5 w-5" />, color: 'blue' },
+      company: { title: t('leads.sections.company', 'Company Information'), icon: <BuildingIcon className="h-5 w-5" />, color: 'green' },
+      location: { title: t('leads.sections.location', 'Location & Contact'), icon: <MapPin className="h-5 w-5" />, color: 'purple' },
+      lead_management: { title: t('leads.sections.management', 'Lead Management'), icon: <Award className="h-5 w-5" />, color: 'orange' },
+      notes: { title: t('leads.sections.notes', 'Notes & Tags'), icon: <MessageSquare className="h-5 w-5" />, color: 'indigo' },
+    };
+
+    // Filter visible fields and group by section
+    fieldConfigs
+      .filter(f => f.isVisible)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .forEach(field => {
+        const section = field.section || 'other';
+        if (!sectionMap[section]) {
+          const config = sectionConfig[section] || {
+            title: section.replace(/_/g, ' '),
+            icon: <MessageSquare className="h-5 w-5" />,
+            color: 'gray'
+          };
+          sectionMap[section] = {
+            id: section,
+            ...config,
+            fields: [],
+          };
+        }
+        sectionMap[section].fields.push(field);
+      });
+
+    // Return sections in preferred order
+    const preferredOrder = ['lead', 'personal', 'company', 'location', 'lead_management', 'notes'];
+    return preferredOrder
+      .filter(key => sectionMap[key])
+      .map(key => sectionMap[key])
+      .concat(Object.values(sectionMap).filter(s => !preferredOrder.includes(s.id)));
+  };
+
+  // Get section color class - Unified for cleaner look
+  const getSectionColorClass = (color: string) => {
+    const colors: Record<string, { bg: string; icon: string; border: string }> = {
+      blue: { bg: 'bg-transparent', icon: 'text-blue-600 dark:text-blue-400', border: 'border-gray-200 dark:border-gray-700' },
+      green: { bg: 'bg-transparent', icon: 'text-green-600 dark:text-green-400', border: 'border-gray-200 dark:border-gray-700' },
+      purple: { bg: 'bg-transparent', icon: 'text-purple-600 dark:text-purple-400', border: 'border-gray-200 dark:border-gray-700' },
+      orange: { bg: 'bg-transparent', icon: 'text-orange-600 dark:text-orange-400', border: 'border-gray-200 dark:border-gray-700' },
+      indigo: { bg: 'bg-transparent', icon: 'text-indigo-600 dark:text-indigo-400', border: 'border-gray-200 dark:border-gray-700' },
+      gray: { bg: 'bg-transparent', icon: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700' },
+    };
+    return colors[color] || colors.gray;
+  };
+
+  // Render custom fields dynamically based on field type
+  const renderCustomField = (field: FieldConfig) => {
+    // Check both customFields and direct form fields
+    const value = (formState.form as any)[field.fieldName] !== undefined
+      ? (formState.form as any)[field.fieldName]
+      : ((formState.form as any).customFields?.[field.fieldName] || '');
+    const error = (formState.errors as any)[field.fieldName];
+    const fieldType = (field.validation as any)?.type || 'text';
+
+    switch (fieldType.toLowerCase()) {
+      case 'number':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            type="number"
+            value={value || ""}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            required={field.isRequired}
+            error={error}
+            placeholder={field.placeholder}
+          />
+        );
+      case 'date':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            type="date"
+            value={value || ""}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value || undefined)}
+            required={field.isRequired}
+            error={error}
+            placeholder={field.placeholder}
+          />
+        );
+      case 'datetime':
+      case 'datetime-local':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            type="datetime-local"
+            value={value || ""}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value || undefined)}
+            required={field.isRequired}
+            error={error}
+            placeholder={field.placeholder}
+          />
+        );
+      case 'textarea':
+        return (
+          <TextAreaField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            value={value || ""}
+            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value)}
+            required={field.isRequired}
+            error={error}
+            rows={3}
+            placeholder={field.placeholder}
+          />
+        );
+      case 'select':
+      case 'dropdown':
+        const options = (field.options as any)?.options || (field.options as any) || [];
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            value={value || ""}
+            placeholder={field.placeholder || `Select ${field.label}`}
+            options={Array.isArray(options) ? options.map((opt: any) => ({
+              value: typeof opt === 'string' ? opt : (opt.value || opt),
+              label: typeof opt === 'string' ? opt : (opt.label || opt.value || opt),
+            })) : []}
+            onChange={(v) => {
+              // Store in customFields if it's a custom field, otherwise in main form
+              if (field.fieldName.startsWith('custom') || !(formState.form as any).hasOwnProperty(field.fieldName)) {
+                handleCustomFieldChange(field.fieldName, v);
+              } else {
+                handleChange(field.fieldName, v);
+              }
+            }}
+            searchable={true}
+            clearable={!field.isRequired}
+            required={field.isRequired}
+          />
+        );
+      case 'checkbox':
+        return (
+          <div key={field.fieldName} className="flex items-center">
+            <input
+              type="checkbox"
+              checked={value || false}
+              onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.checked)}
+              className="h-4 w-4 text-blue-600 rounded"
+            />
+            <label className="ms-2 text-sm font-medium text-gray-900 dark:text-white">
+              {t(`leads.fields.${field.fieldName}`, field.label)}
+              {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+            </label>
+          </div>
+        );
+      default:
+        // Default to text input
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            value={value || ""}
+            onChange={(e) => {
+              // Store in customFields if it's a custom field, otherwise in main form
+              if (field.fieldName.startsWith('custom') || !(formState.form as any).hasOwnProperty(field.fieldName)) {
+                handleCustomFieldChange(field.fieldName, e.target.value);
+              } else {
+                handleChange(field.fieldName, e.target.value);
+              }
+            }}
+            required={field.isRequired}
+            error={error}
+            placeholder={field.placeholder}
+          />
+        );
+    }
+  };
+
+  // Dynamic field rendering
+  const renderField = (field: FieldConfig) => {
+    // Check both direct form fields and customFields
+    const value = (formState.form as any)[field.fieldName] !== undefined
+      ? (formState.form as any)[field.fieldName]
+      : ((formState.form as any).customFields?.[field.fieldName]);
+    const error = (formState.errors as any)[field.fieldName];
+
+    // If this is a custom field (not in the standard switch cases), use renderCustomField
+    const isCustomField = ![
+      'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
+      'website', 'companySize', 'annualRevenue', 'country', 'state', 'city', 'zipCode',
+      'address', 'timezone', 'linkedinProfile', 'sourceId', 'status', 'priority',
+      'leadType', 'customerType', 'assignedTo', 'budget', 'currency', 'leadScore', 'preferredContactMethod',
+      'nextFollowUpAt', 'notes', 'tags'
+    ].includes(field.fieldName);
+
+    if (isCustomField) {
+      return renderCustomField(field);
+    }
+
+    switch (field.fieldName) {
+      case 'firstName':
+      case 'lastName':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t('leads.fields.firstName', field.label)}
+            leftIcon={<UserIcon className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            required={field.isRequired}
+            error={error}
+            placeholder={field.placeholder}
+          />
+        );
+
+      case 'email':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t('leads.fields.email', field.label)}
+            leftIcon={<Mail className="h-4 w-4 text-gray-400" />}
+            type="email"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            required={field.isRequired}
+            error={error}
+            placeholder={field.placeholder}
+          />
+        );
+
+      case 'phone':
+        return (
+          <PhoneInputWithCountry
+            key={field.fieldName}
+            label={t('leads.fields.phone', field.label)}
+            value={value || ""}
+            onChange={(fullPhone) => handleChange(field.fieldName, fullPhone)}
+            error={error}
+            placeholder={field.placeholder || t("leads.form.enterPhone", "Enter number")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'company':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t('leads.fields.company', field.label)}
+            leftIcon={<BuildingIcon className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            error={error}
+            required={field.isRequired}
+            placeholder={field.placeholder}
+          />
+        );
+
+      // Position is rendered in the Lead Type section (after customerType) - not in company section
+      case 'position':
+        // Only render if leadType is SALES_LEAD (for service leads, position is shown in lead section)
+        if (formState.form.leadType === 'SALES_LEAD') {
+          return (
+            <InputField
+              key={field.fieldName}
+              label={t('leads.fields.position', field.label)}
+              leftIcon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
+              value={value || ""}
+              onChange={(e) => handleChange(field.fieldName, e.target.value)}
+              error={error}
+              required={field.isRequired}
+              placeholder={field.placeholder}
+            />
+          );
+        }
+        return null;
+
+      case 'industry':
+        return (
+          <div key={field.fieldName}>
+            <EnhancedSelectField
+              label={t('leads.fields.industry', field.label)}
+              leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
+              value={showOtherIndustryInput ? "Other" : (value || "")}
+              onChange={(v) => {
+                if (v === "Other") {
+                  setShowOtherIndustryInput(true);
+                  handleChange(field.fieldName, "");
+                } else {
+                  setShowOtherIndustryInput(false);
+                  handleChange(field.fieldName, v);
+                }
+              }}
+              options={[
+                ...industries
+                  .filter((ind) => ind.isActive)
+                  .map((ind) => ({
+                    value: ind.name,
+                    label: ind.name,
+                  })),
+                { value: "Other", label: t("common.other", "Other") },
+              ]}
+              placeholder={field.placeholder || t("leads.form.selectStatus", "Select status")}
+              required={field.isRequired}
+            />
+            {showOtherIndustryInput && (
+              <div className="mt-2">
+                <InputField
+                  label={t("leads.form.specifyIndustry", "Specify Industry")}
+                  leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
+                  value={value || ""}
+                  onChange={(e) => handleChange(field.fieldName, e.target.value)}
+                  placeholder={t("leads.form.industryExample", "e.g. Technology, Healthcare")}
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'website':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Globe className="h-4 w-4 text-gray-400" />}
+            type="url"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            placeholder={field.placeholder || "https://company.com"}
+            required={field.isRequired}
+          />
+        );
+
+      case 'companySize':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Users className="h-4 w-4 text-gray-400" />}
+            type="number"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            placeholder={field.placeholder || t("leads.form.companySizePlaceholder", "Number of employees")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'annualRevenue':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />}
+            type="number"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            placeholder={field.placeholder || t("leads.form.enterAmount", "Enter amount")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'country':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Flag className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectCountry", "Select country")}
+            options={CSCCountry.getAllCountries().map((country) => ({
+              value: country.name,
+              label: `${country.flag} ${country.name}`,
+            }))}
+            onChange={(v) => {
+              handleChange(field.fieldName, v || "");
+              handleChange("state", "");
+              handleChange("city", "");
+
+              // Auto-select currency based on country
+              if (v) {
+                const countryObj = CSCCountry.getAllCountries().find(c => c.name === v);
+                if (countryObj && countryObj.currency) {
+                  handleChange("currency", countryObj.currency);
+                } else {
+                  // Fallback to local mapping if library doesn't have it
+                  const fallback = countryToCurrency[v];
+                  if (fallback) handleChange("currency", fallback);
+                }
+              }
+            }}
+            searchable={true}
+            clearable={true}
+            required={field.isRequired}
+          />
+        );
+
+      case 'state':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectState", "Select state")}
+            options={states.map((state) => ({
+              value: state.name,
+              label: state.name,
+            }))}
+            onChange={(v) => {
+              handleChange(field.fieldName, v || "");
+              handleChange("city", "");
+            }}
+            searchable={true}
+            disabled={!formState.form.country}
+            required={field.isRequired}
+          />
+        );
+
+      case 'city':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectCity", "Select city")}
+            options={cities.map((city) => ({
+              value: city.name,
+              label: city.name,
+            }))}
+            onChange={(v) => {
+              handleChange(field.fieldName, v || "");
+              handleChange("zipCode", "");
+            }}
+            searchable={true}
+            disabled={!formState.form.state}
+            required={field.isRequired}
+          />
+        );
+
+      case 'zipCode':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            placeholder={field.placeholder || t("leads.form.zipCodePlaceholder", "ZIP/Postal Code")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'address':
+        return (
+          <TextAreaField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            placeholder={field.placeholder || t("leads.fields.address", field.label)}
+            rows={3}
+            required={field.isRequired}
+          />
+        );
+
+      case 'timezone':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={field.label}
+            leftIcon={<Clock className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            placeholder={field.placeholder || "e.g. PST, EST, GMT"}
+            required={field.isRequired}
+          />
+        );
+
+      case 'linkedinProfile':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Linkedin className="h-4 w-4 text-gray-400" />}
+            type="url"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value)}
+            placeholder={field.placeholder || t("leads.form.linkedinPlaceholder", "LinkedIn URL")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'sourceId':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
+            value={selectedLeadSourceId}
+            placeholder={field.placeholder || t("leads.form.selectSource", "Select source")}
+            options={[
+              { value: "", label: t("leads.form.selectSource", "Select source") },
+              ...Array.isArray(settingsLeadSources) ? settingsLeadSources
+                .filter((s: any) => s.isActive !== false)
+                .sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+                .map((s: any) => ({
+                  value: s.id || s.name,
+                  label: s.name,
+                  description: s.description || undefined
+                })) : []
+            ]}
+            onChange={(v) => {
+              setSelectedLeadSourceId(v);
+              const n = Number(v);
+              handleChange(field.fieldName, Number.isFinite(n) ? n : undefined);
+            }}
+            searchable={true}
+            clearable={true}
+            required={field.isRequired}
+          />
+        );
+
+      case 'status':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
+            value={value || "new"}
+            placeholder={field.placeholder || t("leads.form.selectStatus", "Select status")}
+            options={[
+              { value: "new", label: t("leads.status.new", "New"), description: t("leads.statusDescriptions.new", "Newly generated lead") },
+              { value: "contacted", label: t("leads.status.contacted", "Contacted"), description: t("leads.statusDescriptions.contacted", "Initial contact made") },
+              { value: "qualified", label: t("leads.status.qualified", "Qualified"), description: t("leads.statusDescriptions.qualified", "Lead has been qualified") },
+              { value: "proposal", label: t("leads.status.proposal", "Proposal"), description: t("leads.statusDescriptions.proposal", "Proposal sent") },
+              { value: "negotiation", label: t("leads.status.negotiation", "Negotiation"), description: t("leads.statusDescriptions.negotiation", "In negotiation phase") },
+              { value: "closed", label: t("leads.status.closed", "Closed"), description: t("leads.statusDescriptions.closed", "Successfully closed") },
+              { value: "lost", label: t("leads.status.lost", "Lost"), description: t("leads.statusDescriptions.lost", "Lead was lost") }
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'priority':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Flag className="h-4 w-4 text-gray-400" />}
+            value={value || "medium"}
+            placeholder={field.placeholder || t("leads.form.selectPriority", "Select priority")}
+            options={[
+              { value: "low", label: t("leads.priority.low", "Low"), icon: <span className="text-green-500">●</span>, description: t("leads.priorityDescriptions.low", "Low priority") },
+              { value: "medium", label: t("leads.priority.medium", "Medium"), icon: <span className="text-yellow-500">●</span>, description: t("leads.priorityDescriptions.medium", "Medium priority") },
+              { value: "high", label: t("leads.priority.high", "High"), icon: <span className="text-orange-500">●</span>, description: t("leads.priorityDescriptions.high", "High priority") },
+              { value: "urgent", label: t("leads.priority.urgent", "Urgent"), icon: <span className="text-red-500">●</span>, description: t("leads.priorityDescriptions.urgent", "Urgent priority") }
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'leadType':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<UserIcon className="h-4 w-4 text-gray-400" />}
+            value={value || "SALES_LEAD"}
+            placeholder={field.placeholder || t("leads.form.selectLeadType", "Select lead type")}
+            options={[
+              { value: "SERVICE_LEAD", label: t("leads.leadType.service", "Service Lead"), description: t("leads.leadTypeDescriptions.service", "Lead interested in services") },
+              { value: "SALES_LEAD", label: t("leads.leadType.sales", "Sales Lead"), description: t("leads.leadTypeDescriptions.sales", "Lead interested in products/sales") }
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'customerType':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Users className="h-4 w-4 text-gray-400" />}
+            value={value || "FIXED_CUSTOMER"}
+            placeholder={field.placeholder || t("leads.form.selectCustomerType", "Select customer type")}
+            options={[
+              { value: "FIXED_CUSTOMER", label: t("leads.customerType.fixed", "Fixed Customer"), description: t("leads.customerTypeDescriptions.fixed", "Customer with fixed service agreement") },
+              { value: "ON_CALL_CUSTOMER", label: t("leads.customerType.onCall", "On-call Customer"), description: t("leads.customerTypeDescriptions.onCall", "Customer requiring on-demand services") },
+              { value: "WALK_IN_CUSTOMER", label: t("leads.customerType.walkIn", "Walk-in Customer"), description: t("leads.customerTypeDescriptions.walkIn", "Customer who visits in person") }
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'assignedTo':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<UserCheck className="h-4 w-4 text-gray-400" />}
+            value={value ?? ""}
+            placeholder={field.placeholder || t("leads.form.selectUser", "Select user")}
+            options={[
+              { value: "", label: t("leads.form.selectUser", "Select user") },
+              ...Array.isArray(users) ? users.map((u) => ({
+                value: u.id,
+                label: `${u.firstName} ${u.lastName}`,
+                icon: <UserIcon className="h-4 w-4 text-blue-500" />,
+                description: `User ID: ${u.id}`
+              })) : []
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v ? Number(v) : undefined)}
+            searchable={true}
+            clearable={true}
+            required={field.isRequired}
+          />
+        );
+
+      case 'budget': {
+        const currencyField = fieldConfigs.find(f => f.fieldName === 'currency');
+        const isCurrencyVisible = currencyField?.isVisible ?? true;
+
+        if (!isCurrencyVisible) {
+          return (
+            <InputField
+              key={field.fieldName}
+              label={t(`leads.fields.${field.fieldName}`, field.label)}
+              leftIcon={
+                <span className="text-gray-400 font-medium text-sm">
+                  {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "USD")}
+                </span>
+              }
+              type="number"
+              step="0.01"
+              value={value || ""}
+              onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+              placeholder={field.placeholder || t("leads.form.enterAmount", "Enter amount")}
+              required={field.isRequired}
+              error={error}
+            />
+          );
+        }
+
+        return (
+          <div key={field.fieldName} className="space-y-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white">
+              {t(`leads.fields.${field.fieldName}`, field.label)}
+              {field.isRequired && <span className="text-red-500 ms-1">*</span>}
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2">
+                <InputField
+                  leftIcon={
+                    <span className="text-gray-400 font-medium text-sm">
+                      {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "USD")}
+                    </span>
+                  }
+                  type="number"
+                  step="0.01"
+                  value={value || ""}
+                  onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+                  placeholder={field.placeholder || t("leads.form.enterAmount", "Enter amount")}
+                />
+              </div>
+              <div>
+                <EnhancedSelectField
+                  value={formState.form.currency || currencySettings?.primary || "USD"}
+                  placeholder={t("leads.fields.currency", "Currency")}
+                  options={getCurrencyOptions()}
+                  onChange={(v) => handleChange("currency", v)}
+                  searchable
+                  clearable={false}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      case 'currency': {
+        const budgetField = fieldConfigs.find(f => f.fieldName === 'budget');
+        const isBudgetVisible = budgetField?.isVisible ?? true;
+
+        // If budget is visible, it already includes the currency selector
+        if (isBudgetVisible) return null;
+
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />}
+            value={value || currencySettings?.primary || "USD"}
+            placeholder={field.placeholder || t("leads.form.selectCurrency", "Select currency")}
+            options={getCurrencyOptions()}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={true}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+      }
+
+      case 'leadScore':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Award className="h-4 w-4 text-gray-400" />}
+            type="number"
+            min="0"
+            max="100"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            placeholder={field.placeholder || t("leads.form.scorePlaceholder", "Score (0-100)")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'preferredContactMethod':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<MessageSquare className="h-4 w-4 text-gray-400" />}
+            value={value || "email"}
+            placeholder={field.placeholder || t("leads.form.contactMethodPlaceholder", "Select contact method")}
+            options={[
+              { value: "email", label: t("leads.contactMethods.email", "Email"), icon: <Mail className="h-4 w-4 text-blue-500" />, description: t("leads.contactMethods.emailDesc", "Contact via email") },
+              { value: "phone", label: t("leads.contactMethods.phone", "Phone"), icon: <PhoneIcon className="h-4 w-4 text-green-500" />, description: t("leads.contactMethods.phoneDesc", "Contact via phone call") },
+              { value: "sms", label: t("leads.contactMethods.sms", "SMS"), icon: <MessageSquare className="h-4 w-4 text-purple-500" />, description: t("leads.contactMethods.smsDesc", "Contact via SMS") },
+              { value: "whatsapp", label: t("leads.contactMethods.whatsapp", "WhatsApp"), icon: <MessageSquare className="h-4 w-4 text-green-600" />, description: t("leads.contactMethods.whatsappDesc", "Contact via WhatsApp") },
+              { value: "linkedin", label: t("leads.contactMethods.linkedin", "LinkedIn"), icon: <Linkedin className="h-4 w-4 text-blue-600" />, description: t("leads.contactMethods.linkedinDesc", "Contact via LinkedIn") }
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'nextFollowUpAt':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={field.label}
+            leftIcon={<Calendar className="h-4 w-4 text-gray-400" />}
+            type="datetime-local"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value || undefined)}
+            required={field.isRequired}
+          />
+        );
+
+      case 'notes':
+        return (
+          <TextAreaField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, (e.target as HTMLTextAreaElement).value)}
+            error={error}
+            rows={4}
+            placeholder={field.placeholder || t("leads.form.notesPlaceholder", "Add any additional notes...")}
+            required={field.isRequired}
+          />
+        );
+
+      case 'tags':
+        return (
+          <div key={field.fieldName}>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              {t(`leads.fields.${field.fieldName}`, field.label)}
+              {field.isRequired && <span className="text-red-500 ms-1">*</span>}
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {Array.isArray(allTags) &&
+                allTags.map((tag) => {
+                  const selected = (formState.form.tags || []).includes(tag.id);
+                  return (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.id)}
+                      className={`px-4 py-2 text-sm rounded-full border transition-all duration-200 ${selected
+                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-md"
+                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 hover:border-gray-400"
+                        }`}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        );
+
+      default:
+        // Handle custom fields dynamically
+        return renderCustomField(field);
+    }
+  };
+
+  const defaultPhoneRule = { min: 7, max: 15 } as const;
+
+  // Phone validation: required, country-aware digit rules with a 7–15 digit default
+  const validatePhone = (value: string): string | null => {
+    const v = (value || "").trim();
+    if (!v) return t("leads.validation.phoneRequired", "Phone is required");
+    // Allow digits, spaces, +, -, (, )
+    if (!/^[0-9+\s()-]+$/.test(v)) {
+      return t("leads.validation.phoneFormat", "Phone can only contain digits, spaces, +, -, (, )");
+    }
+
+    const digitsOnly = v.replace(/\D/g, "");
+
+    // Try to detect country from the phone value using the longest matching phoneCode
+    let matchedCountryCode: string | undefined;
+    let matchedPhoneCodeDigitsLength = 0;
+    for (const country of countries) {
+      const phoneCodeDigits = country.phoneCode.replace(/\D/g, "");
+      if (digitsOnly.startsWith(phoneCodeDigits) && phoneCodeDigits.length > matchedPhoneCodeDigitsLength) {
+        matchedCountryCode = country.code;
+        matchedPhoneCodeDigitsLength = phoneCodeDigits.length;
+      }
+    }
+
+    // Determine applicable rule (country-specific or default)
+    const matchedRule = matchedCountryCode && phoneDigitRules[matchedCountryCode]
+      ? phoneDigitRules[matchedCountryCode]
+      : defaultPhoneRule;
+
+    if (matchedRule) {
+      // Exclude country code digits from the count for validation
+      const localDigitsLength = matchedCountryCode && matchedPhoneCodeDigitsLength > 0
+        ? digitsOnly.length - matchedPhoneCodeDigitsLength
+        : digitsOnly.length;
+
+      if (localDigitsLength < matchedRule.min) {
+        return t("leads.validation.phoneMinDigits", { min: matchedRule.min, defaultValue: `Phone number must be at least ${matchedRule.min} digits` });
+      }
+      if (matchedRule.max && localDigitsLength > matchedRule.max) {
+        return t("leads.validation.phoneMaxDigits", { max: matchedRule.max, defaultValue: `Phone number must be at most ${matchedRule.max} digits` });
+      }
+    }
+
+    return null;
+  };
+
+  // TODO: Add missing handler functions and main component return statement
+  // The file appears to be corrupted - missing handleChange, toggleTag, handleSubmit functions
+  // and the main component return statement
+
+  // Basic change handler used by renderField inputs
+  const handleChange = (fieldName: string, value: any) => {
+    setFormState(prev => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        [fieldName]: value,
+      },
+      errors: {
+        ...prev.errors,
+        [fieldName]: ""
+      },
+    }));
+  };
+
+  // Handler for custom fields (stored in customFields object)
+  const handleCustomFieldChange = (fieldName: string, value: any) => {
+    setFormState(prev => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        customFields: {
+          ...(prev.form.customFields || {}),
+          [fieldName]: value,
+        },
+      },
+      errors: {
+        ...prev.errors,
+        [fieldName]: ""
+      },
+    }));
+  };
+
+  const toggleTag = (tagId: number) => {
+    setFormState(prev => {
+      const tags = Array.isArray(prev.form.tags) ? [...prev.form.tags] : [];
+      const idx = tags.indexOf(tagId);
+      if (idx === -1) tags.push(tagId);
+      else tags.splice(idx, 1);
+      return { ...prev, form: { ...prev.form, tags } };
+    });
+  };
+
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
+
+    // Explicit validation for leadType and customerType (always required)
+    if (!formState.form.leadType) {
+      errors.leadType = t("leads.fields.leadType", "Lead Type") + " is required";
+    }
+    if (!formState.form.customerType) {
+      errors.customerType = t("leads.fields.customerType", "Customer Type") + " is required";
+    }
+
+    // Validate fields from field configs
+    for (const cfg of fieldConfigs) {
+      if (cfg.isVisible && cfg.isRequired) {
+        // Check both direct form fields and customFields
+        const val = (formState.form as any)[cfg.fieldName] ||
+          (formState.form.customFields as any)?.[cfg.fieldName];
+        if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
+          errors[cfg.fieldName] = t("common.fieldRequired", { field: t(`leads.fields.${cfg.fieldName}`, cfg.label || cfg.fieldName), defaultValue: `${cfg.label || cfg.fieldName} is required` });
+        } else {
+          // Field specific validations
+          if (cfg.fieldName === 'email') {
+            const e = validateEmail(String(val));
+            if (e) errors[cfg.fieldName] = e;
+          }
+          if (cfg.fieldName === 'phone') {
+            const e = validatePhone(String(val));
+            if (e) errors[cfg.fieldName] = e;
+          }
+        }
+      }
+    }
+
+    setFormState(prev => ({ ...prev, errors }));
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      setFormState(prev => ({ ...prev, isSubmitting: true }));
+      await onSubmit(formState.form);
+      setFormState(prev => ({ ...prev, hasSubmitted: true, isSubmitting: false }));
+    } catch (err) {
+      setFormState(prev => ({ ...prev, isSubmitting: false }));
+      console.error('Error submitting lead:', err);
+    }
+  };
+
+  // Minimal form rendering: render grouped sections with Service Interest and Commercial Expectation in correct positions
+  const sections = getGroupedAndSortedFields();
+
+  // Render a section with fields
+  const renderSection = (sectionId: string, title: string, icon: React.ReactNode, color: string, children: React.ReactNode) => {
+    const colorClass = getSectionColorClass(color);
+    return (
+      <div key={sectionId} className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+        <div className="flex items-center mb-6">
+          <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 ${colorClass.icon}`}>
+            {icon}
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
+            {title}
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
+          {children}
+        </div>
+      </div>
+    );
+  };
+
+  // Render dynamic fields for a section
+  const renderDynamicSectionFields = (section: FormSection) => {
+    return section.fields.map(field => {
+      if (!field.isVisible) return null;
+      const rendered = renderField(field);
+      return rendered ? (
+        <div key={field.fieldName} className="w-full">
+          {rendered}
+        </div>
+      ) : null;
+    });
+  };
+
+  // Service Interest Section Content
+  const renderServiceInterestSection = () => (
+    <>
+      {/* Primary Service Category - Required */}
+      <div className="w-full">
+        <EnhancedSelectField
+          label={t("leads.serviceInterest.primaryServiceCategory", "Primary Service Category")}
+          leftIcon={<Settings className="h-4 w-4 text-gray-400" />}
+          value={formState.form.primaryServiceCategory || ""}
+          placeholder={t("leads.serviceInterest.primaryServiceCategoryPlaceholder", "Select primary service")}
+          options={[
+            { value: "Waste Transportation", label: t("leads.serviceInterest.serviceCategories.wasteTransportation", "Waste Transportation") },
+            { value: "High Pressure Jetting", label: t("leads.serviceInterest.serviceCategories.highPressureJetting", "High Pressure Jetting") },
+            { value: "Deep Cleaning", label: t("leads.serviceInterest.serviceCategories.deepCleaning", "Deep Cleaning") },
+            { value: "Manpower Supply", label: t("leads.serviceInterest.serviceCategories.manpowerSupply", "Manpower Supply") },
+          ]}
+          onChange={(v) => {
+            handleChange('primaryServiceCategory', v);
+            // Reset waste category when service category changes (except when Waste Transportation)
+            if (v !== 'Waste Transportation') {
+              handleChange('wasteCategory', '');
+            }
+          }}
+          searchable={false}
+          clearable={false}
+          required={true}
+        />
+      </div>
+
+      {/* Waste Category - Conditional (shown only if Waste Transportation) */}
+      {formState.form.primaryServiceCategory === 'Waste Transportation' && (
+        <div className="w-full">
+          <EnhancedSelectField
+            label={t("leads.serviceInterest.wasteCategory", "Waste Category")}
+            leftIcon={<Truck className="h-4 w-4 text-gray-400" />}
+            value={formState.form.wasteCategory || ""}
+            placeholder={t("leads.serviceInterest.wasteCategoryPlaceholder", "Select waste category")}
+            options={[
+              { value: "Solid Waste", label: t("leads.serviceInterest.wasteCategories.solidWaste", "Solid Waste") },
+              { value: "Liquid Waste", label: t("leads.serviceInterest.wasteCategories.liquidWaste", "Liquid Waste") },
+            ]}
+            onChange={(v) => handleChange('wasteCategory', v)}
+            searchable={false}
+            clearable={true}
+            required={false}
+          />
+        </div>
+      )}
+
+      {/* Service Frequency - Required */}
+      <div className="w-full">
+        <EnhancedSelectField
+          label={t("leads.serviceInterest.serviceFrequency", "Service Frequency")}
+          leftIcon={<ClipboardList className="h-4 w-4 text-gray-400" />}
+          value={formState.form.serviceFrequency || ""}
+          placeholder={t("leads.serviceInterest.serviceFrequencyPlaceholder", "Select service frequency")}
+          options={[
+            { value: "One-time", label: t("leads.serviceInterest.frequencyOneTime", "One-time") },
+            { value: "Daily", label: t("leads.serviceInterest.frequencyDaily", "Daily") },
+            { value: "Alternate Days", label: t("leads.serviceInterest.frequencyAlternateDays", "Alternate Days") },
+            { value: "Weekly", label: t("leads.serviceInterest.frequencyWeekly", "Weekly") },
+            { value: "Monthly", label: t("leads.serviceInterest.frequencyMonthly", "Monthly") },
+          ]}
+          onChange={(v) => handleChange('serviceFrequency', v)}
+          searchable={false}
+          clearable={false}
+          required={true}
+        />
+      </div>
+
+      {/* Expected Start Date - Optional */}
+      <div className="w-full">
+        <InputField
+          label={t("leads.serviceInterest.expectedStartDate", "Expected Start Date")}
+          leftIcon={<CalendarClock className="h-4 w-4 text-gray-400" />}
+          type="date"
+          value={formState.form.expectedStartDate || ""}
+          onChange={(e) => handleChange('expectedStartDate', e.target.value || undefined)}
+          required={false}
+        />
+      </div>
+
+      {/* Urgency Level - Required */}
+      <div className="w-full">
+        <EnhancedSelectField
+          label={t("leads.serviceInterest.urgencyLevel", "Urgency Level")}
+          leftIcon={<AlertTriangle className="h-4 w-4 text-gray-400" />}
+          value={formState.form.urgencyLevel || ""}
+          placeholder={t("leads.serviceInterest.urgencyLevelPlaceholder", "Select urgency level")}
+          options={[
+            { value: "High", label: t("leads.serviceInterest.urgencyHigh", "High"), icon: <span className="text-red-500">●</span> },
+            { value: "Medium", label: t("leads.serviceInterest.urgencyMedium", "Medium"), icon: <span className="text-yellow-500">●</span> },
+            { value: "Low", label: t("leads.serviceInterest.urgencyLow", "Low"), icon: <span className="text-green-500">●</span> },
+          ]}
+          onChange={(v) => handleChange('urgencyLevel', v)}
+          searchable={false}
+          clearable={false}
+          required={true}
+        />
+      </div>
+
+      {/* Service Preference - Multi-select - Required */}
+      <div className="w-full md:col-span-2 xl:col-span-3">
+        <EnhancedMultiSelectField
+          label={t("leads.serviceInterest.servicePreference", "Service Preference")}
+          leftIcon={<Zap className="h-4 w-4 text-gray-400" />}
+          placeholder={t("leads.serviceInterest.servicePreferencePlaceholder", "Select service preferences")}
+          options={[
+            { value: "Tanker Service", label: t("leads.serviceInterest.servicePreferences.tankerService", "Tanker Service") },
+            { value: "Skip Services", label: t("leads.serviceInterest.servicePreferences.skipServices", "Skip Services") },
+            { value: "Jetting Service", label: t("leads.serviceInterest.servicePreferences.jettingService", "Jetting Service") },
+            { value: "Road Sweeper", label: t("leads.serviceInterest.servicePreferences.roadSweeper", "Road Sweeper") },
+            { value: "Combination Truck", label: t("leads.serviceInterest.servicePreferences.combinationTruck", "Combination Truck") },
+            { value: "Rough Use", label: t("leads.serviceInterest.servicePreferences.roughUse", "Rough Use") },
+            { value: "Compactor", label: t("leads.serviceInterest.servicePreferences.compactor", "Compactor") },
+            { value: "Six Wheel", label: t("leads.serviceInterest.servicePreferences.sixWheel", "Six Wheel") },
+            { value: "Janitorial", label: t("leads.serviceInterest.servicePreferences.janitorial", "Janitorial") },
+            { value: "Deep Cleaning", label: t("leads.serviceInterest.servicePreferences.deepCleaning", "Deep Cleaning") },
+          ]}
+          value={formState.form.servicePreference || []}
+          onChange={(ids) => handleChange('servicePreference', ids)}
+          required={true}
+        />
+      </div>
+    </>
+  );
+
+  // Commercial Expectation Section Content
+  const renderCommercialExpectationSection = () => (
+    <>
+      {/* Billing Preference - Optional */}
+      <div className="w-full">
+        <EnhancedSelectField
+          label={t("leads.commercialExpectation.billingPreference", "Billing Preference")}
+          leftIcon={<DollarIcon className="h-4 w-4 text-gray-400" />}
+          value={formState.form.billingPreference || ""}
+          placeholder={t("leads.commercialExpectation.billingPreferencePlaceholder", "Select billing preference")}
+          options={[
+            { value: "Per Load", label: t("leads.commercialExpectation.billingPerLoad", "Per Load") },
+            { value: "Per Hour", label: t("leads.commercialExpectation.billingPerHour", "Per Hour") },
+            { value: "Lump Sum", label: t("leads.commercialExpectation.billingLumpSum", "Lump Sum") },
+          ]}
+          onChange={(v) => handleChange('billingPreference', v)}
+          searchable={false}
+          clearable={true}
+          required={false}
+        />
+      </div>
+
+      {/* Estimated Job Duration (Hours) - Optional */}
+      <div className="w-full">
+        <InputField
+          label={t("leads.commercialExpectation.estimatedJobDuration", "Estimated Job Duration (Hours)")}
+          leftIcon={<Timer className="h-4 w-4 text-gray-400" />}
+          type="number"
+          min="0"
+          step="0.5"
+          value={formState.form.estimatedJobDuration || ""}
+          onChange={(e) => handleChange('estimatedJobDuration', e.target.value ? Number(e.target.value) : undefined)}
+          placeholder={t("leads.commercialExpectation.estimatedJobDurationPlaceholder", "Enter hours")}
+          required={false}
+        />
+      </div>
+    </>
+  );
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-transparent space-y-8">
+      {sections.map(section => {
+        const colorClass = getSectionColorClass(section.color);
+        
+        // Check if this is the "lead" section - render Service Interest after it
+        if (section.id === 'lead') {
+          return (
+            <React.Fragment key={section.id}>
+              <div className="pb-8 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center mb-6">
+                  <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 ${colorClass.icon}`}>
+                    {section.icon}
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
+                    {section.title}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
+                  {renderDynamicSectionFields(section)}
+                </div>
+              </div>
+              
+              {/* Service Interest Section - AFTER Lead section */}
+              {renderSection(
+                'service_interest',
+                t("leads.serviceInterest.title", "Service Interest"),
+                <Truck className="h-5 w-5" />,
+                'orange',
+                renderServiceInterestSection()
+              )}
+            </React.Fragment>
+          );
+        }
+        
+        // Check if this is the "personal" section - render Commercial Expectation after it
+        if (section.id === 'personal') {
+          return (
+            <React.Fragment key={section.id}>
+              <div className="pb-8 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center mb-6">
+                  <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 ${colorClass.icon}`}>
+                    {section.icon}
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
+                    {section.title}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
+                  {renderDynamicSectionFields(section)}
+                </div>
+              </div>
+              
+              {/* Commercial Expectation Section - AFTER Personal section */}
+              {renderSection(
+                'commercial_expectation',
+                t("leads.commercialExpectation.title", "Commercial Expectation"),
+                <DollarIcon className="h-5 w-5" />,
+                'green',
+                renderCommercialExpectationSection()
+              )}
+            </React.Fragment>
+          );
+        }
+        
+        // Default rendering for other sections
+        return (
+          <div key={section.id} className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+            <div className="flex items-center mb-6">
+              <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 ${colorClass.icon}`}>
+                {section.icon}
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
+                {section.title}
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
+              {renderDynamicSectionFields(section)}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Products Section */}
+      <div className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+        <div className="flex items-center mb-6">
+          <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-purple-500">
+            <ShoppingBag className="h-5 w-5" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
+            {t("leads.form.products", "Products")}
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
+          <div className="w-full">
+            <EnhancedMultiSelectField
+              label={t("leads.form.products", "Products")}
+              placeholder={t("leads.form.selectProducts", "Select products")}
+              options={products.map(p => ({
+                value: p.id,
+                label: p.name,
+                description: p.description,
+                icon: <ShoppingBag className="h-4 w-4" />
+              }))}
+              value={formState.form.productIds || []}
+              onChange={(ids) => handleChange('productIds', ids)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Position Field for Sales Lead - After Lead Type section */}
+      <div className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+        <div className="flex items-center mb-6">
+          <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-red-500">
+            <BriefcaseIcon className="h-5 w-5" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
+            {t('leads.fields.position', 'Position')}
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
+          <div className="w-full">
+            <InputField
+              label={t('leads.fields.position', 'Position/Job Title')}
+              leftIcon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
+              value={formState.form.position || ""}
+              onChange={(e) => handleChange('position', e.target.value)}
+              placeholder={t("leads.form.enterPosition", "Enter position")}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+        <button
+          type="button"
+          onClick={() => { setFormState({ ...formState, form: { ...defaultState } }); }}
+          className="w-full sm:w-auto px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+        >
+          {t("common.reset", "Reset")}
+        </button>
+        <button
+          type="submit"
+          disabled={formState.isSubmitting || submitting}
+          className="w-full sm:w-auto px-8 py-2.5 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+        >
+          {formState.isSubmitting || submitting ? (
+            <span className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              {t("common.saving", "Saving...")}
+            </span>
+          ) : t("leads.form.saveLead", "Save Lead")}
+        </button>
+      </div>
+    </form>
+  );
+};
+
+export default LeadForm;

@@ -14,8 +14,8 @@ const LeadCreate: React.FC = () => {
   const { refreshLeadsCount } = useCounts();
 
   const handleSubmit = async (data: LeadPayload) => {
+    setSubmitting(true);
     try {
-      setSubmitting(true);
       await leadService.createLead({
         ...data,
         // ensure numeric conversions
@@ -26,22 +26,6 @@ const LeadCreate: React.FC = () => {
       await refreshLeadsCount();
       toast.success(t("leads.createSuccess", "Lead created"));
       navigate("/leads");
-    } catch (e: any) {
-      const data = e?.response?.data;
-      if (Array.isArray(data?.errors) && data.errors.length > 0) {
-        const messages: string[] = [];
-        for (const err of data.errors) {
-          const msg = err?.msg || err?.message;
-          if (msg) messages.push(msg);
-        }
-        toast.error(messages.join("\n") || data?.message || t("common.validationError", "Validation errors"), {
-          toastId: "lead_create_validation_errors",
-        });
-      } else {
-        toast.error(data?.message || e?.message || t("common.createError", "Create failed"), {
-          toastId: "lead_create_error",
-        });
-      }
     } finally {
       setSubmitting(false);
     }
@@ -70,3 +54,4 @@ const LeadCreate: React.FC = () => {
 };
 
 export default LeadCreate;
+

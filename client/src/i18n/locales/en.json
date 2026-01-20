@@ -328,11 +328,14 @@
     "qualified": "Qualified",
     "closed": "Closed",
     "sections": {
-      "personal": "Personal Information",
+      "lead": "Lead Type & Intent",
+      "personal": "Contact SPOC Info",
       "company": "Company Information",
       "location": "Location & Contact",
       "management": "Lead Management",
-      "notes": "Notes & Tags"
+      "notes": "Notes & Tags",
+      "serviceInterest": "Service Interest",
+      "commercialExpectation": "Commercial Expectation"
     },
     "status": {
       "new": "New",
@@ -385,6 +388,7 @@
     },
     "form": {
       "createNewLead": "Create New Lead",
+      "expectedBudget": "Expected Budget",
       "editLead": "Edit Lead",
       "viewLead": "View Lead",
       "personalInformation": "Personal Information",
@@ -395,10 +399,13 @@
       "company": "Company",
       "position": "Position",
       "leadSource": "Lead Source",
+      "leadType": "Lead Type",
+      "customerType": "Customer Type",
       "status": "Status",
       "notes": "Notes",
       "assignedTo": "Assigned To",
       "tags": "Tags",
+      "leadScore": "Deal Probability",
       "enterFirstName": "Enter first name",
       "enterLastName": "Enter last name",
       "enterEmail": "Enter email",
@@ -423,11 +430,13 @@
       "selectPriority": "Select priority",
       "selectUser": "Select user",
       "enterAmount": "Enter amount",
-      "scorePlaceholder": "Score (0-100)",
+      "scorePlaceholder": "Deal Probability (0-100)",
       "contactMethodPlaceholder": "Select contact method",
       "notesPlaceholder": "Add any additional notes...",
       "selectProducts": "Select products",
       "products": "Products",
+      "selectLeadType": "Select lead type",
+      "selectCustomerType": "Select customer type",
       "saveLead": "Save Lead",
       "saving": "Saving..."
     },
@@ -502,6 +511,82 @@
       "smsDesc": "Contact via SMS",
       "whatsappDesc": "Contact via WhatsApp",
       "linkedinDesc": "Contact via LinkedIn"
+    },
+    "leadType": {
+      "service": "Service Lead",
+      "sales": "Sales Lead"
+    },
+    "leadTypeDescriptions": {
+      "service": "Lead interested in services",
+      "sales": "Lead interested in products/sales"
+    },
+    "customerType": {
+      "fixed": "Fixed Customer",
+      "onCall": "On-call Customer",
+      "walkIn": "Walk-in Customer"
+    },
+    "customerTypeDescriptions": {
+      "fixed": "Customer with fixed service agreement",
+      "onCall": "Customer requiring on-demand services",
+      "walkIn": "Customer who visits in person"
+    },
+    "serviceInterest": {
+      "title": "Service Interest",
+      "description": "Core Nidukki Requirement - Service details for the lead",
+      "primaryServiceCategory": "Primary Service Category",
+      "primaryServiceCategoryPlaceholder": "Select primary service",
+      "wasteCategory": "Waste Category",
+      "wasteCategoryPlaceholder": "Select waste category",
+      "wasteCategoryHelp": "Shown only if Primary Service Category is \"Waste Transportation\"",
+      "servicePreference": "Service Preference",
+      "servicePreferencePlaceholder": "Select service preferences",
+      "serviceFrequency": "Service Frequency",
+      "serviceFrequencyPlaceholder": "Select service frequency",
+      "expectedStartDate": "Expected Start Date",
+      "urgencyLevel": "Urgency Level",
+      "urgencyLevelPlaceholder": "Select urgency level",
+      "urgencyHigh": "High",
+      "urgencyMedium": "Medium",
+      "urgencyLow": "Low",
+      "frequencyOneTime": "One-time",
+      "frequencyDaily": "Daily",
+      "frequencyAlternateDays": "Alternate Days",
+      "frequencyWeekly": "Weekly",
+      "frequencyMonthly": "Monthly",
+      "servicePreferences": {
+        "tankerService": "Tanker Service",
+        "skipServices": "Skip Services",
+        "jettingService": "Jetting Service",
+        "roadSweeper": "Road Sweeper",
+        "combinationTruck": "Combination Truck",
+        "roughUse": "Rough Use",
+        "compactor": "Compactor",
+        "sixWheel": "Six Wheel",
+        "janitorial": "Janitorial",
+        "deepCleaning": "Deep Cleaning"
+      },
+      "serviceCategories": {
+        "wasteTransportation": "Waste Transportation",
+        "highPressureJetting": "High Pressure Jetting",
+        "deepCleaning": "Deep Cleaning",
+        "manpowerSupply": "Manpower Supply"
+      },
+      "wasteCategories": {
+        "solidWaste": "Solid Waste",
+        "liquidWaste": "Liquid Waste"
+      }
+    },
+    "commercialExpectation": {
+      "title": "Commercial Expectation",
+      "description": "Billing and commercial details for the lead",
+      "billingPreference": "Billing Preference",
+      "billingPreferencePlaceholder": "Select billing preference",
+      "billingPerLoad": "Per Load",
+      "billingPerHour": "Per Hour",
+      "billingLumpSum": "Lump Sum",
+      "estimatedJobDuration": "Estimated Job Duration (Hours)",
+      "estimatedJobDurationPlaceholder": "Enter hours",
+      "hours": "Hours"
     }
   },
   "deals": {

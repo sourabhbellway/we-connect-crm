@@ -24,6 +24,8 @@ export declare class CreateLeadDto {
     sourceId?: number;
     status?: string;
     priority?: string;
+    leadType?: string;
+    customerType?: string;
     assignedTo?: number;
     budget?: number;
     currency?: string;
@@ -34,4 +36,12 @@ export declare class CreateLeadDto {
     lastContactedAt?: string;
     nextFollowUpAt?: string;
     customFields?: Record<string, any>;
+    primaryServiceCategory?: string;
+    wasteCategory?: string;
+    servicePreference?: string[];
+    serviceFrequency?: string;
+    expectedStartDate?: string;
+    urgencyLevel?: string;
+    billingPreference?: string;
+    estimatedJobDuration?: number;
 }

@@ -38,6 +38,8 @@ class CreateLeadDto {
     sourceId;
     status;
     priority;
+    leadType;
+    customerType;
     assignedTo;
     budget;
     currency;
@@ -48,43 +50,44 @@ class CreateLeadDto {
     lastContactedAt;
     nextFollowUpAt;
     customFields;
+    primaryServiceCategory;
+    wasteCategory;
+    servicePreference;
+    serviceFrequency;
+    expectedStartDate;
+    urgencyLevel;
+    billingPreference;
+    estimatedJobDuration;
 }
 exports.CreateLeadDto = CreateLeadDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)({ message: 'First name must be a string' }),
-    (0, class_validator_1.MinLength)(2, { message: 'First name must be at least 2 characters' }),
-    (0, class_validator_1.MaxLength)(50, { message: 'First name must not exceed 50 characters' }),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "firstName", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)({ message: 'First name (Arabic) must be a string' }),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "firstNameAr", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)({ message: 'Last name must be a string' }),
-    (0, class_validator_1.MinLength)(2, { message: 'Last name must be at least 2 characters' }),
-    (0, class_validator_1.MaxLength)(50, { message: 'Last name must not exceed 50 characters' }),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "lastName", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)({ message: 'Last name (Arabic) must be a string' }),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "lastNameAr", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEmail)({}, { message: 'Please enter a valid email address' }),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)({ message: 'Phone must be a string' }),
-    (0, class_validator_1.Matches)(/^[0-9+\s()-]+$/, { message: 'Phone can only contain digits, spaces, +, -, (, )' }),
-    (0, class_validator_1.MinLength)(7, { message: 'Phone must be at least 7 characters' }),
-    (0, class_validator_1.MaxLength)(15, { message: 'Phone must not exceed 15 characters' }),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "phone", void 0);
 __decorate([
@@ -187,6 +190,16 @@ __decorate([
 ], CreateLeadDto.prototype, "priority", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['SERVICE_LEAD', 'SALES_LEAD']),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "leadType", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsIn)(['FIXED_CUSTOMER', 'ON_CALL_CUSTOMER', 'WALK_IN_CUSTOMER']),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "customerType", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
@@ -237,4 +250,45 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], CreateLeadDto.prototype, "customFields", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "primaryServiceCategory", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "wasteCategory", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    __metadata("design:type", Array)
+], CreateLeadDto.prototype, "servicePreference", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "serviceFrequency", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "expectedStartDate", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "urgencyLevel", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateLeadDto.prototype, "billingPreference", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateLeadDto.prototype, "estimatedJobDuration", void 0);
 //# sourceMappingURL=create-lead.dto.js.map

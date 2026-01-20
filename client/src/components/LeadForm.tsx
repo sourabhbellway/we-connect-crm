@@ -33,9 +33,18 @@ import {
   MessageSquare,
   DollarSign,
   ShoppingBag,
+  Truck,
+  Settings,
+  Zap,
+  ClipboardList,
+  CalendarClock,
+  AlertTriangle,
+  DollarSign as DollarIcon,
+  Timer,
 } from "lucide-react";
 import { productsService, Product } from "../services/productsService";
 import { EnhancedMultiSelectField } from "./EnhancedMultiSelectField";
+import { toast } from "react-toastify";
 
 export interface LeadFormProps {
   initial?: LeadPayload;
@@ -92,6 +101,7 @@ const defaultState: LeadPayload = {
   tags: [],
   // Enhanced fields
   budget: undefined,
+  expectedBudget: undefined,
   currency: "USD",
   priority: "medium",
   website: "",
@@ -100,7 +110,7 @@ const defaultState: LeadPayload = {
   companySize: undefined,
   annualRevenue: undefined,
   leadScore: undefined,
-  country: "",
+  country: "Bahrain",
   state: "",
   city: "",
   zipCode: "",
@@ -111,6 +121,14 @@ const defaultState: LeadPayload = {
   nextFollowUpAt: undefined,
   customFields: {},
   productIds: [],
+  primaryServiceCategory: "",
+  wasteCategory: "",
+  servicePreference: [],
+  serviceFrequency: "",
+  expectedStartDate: "",
+  urgencyLevel: "Medium",
+  billingPreference: "",
+  estimatedJobDuration: undefined,
 };
 
 const LeadForm: React.FC<LeadFormProps> = ({
@@ -469,7 +487,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
     const sectionMap: { [key: string]: FormSection } = {};
 
     const sectionConfig: Record<string, { title: string; icon: React.ReactNode; color: string }> = {
-      personal: { title: t('leads.sections.personal', 'Personal Information'), icon: <UserIcon className="h-5 w-5" />, color: 'blue' },
+      lead: { title: t('leads.sections.lead', 'Lead Type & Intent'), icon: <Award className="h-5 w-5" />, color: 'red' },
+      service_interest: { title: t('leads.sections.serviceInterest', 'Service Interest'), icon: <Truck className="h-5 w-5" />, color: 'teal' },
+      personal: { title: t('leads.sections.personal', 'Contact SPOC Info'), icon: <UserIcon className="h-5 w-5" />, color: 'blue' },
+      commercial_expectation: { title: t('leads.sections.commercialExpectation', 'Commercial Expectation'), icon: <DollarIcon className="h-5 w-5" />, color: 'green' },
       company: { title: t('leads.sections.company', 'Company Information'), icon: <BuildingIcon className="h-5 w-5" />, color: 'green' },
       location: { title: t('leads.sections.location', 'Location & Contact'), icon: <MapPin className="h-5 w-5" />, color: 'purple' },
       lead_management: { title: t('leads.sections.management', 'Lead Management'), icon: <Award className="h-5 w-5" />, color: 'orange' },
@@ -498,7 +519,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
       });
 
     // Return sections in preferred order
-    const preferredOrder = ['personal', 'company', 'location', 'lead_management', 'notes'];
+    const preferredOrder = ['lead', 'service_interest', 'personal', 'commercial_expectation', 'company', 'location', 'lead_management', 'notes'];
     return preferredOrder
       .filter(key => sectionMap[key])
       .map(key => sectionMap[key])
@@ -508,6 +529,8 @@ const LeadForm: React.FC<LeadFormProps> = ({
   // Get section color class - Unified for cleaner look
   const getSectionColorClass = (color: string) => {
     const colors: Record<string, { bg: string; icon: string; border: string }> = {
+      red: { bg: 'bg-transparent', icon: 'text-red-600 dark:text-red-400', border: 'border-gray-200 dark:border-gray-700' },
+      teal: { bg: 'bg-transparent', icon: 'text-teal-600 dark:text-teal-400', border: 'border-gray-200 dark:border-gray-700' },
       blue: { bg: 'bg-transparent', icon: 'text-blue-600 dark:text-blue-400', border: 'border-gray-200 dark:border-gray-700' },
       green: { bg: 'bg-transparent', icon: 'text-green-600 dark:text-green-400', border: 'border-gray-200 dark:border-gray-700' },
       purple: { bg: 'bg-transparent', icon: 'text-purple-600 dark:text-purple-400', border: 'border-gray-200 dark:border-gray-700' },
@@ -655,11 +678,13 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
     // If this is a custom field (not in the standard switch cases), use renderCustomField
     const isCustomField = ![
-      'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
+      'firstName', 'lastName', 'email', 'phone', 'company', 'industry',
       'website', 'companySize', 'annualRevenue', 'country', 'state', 'city', 'zipCode',
       'address', 'timezone', 'linkedinProfile', 'sourceId', 'status', 'priority',
       'assignedTo', 'budget', 'currency', 'leadScore', 'preferredContactMethod',
-      'nextFollowUpAt', 'notes', 'tags'
+      'nextFollowUpAt', 'notes', 'tags', 'leadType', 'customerType',
+      'primaryServiceCategory', 'wasteCategory', 'servicePreference', 'serviceFrequency',
+      'expectedStartDate', 'urgencyLevel', 'billingPreference', 'estimatedJobDuration'
     ].includes(field.fieldName);
 
     if (isCustomField) {
@@ -1114,6 +1139,26 @@ const LeadForm: React.FC<LeadFormProps> = ({
         );
       }
 
+      case 'expectedBudget':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={
+              <span className="text-gray-400 font-medium text-sm">
+                {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "USD")}
+              </span>
+            }
+            type="number"
+            step="0.01"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            placeholder={field.placeholder || t("leads.form.enterAmount", "Enter amount")}
+            required={field.isRequired}
+            error={error}
+          />
+        );
+
       case 'currency': {
         const budgetField = fieldConfigs.find(f => f.fieldName === 'budget');
         const isBudgetVisible = budgetField?.isVisible ?? true;
@@ -1141,14 +1186,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
         return (
           <InputField
             key={field.fieldName}
-            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            label={t('leads.fields.leadScore', 'Deal Probability')}
             leftIcon={<Award className="h-4 w-4 text-gray-400" />}
             type="number"
             min="0"
             max="100"
             value={value || ""}
             onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
-            placeholder={field.placeholder || t("leads.form.scorePlaceholder", "Score (0-100)")}
+            placeholder={field.placeholder || t("leads.form.scorePlaceholder", "Probability (0-100)")}
             required={field.isRequired}
           />
         );
@@ -1229,6 +1274,213 @@ const LeadForm: React.FC<LeadFormProps> = ({
                 })}
             </div>
           </div>
+        );
+
+      case 'leadType':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectLeadType", "Select lead type")}
+            options={[
+              { value: "service", label: t("leads.leadType.service", "Service Lead"), description: t("leads.leadTypeDescriptions.service", "Lead interested in services") },
+              { value: "sales", label: t("leads.leadType.sales", "Sales Lead"), description: t("leads.leadTypeDescriptions.sales", "Lead interested in products/sales") },
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'customerType':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<BuildingIcon className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectCustomerType", "Select customer type")}
+            options={[
+              { value: "fixed", label: t("leads.customerType.fixed", "Fixed Customer"), description: t("leads.customerTypeDescriptions.fixed", "Contract-based regular customer") },
+              { value: "oncall", label: t("leads.customerType.oncall", "On-call Customer"), description: t("leads.customerTypeDescriptions.oncall", "Service on demand basis") },
+              { value: "walkin", label: t("leads.customerType.walkin", "Walk-in Customer"), description: t("leads.customerTypeDescriptions.walkin", "Walk-in/visiting customer") },
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'primaryServiceCategory':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Settings className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectPrimaryServiceCategory", "Select primary service")}
+            options={[
+              { value: "Waste Transportation", label: t("leads.serviceInterest.serviceCategories.wasteTransportation", "Waste Transportation") },
+              { value: "High Pressure Jetting", label: t("leads.serviceInterest.serviceCategories.highPressureJetting", "High Pressure Jetting") },
+              { value: "Deep Cleaning", label: t("leads.serviceInterest.serviceCategories.deepCleaning", "Deep Cleaning") },
+              { value: "Manpower Supply", label: t("leads.serviceInterest.serviceCategories.manpowerSupply", "Manpower Supply") },
+            ]}
+            onChange={(v) => {
+              handleChange(field.fieldName, v);
+              // Reset waste category when service category changes (except when Waste Transportation)
+              if (v !== 'Waste Transportation') {
+                handleChange('wasteCategory', '');
+              }
+            }}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'wasteCategory':
+        // Only show waste category when primary service category is Waste Transportation
+        if (formState.form.primaryServiceCategory !== 'Waste Transportation') {
+          return null;
+        }
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Truck className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectWasteCategory", "Select waste category")}
+            options={[
+              { value: "Solid Waste", label: t("leads.serviceInterest.wasteCategories.solidWaste", "Solid Waste") },
+              { value: "Liquid Waste", label: t("leads.serviceInterest.wasteCategories.liquidWaste", "Liquid Waste") },
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={true}
+            required={field.isRequired}
+          />
+        );
+
+      case 'servicePreference':
+        return (
+          <div key={field.fieldName}>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t(`leads.fields.${field.fieldName}`, field.label)}
+              {field.isRequired && <span className="text-red-500 ms-1">*</span>}
+            </label>
+            <EnhancedMultiSelectField
+              label=""
+              placeholder={t("leads.form.selectServicePreferences", "Select service preferences")}
+              options={[
+                { value: "Tanker Service", label: t("leads.serviceInterest.servicePreferences.tankerService", "Tanker Service") },
+                { value: "Skip Services", label: t("leads.serviceInterest.servicePreferences.skipServices", "Skip Services") },
+                { value: "Jetting Service", label: t("leads.serviceInterest.servicePreferences.jettingService", "Jetting Service") },
+                { value: "Road Sweeper", label: t("leads.serviceInterest.servicePreferences.roadSweeper", "Road Sweeper") },
+                { value: "Combination Truck", label: t("leads.serviceInterest.servicePreferences.combinationTruck", "Combination Truck") },
+                { value: "Rough Use", label: t("leads.serviceInterest.servicePreferences.roughUse", "Rough Use") },
+                { value: "Compactor", label: t("leads.serviceInterest.servicePreferences.compactor", "Compactor") },
+                { value: "Six Wheel", label: t("leads.serviceInterest.servicePreferences.sixWheel", "Six Wheel") },
+                { value: "Janitorial", label: t("leads.serviceInterest.servicePreferences.janitorial", "Janitorial") },
+                { value: "Deep Cleaning", label: t("leads.serviceInterest.servicePreferences.deepCleaning", "Deep Cleaning") },
+              ]}
+              value={value || []}
+              onChange={(ids) => handleChange(field.fieldName, ids)}
+            />
+          </div>
+        );
+
+      case 'serviceFrequency':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<ClipboardList className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectServiceFrequency", "Select service frequency")}
+            options={[
+              { value: "One-time", label: t("leads.serviceInterest.frequencyOneTime", "One-time") },
+              { value: "Daily", label: t("leads.serviceInterest.frequencyDaily", "Daily") },
+              { value: "Alternate Days", label: t("leads.serviceInterest.frequencyAlternateDays", "Alternate Days") },
+              { value: "Weekly", label: t("leads.serviceInterest.frequencyWeekly", "Weekly") },
+              { value: "Monthly", label: t("leads.serviceInterest.frequencyMonthly", "Monthly") },
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'expectedStartDate':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<CalendarClock className="h-4 w-4 text-gray-400" />}
+            type="date"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value || undefined)}
+            required={field.isRequired}
+          />
+        );
+
+      case 'urgencyLevel':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<AlertTriangle className="h-4 w-4 text-gray-400" />}
+            value={value || "Medium"}
+            placeholder={field.placeholder || t("leads.form.selectUrgencyLevel", "Select urgency level")}
+            options={[
+              { value: "High", label: t("leads.serviceInterest.urgencyHigh", "High"), icon: <span className="text-red-500">●</span> },
+              { value: "Medium", label: t("leads.serviceInterest.urgencyMedium", "Medium"), icon: <span className="text-yellow-500">●</span> },
+              { value: "Low", label: t("leads.serviceInterest.urgencyLow", "Low"), icon: <span className="text-green-500">●</span> },
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={false}
+            required={field.isRequired}
+          />
+        );
+
+      case 'billingPreference':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<DollarIcon className="h-4 w-4 text-gray-400" />}
+            value={value || ""}
+            placeholder={field.placeholder || t("leads.form.selectBillingPreference", "Select billing preference")}
+            options={[
+              { value: "Per Load", label: t("leads.commercialExpectation.billingPerLoad", "Per Load") },
+              { value: "Per Hour", label: t("leads.commercialExpectation.billingPerHour", "Per Hour") },
+              { value: "Lump Sum", label: t("leads.commercialExpectation.billingLumpSum", "Lump Sum") },
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v)}
+            searchable={false}
+            clearable={true}
+            required={field.isRequired}
+          />
+        );
+
+      case 'estimatedJobDuration':
+        return (
+          <InputField
+            key={field.fieldName}
+            label={t(`leads.fields.${field.fieldName}`, field.label)}
+            leftIcon={<Timer className="h-4 w-4 text-gray-400" />}
+            type="number"
+            min="0"
+            value={value || ""}
+            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            placeholder={field.placeholder || t("leads.form.enterEstimatedHours", "Enter hours")}
+            required={field.isRequired}
+          />
         );
 
       default:
@@ -1362,11 +1614,73 @@ const LeadForm: React.FC<LeadFormProps> = ({
     if (!validateForm()) return;
 
     try {
-      setFormState(prev => ({ ...prev, isSubmitting: true }));
+      setFormState(prev => ({ ...prev, isSubmitting: true, errors: {} }));
       await onSubmit(formState.form);
       setFormState(prev => ({ ...prev, hasSubmitted: true, isSubmitting: false }));
-    } catch (err) {
+    } catch (err: any) {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
+      
+      // Log full error for debugging
+      console.log('Full error response:', err.response);
+      console.log('Error data:', err.response?.data);
+      console.log('Error data.errors:', err.response?.data?.errors);
+      
+      // Handle validation errors from backend
+      const errorData = err.response?.data;
+      
+      // Check if we have field-specific errors in the response
+      if (errorData?.errors && typeof errorData.errors === 'object') {
+        const fieldErrors = errorData.errors as Record<string, string>;
+        
+        // Display field-specific errors under each input field
+        setFormState(prev => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            ...fieldErrors,
+          },
+        }));
+        
+        // Show helpful message listing the fields with errors
+        const fieldErrorCount = Object.keys(fieldErrors).length;
+        const fieldNames = Object.keys(fieldErrors).join(', ');
+        const helpfulMessage = t('leads.validation.errorsOnFields', {
+          count: fieldErrorCount,
+          fields: fieldNames,
+          defaultValue: `Please fix errors in: ${fieldNames}`
+        });
+        setFormState(prev => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            general: helpfulMessage
+          }
+        }));
+        toast.error(helpfulMessage);
+      } else if (errorData?.message) {
+        // No specific errors - show the message from server
+        const errorMessage = errorData.message;
+        setFormState(prev => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            general: errorMessage
+          }
+        }));
+        toast.error(errorMessage);
+      } else {
+        // Unknown error
+        const errorMessage = t('leads.validation.submitError', 'An error occurred');
+        setFormState(prev => ({
+          ...prev,
+          errors: {
+            ...prev.errors,
+            general: errorMessage
+          }
+        }));
+        toast.error(errorMessage);
+      }
+      
       console.error('Error submitting lead:', err);
     }
   };
@@ -1376,6 +1690,17 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="bg-transparent space-y-8">
+      {/* General Error Alert */}
+      {formState.errors.general && (
+        <div className="p-4 mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400 mr-3 flex-shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-300">
+              {formState.errors.general}
+            </p>
+          </div>
+        </div>
+      )}
       {sections.map(section => {
         const colorClass = getSectionColorClass(section.color);
         return (
@@ -1402,34 +1727,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
           </div>
         );
       })}
-
-      {/* Products Section */}
-      <div className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
-        <div className="flex items-center mb-6">
-          <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-purple-500">
-            <ShoppingBag className="h-5 w-5" />
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white ms-3 tracking-tight">
-            {t("leads.form.products", "Products")}
-          </h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
-          <div className="w-full">
-            <EnhancedMultiSelectField
-              label={t("leads.form.products", "Products")}
-              placeholder={t("leads.form.selectProducts", "Select products")} // "jo product add kar rahe h vo dyanmic chiya fully"
-              options={products.map(p => ({
-                value: p.id,
-                label: p.name,
-                description: p.description,
-                icon: <ShoppingBag className="h-4 w-4" />
-              }))}
-              value={formState.form.productIds || []}
-              onChange={(ids) => handleChange('productIds', ids)}
-            />
-          </div>
-        </div>
-      </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
         <button

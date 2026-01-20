@@ -52,6 +52,16 @@ export declare class LeadsController {
                 preferredContactMethod: any;
                 previousStatus: any;
                 convertedToDealId: any;
+                leadType: any;
+                customerType: any;
+                primaryServiceCategory: any;
+                wasteCategory: any;
+                servicePreference: any;
+                serviceFrequency: any;
+                expectedStartDate: any;
+                urgencyLevel: any;
+                billingPreference: any;
+                estimatedJobDuration: any;
                 assignedUser: any;
                 tags: {
                     id: any;
@@ -59,6 +69,7 @@ export declare class LeadsController {
                     color: any;
                 }[];
                 source: any;
+                customFields: any;
             }[];
             pagination: {
                 totalItems: number;
@@ -107,6 +118,8 @@ export declare class LeadsController {
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             priority: import("@prisma/client").$Enums.LeadPriority;
+            leadType: import("@prisma/client").$Enums.LeadType | null;
+            customerType: import("@prisma/client").$Enums.CustomerType | null;
             website: string | null;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -160,6 +173,8 @@ export declare class LeadsController {
             sourceId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
+            leadType: import("@prisma/client").$Enums.LeadType | null;
+            customerType: import("@prisma/client").$Enums.CustomerType | null;
             website: string | null;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -231,6 +246,8 @@ export declare class LeadsController {
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             priority: import("@prisma/client").$Enums.LeadPriority;
+            leadType: import("@prisma/client").$Enums.LeadType | null;
+            customerType: import("@prisma/client").$Enums.CustomerType | null;
             website: string | null;
             companySize: number | null;
             annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
@@ -301,6 +318,8 @@ export declare class LeadsController {
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
                 priority: import("@prisma/client").$Enums.LeadPriority;
+                leadType: import("@prisma/client").$Enums.LeadType | null;
+                customerType: import("@prisma/client").$Enums.CustomerType | null;
                 website: string | null;
                 companySize: number | null;
                 annualRevenue: import("@prisma/client/runtime/library").Decimal | null;

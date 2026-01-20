@@ -97,7 +97,7 @@ export const findCountryByPhoneCode = (phoneCode: string): Country | undefined =
   return countries.find(country => country.phoneCode === phoneCode);
 };
 
-// Helper function to get default country (US)
+// Helper function to get default country (Bahrain)
 export const getDefaultCountry = (): Country => {
-  return countries.find(country => country.code === 'US') || countries[0];
+  return countries.find(country => country.code === 'BH') || countries[0];
 };

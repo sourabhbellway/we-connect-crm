@@ -241,6 +241,8 @@ model Lead {
   lastContactedAt        DateTime?
   nextFollowUpAt         DateTime?
   priority               LeadPriority           @default(MEDIUM)
+  leadType               LeadType?              @default(SALES_LEAD)
+  customerType           CustomerType?          @default(FIXED_CUSTOMER)
   industry               String?
   website                String?
   companySize            Int?
@@ -1994,4 +1996,15 @@ enum InternalDealStatus {
   NEGOTIATION
   WON
   LOST
+}
+
+enum LeadType {
+  SERVICE_LEAD
+  SALES_LEAD
+}
+
+enum CustomerType {
+  FIXED_CUSTOMER
+  ON_CALL_CUSTOMER
+  WALK_IN_CUSTOMER
 }

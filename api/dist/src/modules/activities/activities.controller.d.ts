@@ -97,6 +97,8 @@ export declare class ActivitiesController {
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     priority: import("@prisma/client").$Enums.LeadPriority;
+                    leadType: import("@prisma/client").$Enums.LeadType | null;
+                    customerType: import("@prisma/client").$Enums.CustomerType | null;
                     website: string | null;
                     companySize: number | null;
                     annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
