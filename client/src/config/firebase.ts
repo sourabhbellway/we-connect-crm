@@ -1,3 +1,5 @@
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { isSupported, getMessaging, Messaging } from "firebase/messaging";
 
 // Your web app's Firebase configuration
