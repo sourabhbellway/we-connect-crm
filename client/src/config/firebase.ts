@@ -1,6 +1,4 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getMessaging } from "firebase/messaging";
+import { isSupported, getMessaging, Messaging } from "firebase/messaging";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -16,6 +14,19 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const messaging = getMessaging(app);
+
+// Messaging initialization (safe for non-HTTPS/unsupported browsers)
+let messaging: Messaging | null = null;
+
+// Only initialize if supported
+isSupported().then((supported) => {
+    if (supported) {
+        messaging = getMessaging(app);
+    } else {
+        console.warn("Firebase Messaging is not supported in this browser environment (likely due to non-HTTPS connection).");
+    }
+}).catch(err => {
+    console.error("Error checking Firebase Messaging support:", err);
+});
 
 export { app, analytics, messaging };
