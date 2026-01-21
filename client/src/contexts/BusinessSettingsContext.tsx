@@ -285,7 +285,7 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
         maximumFractionDigits: decimals,
       }).format(num);
     } catch (e) {
-      const symbol = currencySettings.symbol || '$';
+      const symbol = currencySettings.symbol || 'BHD';
       return currencySettings.position === 'before' ? `${symbol}${num.toFixed(decimals)}` : `${num.toFixed(decimals)}${symbol}`;
     }
   };
@@ -295,7 +295,7 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
     return (amount * (rate || taxSettings.defaultRate)) / 100;
   };
 
-  const getCurrency = (): string => currencySettings?.primary || 'USD';
+  const getCurrency = (): string => currencySettings?.primary || 'BHD';
   const getLeadSourceById = (id: string) => leadSources.find(s => s.id === id) || null;
   const getLeadStatusById = (id: string) => leadStatuses.find(s => s.id === id) || null;
   const getDealStatusById = (id: string) => dealStatuses.find(s => s.id === id) || null;

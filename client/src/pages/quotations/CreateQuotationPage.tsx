@@ -61,6 +61,7 @@ const CreateQuotationPage: React.FC = () => {
     const [assignedTo, setAssignedTo] = useState('');
     const [dealId, setDealId] = useState<string>('');
     const [toField, setToField] = useState('');
+    const [company, setCompany] = useState('');
     const [address, setAddress] = useState('');
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
@@ -141,6 +142,11 @@ const CreateQuotationPage: React.FC = () => {
                     setRelatedId(String(q.leadId));
                     const full = `${q.lead.firstName || ''} ${q.lead.lastName || ''}`.trim();
                     setToField(full); setSearchQuery(full);
+                    // Combine company name with address
+                    const companyName = q.lead.company || '';
+                    const streetAddress = q.lead.address || '';
+                    const fullAddress = entity.address || '';
+                    setAddress(fullAddress);
                 }
                 // Map items for UI
                 if (Array.isArray(q.items)) {
@@ -256,15 +262,26 @@ const CreateQuotationPage: React.FC = () => {
     // Search for leads/contacts with debounce
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
-            if (searchQuery.length >= 2 && relatedType) {
-                searchEntities(searchQuery);
-            } else {
-                setSearchResults([]);
-                setShowSearchDropdown(false);
+            // If dropdown is open and relatedType is set
+            if (showSearchDropdown && relatedType) {
+                if (searchQuery.length >= 2) {
+                    // Search with query
+                    searchEntities(searchQuery);
+                } else {
+                    // Show all leads when search is empty
+                    setSearchResults(allLeads);
+                }
             }
         }, 300);
         return () => clearTimeout(debounceTimer);
-    }, [searchQuery, relatedType, allLeads]);
+    }, [searchQuery, relatedType, allLeads, showSearchDropdown]);
+
+    // Update searchResults when allLeads is loaded and dropdown is open
+    useEffect(() => {
+        if (showSearchDropdown && relatedType && allLeads.length > 0 && searchQuery.length < 2) {
+            setSearchResults(allLeads);
+        }
+    }, [allLeads, showSearchDropdown, relatedType, searchQuery]);
 
     useEffect(() => {
         const hasSource = searchParams.get('entityId');
@@ -350,7 +367,9 @@ const CreateQuotationPage: React.FC = () => {
         setSearchQuery(displayName);
         setEmail(entity.email || '');
         setPhone(entity.phone || '');
-        setAddress(entity.address || '');
+        setCompany(entity.company || '');
+        const fullAddress = entity.address || '';
+        setAddress(fullAddress);
         setCity(entity.city || '');
         setState(entity.state || '');
         setCountry(entity.country || '');
@@ -483,6 +502,7 @@ const CreateQuotationPage: React.FC = () => {
                 status: sendImmediately ? 'Sent' : status,
                 assignedTo: assignedTo ? parseInt(assignedTo) : null,
                 to: toField,
+                company,
                 address,
                 city,
                 state,
@@ -653,6 +673,10 @@ const CreateQuotationPage: React.FC = () => {
                                                 setShowSearchDropdown(!showSearchDropdown);
                                                 // Ensure we are in lead mode if not already
                                                 if (relatedType !== 'lead') setRelatedType('lead');
+                                                // Load leads if dropdown is being opened and leads not loaded yet
+                                                if (!showSearchDropdown && allLeads.length === 0) {
+                                                    fetchAllLeads();
+                                                }
                                                 // Focus will happen via auto-focus on input inside
                                             }}
                                             className="w-full px-3 py-2 text-sm text-left border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all flex items-center justify-between group"
@@ -723,6 +747,19 @@ const CreateQuotationPage: React.FC = () => {
                                             </div>
                                         )}
                                     </div>
+                                </div>
+
+                                {/* Company */}
+                                <div className="col-span-12 sm:col-span-6">
+                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Company
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={company}
+                                        onChange={(e) => setCompany(e.target.value)}
+                                        className="input-base"
+                                    />
                                 </div>
 
                                 {/* Address */}
@@ -988,8 +1025,7 @@ const CreateQuotationPage: React.FC = () => {
                                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-12">
                                                         <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                                                     </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[180px]">Item</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[150px]">Description</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[200px]">Item</th>
                                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[200px]">Long Description</th>
                                                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">{showQuantityAs}</th>
                                                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">Unit</th>
@@ -1090,15 +1126,6 @@ const CreateQuotationPage: React.FC = () => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <input
-                                                                type="text"
-                                                                value={item.description}
-                                                                onChange={(e) => updateItem(index, 'description', e.target.value)}
-                                                                placeholder="Enter description"
-                                                                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            />
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <textarea
