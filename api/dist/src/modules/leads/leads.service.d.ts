@@ -105,6 +105,11 @@ export declare class LeadsService {
         success: boolean;
         message: string;
         errors: Record<string, string>;
+        _debug: {
+            totalFieldsChecked: number;
+            errorCount: number;
+            errorFields: string[];
+        };
     } | undefined>;
     create(dto: CreateLeadDto, userId?: number): Promise<{
         success: boolean;

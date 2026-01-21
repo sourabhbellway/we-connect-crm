@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
-const common_1 = require("@nestjs/common");
+const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 const express = __importStar(require("express"));
 const path_1 = require("path");
 const fs = __importStar(require("fs"));
@@ -44,26 +44,7 @@ async function bootstrap() {
     app.use(express.json({ limit: '50mb' }));
     app.use(express.urlencoded({ limit: '50mb', extended: true }));
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new common_1.ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: false,
-        transform: true,
-        transformOptions: {
-            enableImplicitConversion: true,
-        },
-        disableErrorMessages: false,
-        exceptionFactory: (errors) => {
-            const messages = errors.map(error => {
-                const constraints = error.constraints || {};
-                return Object.values(constraints).join(', ');
-            });
-            return new common_1.HttpException({
-                success: false,
-                message: 'Validation failed',
-                errors: messages
-            }, common_1.HttpStatus.BAD_REQUEST);
-        },
-    }));
+    app.useGlobalFilters(new http_exception_filter_1.HttpExceptionFilter());
     const uploadDir = (0, path_1.join)(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });

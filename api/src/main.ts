@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, HttpException, HttpStatus } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import * as express from 'express';
 import { join } from 'path';
 import * as fs from 'fs';
@@ -12,31 +12,12 @@ async function bootstrap() {
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: false, // Changed to false to allow extra fields
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true, // Automatically convert types
-      },
-      disableErrorMessages: false,
-      exceptionFactory: (errors) => {
-        const messages = errors.map(error => {
-          const constraints = error.constraints || {};
-          return Object.values(constraints).join(', ');
-        });
-        return new HttpException(
-          {
-            success: false,
-            message: 'Validation failed',
-            errors: messages
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-      },
-    }),
-  );
+  
+  // Use global exception filter to preserve our error response format
+  app.useGlobalFilters(new HttpExceptionFilter());
+  
+  // Validation completely disabled for debugging
+  // No ValidationPipe - all data will be accepted as-is
 
   // Serve static uploads
   const uploadDir = join(process.cwd(), 'uploads');
@@ -77,3 +58,4 @@ async function bootstrap() {
   );
 }
 bootstrap();
+

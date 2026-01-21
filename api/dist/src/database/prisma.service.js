@@ -23,8 +23,13 @@ let PrismaService = PrismaService_1 = class PrismaService extends client_1.Prism
         }
     }
     async onModuleDestroy() {
-        await this.$disconnect();
-        this.logger.log('Database disconnected');
+        try {
+            await this.$disconnect();
+            this.logger.log('Database disconnected');
+        }
+        catch (error) {
+            this.logger.error('Error disconnecting from database:', error);
+        }
     }
 };
 exports.PrismaService = PrismaService;

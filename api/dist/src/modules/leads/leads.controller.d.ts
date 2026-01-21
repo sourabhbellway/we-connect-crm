@@ -1,5 +1,6 @@
 import type { Response } from 'express';
 import { LeadsService } from './leads.service';
+import { LeadsDebugService } from './leads-debug.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { ConvertLeadDto } from './dto/convert-lead.dto';
@@ -7,7 +8,8 @@ import { TransferLeadDto } from './dto/transfer-lead.dto';
 import { BulkAssignDto } from './dto/bulk-assign.dto';
 export declare class LeadsController {
     private readonly leads;
-    constructor(leads: LeadsService);
+    private readonly debugService;
+    constructor(leads: LeadsService, debugService: LeadsDebugService);
     getStats(): Promise<{
         success: boolean;
         data: any;
@@ -193,6 +195,13 @@ export declare class LeadsController {
             addressAr: string | null;
             companyAr: string | null;
         };
+    }>;
+    debugValidate(dto: CreateLeadDto): Promise<{
+        success: boolean;
+        message: string;
+        errors: Record<string, string>;
+        validationDetails: any[];
+        fieldConfigCount: number;
     }>;
     update(id: string, dto: UpdateLeadDto): Promise<{
         success: boolean;

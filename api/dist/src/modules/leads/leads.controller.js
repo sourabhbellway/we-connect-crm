@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const platform_express_1 = require("@nestjs/platform-express");
 const leads_service_1 = require("./leads.service");
+const leads_debug_service_1 = require("./leads-debug.service");
 const create_lead_dto_1 = require("./dto/create-lead.dto");
 const update_lead_dto_1 = require("./dto/update-lead.dto");
 const convert_lead_dto_1 = require("./dto/convert-lead.dto");
@@ -25,8 +26,10 @@ const bulk_assign_dto_1 = require("./dto/bulk-assign.dto");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
 let LeadsController = class LeadsController {
     leads;
-    constructor(leads) {
+    debugService;
+    constructor(leads, debugService) {
         this.leads = leads;
+        this.debugService = debugService;
     }
     getStats() {
         return this.leads.getStats();
@@ -48,6 +51,9 @@ let LeadsController = class LeadsController {
     }
     create(dto, user) {
         return this.leads.create(dto, user?.userId);
+    }
+    debugValidate(dto) {
+        return this.debugService.validateLeadData(dto);
     }
     update(id, dto) {
         return this.leads.update(Number(id), dto);
@@ -128,6 +134,13 @@ __decorate([
     __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto, Object]),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)('debug/validate'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_lead_dto_1.CreateLeadDto]),
+    __metadata("design:returntype", void 0)
+], LeadsController.prototype, "debugValidate", null);
 __decorate([
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -220,6 +233,7 @@ __decorate([
 exports.LeadsController = LeadsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('leads'),
-    __metadata("design:paramtypes", [leads_service_1.LeadsService])
+    __metadata("design:paramtypes", [leads_service_1.LeadsService,
+        leads_debug_service_1.LeadsDebugService])
 ], LeadsController);
 //# sourceMappingURL=leads.controller.js.map

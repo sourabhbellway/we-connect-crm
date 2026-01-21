@@ -56,6 +56,41 @@ function normalizeLeadPriority(priority) {
     const up = priority.toUpperCase();
     return client_2.LeadPriority[up] ?? client_2.LeadPriority.MEDIUM;
 }
+function normalizeLeadType(leadType) {
+    if (!leadType)
+        return client_2.LeadType.SALES_LEAD;
+    const normalized = String(leadType).toLowerCase().replace(/[-_\s]/g, '');
+    if (normalized === 'service' || normalized === 'servicelead') {
+        return client_2.LeadType.SERVICE_LEAD;
+    }
+    if (normalized === 'sales' || normalized === 'saleslead') {
+        return client_2.LeadType.SALES_LEAD;
+    }
+    const upper = String(leadType).toUpperCase();
+    if (Object.values(client_2.LeadType).includes(upper)) {
+        return upper;
+    }
+    return client_2.LeadType.SALES_LEAD;
+}
+function normalizeCustomerType(customerType) {
+    if (!customerType)
+        return client_2.CustomerType.FIXED_CUSTOMER;
+    const normalized = String(customerType).toLowerCase().replace(/[-_\s]/g, '');
+    if (normalized === 'fixed' || normalized === 'fixedcustomer') {
+        return client_2.CustomerType.FIXED_CUSTOMER;
+    }
+    if (normalized === 'oncall' || normalized === 'oncallcustomer' || normalized === 'oncall') {
+        return client_2.CustomerType.ON_CALL_CUSTOMER;
+    }
+    if (normalized === 'walkin' || normalized === 'walkincustomer' || normalized === 'walk-in') {
+        return client_2.CustomerType.WALK_IN_CUSTOMER;
+    }
+    const upper = String(customerType).toUpperCase();
+    if (Object.values(client_2.CustomerType).includes(upper)) {
+        return upper;
+    }
+    return client_2.CustomerType.FIXED_CUSTOMER;
+}
 function toEnumStatus(status) {
     if (!status)
         return 'DRAFT';
@@ -340,8 +375,15 @@ let LeadsService = class LeadsService {
             orderBy: { displayOrder: 'asc' },
         });
         if (!fieldConfigs || fieldConfigs.length === 0) {
+            console.log('⚠️  No field configurations found - skipping validation');
             return;
         }
+        console.log('\n========================================');
+        console.log('🔍 LEAD VALIDATION STARTED');
+        console.log('========================================');
+        console.log('📤 Data received:', JSON.stringify(data, null, 2));
+        console.log('📋 Field configs found:', fieldConfigs.length);
+        console.log('========================================\n');
         const errors = {};
         for (const config of fieldConfigs) {
             const fieldName = config.fieldName;
@@ -353,31 +395,41 @@ let LeadsService = class LeadsService {
             if (directValue === undefined && (serviceInterestFields.includes(fieldName) || commercialExpectationFields.includes(fieldName))) {
                 value = customFieldValue;
             }
+            console.log(`🔎 Validating field: ${fieldName} = ${JSON.stringify(value)} (required: ${config.isRequired})`);
             if (config.isRequired) {
                 if (isUpdate && value === undefined) {
+                    console.log(`   ⏭️  Skipping - update mode, value undefined`);
                     continue;
                 }
                 if (isUpdate && (directValue === undefined || directValue === null) && customFieldValue === undefined) {
+                    console.log(`   ⏭️  Skipping - update mode, no value provided`);
                     continue;
                 }
                 if (value === undefined || value === null || value === '' ||
                     (Array.isArray(value) && value.length === 0) ||
                     (typeof value === 'string' && !value.trim())) {
                     errors[fieldName] = `${config.label} is required`;
+                    console.log(`   ❌ ERROR: ${config.label} is required but empty`);
                     continue;
                 }
             }
             if (value === undefined || value === null || value === '' ||
                 (Array.isArray(value) && value.length === 0)) {
+                console.log(`   ⏭️  Skipping - empty and not required`);
                 continue;
             }
             const validation = config.validation;
             if (validation?.type) {
+                console.log(`   🔧 Running ${validation.type} validation`);
                 switch (validation.type) {
                     case 'email':
                         const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
                         if (!emailRegex.test(String(value))) {
                             errors[fieldName] = `${config.label} must be a valid email address`;
+                            console.log(`   ❌ Email validation failed`);
+                        }
+                        else {
+                            console.log(`   ✅ Email validation passed`);
                         }
                         break;
                     case 'phone':
@@ -385,215 +437,310 @@ let LeadsService = class LeadsService {
                         const digitsOnly = String(value).replace(/\D/g, '');
                         if (!phoneRegex.test(String(value)) || digitsOnly.length < 7 || digitsOnly.length > 15) {
                             errors[fieldName] = `${config.label} must be a valid phone number`;
+                            console.log(`   ❌ Phone validation failed - digits: ${digitsOnly.length}`);
+                        }
+                        else {
+                            console.log(`   ✅ Phone validation passed`);
                         }
                         break;
                     case 'number':
                         const numValue = Number(value);
                         if (isNaN(numValue)) {
                             errors[fieldName] = `${config.label} must be a valid number`;
+                            console.log(`   ❌ Number validation failed - NaN`);
                         }
                         else {
                             if (validation.min !== undefined && numValue < validation.min) {
                                 errors[fieldName] = `${config.label} must be at least ${validation.min}`;
+                                console.log(`   ❌ Number validation failed - below min (${validation.min})`);
                             }
-                            if (validation.max !== undefined && numValue > validation.max) {
+                            else if (validation.max !== undefined && numValue > validation.max) {
                                 errors[fieldName] = `${config.label} must be at most ${validation.max}`;
+                                console.log(`   ❌ Number validation failed - above max (${validation.max})`);
+                            }
+                            else {
+                                console.log(`   ✅ Number validation passed`);
                             }
                         }
                         break;
                     case 'url':
                         try {
                             new URL(String(value));
+                            console.log(`   ✅ URL validation passed`);
                         }
                         catch {
                             errors[fieldName] = `${config.label} must be a valid URL`;
+                            console.log(`   ❌ URL validation failed`);
                         }
                         break;
                     case 'text':
                         const textValue = String(value);
+                        let textError = false;
                         if (validation.minLength !== undefined && textValue.length < validation.minLength) {
                             errors[fieldName] = `${config.label} must be at least ${validation.minLength} characters`;
+                            textError = true;
                         }
                         if (validation.maxLength !== undefined && textValue.length > validation.maxLength) {
                             errors[fieldName] = `${config.label} must not exceed ${validation.maxLength} characters`;
+                            textError = true;
                         }
                         if (validation.pattern) {
                             const pattern = new RegExp(validation.pattern);
                             if (!pattern.test(textValue)) {
                                 errors[fieldName] = `${config.label} format is invalid`;
+                                textError = true;
                             }
                         }
+                        if (textError) {
+                            console.log(`   ❌ Text validation failed`);
+                        }
+                        else {
+                            console.log(`   ✅ Text validation passed`);
+                        }
                         break;
+                    default:
+                        console.log(`   ⚠️  Unknown validation type: ${validation.type}`);
                 }
             }
+            else {
+                console.log(`   ⚠️  No validation rules configured for this field`);
+            }
         }
+        console.log('\n========================================');
+        console.log('📊 VALIDATION SUMMARY');
+        console.log('========================================');
+        console.log(`Total fields checked: ${fieldConfigs.length}`);
+        console.log(`Fields with errors: ${Object.keys(errors).length}`);
+        console.log(`Errors:`, JSON.stringify(errors, null, 2));
+        console.log('========================================\n');
         if (Object.keys(errors).length > 0) {
-            console.error('Validation failed for fields:', JSON.stringify(errors, null, 2));
-            console.error('Data received:', JSON.stringify(data, null, 2));
             return {
                 success: false,
                 message: 'Validation failed',
-                errors: errors
+                errors: errors,
+                _debug: {
+                    totalFieldsChecked: fieldConfigs.length,
+                    errorCount: Object.keys(errors).length,
+                    errorFields: Object.keys(errors),
+                }
             };
         }
     }
     async create(dto, userId) {
-        const validationResult = await this.validateDynamicFields(dto);
-        if (validationResult && validationResult.success === false) {
-            throw new common_1.HttpException(validationResult, common_1.HttpStatus.BAD_REQUEST);
-        }
-        let currency = dto.currency;
-        if (!currency && dto.country) {
-            const defaultCurrency = getCurrencyByCountry(dto.country);
-            if (defaultCurrency) {
-                currency = defaultCurrency;
+        try {
+            console.log('🔍 Lead creation started - validation disabled for debugging');
+            console.log('📤 Data received:', JSON.stringify(dto, null, 2));
+            let currency = dto.currency;
+            if (!currency && dto.country) {
+                const defaultCurrency = getCurrencyByCountry(dto.country);
+                if (defaultCurrency) {
+                    currency = defaultCurrency;
+                }
             }
-        }
-        if (!currency) {
-            currency = 'USD';
-        }
-        const { tags, productIds, customFields, ...leadData } = dto;
-        const fieldConfigs = await this.prisma.fieldConfig.findMany({
-            where: { entityType: 'lead', isVisible: true },
-        });
-        const standardFields = [
-            'firstName', 'lastName', 'firstNameAr', 'lastNameAr', 'email', 'phone', 'company', 'companyAr',
-            'position', 'industry', 'website', 'companySize', 'annualRevenue', 'address', 'addressAr',
-            'country', 'state', 'city', 'zipCode', 'linkedinProfile', 'timezone',
-            'preferredContactMethod', 'sourceId', 'status', 'priority', 'leadType', 'customerType', 'assignedTo',
-            'budget', 'currency', 'leadScore', 'notes', 'tags', 'lastContactedAt', 'nextFollowUpAt'
-        ];
-        const serviceInterestFields = [
-            'primaryServiceCategory',
-            'wasteCategory',
-            'servicePreference',
-            'serviceFrequency',
-            'expectedStartDate',
-            'urgencyLevel',
-        ];
-        const commercialExpectationFields = [
-            'billingPreference',
-            'estimatedJobDuration',
-        ];
-        const standardFieldData = {};
-        const customFieldsData = { ...(customFields || {}) };
-        Object.keys(dto).forEach(key => {
-            if (standardFields.includes(key)) {
-                standardFieldData[key] = dto[key];
+            if (!currency) {
+                currency = 'USD';
             }
-            else if (serviceInterestFields.includes(key) || commercialExpectationFields.includes(key)) {
-                customFieldsData[key] = dto[key];
-            }
-            else if (!['tags', 'customFields'].includes(key)) {
-                customFieldsData[key] = dto[key];
-            }
-        });
-        const lead = await this.prisma.lead.create({
-            data: {
-                firstName: dto.firstName || null,
-                lastName: dto.lastName || null,
-                firstNameAr: dto.firstNameAr || null,
-                lastNameAr: dto.lastNameAr || null,
-                email: dto.email || null,
-                phone: dto.phone || null,
-                company: dto.company || null,
-                companyAr: dto.companyAr || null,
-                position: dto.position || null,
-                industry: dto.industry || null,
-                website: dto.website || null,
-                companySize: dto.companySize || null,
-                annualRevenue: dto.annualRevenue || null,
-                address: dto.address || null,
-                addressAr: dto.addressAr || null,
-                country: dto.country || null,
-                state: dto.state || null,
-                city: dto.city || null,
-                zipCode: dto.zipCode || null,
-                linkedinProfile: dto.linkedinProfile || null,
-                timezone: dto.timezone || null,
-                preferredContactMethod: dto.preferredContactMethod ?? 'email',
-                status: normalizeLeadStatus(dto.status),
-                priority: normalizeLeadPriority(dto.priority),
-                leadType: dto.leadType ? dto.leadType.toUpperCase() : 'SALES_LEAD',
-                customerType: dto.customerType ? dto.customerType.toUpperCase() : 'FIXED_CUSTOMER',
-                sourceId: dto.sourceId || null,
-                assignedTo: dto.assignedTo || userId || null,
-                createdBy: userId || null,
-                budget: dto.budget || null,
-                currency: currency,
-                leadScore: dto.leadScore || null,
-                notes: dto.notes || null,
-                lastContactedAt: dto.lastContactedAt
-                    ? new Date(dto.lastContactedAt)
-                    : null,
-                nextFollowUpAt: dto.nextFollowUpAt
-                    ? new Date(dto.nextFollowUpAt)
-                    : null,
-                customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : null,
-                products: productIds && productIds.length > 0 ? {
-                    connect: productIds.map((id) => ({ id })),
-                } : undefined,
-            },
-        });
-        if (Array.isArray(tags) && tags.length > 0) {
-            await this.prisma.leadTag.createMany({
-                data: tags.map((tagId) => ({
-                    leadId: lead.id,
-                    tagId: tagId,
-                })),
-                skipDuplicates: true,
+            const { tags, productIds, customFields, ...leadData } = dto;
+            const fieldConfigs = await this.prisma.fieldConfig.findMany({
+                where: { entityType: 'lead', isVisible: true },
             });
-        }
-        const leadWithTags = await this.prisma.lead.findUnique({
-            where: { id: lead.id },
-            include: {
-                tags: { include: { tag: true } },
-                source: {
-                    select: { id: true, name: true, description: true },
-                },
-            },
-        });
-        const formattedLead = leadWithTags ? {
-            ...leadWithTags,
-            status: String(leadWithTags.status || '').toLowerCase(),
-            priority: leadWithTags.priority ? String(leadWithTags.priority).toLowerCase() : undefined,
-            tags: Array.isArray(leadWithTags.tags)
-                ? leadWithTags.tags.map((lt) => ({
-                    id: lt.tag.id,
-                    name: lt.tag.name,
-                    color: lt.tag.color,
-                }))
-                : [],
-        } : lead;
-        try {
-            await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_CREATED, { ...formattedLead, entityType: 'lead' });
-        }
-        catch (error) {
-            console.error('Failed to execute automation for LEAD_CREATED:', error);
-        }
-        try {
-            await this.prisma.activity.create({
-                data: {
-                    type: 'LEAD_CREATED',
-                    title: 'New Lead Created',
-                    description: `Lead ${lead.firstName} ${lead.lastName} was created.`,
-                    userId: userId || 1,
-                    leadId: lead.id,
+            const standardFields = [
+                'firstName', 'lastName', 'firstNameAr', 'lastNameAr', 'email', 'phone', 'company', 'companyAr',
+                'position', 'industry', 'website', 'companySize', 'annualRevenue', 'address', 'addressAr',
+                'country', 'state', 'city', 'zipCode', 'linkedinProfile', 'timezone',
+                'preferredContactMethod', 'sourceId', 'status', 'priority', 'leadType', 'customerType', 'assignedTo',
+                'budget', 'currency', 'leadScore', 'notes', 'tags', 'lastContactedAt', 'nextFollowUpAt'
+            ];
+            const serviceInterestFields = [
+                'primaryServiceCategory',
+                'wasteCategory',
+                'servicePreference',
+                'serviceFrequency',
+                'expectedStartDate',
+                'urgencyLevel',
+            ];
+            const commercialExpectationFields = [
+                'billingPreference',
+                'estimatedJobDuration',
+            ];
+            const standardFieldData = {};
+            const customFieldsData = { ...(customFields || {}) };
+            Object.keys(dto).forEach(key => {
+                if (standardFields.includes(key)) {
+                    standardFieldData[key] = dto[key];
+                }
+                else if (serviceInterestFields.includes(key) || commercialExpectationFields.includes(key)) {
+                    customFieldsData[key] = dto[key];
+                }
+                else if (!['tags', 'customFields'].includes(key)) {
+                    customFieldsData[key] = dto[key];
                 }
             });
-        }
-        catch (error) {
-            console.error('Failed to log lead creation activity:', error);
-        }
-        if (dto.assignedTo) {
+            console.log('📝 Creating lead in database...');
+            const lead = await this.prisma.lead.create({
+                data: {
+                    firstName: dto.firstName || null,
+                    lastName: dto.lastName || null,
+                    firstNameAr: dto.firstNameAr || null,
+                    lastNameAr: dto.lastNameAr || null,
+                    email: dto.email || null,
+                    phone: dto.phone || null,
+                    company: dto.company || null,
+                    companyAr: dto.companyAr || null,
+                    position: dto.position || null,
+                    industry: dto.industry || null,
+                    website: dto.website || null,
+                    companySize: dto.companySize || null,
+                    annualRevenue: dto.annualRevenue || null,
+                    address: dto.address || null,
+                    addressAr: dto.addressAr || null,
+                    country: dto.country || null,
+                    state: dto.state || null,
+                    city: dto.city || null,
+                    zipCode: dto.zipCode || null,
+                    linkedinProfile: dto.linkedinProfile || null,
+                    timezone: dto.timezone || null,
+                    preferredContactMethod: dto.preferredContactMethod ?? 'email',
+                    status: normalizeLeadStatus(dto.status),
+                    sourceId: dto.sourceId || null,
+                    assignedTo: dto.assignedTo || userId || null,
+                    createdBy: userId || null,
+                    budget: dto.budget || null,
+                    currency: currency,
+                    leadScore: dto.leadScore || null,
+                    notes: dto.notes || null,
+                    lastContactedAt: dto.lastContactedAt
+                        ? new Date(dto.lastContactedAt)
+                        : null,
+                    nextFollowUpAt: dto.nextFollowUpAt
+                        ? new Date(dto.nextFollowUpAt)
+                        : null,
+                    customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : null,
+                    products: productIds && productIds.length > 0 ? {
+                        connect: productIds.map((id) => ({ id })),
+                    } : undefined,
+                },
+            });
+            console.log('✅ Lead created successfully with ID:', lead.id);
+            if (Array.isArray(tags) && tags.length > 0) {
+                console.log('🏷️  Adding tags:', tags);
+                await this.prisma.leadTag.createMany({
+                    data: tags.map((tagId) => ({
+                        leadId: lead.id,
+                        tagId: tagId,
+                    })),
+                    skipDuplicates: true,
+                });
+            }
+            const leadWithTags = await this.prisma.lead.findUnique({
+                where: { id: lead.id },
+                include: {
+                    tags: { include: { tag: true } },
+                    source: {
+                        select: { id: true, name: true, description: true },
+                    },
+                },
+            });
+            const formattedLead = leadWithTags ? {
+                ...leadWithTags,
+                status: String(leadWithTags.status || '').toLowerCase(),
+                priority: leadWithTags.priority ? String(leadWithTags.priority).toLowerCase() : undefined,
+                tags: Array.isArray(leadWithTags.tags)
+                    ? leadWithTags.tags.map((lt) => ({
+                        id: lt.tag.id,
+                        name: lt.tag.name,
+                        color: lt.tag.color,
+                    }))
+                    : [],
+            } : lead;
+            console.log('⚡ Triggering automation for LEAD_CREATED...');
             try {
-                await this.notificationsService.notifyLeadEvent(client_1.NotificationType.LEAD_ASSIGNED, dto.assignedTo, lead.id, `${lead.firstName} ${lead.lastName}`);
+                await this.automationService.executeWorkflowsForTrigger(create_workflow_dto_1.WorkflowTrigger.LEAD_CREATED, { ...formattedLead, entityType: 'lead' });
+                console.log('✅ Automation triggered successfully');
             }
             catch (error) {
-                console.error('Failed to send notification:', error);
+                console.error('⚠️  Failed to execute automation for LEAD_CREATED:', error.message);
             }
+            console.log('📝 Logging activity...');
+            try {
+                await this.prisma.activity.create({
+                    data: {
+                        type: 'LEAD_CREATED',
+                        title: 'New Lead Created',
+                        description: `Lead ${lead.firstName} ${lead.lastName} was created.`,
+                        userId: userId || 1,
+                        leadId: lead.id,
+                    }
+                });
+                console.log('✅ Activity logged successfully');
+            }
+            catch (error) {
+                console.error('⚠️  Failed to log lead creation activity:', error.message);
+            }
+            if (dto.assignedTo) {
+                console.log('🔔 Sending notification to user:', dto.assignedTo);
+                try {
+                    await this.notificationsService.notifyLeadEvent(client_1.NotificationType.LEAD_ASSIGNED, dto.assignedTo, lead.id, `${lead.firstName} ${lead.lastName}`);
+                    console.log('✅ Notification sent successfully');
+                }
+                catch (error) {
+                    console.error('⚠️  Failed to send notification:', error.message);
+                }
+            }
+            console.log('🎉 Lead creation completed successfully!');
+            return { success: true, data: formattedLead };
         }
-        return { success: true, data: formattedLead };
+        catch (error) {
+            console.error('\n========================================');
+            console.error('    ❌ LEAD CREATION FAILED!           ');
+            console.error('========================================');
+            console.error('Timestamp:', new Date().toISOString());
+            console.error('Error Name:', error.name);
+            console.error('Error Code:', error.code);
+            console.error('Error Message:', error.message);
+            if (error.code?.startsWith('P')) {
+                console.error('\n--- Prisma Error Details ---');
+                console.error('Prisma Code:', error.code);
+                console.error('Prisma Message:', error.message);
+                console.error('Prisma Meta:', JSON.stringify(error.meta, null, 2));
+                console.error('---------------------------\n');
+            }
+            if (error.table)
+                console.error('Table:', error.table);
+            if (error.column)
+                console.error('Column:', error.column);
+            if (error.constraint)
+                console.error('Constraint:', error.constraint);
+            console.error('\nFull Error Stack:', error.stack);
+            console.error('Full Error Object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+            console.error('========================================\n');
+            const errorResponse = {
+                success: false,
+                message: error.message || 'Failed to create lead',
+            };
+            errorResponse.error = {
+                code: error.code,
+                message: error.message,
+                meta: error.meta,
+                table: error.table,
+                column: error.column,
+                constraint: error.constraint,
+            };
+            if (process.env.NODE_ENV === 'development') {
+                errorResponse.debug = {
+                    name: error.name,
+                    code: error.code,
+                    message: error.message,
+                    meta: error.meta,
+                    table: error.table,
+                    column: error.column,
+                    constraint: error.constraint,
+                    stack: error.stack,
+                    fullError: error,
+                };
+            }
+            throw new common_1.HttpException(errorResponse, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async update(id, dto) {
         const lead = await this.prisma.lead.findFirst({
@@ -601,10 +748,8 @@ let LeadsService = class LeadsService {
         });
         if (!lead)
             return { success: false, message: 'Lead not found' };
-        const validationResult = await this.validateDynamicFields(dto, true);
-        if (validationResult && validationResult.success === false) {
-            throw new common_1.HttpException(validationResult, common_1.HttpStatus.BAD_REQUEST);
-        }
+        console.log('🔍 Lead update started - validation disabled for debugging');
+        console.log('📤 Update data received:', JSON.stringify(dto, null, 2));
         const { tags, productIds, customFields, ...rest } = dto;
         const serviceInterestFields = [
             'primaryServiceCategory',

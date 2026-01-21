@@ -10,6 +10,7 @@ exports.LeadsModule = void 0;
 const common_1 = require("@nestjs/common");
 const leads_controller_1 = require("./leads.controller");
 const leads_service_1 = require("./leads.service");
+const leads_debug_service_1 = require("./leads-debug.service");
 const prisma_service_1 = require("../../database/prisma.service");
 const automation_module_1 = require("../automation/automation.module");
 const notifications_module_1 = require("../notifications/notifications.module");
@@ -20,7 +21,7 @@ exports.LeadsModule = LeadsModule = __decorate([
     (0, common_1.Module)({
         imports: [automation_module_1.AutomationModule, notifications_module_1.NotificationsModule],
         controllers: [leads_controller_1.LeadsController],
-        providers: [leads_service_1.LeadsService, prisma_service_1.PrismaService],
+        providers: [leads_service_1.LeadsService, leads_debug_service_1.LeadsDebugService, prisma_service_1.PrismaService],
     })
 ], LeadsModule);
 //# sourceMappingURL=leads.module.js.map

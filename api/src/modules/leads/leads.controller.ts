@@ -17,6 +17,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { LeadsService } from './leads.service';
+import { LeadsDebugService } from './leads-debug.service';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { ConvertLeadDto } from './dto/convert-lead.dto';
@@ -27,7 +28,10 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'))
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leads: LeadsService) { }
+  constructor(
+    private readonly leads: LeadsService,
+    private readonly debugService: LeadsDebugService,
+  ) { }
 
   @Get('stats')
   getStats() {
@@ -84,6 +88,15 @@ export class LeadsController {
   @Post()
   create(@Body() dto: CreateLeadDto, @User() user?: any) {
     return this.leads.create(dto, user?.userId);
+  }
+
+  /**
+   * Debug endpoint to validate lead data without saving
+   * Use this to see what validation rules are being applied and why validation is failing
+   */
+  @Post('debug/validate')
+  debugValidate(@Body() dto: CreateLeadDto) {
+    return this.debugService.validateLeadData(dto);
   }
 
   /**
