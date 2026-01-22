@@ -1024,3 +1024,7 @@ select option {
 .dark .custom-scrollbar {
   scrollbar-color: #475569 #1e293b;
 }
+::-webkit-scrollbar{
+    width:0;
+    height: 0;
+}

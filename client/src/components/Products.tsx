@@ -487,14 +487,14 @@ const Products: React.FC = () => {
                         <button
                             onClick={handleExportProducts}
                             disabled={isExporting}
-                            className="px-4 py-3 bg-white dark:bg-gray-800 border rounded-full text-sm font-semibold disabled:opacity-50 flex items-center"
+                            className="px-4 py-3 bg-white dark:bg-gray-800 border rounded-full text-sm dark:text-[#fff] font-semibold disabled:opacity-50 flex items-center"
                         >
                             <FileDown className="h-4 w-4 mr-2" />
                             {isExporting ? t('products.exporting') || 'Exporting...' : t('common.export')}
                         </button>
                         <button
                             onClick={() => setShowImportModal(true)}
-                            className="px-4 py-3 bg-white dark:bg-gray-800 border rounded-full text-sm font-semibold flex items-center"
+                            className="px-4 py-3 bg-white dark:bg-gray-800 border rounded-full dark:text-[#fff] text-sm font-semibold flex items-center"
                         >
                             <Upload className="h-4 w-4 mr-2" />
                             {t('common.import')}
@@ -651,7 +651,7 @@ const Products: React.FC = () => {
                                             <td className={`px-6 py-4 text-sm ${!isColumnVisible('category') ? 'hidden' : ''} dark:text-white`}>{p.category || '-'}</td>
                                             {/* --- FIXED: Dark Mode Text --- */}
                                             <td className={`px-6 py-4 text-sm ${!isColumnVisible('price') ? 'hidden' : ''} dark:text-white`}>
-                                                {formatCurrency(p.price, p.currency)}
+                                                {p.price}
                                             </td>
                                             <td className={`px-6 py-4 ${!isColumnVisible('status') ? 'hidden' : ''}`}>
                                                 <span className={`px-2 py-1 rounded-full text-xs ${p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{p.isActive ? (t('common.active') || 'Active') : (t('common.inactive') || 'Inactive')}</span>

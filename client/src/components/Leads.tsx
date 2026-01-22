@@ -961,7 +961,7 @@ const Leads: React.FC = () => {
                     <div className="">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             <div className="flex items-center gap-2">
-                                {t("leads.fields.email")}
+                                {t("Search by Email")}
                                 {isSearchingEmail && (
                                     <span className="text-xs text-blue-500 flex items-center gap-1">
                                         <Search className="h-3 w-3" />
@@ -984,7 +984,7 @@ const Leads: React.FC = () => {
                     {/* Status */}
                     <div className="w-full sm:w-48 sm:min-w-[220px]">
                         <DropdownFilter
-                            label={t("leads.statusLabel") || t("leads.form.status") || "Status"}
+                            label={t("Status") || t("leads.form.status") || "Status"}
                             value={filters.status || ""}
                             onChange={(value) =>
                                 handleFilterChange("status", value as string)
@@ -1002,7 +1002,7 @@ const Leads: React.FC = () => {
                     {/* Assigned To */}
                     <div className="w-full sm:w-48 sm:min-w-[220px]">
                         <DropdownFilter
-                            label={t("leads.fields.assignedTo")}
+                            label={t("Assigned To") || "Assigned To"}
                             value={filters.assignedTo?.toString() || ""}
                             onChange={(value) =>
                                 handleFilterChange("assignedTo", value === "" ? "" : Number(value))
@@ -1020,7 +1020,7 @@ const Leads: React.FC = () => {
                     {/* Items Per Page */}
                     <div className="w-full sm:w-48 sm:min-w-[200px]">
                         <DropdownFilter
-                            label={t("common.itemsPerPage") || "Items per page"}
+                            label={t("Items per page") || "Items per page"}
                             value={String(filters.limit || 10)}
                             onChange={(value) => handleFilterChange("limit", Number(value))}
                             options={[
