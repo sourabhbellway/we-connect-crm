@@ -116,7 +116,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         },
         {
             id: 'quotations',
-            name: t('navigation.quotations', 'Quotations'),
+            name: t('Quotations', 'Quotations'),
             href: '/quotations',
             icon: FileCheck,
             permission: PERMISSIONS.QUOTATION.READ,

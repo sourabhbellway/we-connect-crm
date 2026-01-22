@@ -311,7 +311,7 @@ const QuotationsPage: React.FC = () => {
                 {/* Header */}
                 <div className="mb-8">
                     <ListToolbar
-                        title={t("navigation.quotations")}
+                        title={t("Quotations")}
                         subtitle={`${t("quotations.subtitle")} • ${t('common.showing')} ${pagination.totalItems} ${t('common.results')}`}
                         addLabel={t("quotations.addQuotation")}
                         onAdd={hasPermission('deal.create') ? () => navigate('/quotations/new') : undefined}
