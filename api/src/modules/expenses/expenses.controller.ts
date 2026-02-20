@@ -18,12 +18,13 @@ import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { RequirePermission } from '../../common/decorators/permission.decorator';
 import { User } from '../../common/decorators/user.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('expenses')
 export class ExpensesController {
-  constructor(private readonly service: ExpensesService) {}
+  constructor(private readonly service: ExpensesService) { }
 
   @Get()
+  @RequirePermission('expense.read')
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -59,16 +60,19 @@ export class ExpensesController {
   }
 
   @Get('stats')
+  @RequirePermission('expense.read')
   getStats(@Query('userId') userId?: string) {
     return this.service.getStats(userId ? parseInt(userId) : undefined);
   }
 
   @Get(':id')
+  @RequirePermission('expense.read')
   get(@Param('id') id: string, @User() user?: any) {
     return this.service.getById(Number(id), user);
   }
 
   @Post()
+  @RequirePermission('expense.create')
   create(@Body() dto: CreateExpenseDto, @User() user?: any) {
     if (user?.userId) {
       dto.submittedBy = user.userId;
@@ -77,21 +81,18 @@ export class ExpensesController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @RequirePermission('expense.update')
   update(@Param('id') id: string, @Body() dto: UpdateExpenseDto) {
     return this.service.update(Number(id), dto);
   }
 
   @Put(':id/approve')
-  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @RequirePermission('expense.approve')
   approve(@Param('id') id: string, @Body() dto: ApproveExpenseDto) {
     return this.service.approve(Number(id), dto);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'), PermissionsGuard)
   @RequirePermission('expense.delete')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));

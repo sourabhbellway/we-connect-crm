@@ -504,6 +504,76 @@ const LeadReportPage: React.FC = () => {
             {/* Enhanced Lead Conversion Journey Section */}
 
 
+            {/* Call Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                <Card className="dark:bg-slate-900 border-none shadow-sm">
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Call Trends</h3>
+                            <Clock className="w-5 h-5 text-blue-500" />
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={reportData?.callAnalytics?.dateWise || []}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                <XAxis dataKey="month" stroke="#9CA3AF" />
+                                <YAxis stroke="#9CA3AF" />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend />
+                                <Bar dataKey="attempted" name="Attempted" fill="#3B82F6" />
+                                <Bar dataKey="connected" name="Connected" fill="#10B981" />
+                                <Bar dataKey="interested" name="Interested" fill="#F59E0B" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="dark:bg-slate-900 border-none shadow-sm">
+                <CardHeader>
+                    <div className="flex items-center justify-between w-full">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">User-wise Call Analytics</h3>
+                        <Users className="w-5 h-5 text-blue-500" />
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50 dark:bg-slate-950 text-gray-400 uppercase text-[10px] font-bold tracking-widest">
+                                <tr>
+                                    <th className="px-6 py-4">User</th>
+                                    <th className="px-6 py-4">Attempted</th>
+                                    <th className="px-6 py-4">Connected</th>
+                                    <th className="px-6 py-4">Not Connected</th>
+                                    <th className="px-6 py-4">Interested</th>
+                                    <th className="px-6 py-4">Not Interested</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                {(reportData?.callAnalytics?.userWise || []).map((user: any, i: number) => (
+                                    <tr key={i} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{user.name}</td>
+                                        <td className="px-6 py-4 text-gray-600 dark:text-slate-300">{user.attempted}</td>
+                                        <td className="px-6 py-4 text-green-600 dark:text-green-400 font-medium">{user.connected}</td>
+                                        <td className="px-6 py-4 text-red-600 dark:text-red-400 font-medium">{user.notConnected}</td>
+                                        <td className="px-6 py-4 text-orange-600 dark:text-orange-400 font-medium">{user.interested}</td>
+                                        <td className="px-6 py-4 text-gray-400 dark:text-slate-500 font-medium">{user.notInterested}</td>
+                                    </tr>
+                                ))}
+                                {(reportData?.callAnalytics?.userWise || []).length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-10 text-center text-gray-400 font-medium italic">
+                                            No call analytics data available.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card className="dark:bg-slate-900 border-none shadow-sm">
                     <CardHeader className="pb-2">

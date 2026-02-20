@@ -12,13 +12,16 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { RolesService } from './roles.service';
 import { UpsertRoleDto } from './dto/upsert-role.dto';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('roles')
 export class RolesController {
-  constructor(private readonly service: RolesService) {}
+  constructor(private readonly service: RolesService) { }
 
   @Get()
+  @RequirePermission('role.read')
   list(
     @Query('search') search?: string,
     @Query('page') page?: string,
@@ -40,31 +43,37 @@ export class RolesController {
   }
 
   @Post()
+  @RequirePermission('role.create')
   create(@Body() dto: UpsertRoleDto) {
     return this.service.create(dto);
   }
 
   @Get(':id/users')
+  @RequirePermission('role.read')
   getUsersByRole(@Param('id') id: string) {
     return this.service.getUsersByRole(Number(id));
   }
 
   @Put(':id')
+  @RequirePermission('role.update')
   update(@Param('id') id: string, @Body() dto: UpsertRoleDto) {
     return this.service.update(Number(id), dto);
   }
 
   @Delete(':id')
+  @RequirePermission('role.delete')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }
 
   @Delete(':id/permanent')
+  @RequirePermission('role.delete')
   deletePermanently(@Param('id') id: string) {
     return this.service.deletePermanently(Number(id));
   }
 
   @Put(':id/restore')
+  @RequirePermission('role.delete')
   restore(@Param('id') id: string) {
     return this.service.restore(Number(id));
   }

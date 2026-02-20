@@ -21,6 +21,8 @@ const query_notifications_dto_1 = require("./dto/query-notifications.dto");
 const notification_preference_dto_1 = require("./dto/notification-preference.dto");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const rxjs_1 = require("rxjs");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let NotificationsController = class NotificationsController {
     notificationsService;
     userStreams = new Map();
@@ -90,6 +92,7 @@ let NotificationsController = class NotificationsController {
 exports.NotificationsController = NotificationsController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('notifications.read'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
@@ -98,6 +101,7 @@ __decorate([
 ], NotificationsController.prototype, "getNotifications", null);
 __decorate([
     (0, common_1.Get)('unread-count'),
+    (0, permission_decorator_1.RequirePermission)('notifications.read'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -105,6 +109,7 @@ __decorate([
 ], NotificationsController.prototype, "getUnreadCount", null);
 __decorate([
     (0, common_1.Patch)(':id/read'),
+    (0, permission_decorator_1.RequirePermission)('notifications.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -113,6 +118,7 @@ __decorate([
 ], NotificationsController.prototype, "markAsRead", null);
 __decorate([
     (0, common_1.Patch)('mark-all-read'),
+    (0, permission_decorator_1.RequirePermission)('notifications.update'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -120,6 +126,7 @@ __decorate([
 ], NotificationsController.prototype, "markAllAsRead", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('notifications.delete'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -128,6 +135,7 @@ __decorate([
 ], NotificationsController.prototype, "deleteNotification", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('notifications.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_notification_dto_1.CreateNotificationDto]),
@@ -135,6 +143,7 @@ __decorate([
 ], NotificationsController.prototype, "createNotification", null);
 __decorate([
     (0, common_1.Post)('bulk'),
+    (0, permission_decorator_1.RequirePermission)('notifications.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_notification_dto_1.BulkNotificationDto]),
@@ -142,6 +151,7 @@ __decorate([
 ], NotificationsController.prototype, "createBulkNotifications", null);
 __decorate([
     (0, common_1.Get)('preferences'),
+    (0, permission_decorator_1.RequirePermission)('notifications.read'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -149,6 +159,7 @@ __decorate([
 ], NotificationsController.prototype, "getPreferences", null);
 __decorate([
     (0, common_1.Patch)('preferences'),
+    (0, permission_decorator_1.RequirePermission)('notifications.update'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -157,6 +168,7 @@ __decorate([
 ], NotificationsController.prototype, "updatePreferences", null);
 __decorate([
     (0, common_1.Sse)('stream'),
+    (0, permission_decorator_1.RequirePermission)('notifications.read'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -170,7 +182,7 @@ __decorate([
 ], NotificationsController.prototype, "handleNotificationCreated", null);
 exports.NotificationsController = NotificationsController = __decorate([
     (0, common_1.Controller)('notifications'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [notifications_service_1.NotificationsService])
 ], NotificationsController);
 //# sourceMappingURL=notifications.controller.js.map

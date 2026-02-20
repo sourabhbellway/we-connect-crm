@@ -1083,7 +1083,9 @@ const CreateInvoicePage: React.FC = () => {
                                                     </td>
                                                     <td className="px-4 py-3 align-top">
                                                         <div className="relative">
-                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{currency}</span>
+                                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                                                                {currencySettings?.currencies?.find(c => c.code === currency)?.symbol || currency}
+                                                            </span>
                                                             <input
                                                                 type="number"
                                                                 min="0"
@@ -1239,7 +1241,7 @@ const CreateInvoicePage: React.FC = () => {
                                                 className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
                                             >
                                                 <option value="%">%</option>
-                                                <option value="fixed">{currency}</option>
+                                                <option value="fixed">{currencySettings?.currencies?.find(c => c.code === currency)?.symbol || currency}</option>
                                             </select>
                                             <span className="text-red-600 dark:text-red-400 font-medium">-{formatCurrency(discount, currency)}</span>
                                         </div>

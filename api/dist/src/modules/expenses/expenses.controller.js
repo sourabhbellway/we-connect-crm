@@ -68,6 +68,7 @@ let ExpensesController = class ExpensesController {
 exports.ExpensesController = ExpensesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('expense.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('status')),
@@ -87,6 +88,7 @@ __decorate([
 ], ExpensesController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)('stats'),
+    (0, permission_decorator_1.RequirePermission)('expense.read'),
     __param(0, (0, common_1.Query)('userId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -94,6 +96,7 @@ __decorate([
 ], ExpensesController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('expense.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -102,6 +105,7 @@ __decorate([
 ], ExpensesController.prototype, "get", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('expense.create'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -110,7 +114,6 @@ __decorate([
 ], ExpensesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, permission_decorator_1.RequirePermission)('expense.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -120,7 +123,6 @@ __decorate([
 ], ExpensesController.prototype, "update", null);
 __decorate([
     (0, common_1.Put)(':id/approve'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, permission_decorator_1.RequirePermission)('expense.approve'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -130,7 +132,6 @@ __decorate([
 ], ExpensesController.prototype, "approve", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, permission_decorator_1.RequirePermission)('expense.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -138,7 +139,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ExpensesController.prototype, "remove", null);
 exports.ExpensesController = ExpensesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('expenses'),
     __metadata("design:paramtypes", [expenses_service_1.ExpensesService])
 ], ExpensesController);

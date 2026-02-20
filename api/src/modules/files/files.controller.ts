@@ -19,13 +19,16 @@ import { FilesService } from './files.service';
 import { User } from '../../common/decorators/user.decorator';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('files')
 export class FilesController {
-  constructor(private readonly service: FilesService) {}
+  constructor(private readonly service: FilesService) { }
 
   @Get()
+  @RequirePermission('files.read')
   list(
     @Query('entityType') entityType?: string,
     @Query('entityId') entityId?: string,
@@ -41,6 +44,7 @@ export class FilesController {
   }
 
   @Post('upload')
+  @RequirePermission('files.create')
   @UseInterceptors(FileInterceptor('file'))
   upload(
     @UploadedFile() file: any,
@@ -67,6 +71,7 @@ export class FilesController {
   }
 
   @Get(':id/download')
+  @RequirePermission('files.read')
   async download(
     @Param('id') id: string,
     @Res() res: any,
@@ -94,6 +99,7 @@ export class FilesController {
   }
 
   @Delete(':id')
+  @RequirePermission('files.delete')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }

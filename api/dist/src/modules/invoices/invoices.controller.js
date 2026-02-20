@@ -22,6 +22,8 @@ const upsert_invoice_item_dto_1 = require("./dto/upsert-invoice-item.dto");
 const create_invoice_dto_2 = require("./dto/create-invoice.dto");
 const record_payment_dto_1 = require("./dto/record-payment.dto");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let InvoicesController = class InvoicesController {
     service;
     constructor(service) {
@@ -86,6 +88,7 @@ let InvoicesController = class InvoicesController {
 exports.InvoicesController = InvoicesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('invoices.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
@@ -99,12 +102,14 @@ __decorate([
 ], InvoicesController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)('next-number'),
+    (0, permission_decorator_1.RequirePermission)('invoices.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], InvoicesController.prototype, "getNextNumber", null);
 __decorate([
     (0, common_1.Get)(':id/pdf/preview'),
+    (0, permission_decorator_1.RequirePermission)('invoices.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -113,6 +118,7 @@ __decorate([
 ], InvoicesController.prototype, "previewPdf", null);
 __decorate([
     (0, common_1.Get)(':id/pdf/download'),
+    (0, permission_decorator_1.RequirePermission)('invoices.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -121,6 +127,7 @@ __decorate([
 ], InvoicesController.prototype, "downloadPdf", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('invoices.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -129,6 +136,7 @@ __decorate([
 ], InvoicesController.prototype, "get", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('invoices.create'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -137,6 +145,7 @@ __decorate([
 ], InvoicesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('invoices.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -145,6 +154,7 @@ __decorate([
 ], InvoicesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('invoices.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -152,6 +162,7 @@ __decorate([
 ], InvoicesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':id/items'),
+    (0, permission_decorator_1.RequirePermission)('invoices.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -160,6 +171,7 @@ __decorate([
 ], InvoicesController.prototype, "addItem", null);
 __decorate([
     (0, common_1.Put)('items/:itemId'),
+    (0, permission_decorator_1.RequirePermission)('invoices.update'),
     __param(0, (0, common_1.Param)('itemId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -168,6 +180,7 @@ __decorate([
 ], InvoicesController.prototype, "updateItem", null);
 __decorate([
     (0, common_1.Delete)('items/:itemId'),
+    (0, permission_decorator_1.RequirePermission)('invoices.update'),
     __param(0, (0, common_1.Param)('itemId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -175,6 +188,7 @@ __decorate([
 ], InvoicesController.prototype, "removeItem", null);
 __decorate([
     (0, common_1.Put)(':id/send'),
+    (0, permission_decorator_1.RequirePermission)('invoices.update'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -182,6 +196,7 @@ __decorate([
 ], InvoicesController.prototype, "send", null);
 __decorate([
     (0, common_1.Post)(':id/payments'),
+    (0, permission_decorator_1.RequirePermission)('invoices.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -189,7 +204,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], InvoicesController.prototype, "recordPayment", null);
 exports.InvoicesController = InvoicesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('invoices'),
     __metadata("design:paramtypes", [invoices_service_1.InvoicesService])
 ], InvoicesController);

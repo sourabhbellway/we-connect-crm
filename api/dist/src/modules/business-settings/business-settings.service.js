@@ -1155,6 +1155,15 @@ let BusinessSettingsService = class BusinessSettingsService {
             },
             {
                 entityType: 'lead',
+                fieldName: 'ownerId',
+                label: 'Lead Owner',
+                isRequired: false,
+                section: 'lead_management',
+                displayOrder: 21,
+                validation: { type: 'select' },
+            },
+            {
+                entityType: 'lead',
                 fieldName: 'budget',
                 label: 'Expected Budget',
                 isRequired: false,

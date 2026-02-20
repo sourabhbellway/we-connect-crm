@@ -92,6 +92,7 @@ export declare class ActivitiesService {
                     position: string | null;
                     status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
+                    ownerId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     priority: import(".prisma/client").$Enums.LeadPriority;
@@ -233,12 +234,7 @@ export declare class ActivitiesService {
                 date: Date | null;
                 leadId: number | null;
                 userId: number | undefined;
-                user: {
-                    email: string;
-                    firstName: string;
-                    lastName: string;
-                    id: number;
-                } | null;
+                user: any;
                 source: string;
             } | {
                 id: number;

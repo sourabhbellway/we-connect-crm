@@ -21,6 +21,7 @@ export declare class CreateLeadDto {
     status?: string;
     priority?: string;
     assignedTo?: number;
+    ownerId?: number;
     budget?: number;
     currency?: string;
     leadScore?: number;

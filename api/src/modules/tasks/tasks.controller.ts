@@ -14,13 +14,16 @@ import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { User } from '../../common/decorators/user.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly service: TasksService) {}
+  constructor(private readonly service: TasksService) { }
 
   @Get()
+  @RequirePermission('tasks.read')
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -62,11 +65,13 @@ export class TasksController {
   }
 
   @Get(':id')
+  @RequirePermission('tasks.read')
   get(@Param('id') id: string, @User() user?: any) {
     return this.service.getById(Number(id), user);
   }
 
   @Post()
+  @RequirePermission('tasks.create')
   create(@Body() dto: CreateTaskDto, @User() user?: any) {
     // Back-compat: allow { entityType, entityId } in body and map to specific IDs
     const mapped: any = { ...dto } as any;
@@ -89,16 +94,19 @@ export class TasksController {
   }
 
   @Put(':id')
+  @RequirePermission('tasks.update')
   update(@Param('id') id: string, @Body() dto: UpdateTaskDto) {
     return this.service.update(Number(id), dto);
   }
 
   @Put(':id/complete')
+  @RequirePermission('tasks.update')
   complete(@Param('id') id: string) {
     return this.service.complete(Number(id));
   }
 
   @Delete(':id')
+  @RequirePermission('tasks.delete')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }

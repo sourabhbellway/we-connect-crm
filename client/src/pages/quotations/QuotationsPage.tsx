@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import apiClient from '../../services/apiClient';
 import { toast } from 'react-toastify';
 import { exportToCsv, exportTableToPrintPdf } from '../../utils/exportUtils';
+import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
 
 interface Quotation {
     id: string;
@@ -26,6 +27,7 @@ interface Quotation {
 }
 
 const QuotationsPage: React.FC = () => {
+    const { formatCurrency } = useBusinessSettings();
     const { hasPermission } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -334,7 +336,7 @@ const QuotationsPage: React.FC = () => {
                                         q.customerName || '',
                                         q.customerEmail || '',
                                         q.relatedTo || '',
-                                        `${q.currency} ${q.totalAmount.toLocaleString()}`,
+                                        formatCurrency(q.totalAmount, q.currency),
                                         q.status,
                                         new Date(q.createdAt).toLocaleDateString(),
                                         q.validUntil ? new Date(q.validUntil).toLocaleDateString() : '',
@@ -363,7 +365,7 @@ const QuotationsPage: React.FC = () => {
                                         q.customerName || '',
                                         q.customerEmail || '',
                                         q.relatedTo || '',
-                                        `${q.currency} ${q.totalAmount.toLocaleString()}`,
+                                        formatCurrency(q.totalAmount, q.currency),
                                         q.status,
                                         new Date(q.createdAt).toLocaleDateString(),
                                         q.validUntil ? new Date(q.validUntil).toLocaleDateString() : '',
@@ -596,7 +598,7 @@ const QuotationsPage: React.FC = () => {
                                                     {quotation.status}
                                                 </span>
                                                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                                                    {quotation.currency} {quotation.totalAmount.toLocaleString()}
+                                                    {formatCurrency(quotation.totalAmount, quotation.currency)}
                                                 </div>
                                             </div>
                                         </div>
@@ -776,7 +778,7 @@ const QuotationsPage: React.FC = () => {
                                                     <div className="col-span-1 min-w-0">
                                                         <div className="flex items-center gap-1">
                                                             <div className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                                                                {quotation.currency} {quotation.totalAmount.toLocaleString()}
+                                                                {formatCurrency(quotation.totalAmount, quotation.currency)}
                                                             </div>
                                                         </div>
                                                     </div>

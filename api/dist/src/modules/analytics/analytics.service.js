@@ -977,6 +977,72 @@ let AnalyticsService = class AnalyticsService {
             ...stats,
         }))
             .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
+        const callsInRange = await this.prisma.callLog.findMany({
+            where: {
+                createdAt: { gte: startDate, lte: endDate },
+                ...(authorizedUserIds !== null ? { userId: { in: authorizedUserIds } } : {}),
+            },
+            include: {
+                user: { select: { id: true, firstName: true, lastName: true } },
+            },
+        });
+        const userMetrics = {};
+        const dateMetrics = {};
+        for (let i = 0; i < months; i++) {
+            const d = new Date(endDate);
+            d.setMonth(d.getMonth() - i);
+            const key = d.toISOString().slice(0, 7);
+            dateMetrics[key] = {
+                month: new Date(key + '-01').toLocaleDateString('en-US', { month: 'short' }),
+                attempted: 0,
+                connected: 0,
+                notConnected: 0,
+                interested: 0,
+                notInterested: 0
+            };
+        }
+        callsInRange.forEach(call => {
+            const userId = call.userId;
+            const userName = call.user ? `${call.user.firstName} ${call.user.lastName}` : 'Unknown';
+            const month = call.createdAt.toISOString().slice(0, 7);
+            if (!userMetrics[userId]) {
+                userMetrics[userId] = {
+                    name: userName,
+                    attempted: 0,
+                    connected: 0,
+                    notConnected: 0,
+                    interested: 0,
+                    notInterested: 0
+                };
+            }
+            const isConnected = call.isAnswered || call.callStatus === 'COMPLETED';
+            const isInterested = call.outcome?.toUpperCase() === 'INTERESTED';
+            const isNotInterested = call.outcome?.toUpperCase() === 'NOT_INTERESTED';
+            userMetrics[userId].attempted++;
+            if (isConnected)
+                userMetrics[userId].connected++;
+            else
+                userMetrics[userId].notConnected++;
+            if (isInterested)
+                userMetrics[userId].interested++;
+            if (isNotInterested)
+                userMetrics[userId].notInterested++;
+            if (dateMetrics[month]) {
+                dateMetrics[month].attempted++;
+                if (isConnected)
+                    dateMetrics[month].connected++;
+                else
+                    dateMetrics[month].notConnected++;
+                if (isInterested)
+                    dateMetrics[month].interested++;
+                if (isNotInterested)
+                    dateMetrics[month].notInterested++;
+            }
+        });
+        const callAnalytics = {
+            userWise: Object.values(userMetrics),
+            dateWise: Object.values(dateMetrics).sort((a, b) => a.month.localeCompare(b.month))
+        };
         return {
             success: true,
             data: {
@@ -993,6 +1059,7 @@ let AnalyticsService = class AnalyticsService {
                 funnelData,
                 sourceDistributionData,
                 conversionTrendData,
+                callAnalytics,
                 pagination: {
                     total: totalSources,
                     page,

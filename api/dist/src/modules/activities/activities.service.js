@@ -327,7 +327,7 @@ let ActivitiesService = class ActivitiesService {
             const activities = await this.prisma.activity.findMany({
                 where: {
                     type: 'COMMUNICATION_LOGGED',
-                    ...(Object.keys(leadFilter).length > 0
+                    ...(user && user.userId && Object.keys(leadFilter).length > 0
                         ? {
                             OR: [{ userId: user.userId }, { lead: leadFilter }],
                         }

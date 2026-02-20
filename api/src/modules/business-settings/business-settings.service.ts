@@ -32,7 +32,7 @@ function mapToCompanySettings(bs: any) {
 
 @Injectable()
 export class BusinessSettingsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   private generateUniqueColor() {
     return (
       '#' +
@@ -120,7 +120,7 @@ export class BusinessSettingsService {
       ) {
         try {
           currentPreferences = JSON.parse(bs.description);
-        } catch {}
+        } catch { }
       }
 
       // If body has invalid invoiceTemplate, we might want to store it in preferences?
@@ -1314,6 +1314,15 @@ export class BusinessSettingsService {
         entityType: 'lead',
         fieldName: 'assignedTo',
         label: 'Assigned To',
+        isRequired: false,
+        section: 'lead_management',
+        displayOrder: 21,
+        validation: { type: 'select' },
+      },
+      {
+        entityType: 'lead',
+        fieldName: 'ownerId',
+        label: 'Lead Owner',
         isRequired: false,
         section: 'lead_management',
         displayOrder: 21,

@@ -157,7 +157,22 @@ const LeadForm: React.FC<LeadFormProps> = ({
       { value: "QAR", label: "QAR (﷼)", description: "Qatari Riyal", symbol: "﷼" },
     ];
 
-    // If we have supported currencies in settings, filter the list
+    // If we have currencies from settings, use them
+    if (currencySettings?.currencies && currencySettings.currencies.length > 0) {
+      return currencySettings.currencies.map(c => ({
+        value: c.code,
+        label: `${c.code} (${c.symbol})`,
+        description: c.name,
+        symbol: c.symbol
+      })).sort((a, b) => {
+        const primary = currencySettings.primary || "USD";
+        if (a.value === primary) return -1;
+        if (b.value === primary) return 1;
+        return a.label.localeCompare(b.label);
+      });
+    }
+
+    // Fallback to common currencies if none in settings
     let filtered = commonCurrencies;
     if (currencySettings?.supportedCurrencies && currencySettings.supportedCurrencies.length > 0) {
       // Create a map for quick lookup
@@ -191,6 +206,12 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   // Get currency symbol by currency code
   const getCurrencySymbol = (currencyCode: string): string => {
+    // Check if symbol exists in currencySettings first
+    if (currencySettings?.currencies) {
+      const match = currencySettings.currencies.find(c => c.code === currencyCode);
+      if (match?.symbol) return match.symbol;
+    }
+
     const currencyMap: { [key: string]: string } = {
       "USD": "$",
       "EUR": "€",
@@ -823,7 +844,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
               handleChange("state", "");
               handleChange("city", "");
 
-              // Auto-select currency based on country
+              // Auto-select currency based on country - REMOVED per user request
+              // Currency should default to business settings and only change if user explicitly changes the currency field
+              /*
               if (v) {
                 const countryObj = CSCCountry.getAllCountries().find(c => c.name === v);
                 if (countryObj && countryObj.currency) {
@@ -834,6 +857,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
                   if (fallback) handleChange("currency", fallback);
                 }
               }
+              */
             }}
             searchable={true}
             clearable={true}
@@ -1014,6 +1038,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         );
 
       case 'assignedTo':
+      case 'ownerId':
         return (
           <EnhancedSelectField
             key={field.fieldName}

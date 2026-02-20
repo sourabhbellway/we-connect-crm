@@ -2838,7 +2838,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { STORAGE_KEYS } from '../constants';
 import {
-    ArrowLeft, ArrowRight, User, Mail, Phone, Building, Calendar,
+    ArrowLeft, ArrowRight, User, Mail, Phone, Building, Calendar, UserCheck,
     Edit, Tag, Star, Clock, Activity, Phone as PhoneCallIcon,
     MessageSquare, FileText, Link as LinkIcon,
     Users, TrendingUp, CheckCircle, XCircle,
@@ -2906,7 +2906,8 @@ const LeadProfile: React.FC = () => {
     const navigate = useNavigate();
     const { hasPermission, user } = useAuth();
     const {
-        getLeadSourceById
+        getLeadSourceById,
+        formatCurrency
     } = useBusinessSettings();
 
     const [lead, setLead] = useState<Lead | null>(null);
@@ -2949,6 +2950,17 @@ const LeadProfile: React.FC = () => {
     const [showAddCallLog, setShowAddCallLog] = useState(false);
     const [isInitiatingCall, setIsInitiatingCall] = useState(false);
     const [callStartTime, setCallStartTime] = useState<number | null>(null);
+    const [editingCallLogId, setEditingCallLogId] = useState<number | null>(null);
+    const [editCallLogForm, setEditCallLogForm] = useState({
+        phoneNumber: '',
+        callType: 'OUTBOUND' as 'INBOUND' | 'OUTBOUND',
+        notes: '',
+        outcome: '',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+        duration: '',
+        callStatus: 'COMPLETED' as 'COMPLETED' | 'ANSWERED' | 'FAILED' | 'NO_ANSWER' | 'BUSY' | 'INITIATED' | 'RINGING' | 'CANCELLED'
+    });
 
     // Tasks/Next Steps states
     const [tasks, setTasks] = useState<any[]>([]);
@@ -3802,6 +3814,70 @@ const LeadProfile: React.FC = () => {
         }
     };
 
+    // Delete a call log entry
+    const handleDeleteCallLog = async (callLogId: number) => {
+        if (!window.confirm('Are you sure you want to delete this call log?')) return;
+        try {
+            const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+            const response = await fetch(`/api/call-logs/${callLogId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete call log');
+            }
+            setCallLogs(prev => prev.filter(log => log.id !== callLogId));
+            toast.success('Call log deleted successfully');
+        } catch (error: any) {
+            console.error('Error deleting call log:', error);
+            toast.error(error.message || 'Failed to delete call log');
+        }
+    };
+
+    // Update an existing call log
+    const handleUpdateCallLog = async () => {
+        if (!editingCallLogId) return;
+        if (!editCallLogForm.phoneNumber.trim()) {
+            toast.error('Please enter a phone number');
+            return;
+        }
+        try {
+            const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+            let startTime: string | undefined;
+            if (editCallLogForm.date && editCallLogForm.time) {
+                const dateTimeStr = `${editCallLogForm.date}T${editCallLogForm.time}:00`;
+                startTime = new Date(dateTimeStr).toISOString();
+            }
+            const response = await fetch(`/api/call-logs/${editingCallLogId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phoneNumber: editCallLogForm.phoneNumber,
+                    callType: editCallLogForm.callType,
+                    notes: editCallLogForm.notes,
+                    outcome: editCallLogForm.outcome,
+                    callStatus: editCallLogForm.callStatus,
+                    duration: editCallLogForm.duration ? parseInt(editCallLogForm.duration) * 60 : 0,
+                    startTime: startTime,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update call log');
+            }
+            const result = await response.json();
+            const updatedLog = result.data?.item || result.data || result;
+            setCallLogs(prev => prev.map(log => log.id === editingCallLogId ? { ...log, ...updatedLog } : log));
+            toast.success('Call log updated successfully');
+            setEditingCallLogId(null);
+        } catch (error: any) {
+            console.error('Error updating call log:', error);
+            toast.error(error.message || 'Failed to update call log');
+        }
+    };
+
     const handleDeleteNote = async (noteId: number) => {
         if (!confirm('Are you sure you want to delete this note?')) {
             return;
@@ -4192,7 +4268,30 @@ const LeadProfile: React.FC = () => {
                                         )}
                                     </div>
 
+                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                        {/* FIX: Check for both ownerUser AND owner */}
+                                        {(lead.ownerUser || lead.owner) && (
+                                            <span className="flex items-center px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-medium border border-blue-100 dark:border-blue-800">
+                                                <UserCheck className="h-3 w-3 mr-1.5 text-blue-500" />
+                                                Owner: {(lead.ownerUser || lead.owner).firstName} {(lead.ownerUser || lead.owner).lastName}
+                                            </span>
+                                        )}
+                                        {lead.assignedUser && (
+                                            <span className="flex items-center px-2.5 py-1 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 rounded-lg text-xs font-medium border border-orange-100 dark:border-orange-800">
+                                                <User className="h-3 w-3 mr-1.5 text-orange-500" />
+                                                Assignee: {lead.assignedUser.firstName} {lead.assignedUser.lastName}
+                                            </span>
+                                        )}
+                                        {/* {lead.createdByUser && (
+                                            <span className="flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-medium border border-gray-100 dark:border-gray-800">
+                                                <Plus className="h-3 w-3 mr-1.5 text-gray-500" />
+                                                Created By: {lead.createdByUser.firstName} {lead.createdByUser.lastName}
+                                            </span>
+                                        )} */}
+                                    </div>
+
                                     <div className="flex flex-wrap items-center gap-2">
+
                                         {/* Status Dropdown */}
                                         <select
                                             value={lead.status}
@@ -4215,12 +4314,6 @@ const LeadProfile: React.FC = () => {
                                             </span>
                                         )}
 
-                                        {lead.assignedUser && (
-                                            <span className="flex items-center px-2.5 py-1 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs">
-                                                <User className="h-3 w-3 mr-1.5 text-orange-500" />
-                                                {lead.assignedUser.firstName} {lead.assignedUser.lastName}
-                                            </span>
-                                        )}
 
                                         {/* Lead Score - Only show if filled */}
                                         {lead.leadScore !== null && lead.leadScore !== undefined && lead.leadScore > 0 && (
@@ -4299,6 +4392,7 @@ const LeadProfile: React.FC = () => {
             {/* Content */}
             <div className="mx-auto px-6 py-6">
                 <div className="space-y-6">
+
                     {/* Tabs - Compact */}
                     <div className="border-b border-gray-200 dark:border-gray-700">
                         <nav className="-mb-px flex space-x-6 overflow-x-auto">
@@ -4329,8 +4423,20 @@ const LeadProfile: React.FC = () => {
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                         Lead Details
                                     </h3>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                        Created {new Date(lead.createdAt).toLocaleDateString()}
+                                    <div className="text-right">
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                            Created {new Date(lead.createdAt).toLocaleDateString()}
+                                        </div>
+                                        {lead.ownerUser && (
+                                            <div className="text-xs text-gray-400 mt-1">
+                                                Business Owner: {lead.ownerUser.firstName} {lead.ownerUser.lastName}
+                                            </div>
+                                        )}
+                                        {lead.createdByUser && (
+                                            <div className="text-xs text-gray-400 mt-1">
+                                                Created By: {lead.createdByUser.firstName} {lead.createdByUser.lastName}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -4428,7 +4534,7 @@ const LeadProfile: React.FC = () => {
                                                     Annual Revenue
                                                 </label>
                                                 <p className="text-sm text-gray-900 dark:text-white">
-                                                    {lead.currency || 'USD'} {Number(lead.annualRevenue).toLocaleString()}
+                                                    {formatCurrency(Number(lead.annualRevenue) || 0, lead.currency)}
                                                 </p>
                                             </div>
                                         )}
@@ -4459,7 +4565,7 @@ const LeadProfile: React.FC = () => {
                                                     Budget
                                                 </label>
                                                 <p className="text-sm text-gray-900 dark:text-white">
-                                                    {lead.currency || 'USD'} {Number(lead.budget).toLocaleString()}
+                                                    {formatCurrency(Number(lead.budget) || 0, lead.currency)}
                                                 </p>
                                             </div>
                                         )}
@@ -4795,13 +4901,47 @@ const LeadProfile: React.FC = () => {
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {formatDuration(callLog.duration)}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                                                            {new Date(callLog.createdAt).toLocaleDateString()}
-                                                        </p>
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="text-right">
+                                                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {formatDuration(callLog.duration)}
+                                                            </p>
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                {new Date(callLog.createdAt).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 ml-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditingCallLogId(callLog.id);
+                                                                    setEditCallLogForm({
+                                                                        phoneNumber: callLog.phoneNumber,
+                                                                        callType: callLog.callType,
+                                                                        notes: callLog.notes || '',
+                                                                        outcome: callLog.outcome || '',
+                                                                        date: callLog.startTime
+                                                                            ? new Date(callLog.startTime).toISOString().split('T')[0]
+                                                                            : new Date().toISOString().split('T')[0],
+                                                                        time: callLog.startTime
+                                                                            ? new Date(callLog.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                                                            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+                                                                        duration: callLog.duration ? String(Math.round(callLog.duration / 60)) : '',
+                                                                        callStatus: callLog.callStatus,
+                                                                    });
+                                                                }}
+                                                                className="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                                                title="Edit call log"
+                                                            >
+                                                                <Edit className="h-3.5 w-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteCallLog(callLog.id)}
+                                                                className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                                                                title="Delete call log"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -5218,208 +5358,212 @@ const LeadProfile: React.FC = () => {
             </div>
 
             {/* Add Note Modal */}
-            {showAddNote && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAddNote(false)}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Note</h3>
-                            <button
-                                onClick={() => setShowAddNote(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <XCircle className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Title *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={noteForm.title}
-                                    onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Enter note title"
-                                />
+            {
+                showAddNote && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAddNote(false)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Note</h3>
+                                <button
+                                    onClick={() => setShowAddNote(false)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <XCircle className="h-5 w-5" />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Content *
-                                </label>
-                                <textarea
-                                    value={noteForm.content}
-                                    onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                                    rows={4}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Enter note content"
-                                />
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Title *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={noteForm.title}
+                                        onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter note title"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Content *
+                                    </label>
+                                    <textarea
+                                        value={noteForm.content}
+                                        onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
+                                        rows={4}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter note content"
+                                    />
+                                </div>
+
+                                <div className="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="isPinned"
+                                        checked={noteForm.isPinned}
+                                        onChange={(e) => setNoteForm({ ...noteForm, isPinned: e.target.checked })}
+                                        className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="isPinned" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                        Pin this note
+                                    </label>
+                                </div>
                             </div>
 
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="isPinned"
-                                    checked={noteForm.isPinned}
-                                    onChange={(e) => setNoteForm({ ...noteForm, isPinned: e.target.checked })}
-                                    className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
-                                />
-                                <label htmlFor="isPinned" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                                    Pin this note
-                                </label>
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setShowAddNote(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddNote}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Add Note
+                                </button>
                             </div>
-                        </div>
-
-                        <div className="flex justify-end space-x-3 mt-6">
-                            <button
-                                onClick={() => setShowAddNote(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleAddNote}
-                                className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
-                            >
-                                Add Note
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Schedule Meeting Modal */}
-            {showScheduleMeeting && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowScheduleMeeting(false)}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Schedule Meeting</h3>
-                            <button
-                                onClick={() => setShowScheduleMeeting(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <XCircle className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Meeting Title *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={meetingForm.title}
-                                    onChange={(e) => setMeetingForm({ ...meetingForm, title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Enter meeting title"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Date *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={meetingForm.date}
-                                        onChange={(e) => setMeetingForm({ ...meetingForm, date: e.target.value })}
-                                        min={new Date().toISOString().split('T')[0]}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Time *
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={meetingForm.time}
-                                        onChange={(e) => setMeetingForm({ ...meetingForm, time: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Duration (minutes)
-                                </label>
-                                <select
-                                    value={meetingForm.duration}
-                                    onChange={(e) => setMeetingForm({ ...meetingForm, duration: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+            {
+                showScheduleMeeting && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowScheduleMeeting(false)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Schedule Meeting</h3>
+                                <button
+                                    onClick={() => setShowScheduleMeeting(false)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                                 >
-                                    <option value="15">15 minutes</option>
-                                    <option value="30">30 minutes</option>
-                                    <option value="45">45 minutes</option>
-                                    <option value="60">1 hour</option>
-                                    <option value="90">1.5 hours</option>
-                                    <option value="120">2 hours</option>
-                                </select>
+                                    <XCircle className="h-5 w-5" />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Location
-                                </label>
-                                <input
-                                    type="text"
-                                    value={meetingForm.location}
-                                    onChange={(e) => setMeetingForm({ ...meetingForm, location: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Office address, physical location, etc."
-                                />
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Meeting Title *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={meetingForm.title}
+                                        onChange={(e) => setMeetingForm({ ...meetingForm, title: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter meeting title"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Date *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={meetingForm.date}
+                                            onChange={(e) => setMeetingForm({ ...meetingForm, date: e.target.value })}
+                                            min={new Date().toISOString().split('T')[0]}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Time *
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={meetingForm.time}
+                                            onChange={(e) => setMeetingForm({ ...meetingForm, time: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Duration (minutes)
+                                    </label>
+                                    <select
+                                        value={meetingForm.duration}
+                                        onChange={(e) => setMeetingForm({ ...meetingForm, duration: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                    >
+                                        <option value="15">15 minutes</option>
+                                        <option value="30">30 minutes</option>
+                                        <option value="45">45 minutes</option>
+                                        <option value="60">1 hour</option>
+                                        <option value="90">1.5 hours</option>
+                                        <option value="120">2 hours</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Location
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={meetingForm.location}
+                                        onChange={(e) => setMeetingForm({ ...meetingForm, location: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Office address, physical location, etc."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Meeting Link
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={meetingForm.link}
+                                        onChange={(e) => setMeetingForm({ ...meetingForm, link: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="https://zoom.us/j/..., https://meet.google.com/..., etc."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Notes
+                                    </label>
+                                    <textarea
+                                        value={meetingForm.notes}
+                                        onChange={(e) => setMeetingForm({ ...meetingForm, notes: e.target.value })}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Meeting agenda, topics to discuss, etc."
+                                    />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Meeting Link
-                                </label>
-                                <input
-                                    type="url"
-                                    value={meetingForm.link}
-                                    onChange={(e) => setMeetingForm({ ...meetingForm, link: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="https://zoom.us/j/..., https://meet.google.com/..., etc."
-                                />
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setShowScheduleMeeting(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleScheduleMeeting}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Schedule Meeting
+                                </button>
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={meetingForm.notes}
-                                    onChange={(e) => setMeetingForm({ ...meetingForm, notes: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Meeting agenda, topics to discuss, etc."
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end space-x-3 mt-6">
-                            <button
-                                onClick={() => setShowScheduleMeeting(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleScheduleMeeting}
-                                className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
-                            >
-                                Schedule Meeting
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Lead Transfer Modal */}
             <LeadTransferModal
@@ -5449,333 +5593,496 @@ const LeadProfile: React.FC = () => {
             />
 
             {/* Create Task Modal */}
-            {showCreateTask && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateTask(false)}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Task</h3>
-                            <button
-                                onClick={() => setShowCreateTask(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <XCircle className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Task Title *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={taskForm.title}
-                                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Enter task title"
-                                />
+            {
+                showCreateTask && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateTask(false)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Create New Task</h3>
+                                <button
+                                    onClick={() => setShowCreateTask(false)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <XCircle className="h-5 w-5" />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Description
-                                </label>
-                                <textarea
-                                    value={taskForm.description}
-                                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Enter task description"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Due Date
+                                        Task Title *
                                     </label>
                                     <input
-                                        type="date"
-                                        value={taskForm.dueDate}
-                                        onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                                        type="text"
+                                        value={taskForm.title}
+                                        onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter task title"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Priority
+                                        Description
+                                    </label>
+                                    <textarea
+                                        value={taskForm.description}
+                                        onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter task description"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Due Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={taskForm.dueDate}
+                                            onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Priority
+                                        </label>
+                                        <select
+                                            value={taskForm.priority}
+                                            onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        >
+                                            <option value="LOW">Low</option>
+                                            <option value="MEDIUM">Medium</option>
+                                            <option value="HIGH">High</option>
+                                            <option value="URGENT">Urgent</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Assign To
                                     </label>
                                     <select
-                                        value={taskForm.priority}
-                                        onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                                        value={taskForm.assignedTo}
+                                        onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                                     >
-                                        <option value="LOW">Low</option>
-                                        <option value="MEDIUM">Medium</option>
-                                        <option value="HIGH">High</option>
-                                        <option value="URGENT">Urgent</option>
+                                        <option value="">Unassigned</option>
+                                        {users.map(u => (
+                                            <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Assign To
-                                </label>
-                                <select
-                                    value={taskForm.assignedTo}
-                                    onChange={(e) => setTaskForm({ ...taskForm, assignedTo: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => {
+                                        setShowCreateTask(false);
+                                        setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
                                 >
-                                    <option value="">Unassigned</option>
-                                    {users.map(u => (
-                                        <option key={u.id} value={u.id}>{u.firstName} {u.lastName}</option>
-                                    ))}
-                                </select>
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        if (!taskForm.title.trim()) {
+                                            toast.error('Task title is required');
+                                            return;
+                                        }
+
+                                        if (!user?.id) {
+                                            toast.error('User information not available');
+                                            return;
+                                        }
+
+                                        if (!lead?.id) {
+                                            toast.error('Lead information not available');
+                                            return;
+                                        }
+
+                                        try {
+                                            // Format dueDate to ISO string if provided
+                                            let formattedDueDate: string | undefined;
+                                            if (taskForm.dueDate) {
+                                                const date = new Date(taskForm.dueDate);
+                                                formattedDueDate = date.toISOString();
+                                            }
+
+                                            const payload = {
+                                                title: taskForm.title,
+                                                description: taskForm.description || undefined,
+                                                status: 'PENDING' as const,
+                                                priority: taskForm.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+                                                dueDate: formattedDueDate,
+                                                assignedTo: taskForm.assignedTo ? Number(taskForm.assignedTo) : undefined,
+                                                // Ensure createdBy is always a number (some auth payloads may have string IDs)
+                                                createdBy: Number((user as any)?.id || (user as any)?.userId),
+                                                // Link explicitly to this lead via direct relation field
+                                                leadId: Number(lead.id),
+                                            };
+
+                                            const response = await tasksService.create(payload);
+
+                                            if (response.success) {
+                                                toast.success('Task created successfully!');
+                                                setShowCreateTask(false);
+                                                setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
+
+                                                // Refresh tasks
+                                                if (lead?.id) {
+                                                    fetchTasks(lead.id);
+                                                    // Force TaskManager to refresh
+                                                    setTasksRefreshKey(prev => prev + 1);
+                                                }
+
+                                                // Refresh activities to show the new task activity
+                                                if (lead?.id) {
+                                                    fetchLeadActivities(lead.id);
+                                                }
+                                            } else {
+                                                throw new Error(response.message || 'Failed to create task');
+                                            }
+                                        } catch (error: any) {
+                                            console.error('Error creating task:', error);
+                                            toast.error(error?.response?.data?.message || 'Failed to create task. Please try again.');
+                                        }
+                                    }}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Create Task
+                                </button>
                             </div>
                         </div>
-
-                        <div className="flex justify-end space-x-3 mt-6">
-                            <button
-                                onClick={() => {
-                                    setShowCreateTask(false);
-                                    setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
-                                }}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    if (!taskForm.title.trim()) {
-                                        toast.error('Task title is required');
-                                        return;
-                                    }
-
-                                    if (!user?.id) {
-                                        toast.error('User information not available');
-                                        return;
-                                    }
-
-                                    if (!lead?.id) {
-                                        toast.error('Lead information not available');
-                                        return;
-                                    }
-
-                                    try {
-                                        // Format dueDate to ISO string if provided
-                                        let formattedDueDate: string | undefined;
-                                        if (taskForm.dueDate) {
-                                            const date = new Date(taskForm.dueDate);
-                                            formattedDueDate = date.toISOString();
-                                        }
-
-                                        const payload = {
-                                            title: taskForm.title,
-                                            description: taskForm.description || undefined,
-                                            status: 'PENDING' as const,
-                                            priority: taskForm.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-                                            dueDate: formattedDueDate,
-                                            assignedTo: taskForm.assignedTo ? Number(taskForm.assignedTo) : undefined,
-                                            // Ensure createdBy is always a number (some auth payloads may have string IDs)
-                                            createdBy: Number((user as any)?.id || (user as any)?.userId),
-                                            // Link explicitly to this lead via direct relation field
-                                            leadId: Number(lead.id),
-                                        };
-
-                                        const response = await tasksService.create(payload);
-
-                                        if (response.success) {
-                                            toast.success('Task created successfully!');
-                                            setShowCreateTask(false);
-                                            setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' });
-
-                                            // Refresh tasks
-                                            if (lead?.id) {
-                                                fetchTasks(lead.id);
-                                                // Force TaskManager to refresh
-                                                setTasksRefreshKey(prev => prev + 1);
-                                            }
-
-                                            // Refresh activities to show the new task activity
-                                            if (lead?.id) {
-                                                fetchLeadActivities(lead.id);
-                                            }
-                                        } else {
-                                            throw new Error(response.message || 'Failed to create task');
-                                        }
-                                    } catch (error: any) {
-                                        console.error('Error creating task:', error);
-                                        toast.error(error?.response?.data?.message || 'Failed to create task. Please try again.');
-                                    }
-                                }}
-                                className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
-                            >
-                                Create Task
-                            </button>
-                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Add Call Log Modal */}
-            {showAddCallLog && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAddCallLog(false)}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Call Log</h3>
-                            <button
-                                onClick={() => setShowAddCallLog(false)}
-                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                            >
-                                <XCircle className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Lead Phone Number *
-                                </label>
-                                <input
-                                    type="tel"
-                                    value={callLogForm.phoneNumber}
-                                    onChange={(e) => setCallLogForm({ ...callLogForm, phoneNumber: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Enter or edit phone number"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Call Type *
-                                </label>
-                                <select
-                                    value={callLogForm.callType}
-                                    onChange={(e) => setCallLogForm({ ...callLogForm, callType: e.target.value as 'INBOUND' | 'OUTBOUND' })}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+            {
+                showAddCallLog && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAddCallLog(false)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Call Log</h3>
+                                <button
+                                    onClick={() => setShowAddCallLog(false)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                                 >
-                                    <option value="OUTBOUND">Outbound</option>
-                                    <option value="INBOUND">Inbound</option>
-                                </select>
+                                    <XCircle className="h-5 w-5" />
+                                </button>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Notes
-                                </label>
-                                <textarea
-                                    value={callLogForm.notes}
-                                    onChange={(e) => setCallLogForm({ ...callLogForm, notes: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    placeholder="Add notes about the call"
-                                />
-                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Lead Phone Number *
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={callLogForm.phoneNumber}
+                                        onChange={(e) => setCallLogForm({ ...callLogForm, phoneNumber: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter or edit phone number"
+                                    />
+                                </div>
 
-                            <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={callLogForm.date}
-                                        onChange={(e) => setCallLogForm({ ...callLogForm, date: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Time
-                                    </label>
-                                    <input
-                                        type="time"
-                                        value={callLogForm.time}
-                                        onChange={(e) => setCallLogForm({ ...callLogForm, time: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Duration (mins)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        value={callLogForm.duration}
-                                        onChange={(e) => setCallLogForm({ ...callLogForm, duration: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
-                                        placeholder="Min"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Status
+                                        Call Type *
                                     </label>
                                     <select
-                                        value={callLogForm.callStatus}
-                                        onChange={(e) => setCallLogForm({ ...callLogForm, callStatus: e.target.value as any })}
+                                        value={callLogForm.callType}
+                                        onChange={(e) => setCallLogForm({ ...callLogForm, callType: e.target.value as 'INBOUND' | 'OUTBOUND' })}
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                                     >
-                                        <option value="COMPLETED">Completed</option>
-                                        <option value="ANSWERED">Answered</option>
-                                        <option value="NO_ANSWER">No Answer</option>
-                                        <option value="BUSY">Busy</option>
-                                        <option value="FAILED">Failed</option>
-                                        <option value="RINGING">Ringing</option>
+                                        <option value="OUTBOUND">Outbound</option>
+                                        <option value="INBOUND">Inbound</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Notes
+                                    </label>
+                                    <textarea
+                                        value={callLogForm.notes}
+                                        onChange={(e) => setCallLogForm({ ...callLogForm, notes: e.target.value })}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Add notes about the call"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={callLogForm.date}
+                                            onChange={(e) => setCallLogForm({ ...callLogForm, date: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Time
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={callLogForm.time}
+                                            onChange={(e) => setCallLogForm({ ...callLogForm, time: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Duration (mins)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={callLogForm.duration}
+                                            onChange={(e) => setCallLogForm({ ...callLogForm, duration: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                            placeholder="Min"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Status
+                                        </label>
+                                        <select
+                                            value={callLogForm.callStatus}
+                                            onChange={(e) => setCallLogForm({ ...callLogForm, callStatus: e.target.value as any })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        >
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="ANSWERED">Answered</option>
+                                            <option value="NO_ANSWER">No Answer</option>
+                                            <option value="BUSY">Busy</option>
+                                            <option value="FAILED">Failed</option>
+                                            <option value="RINGING">Ringing</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Outcome
+                                    </label>
+                                    <select
+                                        value={callLogForm.outcome}
+                                        onChange={(e) => setCallLogForm({ ...callLogForm, outcome: e.target.value })}
+                                        className="w-full px-3 py-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                    >
+                                        <option value="">Select Outcome</option>
+                                        <option value="Connected">Connected</option>
+                                        <option value="Left Voicemail">Left Voicemail</option>
+                                        <option value="No Answer">No Answer</option>
+                                        <option value="Wrong Number">Wrong Number</option>
+                                        <option value="Busy">Busy</option>
+                                        <option value="Gatekeeper">Gatekeeper</option>
+                                        <option value="Follow-up Scheduled">Follow-up Scheduled</option>
+                                        <option value="Meeting Scheduled">Meeting Scheduled</option>
+                                        <option value="Interested">Interested</option>
+                                        <option value="Not Interested">Not Interested</option>
+                                        <option value="Bad Timing">Bad Timing</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Outcome
-                                </label>
-                                <select
-                                    value={callLogForm.outcome}
-                                    onChange={(e) => setCallLogForm({ ...callLogForm, outcome: e.target.value })}
-                                    className="w-full px-3 py-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setShowAddCallLog(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
                                 >
-                                    <option value="">Select Outcome</option>
-                                    <option value="Connected">Connected</option>
-                                    <option value="Left Voicemail">Left Voicemail</option>
-                                    <option value="No Answer">No Answer</option>
-                                    <option value="Wrong Number">Wrong Number</option>
-                                    <option value="Busy">Busy</option>
-                                    <option value="Gatekeeper">Gatekeeper</option>
-                                    <option value="Follow-up Scheduled">Follow-up Scheduled</option>
-                                    <option value="Meeting Scheduled">Meeting Scheduled</option>
-                                    <option value="Interested">Interested</option>
-                                    <option value="Not Interested">Not Interested</option>
-                                    <option value="Bad Timing">Bad Timing</option>
-                                </select>
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddCallLog}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Add Call Log
+                                </button>
                             </div>
                         </div>
+                    </div>
+                )
+            }
 
-                        <div className="flex justify-end space-x-3 mt-6">
-                            <button
-                                onClick={() => setShowAddCallLog(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleAddCallLog}
-                                className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
-                            >
-                                Add Call Log
-                            </button>
+            {/* Edit Call Log Modal */}
+            {
+                editingCallLogId !== null && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditingCallLogId(null)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Call Log</h3>
+                                <button
+                                    onClick={() => setEditingCallLogId(null)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                >
+                                    <XCircle className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Lead Phone Number *
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        value={editCallLogForm.phoneNumber}
+                                        onChange={(e) => setEditCallLogForm({ ...editCallLogForm, phoneNumber: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter or edit phone number"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Call Type *
+                                    </label>
+                                    <select
+                                        value={editCallLogForm.callType}
+                                        onChange={(e) => setEditCallLogForm({ ...editCallLogForm, callType: e.target.value as 'INBOUND' | 'OUTBOUND' })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                    >
+                                        <option value="OUTBOUND">Outbound</option>
+                                        <option value="INBOUND">Inbound</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Notes
+                                    </label>
+                                    <textarea
+                                        value={editCallLogForm.notes}
+                                        onChange={(e) => setEditCallLogForm({ ...editCallLogForm, notes: e.target.value })}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        placeholder="Add notes about the call"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={editCallLogForm.date}
+                                            onChange={(e) => setEditCallLogForm({ ...editCallLogForm, date: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Time
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={editCallLogForm.time}
+                                            onChange={(e) => setEditCallLogForm({ ...editCallLogForm, time: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Duration (mins)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={editCallLogForm.duration}
+                                            onChange={(e) => setEditCallLogForm({ ...editCallLogForm, duration: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                            placeholder="Min"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Status
+                                        </label>
+                                        <select
+                                            value={editCallLogForm.callStatus}
+                                            onChange={(e) => setEditCallLogForm({ ...editCallLogForm, callStatus: e.target.value as any })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                        >
+                                            <option value="COMPLETED">Completed</option>
+                                            <option value="ANSWERED">Answered</option>
+                                            <option value="NO_ANSWER">No Answer</option>
+                                            <option value="BUSY">Busy</option>
+                                            <option value="FAILED">Failed</option>
+                                            <option value="RINGING">Ringing</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Outcome
+                                    </label>
+                                    <select
+                                        value={editCallLogForm.outcome}
+                                        onChange={(e) => setEditCallLogForm({ ...editCallLogForm, outcome: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
+                                    >
+                                        <option value="">Select Outcome</option>
+                                        <option value="Connected">Connected</option>
+                                        <option value="Left Voicemail">Left Voicemail</option>
+                                        <option value="No Answer">No Answer</option>
+                                        <option value="Wrong Number">Wrong Number</option>
+                                        <option value="Busy">Busy</option>
+                                        <option value="Gatekeeper">Gatekeeper</option>
+                                        <option value="Follow-up Scheduled">Follow-up Scheduled</option>
+                                        <option value="Meeting Scheduled">Meeting Scheduled</option>
+                                        <option value="Interested">Interested</option>
+                                        <option value="Not Interested">Not Interested</option>
+                                        <option value="Bad Timing">Bad Timing</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setEditingCallLogId(null)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleUpdateCallLog}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </div>
     );
 };
+
 
 export default LeadProfile;

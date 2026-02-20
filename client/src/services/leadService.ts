@@ -42,11 +42,24 @@ export interface Lead {
   | "converted";
   notes?: string;
   assignedTo?: number;
+  ownerId?: number;
   isActive: boolean;
   leadScore?: number;
   createdAt: string;
   updatedAt: string;
   assignedUser?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  ownerUser?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  createdByUser?: {
     id: number;
     firstName: string;
     lastName: string;
@@ -119,6 +132,7 @@ export interface LeadPayload {
   | "converted";
   priority?: "low" | "medium" | "high" | "urgent";
   assignedTo?: number;
+  ownerId?: number;
 
   // Business Information
   budget?: number;

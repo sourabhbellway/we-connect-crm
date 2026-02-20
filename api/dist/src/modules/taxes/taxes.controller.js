@@ -17,6 +17,10 @@ const common_1 = require("@nestjs/common");
 const taxes_service_1 = require("./taxes.service");
 const create_tax_dto_1 = require("./dto/create-tax.dto");
 const update_tax_dto_1 = require("./dto/update-tax.dto");
+const passport_1 = require("@nestjs/passport");
+const common_2 = require("@nestjs/common");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let TaxesController = class TaxesController {
     taxesService;
     constructor(taxesService) {
@@ -41,6 +45,7 @@ let TaxesController = class TaxesController {
 exports.TaxesController = TaxesController;
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_tax_dto_1.CreateTaxDto]),
@@ -48,12 +53,14 @@ __decorate([
 ], TaxesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TaxesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -61,6 +68,7 @@ __decorate([
 ], TaxesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -69,12 +77,14 @@ __decorate([
 ], TaxesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], TaxesController.prototype, "remove", null);
 exports.TaxesController = TaxesController = __decorate([
+    (0, common_2.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('taxes'),
     __metadata("design:paramtypes", [taxes_service_1.TaxesService])
 ], TaxesController);

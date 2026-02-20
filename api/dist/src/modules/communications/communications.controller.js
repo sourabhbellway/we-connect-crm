@@ -23,6 +23,8 @@ const send_whatsapp_dto_1 = require("./dto/send-whatsapp.dto");
 const send_templated_dto_1 = require("./dto/send-templated.dto");
 const list_messages_query_1 = require("./dto/list-messages.query");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let CommunicationsController = class CommunicationsController {
     service;
     constructor(service) {
@@ -85,6 +87,7 @@ let CommunicationsController = class CommunicationsController {
 exports.CommunicationsController = CommunicationsController;
 __decorate([
     (0, common_1.Get)('leads/:leadId/meetings'),
+    (0, permission_decorator_1.RequirePermission)('communications.read'),
     __param(0, (0, common_1.Param)('leadId')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -93,6 +96,7 @@ __decorate([
 ], CommunicationsController.prototype, "listMeetings", null);
 __decorate([
     (0, common_1.Get)('leads'),
+    (0, permission_decorator_1.RequirePermission)('communications.read'),
     __param(0, (0, common_1.Query)('leadId')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -101,6 +105,7 @@ __decorate([
 ], CommunicationsController.prototype, "listLeadComms", null);
 __decorate([
     (0, common_1.Get)('templates'),
+    (0, permission_decorator_1.RequirePermission)('communications.read'),
     __param(0, (0, common_1.Query)('type')),
     __param(1, (0, common_1.Query)('active')),
     __param(2, (0, common_1.Query)('page')),
@@ -112,6 +117,7 @@ __decorate([
 ], CommunicationsController.prototype, "listTemplates", null);
 __decorate([
     (0, common_1.Post)('templates'),
+    (0, permission_decorator_1.RequirePermission)('communications.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [upsert_template_dto_1.UpsertTemplateDto]),
@@ -119,6 +125,7 @@ __decorate([
 ], CommunicationsController.prototype, "createTemplate", null);
 __decorate([
     (0, common_1.Put)('templates/:id'),
+    (0, permission_decorator_1.RequirePermission)('communications.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -127,6 +134,7 @@ __decorate([
 ], CommunicationsController.prototype, "updateTemplate", null);
 __decorate([
     (0, common_1.Delete)('templates/:id'),
+    (0, permission_decorator_1.RequirePermission)('communications.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -134,6 +142,7 @@ __decorate([
 ], CommunicationsController.prototype, "deleteTemplate", null);
 __decorate([
     (0, common_1.Post)('send-email'),
+    (0, permission_decorator_1.RequirePermission)('communications.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [send_email_dto_1.SendEmailDto]),
@@ -141,6 +150,7 @@ __decorate([
 ], CommunicationsController.prototype, "sendEmail", null);
 __decorate([
     (0, common_1.Post)('send-whatsapp'),
+    (0, permission_decorator_1.RequirePermission)('communications.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [send_whatsapp_dto_1.SendWhatsAppDto]),
@@ -148,6 +158,7 @@ __decorate([
 ], CommunicationsController.prototype, "sendWhatsApp", null);
 __decorate([
     (0, common_1.Post)('send-templated'),
+    (0, permission_decorator_1.RequirePermission)('communications.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [send_templated_dto_1.SendTemplatedDto]),
@@ -155,6 +166,7 @@ __decorate([
 ], CommunicationsController.prototype, "sendTemplated", null);
 __decorate([
     (0, common_1.Post)('send-meeting-email'),
+    (0, permission_decorator_1.RequirePermission)('communications.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -162,6 +174,7 @@ __decorate([
 ], CommunicationsController.prototype, "sendMeetingEmail", null);
 __decorate([
     (0, common_1.Get)('messages'),
+    (0, permission_decorator_1.RequirePermission)('communications.read'),
     __param(0, (0, common_1.Query)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -170,13 +183,14 @@ __decorate([
 ], CommunicationsController.prototype, "listMessages", null);
 __decorate([
     (0, common_1.Post)('leads'),
+    (0, permission_decorator_1.RequirePermission)('communications.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_lead_communication_dto_1.CreateLeadCommunicationDto]),
     __metadata("design:returntype", void 0)
 ], CommunicationsController.prototype, "createLeadComm", null);
 exports.CommunicationsController = CommunicationsController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('communications'),
     __metadata("design:paramtypes", [communications_service_1.CommunicationsService])
 ], CommunicationsController);

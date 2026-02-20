@@ -20,13 +20,16 @@ import { DealsService } from './deals.service';
 import { CreateDealDto } from './dto/create-deal.dto';
 import { UpdateDealDto } from './dto/update-deal.dto';
 import { User } from '../../common/decorators/user.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('deals')
 export class DealsController {
-  constructor(private readonly deals: DealsService) {}
+  constructor(private readonly deals: DealsService) { }
 
   @Get()
+  @RequirePermission('deal.read')
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -44,26 +47,31 @@ export class DealsController {
   }
 
   @Get(':id')
+  @RequirePermission('deal.read')
   get(@Param('id') id: string, @User() user?: any) {
     return this.deals.getById(Number(id), user);
   }
 
   @Post()
+  @RequirePermission('deal.create')
   create(@Body() dto: CreateDealDto, @User() user?: any) {
     return this.deals.create(dto, user?.userId);
   }
 
   @Put(':id')
+  @RequirePermission('deal.update')
   update(@Param('id') id: string, @Body() dto: UpdateDealDto) {
     return this.deals.update(Number(id), dto);
   }
 
   @Delete(':id')
+  @RequirePermission('deal.delete')
   remove(@Param('id') id: string) {
     return this.deals.remove(Number(id));
   }
 
   @Put('bulk/assign')
+  @RequirePermission('deal.update')
   bulkAssign(@Body() dto: { dealIds: number[]; userId: number | null }) {
     return this.deals.bulkAssign(dto);
   }
@@ -82,6 +90,7 @@ export class DealsController {
       },
     }),
   )
+  @RequirePermission('deal.create')
   async bulkImportDeals(
     @UploadedFile() file: Express.Multer.File,
     @User() user?: any,
@@ -93,6 +102,7 @@ export class DealsController {
   }
 
   @Get('bulk/export')
+  @RequirePermission('deal.read')
   async bulkExport(
     @Res() res: Response,
     @Query('search') search?: string,

@@ -232,6 +232,9 @@ const ExpenseActionMenu = ({
 };
 
 const ExpensesPage: React.FC = () => {
+  const { user, hasPermission, hasRole } = useAuth();
+  const { formatCurrency, currencySettings } = useBusinessSettings();
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -249,12 +252,9 @@ const ExpensesPage: React.FC = () => {
     remarks: '',
     receiptUrl: '',
     submittedBy: 0,
-    currency: 'USD',
+    currency: currencySettings?.primary || 'USD',
   });
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
-
-  const { user, hasPermission, hasRole } = useAuth();
-  const { formatCurrency, currencySettings } = useBusinessSettings();
 
   // Debounced search and local sort/filter/pagination
   const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch('', 500);
@@ -732,7 +732,9 @@ const ExpensesPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount *</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-gray-500 font-medium text-xs">
-                      {currencySettings?.symbol || '$'}
+                      {currencySettings?.currencies?.find(c => c.code === form.currency)?.symbol ||
+                        (form.currency === currencySettings?.primary ? currencySettings?.symbol : '') ||
+                        (form.currency === 'USD' ? '$' : form.currency)}
                     </span>
                     <input
                       type="number"

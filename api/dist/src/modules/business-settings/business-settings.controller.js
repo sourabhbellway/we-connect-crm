@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const platform_express_1 = require("@nestjs/platform-express");
 const business_settings_service_1 = require("./business-settings.service");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let BusinessSettingsController = class BusinessSettingsController {
     service;
     constructor(service) {
@@ -176,12 +178,14 @@ let BusinessSettingsController = class BusinessSettingsController {
 exports.BusinessSettingsController = BusinessSettingsController;
 __decorate([
     (0, common_1.Get)('company'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_company.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getCompany", null);
 __decorate([
     (0, common_1.Put)('company'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_company.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -190,6 +194,7 @@ __decorate([
 __decorate([
     (0, common_1.Post)('company/logo'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('logo')),
+    (0, permission_decorator_1.RequirePermission)('business_settings_company.update'),
     __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -197,12 +202,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "uploadLogo", null);
 __decorate([
     (0, common_1.Get)('currency'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getCurrency", null);
 __decorate([
     (0, common_1.Put)('currency'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -210,12 +217,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateCurrency", null);
 __decorate([
     (0, common_1.Get)('tax'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getTax", null);
 __decorate([
     (0, common_1.Put)('tax'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_tax.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -223,18 +232,21 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateTax", null);
 __decorate([
     (0, common_1.Get)('all'),
+    (0, permission_decorator_1.RequirePermission)('business_settings.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getAll", null);
 __decorate([
     (0, common_1.Get)('numbering'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_numbering.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getNumbering", null);
 __decorate([
     (0, common_1.Put)('numbering'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_numbering.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -242,12 +254,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateNumbering", null);
 __decorate([
     (0, common_1.Get)('deal-statuses'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "listDealStatuses", null);
 __decorate([
     (0, common_1.Post)('deal-statuses'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -255,6 +269,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "createDealStatus", null);
 __decorate([
     (0, common_1.Put)('deal-statuses/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -263,6 +278,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateDealStatus", null);
 __decorate([
     (0, common_1.Delete)('deal-statuses/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -270,24 +286,28 @@ __decorate([
 ], BusinessSettingsController.prototype, "deleteDealStatus", null);
 __decorate([
     (0, common_1.Get)('integrations/available'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getAvailableIntegrations", null);
 __decorate([
     (0, common_1.Get)('integrations/status'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getIntegrationsStatus", null);
 __decorate([
     (0, common_1.Get)('settings'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getSettings", null);
 __decorate([
     (0, common_1.Put)('settings'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -295,6 +315,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateSettings", null);
 __decorate([
     (0, common_1.Post)('integrations/:name/test'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.update'),
     __param(0, (0, common_1.Param)('name')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -302,6 +323,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "testIntegration", null);
 __decorate([
     (0, common_1.Post)('integrations/:name/sync'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.sync'),
     __param(0, (0, common_1.Param)('name')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -309,12 +331,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "syncIntegration", null);
 __decorate([
     (0, common_1.Get)('lead-sources'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "listLeadSources", null);
 __decorate([
     (0, common_1.Post)('lead-sources'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -322,6 +346,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "createLeadSource", null);
 __decorate([
     (0, common_1.Put)('lead-sources/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -329,12 +354,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateLeadSource", null);
 __decorate([
     (0, common_1.Get)('quotation-templates'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_quotation_template.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "listQuotationTemplates", null);
 __decorate([
     (0, common_1.Post)('quotation-templates'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_quotation_template.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -342,6 +369,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "createQuotationTemplate", null);
 __decorate([
     (0, common_1.Put)('quotation-templates/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_quotation_template.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -350,6 +378,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateQuotationTemplate", null);
 __decorate([
     (0, common_1.Delete)('quotation-templates/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_quotation_template.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -357,6 +386,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "deleteQuotationTemplate", null);
 __decorate([
     (0, common_1.Put)('quotation-templates/:id/set-default'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_quotation_template.update'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -364,12 +394,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "setDefaultQuotationTemplate", null);
 __decorate([
     (0, common_1.Get)('terms-and-conditions'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_terms_conditions.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "listTermsAndConditions", null);
 __decorate([
     (0, common_1.Post)('terms-and-conditions'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_terms_conditions.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -377,6 +409,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "createTermsAndConditions", null);
 __decorate([
     (0, common_1.Put)('terms-and-conditions/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_terms_conditions.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -385,6 +418,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateTermsAndConditions", null);
 __decorate([
     (0, common_1.Delete)('terms-and-conditions/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_terms_conditions.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -392,6 +426,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "deleteTermsAndConditions", null);
 __decorate([
     (0, common_1.Put)('terms-and-conditions/:id/set-default'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_terms_conditions.update'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -399,12 +434,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "setDefaultTermsAndConditions", null);
 __decorate([
     (0, common_1.Get)('email-templates/welcome'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getWelcomeEmailTemplate", null);
 __decorate([
     (0, common_1.Put)('email-templates/welcome'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -412,6 +449,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateWelcomeEmailTemplate", null);
 __decorate([
     (0, common_1.Get)('email-templates/category/:category'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.read'),
     __param(0, (0, common_1.Param)('category')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -419,6 +457,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "getEmailTemplatesByCategory", null);
 __decorate([
     (0, common_1.Get)('email-templates/system/:category'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.read'),
     __param(0, (0, common_1.Param)('category')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -426,6 +465,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "getSystemEmailTemplate", null);
 __decorate([
     (0, common_1.Get)('email-templates/preview/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
@@ -434,12 +474,14 @@ __decorate([
 ], BusinessSettingsController.prototype, "previewEmailTemplate", null);
 __decorate([
     (0, common_1.Get)('email-templates'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getEmailTemplates", null);
 __decorate([
     (0, common_1.Post)('email-templates'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -447,6 +489,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "createEmailTemplate", null);
 __decorate([
     (0, common_1.Put)('email-templates/:id/set-default'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -455,6 +498,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "setDefaultEmailTemplate", null);
 __decorate([
     (0, common_1.Put)('email-templates/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -463,6 +507,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateEmailTemplate", null);
 __decorate([
     (0, common_1.Delete)('email-templates/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_email_template.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -470,6 +515,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "deleteEmailTemplate", null);
 __decorate([
     (0, common_1.Get)('field-configs/:entityType'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.read'),
     __param(0, (0, common_1.Param)('entityType')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -477,6 +523,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "getFieldConfigs", null);
 __decorate([
     (0, common_1.Post)('field-configs'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -484,6 +531,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "createFieldConfig", null);
 __decorate([
     (0, common_1.Put)('field-configs/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -492,6 +540,7 @@ __decorate([
 ], BusinessSettingsController.prototype, "updateFieldConfig", null);
 __decorate([
     (0, common_1.Delete)('field-configs/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -499,25 +548,28 @@ __decorate([
 ], BusinessSettingsController.prototype, "deleteFieldConfig", null);
 __decorate([
     (0, common_1.Post)('field-configs/initialize'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.update'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "initializeDefaultFieldConfigs", null);
 __decorate([
     (0, common_1.Get)('dashboard'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_dashboard.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "getDashboardSettings", null);
 __decorate([
     (0, common_1.Put)('dashboard'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_dashboard.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "updateDashboardSettings", null);
 exports.BusinessSettingsController = BusinessSettingsController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('business-settings'),
     __metadata("design:paramtypes", [business_settings_service_1.BusinessSettingsService])
 ], BusinessSettingsController);

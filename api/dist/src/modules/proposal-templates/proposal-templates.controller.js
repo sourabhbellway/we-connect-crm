@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const proposal_templates_service_1 = require("./proposal-templates.service");
 const upsert_proposal_template_dto_1 = require("./dto/upsert-proposal-template.dto");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let ProposalTemplatesController = class ProposalTemplatesController {
     service;
     constructor(service) {
@@ -45,6 +47,7 @@ let ProposalTemplatesController = class ProposalTemplatesController {
 exports.ProposalTemplatesController = ProposalTemplatesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('proposal_templates.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
@@ -54,6 +57,7 @@ __decorate([
 ], ProposalTemplatesController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('proposal_templates.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -61,6 +65,7 @@ __decorate([
 ], ProposalTemplatesController.prototype, "get", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('proposal_templates.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [upsert_proposal_template_dto_1.UpsertProposalTemplateDto]),
@@ -68,6 +73,7 @@ __decorate([
 ], ProposalTemplatesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('proposal_templates.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -76,13 +82,14 @@ __decorate([
 ], ProposalTemplatesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('proposal_templates.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProposalTemplatesController.prototype, "remove", null);
 exports.ProposalTemplatesController = ProposalTemplatesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('proposal-templates'),
     __metadata("design:paramtypes", [proposal_templates_service_1.ProposalTemplatesService])
 ], ProposalTemplatesController);

@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const analytics_service_1 = require("./analytics.service");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let AnalyticsController = class AnalyticsController {
     service;
     constructor(service) {
@@ -128,6 +130,7 @@ let AnalyticsController = class AnalyticsController {
 exports.AnalyticsController = AnalyticsController;
 __decorate([
     (0, common_1.Get)('dashboard/kpis'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('startDate')),
     __param(1, (0, common_1.Query)('endDate')),
     __param(2, (0, common_1.Query)('userId')),
@@ -139,6 +142,7 @@ __decorate([
 ], AnalyticsController.prototype, "kpis", null);
 __decorate([
     (0, common_1.Get)('charts/lead-status-distribution'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('userId')),
     __param(1, (0, common_1.Query)('scope')),
     __param(2, (0, user_decorator_1.User)()),
@@ -148,6 +152,7 @@ __decorate([
 ], AnalyticsController.prototype, "getLeadStatusDistribution", null);
 __decorate([
     (0, common_1.Get)('charts/revenue-trends'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -158,6 +163,7 @@ __decorate([
 ], AnalyticsController.prototype, "getRevenueTrends", null);
 __decorate([
     (0, common_1.Get)('charts/activity-trends'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -168,6 +174,7 @@ __decorate([
 ], AnalyticsController.prototype, "getActivityTrends", null);
 __decorate([
     (0, common_1.Get)('charts/user-growth'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -175,6 +182,7 @@ __decorate([
 ], AnalyticsController.prototype, "getUserGrowth", null);
 __decorate([
     (0, common_1.Get)('charts/lead-conversion-funnel'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('userId')),
     __param(1, (0, common_1.Query)('scope')),
     __param(2, (0, user_decorator_1.User)()),
@@ -184,6 +192,7 @@ __decorate([
 ], AnalyticsController.prototype, "getLeadConversionFunnel", null);
 __decorate([
     (0, common_1.Get)('charts/sales-pipeline-flow'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -194,6 +203,7 @@ __decorate([
 ], AnalyticsController.prototype, "getSalesPipelineFlow", null);
 __decorate([
     (0, common_1.Get)('charts/top-performers'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('limit')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -204,6 +214,7 @@ __decorate([
 ], AnalyticsController.prototype, "getTopPerformers", null);
 __decorate([
     (0, common_1.Get)('charts/lead-velocity'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -214,6 +225,7 @@ __decorate([
 ], AnalyticsController.prototype, "getDealVelocity", null);
 __decorate([
     (0, common_1.Get)('charts/lead-source-distribution'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('userId')),
     __param(1, (0, common_1.Query)('scope')),
     __param(2, (0, user_decorator_1.User)()),
@@ -223,6 +235,7 @@ __decorate([
 ], AnalyticsController.prototype, "getLeadSourceDistribution", null);
 __decorate([
     (0, common_1.Get)('reports/task'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -236,6 +249,7 @@ __decorate([
 ], AnalyticsController.prototype, "getTaskReport", null);
 __decorate([
     (0, common_1.Get)('reports/lead'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -249,6 +263,7 @@ __decorate([
 ], AnalyticsController.prototype, "getLeadReport", null);
 __decorate([
     (0, common_1.Get)('reports/deal'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -262,6 +277,7 @@ __decorate([
 ], AnalyticsController.prototype, "getDealReport", null);
 __decorate([
     (0, common_1.Get)('reports/expense'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -275,6 +291,7 @@ __decorate([
 ], AnalyticsController.prototype, "getExpenseReport", null);
 __decorate([
     (0, common_1.Get)('reports/invoice'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -288,6 +305,7 @@ __decorate([
 ], AnalyticsController.prototype, "getInvoiceReport", null);
 __decorate([
     (0, common_1.Get)('reports/quotation'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, common_1.Query)('scope')),
@@ -300,7 +318,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getQuotationReport", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('analytics'),
     __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])
 ], AnalyticsController);

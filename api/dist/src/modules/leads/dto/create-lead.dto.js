@@ -35,6 +35,7 @@ class CreateLeadDto {
     status;
     priority;
     assignedTo;
+    ownerId;
     budget;
     currency;
     leadScore;
@@ -174,6 +175,12 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateLeadDto.prototype, "assignedTo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateLeadDto.prototype, "ownerId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),

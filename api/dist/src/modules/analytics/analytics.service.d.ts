@@ -184,6 +184,10 @@ export declare class AnalyticsService {
                 month: string;
                 monthKey: string;
             }[];
+            callAnalytics: {
+                userWise: any[];
+                dateWise: any[];
+            };
             pagination: {
                 total: number;
                 page: number;

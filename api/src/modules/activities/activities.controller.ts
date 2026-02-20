@@ -11,13 +11,16 @@ import { AuthGuard } from '@nestjs/passport';
 import { ActivitiesService } from './activities.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { User } from '../../common/decorators/user.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('activities')
 export class ActivitiesController {
-  constructor(private readonly service: ActivitiesService) {}
+  constructor(private readonly service: ActivitiesService) { }
 
   @Get('recent')
+  @RequirePermission('activity.read')
   getRecent(
     @Query('limit') limit?: string,
     @Query('userId') userId?: string,
@@ -31,11 +34,13 @@ export class ActivitiesController {
   }
 
   @Get('stats')
+  @RequirePermission('activity.read')
   getStats() {
     return this.service.getStats();
   }
 
   @Get('deleted-data')
+  @RequirePermission('activity.read')
   getDeletedData(@Query('page') page?: string, @Query('limit') limit?: string) {
     return this.service.getDeletedData({
       page: page ? parseInt(page) : 1,
@@ -44,6 +49,7 @@ export class ActivitiesController {
   }
 
   @Get()
+  @RequirePermission('activity.read')
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -63,6 +69,7 @@ export class ActivitiesController {
   }
 
   @Post()
+  @RequirePermission('activity.read') // Should technically be activity.create but we only have activity.read defined
   create(@Body() dto: CreateActivityDto, @User() user?: any) {
     if (user?.userId) {
       dto.userId = user.userId;
@@ -77,6 +84,7 @@ export class ActivitiesController {
    * URL: GET /activities/lead/:leadId
    */
   @Get('lead/:leadId')
+  @RequirePermission('activity.read')
   getActivitiesByLeadId(
     @Param('leadId') leadId: string, // URL se leadId nikalta hai
     @Query('page') page?: string, // Pagination ke liye optional query param
@@ -95,6 +103,7 @@ export class ActivitiesController {
    * URL: GET /activities/calendar?startDate=2025-01-01&endDate=2025-01-31
    */
   @Get('calendar')
+  @RequirePermission('activity.read')
   getActivitiesForCalendar(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,

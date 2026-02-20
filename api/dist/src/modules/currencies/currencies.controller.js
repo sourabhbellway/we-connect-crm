@@ -17,6 +17,10 @@ const common_1 = require("@nestjs/common");
 const currencies_service_1 = require("./currencies.service");
 const create_currency_dto_1 = require("./dto/create-currency.dto");
 const update_currency_dto_1 = require("./dto/update-currency.dto");
+const passport_1 = require("@nestjs/passport");
+const common_2 = require("@nestjs/common");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let CurrenciesController = class CurrenciesController {
     currenciesService;
     constructor(currenciesService) {
@@ -41,6 +45,7 @@ let CurrenciesController = class CurrenciesController {
 exports.CurrenciesController = CurrenciesController;
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_currency_dto_1.CreateCurrencyDto]),
@@ -48,12 +53,14 @@ __decorate([
 ], CurrenciesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], CurrenciesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -61,6 +68,7 @@ __decorate([
 ], CurrenciesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -69,12 +77,14 @@ __decorate([
 ], CurrenciesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_currency.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], CurrenciesController.prototype, "remove", null);
 exports.CurrenciesController = CurrenciesController = __decorate([
+    (0, common_2.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('currencies'),
     __metadata("design:paramtypes", [currencies_service_1.CurrenciesService])
 ], CurrenciesController);

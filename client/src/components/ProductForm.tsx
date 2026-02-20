@@ -26,7 +26,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
     category: initialProduct?.category || '',
     price: initialProduct?.price || 0,
     cost: initialProduct?.cost || 0,
-    currency: initialProduct?.currency || currencySettings?.primary || 'INR',
+    currency: initialProduct?.currency || currencySettings?.primary || 'USD',
     unit: initialProduct?.unit || 'pcs',
     taxRate: initialProduct?.taxRate || 0,
     hsnCode: initialProduct?.hsnCode || '',
@@ -331,10 +331,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Price *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2 text-gray-500">
+                  <span className="absolute left-3 top-2.5 text-gray-500 font-medium text-xs">
                     {currencySettings?.currencies?.find(c => c.code === formData.currency)?.symbol ||
                       (formData.currency === currencySettings?.primary ? currencySettings?.symbol : '') ||
-                      (formData.currency === 'INR' ? '₹' : '$')}
+                      (formData.currency === 'USD' ? '$' : formData.currency)}
                   </span>
                   <input
                     type="number"

@@ -18,6 +18,8 @@ const passport_1 = require("@nestjs/passport");
 const activities_service_1 = require("./activities.service");
 const create_activity_dto_1 = require("./dto/create-activity.dto");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let ActivitiesController = class ActivitiesController {
     service;
     constructor(service) {
@@ -65,6 +67,7 @@ let ActivitiesController = class ActivitiesController {
 exports.ActivitiesController = ActivitiesController;
 __decorate([
     (0, common_1.Get)('recent'),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __param(0, (0, common_1.Query)('limit')),
     __param(1, (0, common_1.Query)('userId')),
     __param(2, (0, user_decorator_1.User)()),
@@ -74,12 +77,14 @@ __decorate([
 ], ActivitiesController.prototype, "getRecent", null);
 __decorate([
     (0, common_1.Get)('stats'),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ActivitiesController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)('deleted-data'),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
@@ -88,6 +93,7 @@ __decorate([
 ], ActivitiesController.prototype, "getDeletedData", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('type')),
@@ -99,6 +105,7 @@ __decorate([
 ], ActivitiesController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -107,6 +114,7 @@ __decorate([
 ], ActivitiesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('lead/:leadId'),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __param(0, (0, common_1.Param)('leadId')),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
@@ -116,6 +124,7 @@ __decorate([
 ], ActivitiesController.prototype, "getActivitiesByLeadId", null);
 __decorate([
     (0, common_1.Get)('calendar'),
+    (0, permission_decorator_1.RequirePermission)('activity.read'),
     __param(0, (0, common_1.Query)('startDate')),
     __param(1, (0, common_1.Query)('endDate')),
     __param(2, (0, user_decorator_1.User)()),
@@ -124,7 +133,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ActivitiesController.prototype, "getActivitiesForCalendar", null);
 exports.ActivitiesController = ActivitiesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('activities'),
     __metadata("design:paramtypes", [activities_service_1.ActivitiesService])
 ], ActivitiesController);

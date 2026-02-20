@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const roles_service_1 = require("./roles.service");
 const upsert_role_dto_1 = require("./dto/upsert-role.dto");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let RolesController = class RolesController {
     service;
     constructor(service) {
@@ -55,6 +57,7 @@ let RolesController = class RolesController {
 exports.RolesController = RolesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('role.read'),
     __param(0, (0, common_1.Query)('search')),
     __param(1, (0, common_1.Query)('page')),
     __param(2, (0, common_1.Query)('limit')),
@@ -66,6 +69,7 @@ __decorate([
 ], RolesController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('role.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [upsert_role_dto_1.UpsertRoleDto]),
@@ -73,6 +77,7 @@ __decorate([
 ], RolesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(':id/users'),
+    (0, permission_decorator_1.RequirePermission)('role.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -80,6 +85,7 @@ __decorate([
 ], RolesController.prototype, "getUsersByRole", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('role.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -88,6 +94,7 @@ __decorate([
 ], RolesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('role.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -95,6 +102,7 @@ __decorate([
 ], RolesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Delete)(':id/permanent'),
+    (0, permission_decorator_1.RequirePermission)('role.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -102,13 +110,14 @@ __decorate([
 ], RolesController.prototype, "deletePermanently", null);
 __decorate([
     (0, common_1.Put)(':id/restore'),
+    (0, permission_decorator_1.RequirePermission)('role.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], RolesController.prototype, "restore", null);
 exports.RolesController = RolesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('roles'),
     __metadata("design:paramtypes", [roles_service_1.RolesService])
 ], RolesController);

@@ -22,13 +22,16 @@ import { User } from '../../common/decorators/user.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Get()
+  @RequirePermission('user.read')
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -50,6 +53,7 @@ export class UsersController {
   }
 
   @Get('stats')
+  @RequirePermission('user.read')
   getStats() {
     return this.usersService.getStats();
   }
@@ -135,36 +139,43 @@ export class UsersController {
   }
 
   @Get(':id')
+  @RequirePermission('user.read')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }
 
   @Put(':id/role')
+  @RequirePermission('role.update')
   assignRoles(@Param('id') id: string, @Body('roleIds') roleIds: number[]) {
     return this.usersService.assignRoles(Number(id), roleIds || []);
   }
 
   @Put(':id')
+  @RequirePermission('user.update')
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
     return this.usersService.update(Number(id), dto);
   }
 
   @Post()
+  @RequirePermission('user.create')
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
   }
 
   @Delete(':id')
+  @RequirePermission('user.delete')
   remove(@Param('id') id: string) {
     return this.usersService.remove(Number(id));
   }
 
   @Put(':id/restore')
+  @RequirePermission('user.delete')
   restore(@Param('id') id: string) {
     return this.usersService.restore(Number(id));
   }
 
   @Delete(':id/permanent')
+  @RequirePermission('user.delete')
   deletePermanently(@Param('id') id: string) {
     return this.usersService.deletePermanently(Number(id));
   }

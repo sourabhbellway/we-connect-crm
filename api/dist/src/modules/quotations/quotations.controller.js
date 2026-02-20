@@ -21,6 +21,8 @@ const update_quotation_dto_1 = require("./dto/update-quotation.dto");
 const upsert_quotation_item_dto_1 = require("./dto/upsert-quotation-item.dto");
 const create_quotation_dto_1 = require("./dto/create-quotation.dto");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let QuotationsController = class QuotationsController {
     service;
     constructor(service) {
@@ -138,18 +140,21 @@ let QuotationsController = class QuotationsController {
 exports.QuotationsController = QuotationsController;
 __decorate([
     (0, common_1.Get)('template'),
+    (0, permission_decorator_1.RequirePermission)('quotations.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], QuotationsController.prototype, "getTemplate", null);
 __decorate([
     (0, common_1.Get)('next-number'),
+    (0, permission_decorator_1.RequirePermission)('quotations.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], QuotationsController.prototype, "getNextNumber", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('quotations.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('search')),
@@ -163,6 +168,7 @@ __decorate([
 ], QuotationsController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('quotations.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -171,6 +177,7 @@ __decorate([
 ], QuotationsController.prototype, "get", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('quotations.create'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -179,6 +186,7 @@ __decorate([
 ], QuotationsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -187,6 +195,7 @@ __decorate([
 ], QuotationsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('quotations.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -194,6 +203,7 @@ __decorate([
 ], QuotationsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':id/items'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -202,6 +212,7 @@ __decorate([
 ], QuotationsController.prototype, "addItem", null);
 __decorate([
     (0, common_1.Put)('items/:itemId'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('itemId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -210,6 +221,7 @@ __decorate([
 ], QuotationsController.prototype, "updateItem", null);
 __decorate([
     (0, common_1.Delete)('items/:itemId'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('itemId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -217,6 +229,7 @@ __decorate([
 ], QuotationsController.prototype, "removeItem", null);
 __decorate([
     (0, common_1.Put)(':id/send'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -224,6 +237,7 @@ __decorate([
 ], QuotationsController.prototype, "send", null);
 __decorate([
     (0, common_1.Put)(':id/accept'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -231,6 +245,7 @@ __decorate([
 ], QuotationsController.prototype, "accept", null);
 __decorate([
     (0, common_1.Put)(':id/reject'),
+    (0, permission_decorator_1.RequirePermission)('quotations.update'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -238,6 +253,7 @@ __decorate([
 ], QuotationsController.prototype, "reject", null);
 __decorate([
     (0, common_1.Post)(':id/generate-invoice'),
+    (0, permission_decorator_1.RequirePermission)('invoices.create'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -245,6 +261,7 @@ __decorate([
 ], QuotationsController.prototype, "generateInvoice", null);
 __decorate([
     (0, common_1.Get)(':id/pdf/preview'),
+    (0, permission_decorator_1.RequirePermission)('quotations.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_2.Res)()),
     __metadata("design:type", Function),
@@ -253,6 +270,7 @@ __decorate([
 ], QuotationsController.prototype, "previewPdf", null);
 __decorate([
     (0, common_1.Get)(':id/pdf/download'),
+    (0, permission_decorator_1.RequirePermission)('quotations.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_2.Res)()),
     __metadata("design:type", Function),
@@ -260,7 +278,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], QuotationsController.prototype, "downloadPdf", null);
 exports.QuotationsController = QuotationsController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('quotations'),
     __metadata("design:paramtypes", [quotations_service_1.QuotationsService])
 ], QuotationsController);

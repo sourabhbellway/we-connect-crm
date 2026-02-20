@@ -155,6 +155,7 @@ export declare class QuotationsController {
                     position: string | null;
                     status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
+                    ownerId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     priority: import(".prisma/client").$Enums.LeadPriority;

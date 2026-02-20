@@ -16,6 +16,8 @@ import {
     Tag,
     BarChart3,
 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { PERMISSIONS as PERMS } from '../../constants';
 
 interface SettingsCategory {
     id: string;
@@ -27,12 +29,14 @@ interface SettingsCategory {
         name: string;
         description: string;
         path: string;
+        permission?: string;
     }>;
 }
 
 const BusinessSettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { companySettings, isLoading } = useBusinessSettings();
+    const { hasPermission } = useAuth();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     const settingsCategories: SettingsCategory[] = [
@@ -43,10 +47,9 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Users className="w-6 h-6" />,
             color: 'bg-emerald-500',
             items: [
-                { name: 'Users', description: 'Create, edit, and manage user accounts', path: '/users' },
-                { name: 'Roles & Permissions', description: 'Define roles and assign permissions', path: '/roles' },
-                { name: 'Teams', description: 'Manage teams and reporting structures', path: '/business-settings/teams' },
-
+                { name: 'Users', description: 'Create, edit, and manage user accounts', path: '/users', permission: PERMS.USER.READ },
+                { name: 'Roles & Permissions', description: 'Define roles and assign permissions', path: '/roles', permission: PERMS.ROLE.READ },
+                { name: 'Teams', description: 'Manage teams and reporting structures', path: '/business-settings/teams', permission: PERMS.TEAM.READ },
             ],
         },
         {
@@ -56,8 +59,7 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Building2 className="w-6 h-6" />,
             color: 'bg-blue-500',
             items: [
-                { name: 'Company Profile', description: 'Name, address, logo, GST details', path: '/business-settings/company' },
-
+                { name: 'Company Profile', description: 'Name, address, logo, GST details', path: '/business-settings/company', permission: PERMS.BUSINESS_SETTINGS.COMPANY.READ },
             ],
         },
         {
@@ -67,7 +69,7 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <CreditCard className="w-6 h-6" />,
             color: 'bg-green-500',
             items: [
-                { name: 'Currency Settings', description: 'Primary currency, exchange rates', path: '/business-settings/currency' },
+                { name: 'Currency Settings', description: 'Primary currency, exchange rates', path: '/business-settings/currency', permission: PERMS.BUSINESS_SETTINGS.CURRENCY.READ },
             ],
         },
         {
@@ -77,8 +79,8 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Users className="w-6 h-6" />,
             color: 'bg-purple-500',
             items: [
-                { name: 'Lead Sources', description: 'Manage lead source options', path: '/business-settings/lead-sources' },
-                { name: 'Lead Form Fields', description: 'Configure lead form fields - add, hide, show, make required', path: '/business-settings/lead-fields' },
+                { name: 'Lead Sources', description: 'Manage lead source options', path: '/business-settings/lead-sources', permission: PERMS.BUSINESS_SETTINGS.LEAD_SOURCE.READ },
+                { name: 'Lead Form Fields', description: 'Configure lead form fields - add, hide, show, make required', path: '/business-settings/lead-fields', permission: PERMS.BUSINESS_SETTINGS.FIELD_CONFIG.READ },
             ],
         },
         {
@@ -88,7 +90,7 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Tag className="w-6 h-6" />,
             color: 'bg-blue-500',
             items: [
-                { name: 'Tags Management', description: 'Create and manage tags', path: '/business-settings/tags' },
+                { name: 'Tags Management', description: 'Create and manage tags', path: '/business-settings/tags', permission: PERMS.TAG.READ },
             ],
         },
         {
@@ -98,8 +100,8 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <BarChart3 className="w-6 h-6" />,
             color: 'bg-green-500',
             items: [
-                { name: 'Product Categories', description: 'Create and manage product categories', path: '/business-settings/product-categories' },
-                { name: 'Unit Types', description: 'Manage measurement units for products', path: '/business-settings/unit-types' },
+                { name: 'Product Categories', description: 'Create and manage product categories', path: '/business-settings/product-categories', permission: PERMS.PRODUCT_CATEGORY.READ },
+                { name: 'Unit Types', description: 'Manage measurement units for products', path: '/business-settings/unit-types', permission: PERMS.UNIT_TYPE.READ },
             ],
         },
         {
@@ -109,7 +111,7 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Building2 className="w-6 h-6" />,
             color: 'bg-green-500',
             items: [
-                { name: 'Industries Management', description: 'Create and manage industries', path: '/business-settings/industries' },
+                { name: 'Industries Management', description: 'Create and manage industries', path: '/business-settings/industries', permission: PERMS.INDUSTRY.READ },
             ],
         },
         {
@@ -119,7 +121,7 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Workflow className="w-6 h-6" />,
             color: 'bg-orange-500',
             items: [
-                { name: 'Deal Status Management', description: 'Configure dynamic  deal statuses', path: '/business-settings/lead-statuses' },
+                { name: 'Deal Status Management', description: 'Configure dynamic  deal statuses', path: '/business-settings/lead-statuses', permission: PERMS.BUSINESS_SETTINGS.DEAL_STATUS.READ },
             ],
         },
 
@@ -130,10 +132,9 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <FileText className="w-6 h-6" />,
             color: 'bg-red-500',
             items: [
-                // { name: 'Quotation Templates', description: 'Professional quote layouts', path: '/business-settings/quotation-templates' },
-                { name: 'Invoice Templates', description: 'Invoice formats and layouts', path: '/business-settings/invoice-templates' },
-                { name: 'Document Numbering', description: 'Configure prefixes, suffixes, and numbering formats', path: '/business-settings/numbering' },
-                { name: 'Terms & Conditions', description: 'Legal terms and conditions templates', path: '/business-settings/terms-and-conditions' },
+                { name: 'Invoice Templates', description: 'Invoice formats and layouts', path: '/business-settings/invoice-templates', permission: PERMS.BUSINESS_SETTINGS.TEMPLATES.EMAIL.READ }, // Assuming email templates for now
+                { name: 'Document Numbering', description: 'Configure prefixes, suffixes, and numbering formats', path: '/business-settings/numbering', permission: PERMS.BUSINESS_SETTINGS.NUMBERING.READ },
+                { name: 'Terms & Conditions', description: 'Legal terms and conditions templates', path: '/business-settings/terms-and-conditions', permission: PERMS.BUSINESS_SETTINGS.TEMPLATES.TERMS.READ },
             ],
         },
         {
@@ -143,7 +144,7 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Bell className="w-6 h-6" />,
             color: 'bg-yellow-500',
             items: [
-                { name: 'Channel Settings', description: 'Email, SMS, WhatsApp preferences', path: '/business-settings/notifications' },
+                { name: 'Channel Settings', description: 'Email, SMS, WhatsApp preferences', path: '/business-settings/notifications', permission: PERMS.NOTIFICATION.READ },
             ],
         },
 
@@ -154,14 +155,21 @@ const BusinessSettingsPage: React.FC = () => {
             icon: <Link className="w-6 h-6" />,
             color: 'bg-teal-500',
             items: [
-                { name: 'Communication Settings', description: 'Templates', path: '/business-settings/communication' },
-                { name: 'Lead Integrations', description: 'Meta Ads, IndiaMart, TradeIndia integrations', path: '/business-settings/integrations/leads' },
-                { name: 'Communication APIs', description: 'WhatsApp, SMS, Email gateways', path: '/business-settings/integrations/communication' },
-                // { name: 'Third-party Apps', description: 'Zapier, webhooks, custom APIs', path: '/business-settings/integrations/third-party' },
+                { name: 'Communication Settings', description: 'Templates', path: '/business-settings/communication', permission: PERMS.COMMUNICATION.READ },
+                { name: 'Lead Integrations', description: 'Meta Ads, IndiaMart, TradeIndia integrations', path: '/business-settings/integrations/leads', permission: PERMS.BUSINESS_SETTINGS.INTEGRATIONS.READ },
+                { name: 'Communication APIs', description: 'WhatsApp, SMS, Email gateways', path: '/business-settings/integrations/communication', permission: PERMS.BUSINESS_SETTINGS.INTEGRATIONS.READ },
             ],
         },
 
     ];
+
+    // Filter categories and items based on permissions
+    const accessibleCategories = settingsCategories
+        .map(category => ({
+            ...category,
+            items: category.items.filter(item => !item.permission || hasPermission(item.permission))
+        }))
+        .filter(category => category.items.length > 0);
 
     if (isLoading) {
         return <PageLoader message="Loading business settings..." />;
@@ -215,7 +223,7 @@ const BusinessSettingsPage: React.FC = () => {
 
             {/* Settings Categories Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {settingsCategories.map((category) => (
+                {accessibleCategories.map((category) => (
                     <Card
                         key={category.id}
                         variant="ELEVATED"

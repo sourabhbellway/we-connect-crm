@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const bulk_import_service_1 = require("./bulk-import.service");
 const create_lead_import_batch_dto_1 = require("./dto/create-lead-import-batch.dto");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let BulkImportController = class BulkImportController {
     service;
     constructor(service) {
@@ -38,6 +40,7 @@ let BulkImportController = class BulkImportController {
 exports.BulkImportController = BulkImportController;
 __decorate([
     (0, common_1.Post)('leads'),
+    (0, permission_decorator_1.RequirePermission)('lead.import'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_lead_import_batch_dto_1.CreateLeadImportBatchDto]),
@@ -45,6 +48,7 @@ __decorate([
 ], BulkImportController.prototype, "createBatch", null);
 __decorate([
     (0, common_1.Get)('leads/batches'),
+    (0, permission_decorator_1.RequirePermission)('lead.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
@@ -53,13 +57,14 @@ __decorate([
 ], BulkImportController.prototype, "listBatches", null);
 __decorate([
     (0, common_1.Get)('leads/batches/:id/records'),
+    (0, permission_decorator_1.RequirePermission)('lead.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], BulkImportController.prototype, "listRecords", null);
 exports.BulkImportController = BulkImportController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('bulk-import'),
     __metadata("design:paramtypes", [bulk_import_service_1.BulkImportService])
 ], BulkImportController);

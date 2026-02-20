@@ -23,13 +23,16 @@ import { ConvertLeadDto } from './dto/convert-lead.dto';
 import { TransferLeadDto } from './dto/transfer-lead.dto';
 import { BulkAssignDto } from './dto/bulk-assign.dto';
 import { User } from '../../common/decorators/user.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leads: LeadsService) {}
+  constructor(private readonly leads: LeadsService) { }
 
   @Get('stats')
+  @RequirePermission('lead.read')
   getStats() {
     return this.leads.getStats();
   }
@@ -44,6 +47,7 @@ export class LeadsController {
    * @param isDeleted - 'true' to fetch deleted leads, 'false' or undefined for active leads.
    */
   @Get()
+  @RequirePermission('lead.read')
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -82,6 +86,7 @@ export class LeadsController {
    * @param id - The ID of the lead to retrieve.
    */
   @Get(':id')
+  @RequirePermission('lead.read')
   get(@Param('id') id: string, @User() user?: any) {
     return this.leads.getById(Number(id), user);
   }
@@ -91,6 +96,7 @@ export class LeadsController {
    * @param dto - The data for the new lead.
    */
   @Post()
+  @RequirePermission('lead.create')
   create(@Body() dto: CreateLeadDto, @User() user?: any) {
     return this.leads.create(dto, user?.userId);
   }
@@ -101,6 +107,7 @@ export class LeadsController {
    * @param dto - The data to update the lead with.
    */
   @Put(':id')
+  @RequirePermission('lead.update')
   update(@Param('id') id: string, @Body() dto: UpdateLeadDto) {
     return this.leads.update(Number(id), dto);
   }
@@ -110,11 +117,13 @@ export class LeadsController {
    * @param id - The ID of the lead to delete.
    */
   @Delete(':id')
+  @RequirePermission('lead.delete')
   remove(@Param('id') id: string) {
     return this.leads.remove(Number(id));
   }
 
   @Delete(':id/permanent')
+  @RequirePermission('lead.delete')
   deletePermanently(@Param('id') id: string) {
     return this.leads.deletePermanently(Number(id));
   }
@@ -125,6 +134,7 @@ export class LeadsController {
    * @param dto - The transfer details.
    */
   @Put(':id/transfer')
+  @RequirePermission('lead.transfer')
   transfer(@Param('id') id: string, @Body() dto: TransferLeadDto) {
     return this.leads.transfer(Number(id), dto);
   }
@@ -134,6 +144,7 @@ export class LeadsController {
    * @param dto - The bulk assignment details.
    */
   @Put('bulk/assign')
+  @RequirePermission('lead.transfer')
   bulkAssign(@Body() dto: BulkAssignDto) {
     return this.leads.bulkAssign(dto);
   }
@@ -144,6 +155,7 @@ export class LeadsController {
    * @param dto - The conversion details.
    */
   @Post(':id/convert')
+  @RequirePermission('lead.convert')
   convert(@Param('id') id: string, @Body() dto: ConvertLeadDto) {
     return this.leads.convert(Number(id), dto);
   }
@@ -153,6 +165,7 @@ export class LeadsController {
    * @param id - The ID of the lead to revert.
    */
   @Post(':id/undo-conversion')
+  @RequirePermission('lead.convert')
   async undoConversion(@Param('id') id: string) {
     return this.leads.undoLeadConversion(Number(id));
   }
@@ -162,6 +175,7 @@ export class LeadsController {
    * @param id - The ID of the lead to restore.
    */
   @Put(':id/restore')
+  @RequirePermission('lead.delete')
   restore(@Param('id') id: string) {
     return this.leads.restore(Number(id));
   }
@@ -184,6 +198,7 @@ export class LeadsController {
       },
     }),
   )
+  @RequirePermission('lead.import')
   async bulkImportLeads(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('CSV file is required');
@@ -195,6 +210,7 @@ export class LeadsController {
    * Export leads as CSV for Excel consumption
    */
   @Get('bulk/export')
+  @RequirePermission('lead.export')
   async bulkExport(
     @Res() res: Response,
     @Query('status') status?: string,
@@ -213,6 +229,7 @@ export class LeadsController {
    * Sync all integrations to import leads from third-party services
    */
   @Post('integrations/sync-all')
+  @RequirePermission('lead.import')
   syncAllIntegrations() {
     return this.leads.syncAllIntegrations();
   }

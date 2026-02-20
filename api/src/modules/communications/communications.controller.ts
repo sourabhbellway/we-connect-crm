@@ -20,14 +20,17 @@ import { ListMessagesQuery } from './dto/list-messages.query';
 import { WhatsAppWebhookDto } from './dto/whatsapp-webhook.dto';
 import { EmailWebhookDto } from './dto/email-webhook.dto';
 import { User } from '../../common/decorators/user.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('communications')
 export class CommunicationsController {
-  constructor(private readonly service: CommunicationsService) {}
+  constructor(private readonly service: CommunicationsService) { }
 
   // Specific routes first (more specific before generic)
   @Get('leads/:leadId/meetings')
+  @RequirePermission('communications.read')
   listMeetings(@Param('leadId') leadId: string, @User() user?: any) {
     try {
       return this.service.listMeetings(Number(leadId), user);
@@ -38,12 +41,14 @@ export class CommunicationsController {
   }
 
   @Get('leads')
+  @RequirePermission('communications.read')
   listLeadComms(@Query('leadId') leadId: string, @User() user?: any) {
     return this.service.listLeadComms(Number(leadId), user);
   }
 
   // Templates
   @Get('templates')
+  @RequirePermission('communications.read')
   listTemplates(
     @Query('type') type?: string,
     @Query('active') active?: string,
@@ -63,43 +68,51 @@ export class CommunicationsController {
   }
 
   @Post('templates')
+  @RequirePermission('communications.create')
   createTemplate(@Body() dto: UpsertTemplateDto) {
     return this.service.createTemplate(dto);
   }
 
   @Put('templates/:id')
+  @RequirePermission('communications.update')
   updateTemplate(@Param('id') id: string, @Body() dto: UpsertTemplateDto) {
     return this.service.updateTemplate(Number(id), dto);
   }
 
   @Delete('templates/:id')
+  @RequirePermission('communications.delete')
   deleteTemplate(@Param('id') id: string) {
     return this.service.deleteTemplate(Number(id));
   }
 
   // Send endpoints
   @Post('send-email')
+  @RequirePermission('communications.create')
   sendEmail(@Body() dto: SendEmailDto) {
     return this.service.sendEmail(dto);
   }
 
   @Post('send-whatsapp')
+  @RequirePermission('communications.create')
   sendWhatsApp(@Body() dto: SendWhatsAppDto) {
     return this.service.sendWhatsApp(dto);
   }
 
   @Post('send-templated')
+  @RequirePermission('communications.create')
   sendTemplated(@Body() dto: SendTemplatedDto) {
     return this.service.sendTemplated(dto);
   }
 
   @Post('send-meeting-email')
+  @RequirePermission('communications.create')
   sendMeetingEmail(@Body() body: any) {
     return this.service.sendMeetingEmail(body);
   }
 
   // Messages listing
   @Get('messages')
+  @RequirePermission('communications.read')
   listMessages(@Query() q: ListMessagesQuery, @User() user?: any) {
     return this.service.listMessages(
       {
@@ -114,6 +127,7 @@ export class CommunicationsController {
   }
 
   @Post('leads')
+  @RequirePermission('communications.create')
   createLeadComm(@Body() dto: CreateLeadCommunicationDto) {
     return this.service.createLeadComm(dto);
   }

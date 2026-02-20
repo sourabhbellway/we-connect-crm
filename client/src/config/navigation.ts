@@ -18,7 +18,7 @@ export const NAV_EXTRA_ITEMS: NavItem[] = [
     name: 'Task Management',
     href: '/task-management',
     icon: CheckSquare,
-    permission: PERMISSIONS.ACTIVITY.READ,
+    permission: PERMISSIONS.TASK.READ,
   },
   {
     id: 'expense-management',
@@ -83,7 +83,7 @@ export const NAV_EXTRA_ITEMS: NavItem[] = [
     name: 'Products',
     href: '/products',
     icon: Package,
-    permission: 'product.read',
+    permission: PERMISSIONS.PRODUCT.READ,
   },
   {
     id: 'automation-management',
@@ -100,11 +100,4 @@ export const NAV_EXTRA_ITEMS: NavItem[] = [
     permission: PERMISSIONS.ACTIVITY.READ,
     adminOnly: true,
   },
-  // {
-  //   id: 'trash',
-  //   name: 'Trash',
-  //   href: '/trash',
-  //   icon: Trash2,
-  //   permission: 'deleted.read',
-  // },
 ];

@@ -23,6 +23,8 @@ import { UpdateNotificationPreferenceDto } from './dto/notification-preference.d
 import { OnEvent } from '@nestjs/event-emitter';
 import { Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
 interface NotificationEvent {
   userId: number;
@@ -30,15 +32,16 @@ interface NotificationEvent {
 }
 
 @Controller('notifications')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 export class NotificationsController {
   // Store active SSE connections per user
   private userStreams = new Map<number, Subject<MessageEvent>>();
 
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly notificationsService: NotificationsService) { }
 
   // Get all notifications for current user
   @Get()
+  @RequirePermission('notifications.read')
   async getNotifications(
     @Req() req: any,
     @Query() query: QueryNotificationsDto,
@@ -49,6 +52,7 @@ export class NotificationsController {
 
   // Get unread count
   @Get('unread-count')
+  @RequirePermission('notifications.read')
   async getUnreadCount(@Req() req: any) {
     const userId = req.user.userId;
     return this.notificationsService.getUnreadCount(userId);
@@ -56,6 +60,7 @@ export class NotificationsController {
 
   // Mark single notification as read
   @Patch(':id/read')
+  @RequirePermission('notifications.update')
   async markAsRead(@Param('id') id: string, @Req() req: any) {
     const userId = req.user.userId;
     return this.notificationsService.markAsRead(+id, userId);
@@ -63,6 +68,7 @@ export class NotificationsController {
 
   // Mark all notifications as read
   @Patch('mark-all-read')
+  @RequirePermission('notifications.update')
   async markAllAsRead(@Req() req: any) {
     const userId = req.user.userId;
     return this.notificationsService.markAllAsRead(userId);
@@ -70,6 +76,7 @@ export class NotificationsController {
 
   // Delete notification
   @Delete(':id')
+  @RequirePermission('notifications.delete')
   async deleteNotification(@Param('id') id: string, @Req() req: any) {
     const userId = req.user.userId;
     return this.notificationsService.delete(+id, userId);
@@ -77,18 +84,21 @@ export class NotificationsController {
 
   // Create notification (admin/system use)
   @Post()
+  @RequirePermission('notifications.update')
   async createNotification(@Body() dto: CreateNotificationDto) {
     return this.notificationsService.create(dto);
   }
 
   // Create bulk notifications
   @Post('bulk')
+  @RequirePermission('notifications.update')
   async createBulkNotifications(@Body() dto: BulkNotificationDto) {
     return this.notificationsService.createBulk(dto);
   }
 
   // Get notification preferences
   @Get('preferences')
+  @RequirePermission('notifications.read')
   async getPreferences(@Req() req: any) {
     const userId = req.user.userId;
     return this.notificationsService.getPreferences(userId);
@@ -96,6 +106,7 @@ export class NotificationsController {
 
   // Update notification preferences
   @Patch('preferences')
+  @RequirePermission('notifications.update')
   async updatePreferences(
     @Req() req: any,
     @Body() dto: UpdateNotificationPreferenceDto,
@@ -106,6 +117,7 @@ export class NotificationsController {
 
   // Server-Sent Events endpoint for real-time notifications
   @Sse('stream')
+  @RequirePermission('notifications.read')
   streamNotifications(@Req() req: any): Observable<MessageEvent> {
     const userId = req.user.userId;
 

@@ -1304,7 +1304,7 @@ const CreateQuotationPage: React.FC = () => {
                                                 >
                                                     <option value="none">No discount</option>
                                                     <option value="%">% Percentage</option>
-                                                    <option value="fixed">{currency} Fixed</option>
+                                                    <option value="fixed">{currencySettings?.currencies?.find(c => c.code === currency)?.symbol || currency} Fixed</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1325,7 +1325,7 @@ const CreateQuotationPage: React.FC = () => {
                                                     step="0.01"
                                                     className="w-20 px-2 py-1 text-xs text-right border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
-                                                <span className="text-xs text-gray-500 dark:text-gray-400">{currency}</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">{currencySettings?.currencies?.find(c => c.code === currency)?.symbol || currency}</span>
                                             </div>
                                         </div>
 

@@ -17,6 +17,10 @@ const common_1 = require("@nestjs/common");
 const product_categories_service_1 = require("./product-categories.service");
 const create_product_category_dto_1 = require("./dto/create-product-category.dto");
 const update_product_category_dto_1 = require("./dto/update-product-category.dto");
+const passport_1 = require("@nestjs/passport");
+const common_2 = require("@nestjs/common");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let ProductCategoriesController = class ProductCategoriesController {
     productCategoriesService;
     constructor(productCategoriesService) {
@@ -44,6 +48,7 @@ let ProductCategoriesController = class ProductCategoriesController {
 exports.ProductCategoriesController = ProductCategoriesController;
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('product_categories.create'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -52,12 +57,14 @@ __decorate([
 ], ProductCategoriesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('product_categories.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ProductCategoriesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('product_categories.read'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -65,6 +72,7 @@ __decorate([
 ], ProductCategoriesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
+    (0, permission_decorator_1.RequirePermission)('product_categories.update'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -73,6 +81,7 @@ __decorate([
 ], ProductCategoriesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('product_categories.delete'),
     (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -81,12 +90,14 @@ __decorate([
 ], ProductCategoriesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Patch)(':id/toggle'),
+    (0, permission_decorator_1.RequirePermission)('product_categories.update'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ProductCategoriesController.prototype, "toggleActive", null);
 exports.ProductCategoriesController = ProductCategoriesController = __decorate([
+    (0, common_2.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('business-settings/product-categories'),
     __metadata("design:paramtypes", [product_categories_service_1.ProductCategoriesService])
 ], ProductCategoriesController);

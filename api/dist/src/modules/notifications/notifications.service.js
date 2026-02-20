@@ -49,6 +49,8 @@ const prisma_service_1 = require("../../database/prisma.service");
 const client_1 = require("@prisma/client");
 const event_emitter_1 = require("@nestjs/event-emitter");
 const admin = __importStar(require("firebase-admin"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 let NotificationsService = NotificationsService_1 = class NotificationsService {
     prisma;
     eventEmitter;
@@ -58,10 +60,22 @@ let NotificationsService = NotificationsService_1 = class NotificationsService {
         this.eventEmitter = eventEmitter;
         if (!admin.apps.length) {
             try {
-                const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+                let serviceAccount;
+                const keyFilePath = path.join(process.cwd(), 'firebase-key.json');
+                if (fs.existsSync(keyFilePath)) {
+                    this.logger.log('Loading Firebase credentials from firebase-key.json');
+                    serviceAccount = JSON.parse(fs.readFileSync(keyFilePath, 'utf8'));
+                }
+                else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+                    this.logger.log('Loading Firebase credentials from environment variable');
+                    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+                }
                 if (serviceAccount) {
+                    if (serviceAccount.private_key) {
+                        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+                    }
                     admin.initializeApp({
-                        credential: admin.credential.cert(JSON.parse(serviceAccount)),
+                        credential: admin.credential.cert(serviceAccount),
                     });
                     this.logger.log('Firebase Admin SDK initialized successfully');
                 }

@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const integrations_service_1 = require("./integrations.service");
 const upsert_integration_dto_1 = require("./dto/upsert-integration.dto");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let IntegrationsController = class IntegrationsController {
     service;
     constructor(service) {
@@ -38,12 +40,14 @@ let IntegrationsController = class IntegrationsController {
 exports.IntegrationsController = IntegrationsController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], IntegrationsController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.update'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [upsert_integration_dto_1.UpsertIntegrationDto]),
@@ -51,6 +55,7 @@ __decorate([
 ], IntegrationsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -59,13 +64,14 @@ __decorate([
 ], IntegrationsController.prototype, "update", null);
 __decorate([
     (0, common_1.Get)(':id/logs'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_integrations.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], IntegrationsController.prototype, "logs", null);
 exports.IntegrationsController = IntegrationsController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('integrations'),
     __metadata("design:paramtypes", [integrations_service_1.IntegrationsService])
 ], IntegrationsController);

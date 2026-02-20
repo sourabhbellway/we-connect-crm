@@ -2,13 +2,16 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AnalyticsService } from './analytics.service';
 import { User } from '../../common/decorators/user.decorator';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly service: AnalyticsService) {}
+  constructor(private readonly service: AnalyticsService) { }
 
   @Get('dashboard/kpis')
+  @RequirePermission('dashboard.read')
   kpis(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -29,6 +32,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/lead-status-distribution')
+  @RequirePermission('dashboard.read')
   getLeadStatusDistribution(
     @Query('userId') userId?: string,
     @Query('scope') scope?: string,
@@ -45,6 +49,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/revenue-trends')
+  @RequirePermission('dashboard.read')
   getRevenueTrends(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -64,6 +69,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/activity-trends')
+  @RequirePermission('dashboard.read')
   getActivityTrends(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -83,12 +89,14 @@ export class AnalyticsController {
   }
 
   @Get('charts/user-growth')
+  @RequirePermission('dashboard.read')
   getUserGrowth(@Query('months') months?: string) {
     const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 12;
     return this.service.getUserGrowth(parsedMonths);
   }
 
   @Get('charts/lead-conversion-funnel')
+  @RequirePermission('dashboard.read')
   getLeadConversionFunnel(
     @Query('userId') userId?: string,
     @Query('scope') scope?: string,
@@ -105,6 +113,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/sales-pipeline-flow')
+  @RequirePermission('dashboard.read')
   getSalesPipelineFlow(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -124,6 +133,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/top-performers')
+  @RequirePermission('dashboard.read')
   getTopPerformers(
     @Query('limit') limit?: string,
     @Query('userId') userId?: string,
@@ -143,6 +153,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/lead-velocity')
+  @RequirePermission('dashboard.read')
   getDealVelocity(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -162,6 +173,7 @@ export class AnalyticsController {
   }
 
   @Get('charts/lead-source-distribution')
+  @RequirePermission('dashboard.read')
   getLeadSourceDistribution(
     @Query('userId') userId?: string,
     @Query('scope') scope?: string,
@@ -178,6 +190,7 @@ export class AnalyticsController {
   }
 
   @Get('reports/task')
+  @RequirePermission('dashboard.read')
   getTaskReport(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -205,6 +218,7 @@ export class AnalyticsController {
   }
 
   @Get('reports/lead')
+  @RequirePermission('dashboard.read')
   getLeadReport(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -232,6 +246,7 @@ export class AnalyticsController {
   }
 
   @Get('reports/deal')
+  @RequirePermission('dashboard.read')
   getDealReport(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -259,6 +274,7 @@ export class AnalyticsController {
   }
 
   @Get('reports/expense')
+  @RequirePermission('dashboard.read')
   getExpenseReport(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -286,6 +302,7 @@ export class AnalyticsController {
   }
 
   @Get('reports/invoice')
+  @RequirePermission('dashboard.read')
   getInvoiceReport(
     @Query('months') months?: string,
     @Query('userId') userId?: string,
@@ -313,6 +330,7 @@ export class AnalyticsController {
   }
 
   @Get('reports/quotation')
+  @RequirePermission('dashboard.read')
   getQuotationReport(
     @Query('months') months?: string,
     @Query('userId') userId?: string,

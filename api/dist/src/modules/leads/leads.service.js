@@ -202,6 +202,22 @@ let LeadsService = class LeadsService {
                                 email: true,
                             },
                         },
+                        ownerUser: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                        },
+                        createdByUser: {
+                            select: {
+                                id: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                            },
+                        },
                         tags: { include: { tag: true } },
                         source: {
                             select: { id: true, name: true, description: true },
@@ -227,6 +243,7 @@ let LeadsService = class LeadsService {
                     updatedAt: r.updatedAt,
                     sourceId: r.sourceId,
                     assignedTo: r.assignedTo,
+                    ownerId: r.ownerId,
                     companyId: r.companyId,
                     deletedAt: r.deletedAt,
                     budget: r.budget,
@@ -250,6 +267,8 @@ let LeadsService = class LeadsService {
                     previousStatus: r.previousStatus,
                     convertedToDealId: r.convertedToDealId,
                     assignedUser: r.assignedUser,
+                    ownerUser: r.ownerUser,
+                    createdByUser: r.createdByUser,
                     tags: Array.isArray(rawTags) && rawTags.length > 0
                         ? rawTags.map((lt) => ({
                             id: lt.tag?.id || lt.id,
@@ -300,6 +319,12 @@ let LeadsService = class LeadsService {
             where,
             include: {
                 assignedUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
+                ownerUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
+                createdByUser: {
                     select: { id: true, firstName: true, lastName: true, email: true },
                 },
                 tags: { include: { tag: true } },
@@ -482,6 +507,7 @@ let LeadsService = class LeadsService {
             'status',
             'priority',
             'assignedTo',
+            'ownerId',
             'budget',
             'currency',
             'leadScore',
@@ -524,6 +550,7 @@ let LeadsService = class LeadsService {
                 priority: normalizeLeadPriority(dto.priority),
                 sourceId: dto.sourceId || null,
                 assignedTo: dto.assignedTo || userId || null,
+                ownerId: dto.ownerId || userId || null,
                 createdBy: userId || null,
                 budget: dto.budget || null,
                 currency: currency,
@@ -550,6 +577,12 @@ let LeadsService = class LeadsService {
         const leadWithTags = await this.prisma.lead.findUnique({
             where: { id: lead.id },
             include: {
+                assignedUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
+                ownerUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
                 tags: { include: { tag: true } },
                 source: {
                     select: { id: true, name: true, description: true },
@@ -680,6 +713,23 @@ let LeadsService = class LeadsService {
                     changes.push('Unassigned');
                 }
             }
+            if (rest.ownerId !== undefined && lead.ownerId !== updated.ownerId) {
+                if (activityType === 'LEAD_UPDATED') {
+                    title = 'Owner changed';
+                    icon = 'UserCheck';
+                    iconColor = '#8B5CF6';
+                }
+                if (updated.ownerId) {
+                    const ownerUser = await this.prisma.user.findUnique({
+                        where: { id: updated.ownerId },
+                        select: { firstName: true, lastName: true },
+                    });
+                    const ownerName = ownerUser
+                        ? `${ownerUser.firstName} ${ownerUser.lastName}`
+                        : 'User';
+                    changes.push(`Owner: ${ownerName}`);
+                }
+            }
             if (rest.sourceId !== undefined && lead.sourceId !== updated.sourceId) {
                 changes.push('Source updated');
             }
@@ -728,6 +778,12 @@ let LeadsService = class LeadsService {
         const updatedWithTags = await this.prisma.lead.findUnique({
             where: { id },
             include: {
+                assignedUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
+                ownerUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
                 tags: { include: { tag: true } },
                 source: {
                     select: { id: true, name: true, description: true },
@@ -1266,6 +1322,14 @@ let LeadsService = class LeadsService {
         const rows = [headers.join(',')];
         for (const l of leads) {
             const row = headers.map((header) => {
+                if (header === 'source' || header === 'sourceId') {
+                    return escape(l.source?.name || '');
+                }
+                if (header === 'assignedTo') {
+                    return escape(l.assignedUser
+                        ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
+                        : '');
+                }
                 if (header in l) {
                     const val = l[header];
                     if (header === 'createdAt' ||
@@ -1276,12 +1340,6 @@ let LeadsService = class LeadsService {
                     }
                     return escape(val);
                 }
-                if (header === 'source')
-                    return escape(l.source?.name || '');
-                if (header === 'assignedTo')
-                    return escape(l.assignedUser
-                        ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
-                        : '');
                 const customFields = l.customFields || {};
                 if (header in customFields) {
                     return escape(customFields[header]);

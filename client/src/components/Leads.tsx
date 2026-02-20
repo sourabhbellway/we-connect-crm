@@ -10,6 +10,7 @@ import {
     Phone,
     Briefcase,
     Calendar,
+    UserCheck,
     Eye,
     Search,
     Upload,
@@ -266,6 +267,8 @@ const Leads: React.FC = () => {
         'company',
         'status',
         'assignedTo',
+        'ownerId',
+        'createdBy',
         'createdAt',
     ]);
 
@@ -1124,7 +1127,13 @@ const Leads: React.FC = () => {
                                             {lead.assignedUser && (
                                                 <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                                                     <User className="h-3 w-3 flex-shrink-0" />
-                                                    <span>{lead.assignedUser.firstName} {lead.assignedUser.lastName}</span>
+                                                    <span>Assignee: {lead.assignedUser.firstName} {lead.assignedUser.lastName}</span>
+                                                </div>
+                                            )}
+                                            {lead.ownerUser && (
+                                                <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
+                                                    <UserCheck className="h-3 w-3 flex-shrink-0" />
+                                                    <span>Owner: {lead.ownerUser.firstName} {lead.ownerUser.lastName}</span>
                                                 </div>
                                             )}
                                             <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
@@ -1185,6 +1194,8 @@ const Leads: React.FC = () => {
                                         { id: 'company', label: 'Company' },
                                         { id: 'status', label: 'Status' },
                                         { id: 'assignedTo', label: 'Assigned To' },
+                                        { id: 'ownerId', label: 'Lead Owner' },
+
                                         { id: 'createdAt', label: 'Created' },
                                     ],
                                     visibleColumns,
@@ -1226,6 +1237,10 @@ const Leads: React.FC = () => {
                                             <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('assignedTo') ? 'hidden' : ''}`}>
                                                 {t("leads.table.assignedTo")}
                                             </th>
+                                            <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('ownerId') ? 'hidden' : ''}`}>
+                                                Lead Owner
+                                            </th>
+
                                             <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('createdAt') ? 'hidden' : ''}`}>
                                                 <TableSortHeader label={t("leads.table.created") as string} column={'createdAt'} sortBy={sortBy} sortOrder={sortOrder} onChange={(c: any) => onHeaderSort(c)} />
                                             </th>
@@ -1339,6 +1354,12 @@ const Leads: React.FC = () => {
                                                                 ? `${lead.assignedUser.firstName} ${lead.assignedUser.lastName}`
                                                                 : "-"}
                                                         </td>
+                                                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('ownerId') ? 'hidden' : ''}`} data-label="Lead Owner">
+                                                            {lead.ownerUser
+                                                                ? `${lead.ownerUser.firstName} ${lead.ownerUser.lastName}`
+                                                                : "-"}
+                                                        </td>
+
                                                         <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('createdAt') ? 'hidden' : ''}`} data-label="Created">
                                                             <div className="flex items-center gap-1.5">
                                                                 <Calendar className="h-3 w-3 flex-shrink-0" />

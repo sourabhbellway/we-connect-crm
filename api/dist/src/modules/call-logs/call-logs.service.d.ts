@@ -41,8 +41,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             })[];
             pagination: {
                 currentPage: number;
@@ -82,8 +82,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             };
         };
         message?: undefined;
@@ -124,8 +124,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             };
         };
         message?: undefined;
@@ -166,8 +166,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             };
         };
         message?: undefined;
@@ -205,8 +205,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             }[];
         };
         message?: undefined;
@@ -247,8 +247,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             })[];
         };
         message?: undefined;
@@ -293,8 +293,8 @@ export declare class CallLogsService {
                 callStatus: import(".prisma/client").$Enums.CallStatus;
                 startTime: Date | null;
                 endTime: Date | null;
-                isAnswered: boolean;
                 recordingUrl: string | null;
+                isAnswered: boolean;
             };
         };
         message?: undefined;

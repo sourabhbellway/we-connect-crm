@@ -6,7 +6,7 @@ import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
 
 @Injectable()
 export class NotesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async list(leadId: number, user?: any) {
     try {
@@ -20,6 +20,7 @@ export class NotesService {
         const roleBasedWhere = await getRoleBasedWhereClause(
           user.userId,
           this.prisma,
+          ['createdBy'],
         );
         if (Object.keys(roleBasedWhere).length > 0) {
           where.AND = [roleBasedWhere];
@@ -63,6 +64,7 @@ export class NotesService {
         const roleBasedWhere = await getRoleBasedWhereClause(
           user.userId,
           this.prisma,
+          ['createdBy'],
         );
         if (Object.keys(roleBasedWhere).length > 0) {
           where.AND = [roleBasedWhere];

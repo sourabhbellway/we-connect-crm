@@ -680,7 +680,7 @@ const Deals: React.FC = () => {
                       <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400 mb-3">
                         <DollarSign className="h-4 w-4 mr-1 flex-shrink-0" />
                         <span className="truncate">
-                          {new Intl.NumberFormat('en-US', { style: 'currency', currency: deal.currency || 'USD' }).format(deal.value || 0)}
+                          {formatCurrency(deal.value || 0, deal.currency)}
                         </span>
                       </div>
 
@@ -946,7 +946,20 @@ const Deals: React.FC = () => {
                         <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('value') ? 'hidden' : ''}`} data-label="Value">
                           <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
                             <div className="h-4 w-4 mr-1" />
-                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: deal.currency }).format(deal.value)}
+                            {(() => {
+                              const symbolToIso: Record<string, string> = {
+                                '₹': 'INR', '$': 'USD', '€': 'EUR', '£': 'GBP',
+                                '¥': 'JPY', '₩': 'KRW', '₺': 'TRY', '₽': 'RUB',
+                                'د.إ': 'AED', '﷼': 'SAR', '৳': 'BDT', '₦': 'NGN',
+                              };
+                              const rawCode = deal.currency || 'USD';
+                              const isoCode = rawCode.length === 3 ? rawCode : (symbolToIso[rawCode] ?? 'USD');
+                              try {
+                                return new Intl.NumberFormat('en-US', { style: 'currency', currency: isoCode }).format(deal.value);
+                              } catch {
+                                return `${rawCode}${deal.value?.toLocaleString() ?? 0}`;
+                              }
+                            })()}
                           </div>
                         </td>
                         <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('company') ? 'hidden' : ''}`} data-label="Company">

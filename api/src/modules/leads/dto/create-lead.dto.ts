@@ -73,6 +73,7 @@ export class CreateLeadDto {
   @IsOptional() @IsString() status?: string; // maps to LeadStatus (uppercased)
   @IsOptional() @IsIn(['low', 'medium', 'high', 'urgent']) priority?: string; // maps to LeadPriority (uppercased)
   @IsOptional() @Type(() => Number) @IsNumber() assignedTo?: number;
+  @IsOptional() @Type(() => Number) @IsNumber() ownerId?: number;
 
   // Business
   @IsOptional() @Type(() => Number) @IsNumber() budget?: number;

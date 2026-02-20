@@ -18,6 +18,8 @@ const passport_1 = require("@nestjs/passport");
 const industries_service_1 = require("./industries.service");
 const upsert_industry_dto_1 = require("./dto/upsert-industry.dto");
 const upsert_industry_field_dto_1 = require("./dto/upsert-industry-field.dto");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let IndustriesController = class IndustriesController {
     service;
     constructor(service) {
@@ -48,12 +50,14 @@ let IndustriesController = class IndustriesController {
 exports.IndustriesController = IndustriesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('industries.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], IndustriesController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('industries.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [upsert_industry_dto_1.UpsertIndustryDto]),
@@ -61,6 +65,7 @@ __decorate([
 ], IndustriesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('industries.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -69,6 +74,7 @@ __decorate([
 ], IndustriesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('industries.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -76,6 +82,7 @@ __decorate([
 ], IndustriesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':industryId/fields'),
+    (0, permission_decorator_1.RequirePermission)('industries.update'),
     __param(0, (0, common_1.Param)('industryId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -84,6 +91,7 @@ __decorate([
 ], IndustriesController.prototype, "addField", null);
 __decorate([
     (0, common_1.Put)('fields/:fieldId'),
+    (0, permission_decorator_1.RequirePermission)('industries.update'),
     __param(0, (0, common_1.Param)('fieldId')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -92,13 +100,14 @@ __decorate([
 ], IndustriesController.prototype, "updateField", null);
 __decorate([
     (0, common_1.Delete)('fields/:fieldId'),
+    (0, permission_decorator_1.RequirePermission)('industries.update'),
     __param(0, (0, common_1.Param)('fieldId')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], IndustriesController.prototype, "removeField", null);
 exports.IndustriesController = IndustriesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('industries'),
     __metadata("design:paramtypes", [industries_service_1.IndustriesService])
 ], IndustriesController);

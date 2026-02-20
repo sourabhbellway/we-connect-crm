@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const lead_sources_service_1 = require("./lead-sources.service");
 const upsert_lead_source_dto_1 = require("./dto/upsert-lead-source.dto");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let LeadSourcesController = class LeadSourcesController {
     service;
     constructor(service) {
@@ -38,12 +40,14 @@ let LeadSourcesController = class LeadSourcesController {
 exports.LeadSourcesController = LeadSourcesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], LeadSourcesController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [upsert_lead_source_dto_1.UpsertLeadSourceDto]),
@@ -51,6 +55,7 @@ __decorate([
 ], LeadSourcesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -59,13 +64,14 @@ __decorate([
 ], LeadSourcesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_lead_source.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], LeadSourcesController.prototype, "remove", null);
 exports.LeadSourcesController = LeadSourcesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('lead-sources'),
     __metadata("design:paramtypes", [lead_sources_service_1.LeadSourcesService])
 ], LeadSourcesController);

@@ -17,6 +17,10 @@ const common_1 = require("@nestjs/common");
 const unit_types_service_1 = require("./unit-types.service");
 const create_unit_type_dto_1 = require("./dto/create-unit-type.dto");
 const update_unit_type_dto_1 = require("./dto/update-unit-type.dto");
+const passport_1 = require("@nestjs/passport");
+const common_2 = require("@nestjs/common");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let UnitTypesController = class UnitTypesController {
     unitTypesService;
     constructor(unitTypesService) {
@@ -44,6 +48,7 @@ let UnitTypesController = class UnitTypesController {
 exports.UnitTypesController = UnitTypesController;
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('unit_types.create'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -52,12 +57,14 @@ __decorate([
 ], UnitTypesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('unit_types.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], UnitTypesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('unit_types.read'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -65,6 +72,7 @@ __decorate([
 ], UnitTypesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
+    (0, permission_decorator_1.RequirePermission)('unit_types.update'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -73,6 +81,7 @@ __decorate([
 ], UnitTypesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('unit_types.delete'),
     (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -81,12 +90,14 @@ __decorate([
 ], UnitTypesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Patch)(':id/toggle'),
+    (0, permission_decorator_1.RequirePermission)('unit_types.update'),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], UnitTypesController.prototype, "toggleActive", null);
 exports.UnitTypesController = UnitTypesController = __decorate([
+    (0, common_2.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('business-settings/unit-types'),
     __metadata("design:paramtypes", [unit_types_service_1.UnitTypesService])
 ], UnitTypesController);

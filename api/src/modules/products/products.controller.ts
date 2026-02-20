@@ -21,13 +21,16 @@ import type { Response } from 'express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly service: ProductsService) {}
+  constructor(private readonly service: ProductsService) { }
 
   @Get()
+  @RequirePermission('products.read')
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -45,11 +48,13 @@ export class ProductsController {
   }
 
   @Get(':id')
+  @RequirePermission('products.read')
   get(@Param('id') id: string) {
     return this.service.getById(Number(id));
   }
 
   @Post()
+  @RequirePermission('products.create')
   async create(@Body() dto: CreateProductDto) {
     try {
       console.log('Creating product with data:', JSON.stringify(dto, null, 2));
@@ -79,6 +84,7 @@ export class ProductsController {
   }
 
   @Put(':id')
+  @RequirePermission('products.update')
   async update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     try {
       const result = await this.service.update(Number(id), dto);
@@ -105,11 +111,13 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @RequirePermission('products.delete')
   remove(@Param('id') id: string) {
     return this.service.remove(Number(id));
   }
 
   @Delete('bulk/delete')
+  @RequirePermission('products.delete')
   async bulkDelete(@Body() dto: { ids: number[] }) {
     if (!dto.ids || !Array.isArray(dto.ids) || dto.ids.length === 0) {
       throw new BadRequestException('Product IDs are required');
@@ -118,6 +126,7 @@ export class ProductsController {
   }
 
   @Get('bulk/export')
+  @RequirePermission('products.export')
   async bulkExport(@Res() res: Response, @Query('search') search?: string) {
     const csv = await this.service.bulkExport({ search });
     const filename = `products_export_${new Date().toISOString().slice(0, 10)}.csv`;
@@ -128,6 +137,7 @@ export class ProductsController {
   }
 
   @Post('bulk/import')
+  @RequirePermission('products.import')
   @UseInterceptors(FileInterceptor('csvFile'))
   async bulkImport(@UploadedFile() file: Express.Multer.File) {
     if (!file) {

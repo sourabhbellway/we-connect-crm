@@ -17,6 +17,10 @@ const common_1 = require("@nestjs/common");
 const teams_service_1 = require("./teams.service");
 const create_team_dto_1 = require("./dto/create-team.dto");
 const update_team_dto_1 = require("./dto/update-team.dto");
+const passport_1 = require("@nestjs/passport");
+const common_2 = require("@nestjs/common");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let TeamsController = class TeamsController {
     teamsService;
     constructor(teamsService) {
@@ -41,6 +45,7 @@ let TeamsController = class TeamsController {
 exports.TeamsController = TeamsController;
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('teams.create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_team_dto_1.CreateTeamDto]),
@@ -48,12 +53,14 @@ __decorate([
 ], TeamsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('teams.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TeamsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('teams.read'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -61,6 +68,7 @@ __decorate([
 ], TeamsController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
+    (0, permission_decorator_1.RequirePermission)('teams.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -69,12 +77,14 @@ __decorate([
 ], TeamsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('teams.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], TeamsController.prototype, "remove", null);
 exports.TeamsController = TeamsController = __decorate([
+    (0, common_2.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('teams'),
     __metadata("design:paramtypes", [teams_service_1.TeamsService])
 ], TeamsController);

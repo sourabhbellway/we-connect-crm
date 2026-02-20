@@ -25,7 +25,7 @@ let NotesService = class NotesService {
                 deletedAt: null,
             };
             if (user && user.userId) {
-                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma);
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['createdBy']);
                 if (Object.keys(roleBasedWhere).length > 0) {
                     where.AND = [roleBasedWhere];
                 }
@@ -58,7 +58,7 @@ let NotesService = class NotesService {
         try {
             const where = { id, deletedAt: null };
             if (user && user.userId) {
-                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma);
+                const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma, ['createdBy']);
                 if (Object.keys(roleBasedWhere).length > 0) {
                     where.AND = [roleBasedWhere];
                 }

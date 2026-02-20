@@ -269,23 +269,38 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
   };
 
   // Utility Methods
+  // Map common currency symbols → ISO 4217 codes (DB sometimes stores the symbol instead of the code)
+  const SYMBOL_TO_ISO: Record<string, string> = {
+    '₹': 'INR', '$': 'USD', '€': 'EUR', '£': 'GBP',
+    '¥': 'JPY', '₩': 'KRW', '₺': 'TRY', '₽': 'RUB',
+    'د.إ': 'AED', '﷼': 'SAR', '৳': 'BDT', '₦': 'NGN',
+    'A$': 'AUD', 'C$': 'CAD', 'S$': 'SGD', 'HK$': 'HKD',
+  };
+
+  const normaliseIso = (code?: string): string => {
+    if (!code) return 'USD';
+    if (code.length === 3) return code; // already an ISO code
+    return SYMBOL_TO_ISO[code] ?? 'USD';
+  };
+
   const formatCurrency = (amount: number | string | undefined | null, currency?: string): string => {
     let num = Number(amount);
     if (!isFinite(num)) num = 0;
     if (!currencySettings) return String(num);
 
-    const curr = currency || currencySettings.primary;
+    const rawCode = currency || currencySettings.primary;
+    const isoCode = normaliseIso(rawCode);
     const decimals = currencySettings.decimalPlaces || 2;
 
     try {
       return new Intl.NumberFormat(undefined, {
         style: 'currency',
-        currency: curr,
+        currency: isoCode,
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
       }).format(num);
     } catch (e) {
-      const symbol = currencySettings.symbol || '$';
+      const symbol = currencySettings.symbol || rawCode || '$';
       return currencySettings.position === 'before' ? `${symbol}${num.toFixed(decimals)}` : `${num.toFixed(decimals)}${symbol}`;
     }
   };

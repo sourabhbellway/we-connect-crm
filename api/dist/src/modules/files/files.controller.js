@@ -53,6 +53,8 @@ const files_service_1 = require("./files.service");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let FilesController = class FilesController {
     service;
     constructor(service) {
@@ -100,6 +102,7 @@ let FilesController = class FilesController {
 exports.FilesController = FilesController;
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('files.read'),
     __param(0, (0, common_1.Query)('entityType')),
     __param(1, (0, common_1.Query)('entityId')),
     __param(2, (0, user_decorator_1.User)()),
@@ -109,6 +112,7 @@ __decorate([
 ], FilesController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)('upload'),
+    (0, permission_decorator_1.RequirePermission)('files.create'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.UploadedFile)()),
     __param(1, (0, common_1.Body)('entityType')),
@@ -121,6 +125,7 @@ __decorate([
 ], FilesController.prototype, "upload", null);
 __decorate([
     (0, common_1.Get)(':id/download'),
+    (0, permission_decorator_1.RequirePermission)('files.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Res)()),
     __param(2, (0, common_1.Query)('disposition')),
@@ -131,13 +136,14 @@ __decorate([
 ], FilesController.prototype, "download", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('files.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], FilesController.prototype, "remove", null);
 exports.FilesController = FilesController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('files'),
     __metadata("design:paramtypes", [files_service_1.FilesService])
 ], FilesController);

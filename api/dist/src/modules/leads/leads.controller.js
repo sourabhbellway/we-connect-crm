@@ -23,6 +23,8 @@ const convert_lead_dto_1 = require("./dto/convert-lead.dto");
 const transfer_lead_dto_1 = require("./dto/transfer-lead.dto");
 const bulk_assign_dto_1 = require("./dto/bulk-assign.dto");
 const user_decorator_1 = require("../../common/decorators/user.decorator");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let LeadsController = class LeadsController {
     leads;
     constructor(leads) {
@@ -97,12 +99,14 @@ let LeadsController = class LeadsController {
 exports.LeadsController = LeadsController;
 __decorate([
     (0, common_1.Get)('stats'),
+    (0, permission_decorator_1.RequirePermission)('lead.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('lead.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('status')),
@@ -119,6 +123,7 @@ __decorate([
 ], LeadsController.prototype, "list", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, permission_decorator_1.RequirePermission)('lead.read'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -127,6 +132,7 @@ __decorate([
 ], LeadsController.prototype, "get", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, permission_decorator_1.RequirePermission)('lead.create'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
@@ -135,6 +141,7 @@ __decorate([
 ], LeadsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)(':id'),
+    (0, permission_decorator_1.RequirePermission)('lead.update'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -143,6 +150,7 @@ __decorate([
 ], LeadsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, permission_decorator_1.RequirePermission)('lead.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -150,6 +158,7 @@ __decorate([
 ], LeadsController.prototype, "remove", null);
 __decorate([
     (0, common_1.Delete)(':id/permanent'),
+    (0, permission_decorator_1.RequirePermission)('lead.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -157,6 +166,7 @@ __decorate([
 ], LeadsController.prototype, "deletePermanently", null);
 __decorate([
     (0, common_1.Put)(':id/transfer'),
+    (0, permission_decorator_1.RequirePermission)('lead.transfer'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -165,6 +175,7 @@ __decorate([
 ], LeadsController.prototype, "transfer", null);
 __decorate([
     (0, common_1.Put)('bulk/assign'),
+    (0, permission_decorator_1.RequirePermission)('lead.transfer'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [bulk_assign_dto_1.BulkAssignDto]),
@@ -172,6 +183,7 @@ __decorate([
 ], LeadsController.prototype, "bulkAssign", null);
 __decorate([
     (0, common_1.Post)(':id/convert'),
+    (0, permission_decorator_1.RequirePermission)('lead.convert'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -180,6 +192,7 @@ __decorate([
 ], LeadsController.prototype, "convert", null);
 __decorate([
     (0, common_1.Post)(':id/undo-conversion'),
+    (0, permission_decorator_1.RequirePermission)('lead.convert'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -187,6 +200,7 @@ __decorate([
 ], LeadsController.prototype, "undoConversion", null);
 __decorate([
     (0, common_1.Put)(':id/restore'),
+    (0, permission_decorator_1.RequirePermission)('lead.delete'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -202,6 +216,7 @@ __decorate([
             cb(null, true);
         },
     })),
+    (0, permission_decorator_1.RequirePermission)('lead.import'),
     __param(0, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -209,6 +224,7 @@ __decorate([
 ], LeadsController.prototype, "bulkImportLeads", null);
 __decorate([
     (0, common_1.Get)('bulk/export'),
+    (0, permission_decorator_1.RequirePermission)('lead.export'),
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Query)('status')),
     __param(2, (0, common_1.Query)('search')),
@@ -218,12 +234,13 @@ __decorate([
 ], LeadsController.prototype, "bulkExport", null);
 __decorate([
     (0, common_1.Post)('integrations/sync-all'),
+    (0, permission_decorator_1.RequirePermission)('lead.import'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "syncAllIntegrations", null);
 exports.LeadsController = LeadsController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('leads'),
     __metadata("design:paramtypes", [leads_service_1.LeadsService])
 ], LeadsController);

@@ -5,7 +5,7 @@ import { getAccessibleUserIds } from '../../common/utils/permission.util';
 
 @Injectable()
 export class AnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private async getAuthorizedUserIds(
     userId: number | undefined,
@@ -222,7 +222,7 @@ export class AnalyticsService {
         if (d.lead?.createdAt && d.actualCloseDate) {
           const days = Math.floor(
             (d.actualCloseDate.getTime() - d.lead.createdAt.getTime()) /
-              (1000 * 60 * 60 * 24),
+            (1000 * 60 * 60 * 24),
           );
           return sum + days;
         }
@@ -320,7 +320,7 @@ export class AnalyticsService {
         (sum: number, lead: any) =>
           sum +
           (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) /
-            (1000 * 60 * 60),
+          (1000 * 60 * 60),
         0,
       );
       avgResponseTimeHours =
@@ -808,7 +808,7 @@ export class AnalyticsService {
         const month = new Date(deal.actualCloseDate).toISOString().slice(0, 7); // YYYY-MM
         const days = Math.floor(
           (deal.actualCloseDate.getTime() - deal.lead.createdAt.getTime()) /
-            (1000 * 60 * 60 * 24),
+          (1000 * 60 * 60 * 24),
         );
 
         if (!monthlyData[month]) {
@@ -1100,10 +1100,10 @@ export class AnalyticsService {
             : 'Unassigned',
           date: t.dueDate
             ? new Date(t.dueDate).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })
             : 'No Date',
           status: 'Overdue',
         })),
@@ -1204,7 +1204,7 @@ export class AnalyticsService {
         return (
           sum +
           (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) /
-            (1000 * 60 * 60)
+          (1000 * 60 * 60)
         );
       }, 0);
       avgResponseTimeHours = totalHours / leadsWithResponse.length;
@@ -1216,7 +1216,7 @@ export class AnalyticsService {
         return (
           sum +
           (lead.lastContactedAt!.getTime() - lead.createdAt.getTime()) /
-            (1000 * 60 * 60)
+          (1000 * 60 * 60)
         );
       }, 0);
       prevAvgResponseTimeHours = totalHours / prevLeadsWithResponse.length;
@@ -1318,6 +1318,77 @@ export class AnalyticsService {
       }))
       .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
+    // 5. Call Analytics (User-wise and Date-wise)
+    const callsInRange = await this.prisma.callLog.findMany({
+      where: {
+        createdAt: { gte: startDate, lte: endDate },
+        ...(authorizedUserIds !== null ? { userId: { in: authorizedUserIds } } : {}),
+      },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    const userMetrics: Record<string, any> = {};
+    const dateMetrics: Record<string, any> = {};
+
+    // Initialize date metrics for the range
+    for (let i = 0; i < months; i++) {
+      const d = new Date(endDate);
+      d.setMonth(d.getMonth() - i);
+      const key = d.toISOString().slice(0, 7);
+      dateMetrics[key] = {
+        month: new Date(key + '-01').toLocaleDateString('en-US', { month: 'short' }),
+        attempted: 0,
+        connected: 0,
+        notConnected: 0,
+        interested: 0,
+        notInterested: 0
+      };
+    }
+
+    callsInRange.forEach(call => {
+      const userId = call.userId;
+      const userName = call.user ? `${call.user.firstName} ${call.user.lastName}` : 'Unknown';
+      const month = call.createdAt.toISOString().slice(0, 7);
+
+      if (!userMetrics[userId]) {
+        userMetrics[userId] = {
+          name: userName,
+          attempted: 0,
+          connected: 0,
+          notConnected: 0,
+          interested: 0,
+          notInterested: 0
+        };
+      }
+
+      const isConnected = call.isAnswered || call.callStatus === 'COMPLETED';
+      const isInterested = call.outcome?.toUpperCase() === 'INTERESTED';
+      const isNotInterested = call.outcome?.toUpperCase() === 'NOT_INTERESTED';
+
+      // Update User Metrics
+      userMetrics[userId].attempted++;
+      if (isConnected) userMetrics[userId].connected++;
+      else userMetrics[userId].notConnected++;
+      if (isInterested) userMetrics[userId].interested++;
+      if (isNotInterested) userMetrics[userId].notInterested++;
+
+      // Update Date Metrics
+      if (dateMetrics[month]) {
+        dateMetrics[month].attempted++;
+        if (isConnected) dateMetrics[month].connected++;
+        else dateMetrics[month].notConnected++;
+        if (isInterested) dateMetrics[month].interested++;
+        if (isNotInterested) dateMetrics[month].notInterested++;
+      }
+    });
+
+    const callAnalytics = {
+      userWise: Object.values(userMetrics),
+      dateWise: Object.values(dateMetrics).sort((a: any, b: any) => a.month.localeCompare(b.month))
+    };
+
     return {
       success: true,
       data: {
@@ -1337,6 +1408,7 @@ export class AnalyticsService {
         funnelData,
         sourceDistributionData,
         conversionTrendData,
+        callAnalytics, // Added new section
         pagination: {
           total: totalSources,
           page,
@@ -1468,12 +1540,12 @@ export class AnalyticsService {
     const avgDaysToClose =
       wonDealsWithDates.length > 0
         ? wonDealsWithDates.reduce(
-            (sum, d) =>
-              sum +
-              (d.actualCloseDate!.getTime() - d.createdAt.getTime()) /
-                (1000 * 60 * 60 * 24),
-            0,
-          ) / wonDealsWithDates.length
+          (sum, d) =>
+            sum +
+            (d.actualCloseDate!.getTime() - d.createdAt.getTime()) /
+            (1000 * 60 * 60 * 24),
+          0,
+        ) / wonDealsWithDates.length
         : 0;
 
     // 4. Recent Closed Deals (Paginated)

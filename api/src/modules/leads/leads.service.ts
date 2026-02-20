@@ -91,7 +91,7 @@ export class LeadsService {
     private readonly prisma: PrismaService,
     private readonly automationService: AutomationService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) { }
 
   async getStats() {
     const baseWhere = { deletedAt: null };
@@ -251,6 +251,22 @@ export class LeadsService {
                 email: true,
               },
             },
+            ownerUser: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            createdByUser: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
             tags: { include: { tag: true } },
             source: {
               select: { id: true, name: true, description: true },
@@ -280,6 +296,7 @@ export class LeadsService {
           updatedAt: r.updatedAt,
           sourceId: r.sourceId,
           assignedTo: r.assignedTo,
+          ownerId: r.ownerId,
           companyId: r.companyId,
           deletedAt: r.deletedAt,
           budget: r.budget,
@@ -303,13 +320,15 @@ export class LeadsService {
           previousStatus: r.previousStatus,
           convertedToDealId: r.convertedToDealId,
           assignedUser: r.assignedUser,
+          ownerUser: r.ownerUser,
+          createdByUser: r.createdByUser,
           tags:
             Array.isArray(rawTags) && rawTags.length > 0
               ? rawTags.map((lt: any) => ({
-                  id: lt.tag?.id || lt.id,
-                  name: lt.tag?.name || lt.name,
-                  color: lt.tag?.color || lt.color,
-                }))
+                id: lt.tag?.id || lt.id,
+                name: lt.tag?.name || lt.name,
+                color: lt.tag?.color || lt.color,
+              }))
               : [],
           source: rawSource,
         };
@@ -366,6 +385,12 @@ export class LeadsService {
         assignedUser: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
+        ownerUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        createdByUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         tags: { include: { tag: true } },
         source: {
           select: { id: true, name: true, description: true },
@@ -404,10 +429,10 @@ export class LeadsService {
         : undefined,
       tags: Array.isArray(leadRow.tags)
         ? leadRow.tags.map((lt: any) => ({
-            id: lt.tag.id,
-            name: lt.tag.name,
-            color: lt.tag.color,
-          }))
+          id: lt.tag.id,
+          name: lt.tag.name,
+          color: lt.tag.color,
+        }))
         : [],
       payments,
     };
@@ -598,6 +623,7 @@ export class LeadsService {
       'status',
       'priority',
       'assignedTo',
+      'ownerId',
       'budget',
       'currency',
       'leadScore',
@@ -644,6 +670,7 @@ export class LeadsService {
         priority: normalizeLeadPriority(dto.priority),
         sourceId: dto.sourceId || null,
         assignedTo: dto.assignedTo || userId || null, // <--- Auto-assign to creator if not specified
+        ownerId: dto.ownerId || userId || null, // <--- Set owner
         createdBy: userId || null, // <--- Save creator ID
         budget: (dto.budget as any) || null,
         currency: currency, // <--- Use the calculated currency here
@@ -675,6 +702,12 @@ export class LeadsService {
     const leadWithTags = await this.prisma.lead.findUnique({
       where: { id: lead.id },
       include: {
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        ownerUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         tags: { include: { tag: true } },
         source: {
           select: { id: true, name: true, description: true },
@@ -684,19 +717,19 @@ export class LeadsService {
 
     const formattedLead = leadWithTags
       ? {
-          ...leadWithTags,
-          status: String(leadWithTags.status || '').toLowerCase(),
-          priority: leadWithTags.priority
-            ? String(leadWithTags.priority).toLowerCase()
-            : undefined,
-          tags: Array.isArray(leadWithTags.tags)
-            ? leadWithTags.tags.map((lt: any) => ({
-                id: lt.tag.id,
-                name: lt.tag.name,
-                color: lt.tag.color,
-              }))
-            : [],
-        }
+        ...leadWithTags,
+        status: String(leadWithTags.status || '').toLowerCase(),
+        priority: leadWithTags.priority
+          ? String(leadWithTags.priority).toLowerCase()
+          : undefined,
+        tags: Array.isArray(leadWithTags.tags)
+          ? leadWithTags.tags.map((lt: any) => ({
+            id: lt.tag.id,
+            name: lt.tag.name,
+            color: lt.tag.color,
+          }))
+          : [],
+      }
       : lead;
 
     // Trigger automation for LEAD_CREATED
@@ -840,6 +873,25 @@ export class LeadsService {
         }
       }
 
+      // Check owner change
+      if (rest.ownerId !== undefined && lead.ownerId !== updated.ownerId) {
+        if (activityType === 'LEAD_UPDATED') {
+          title = 'Owner changed';
+          icon = 'UserCheck';
+          iconColor = '#8B5CF6';
+        }
+        if (updated.ownerId) {
+          const ownerUser = await this.prisma.user.findUnique({
+            where: { id: updated.ownerId },
+            select: { firstName: true, lastName: true },
+          });
+          const ownerName = ownerUser
+            ? `${ownerUser.firstName} ${ownerUser.lastName}`
+            : 'User';
+          changes.push(`Owner: ${ownerName}`);
+        }
+      }
+
       // Check other field changes
       if (rest.sourceId !== undefined && lead.sourceId !== updated.sourceId) {
         changes.push('Source updated');
@@ -903,6 +955,12 @@ export class LeadsService {
     const updatedWithTags = await this.prisma.lead.findUnique({
       where: { id },
       include: {
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        ownerUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         tags: { include: { tag: true } },
         source: {
           select: { id: true, name: true, description: true },
@@ -912,29 +970,29 @@ export class LeadsService {
 
     const normalized = updatedWithTags
       ? {
-          ...updatedWithTags,
-          status: String(updatedWithTags.status || '').toLowerCase(),
-          priority: updatedWithTags.priority
-            ? String(updatedWithTags.priority).toLowerCase()
-            : undefined,
-          tags: Array.isArray(updatedWithTags.tags)
-            ? updatedWithTags.tags.map((lt: any) => ({
-                id: lt.tag.id,
-                name: lt.tag.name,
-                color: lt.tag.color,
-              }))
-            : [],
-          source: updatedWithTags.source || null,
-        }
+        ...updatedWithTags,
+        status: String(updatedWithTags.status || '').toLowerCase(),
+        priority: updatedWithTags.priority
+          ? String(updatedWithTags.priority).toLowerCase()
+          : undefined,
+        tags: Array.isArray(updatedWithTags.tags)
+          ? updatedWithTags.tags.map((lt: any) => ({
+            id: lt.tag.id,
+            name: lt.tag.name,
+            color: lt.tag.color,
+          }))
+          : [],
+        source: updatedWithTags.source || null,
+      }
       : ({
-          ...updated,
-          status: String(updated.status || '').toLowerCase(),
-          priority: updated.priority
-            ? String(updated.priority).toLowerCase()
-            : undefined,
-          tags: [],
-          source: null,
-        } as any);
+        ...updated,
+        status: String(updated.status || '').toLowerCase(),
+        priority: updated.priority
+          ? String(updated.priority).toLowerCase()
+          : undefined,
+        tags: [],
+        source: null,
+      } as any);
 
     // Trigger automation workflows based on what changed
     try {
@@ -1436,40 +1494,40 @@ export class LeadsService {
               source:
                 row.source || row.leadsource || row.sourceid
                   ? {
-                      connectOrCreate: {
-                        where: {
-                          name: String(
-                            row.source || row.leadsource || row.sourceid,
-                          ),
-                        },
-                        create: {
-                          name: String(
-                            row.source || row.leadsource || row.sourceid,
-                          ),
-                          color: generateColorFromString(
-                            String(
-                              row.source || row.leadsource || row.sourceid,
-                            ),
-                          ),
-                        },
+                    connectOrCreate: {
+                      where: {
+                        name: String(
+                          row.source || row.leadsource || row.sourceid,
+                        ),
                       },
-                    }
+                      create: {
+                        name: String(
+                          row.source || row.leadsource || row.sourceid,
+                        ),
+                        color: generateColorFromString(
+                          String(
+                            row.source || row.leadsource || row.sourceid,
+                          ),
+                        ),
+                      },
+                    },
+                  }
                   : undefined,
               tags:
                 tagsList.length > 0
                   ? {
-                      create: tagsList.map((tagName) => ({
-                        tag: {
-                          connectOrCreate: {
-                            where: { name: tagName },
-                            create: {
-                              name: tagName,
-                              color: generateColorFromString(tagName),
-                            },
+                    create: tagsList.map((tagName) => ({
+                      tag: {
+                        connectOrCreate: {
+                          where: { name: tagName },
+                          create: {
+                            name: tagName,
+                            color: generateColorFromString(tagName),
                           },
                         },
-                      })),
-                    }
+                      },
+                    })),
+                  }
                   : undefined,
             },
           });
@@ -1528,18 +1586,18 @@ export class LeadsService {
       fieldConfigs.length > 0
         ? fieldConfigs.map((f) => f.fieldName)
         : [
-            'firstName',
-            'lastName',
-            'email',
-            'phone',
-            'company',
-            'position',
-            'status',
-            'priority',
-            'source',
-            'assignedTo',
-            'createdAt',
-          ];
+          'firstName',
+          'lastName',
+          'email',
+          'phone',
+          'company',
+          'position',
+          'status',
+          'priority',
+          'source',
+          'assignedTo',
+          'createdAt',
+        ];
 
     const escape = (v: any) => {
       if (v === null || v === undefined) return '';
@@ -1554,7 +1612,21 @@ export class LeadsService {
     const rows = [headers.join(',')];
     for (const l of leads) {
       const row = headers.map((header) => {
-        // Handle standard fields
+        // Handle special relations or mapped fields first so we don't
+        // accidentally return raw IDs when the property also exists on
+        // the lead object.
+        if (header === 'source' || header === 'sourceId') {
+          return escape(l.source?.name || '');
+        }
+        if (header === 'assignedTo') {
+          return escape(
+            l.assignedUser
+              ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
+              : '',
+          );
+        }
+
+        // Handle standard scalar fields
         if (header in l) {
           const val = (l as any)[header];
           if (
@@ -1567,15 +1639,6 @@ export class LeadsService {
           }
           return escape(val);
         }
-
-        // Handle special relations or mapped fields
-        if (header === 'source') return escape(l.source?.name || '');
-        if (header === 'assignedTo')
-          return escape(
-            l.assignedUser
-              ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
-              : '',
-          );
 
         // Handle custom fields
         const customFields = (l.customFields as any) || {};

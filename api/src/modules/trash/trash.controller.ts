@@ -11,18 +11,22 @@ import {
 } from '@nestjs/common';
 import { TrashService } from './trash.service';
 import { AuthGuard } from '@nestjs/passport';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { RequirePermission } from '../../common/decorators/permission.decorator';
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('trash')
 export class TrashController {
-  constructor(private readonly trashService: TrashService) {}
+  constructor(private readonly trashService: TrashService) { }
 
   @Get('stats')
+  @RequirePermission('trash.read')
   getStats() {
     return this.trashService.getStats();
   }
 
   @Get()
+  @RequirePermission('trash.read')
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -38,18 +42,21 @@ export class TrashController {
   }
 
   @Post(':type/:id/restore')
+  @RequirePermission('trash.restore')
   @HttpCode(HttpStatus.OK)
   restore(@Param('type') type: string, @Param('id') id: string) {
     return this.trashService.restore(type, parseInt(id));
   }
 
   @Delete(':type/:id')
+  @RequirePermission('trash.delete')
   @HttpCode(HttpStatus.OK)
   permanentDelete(@Param('type') type: string, @Param('id') id: string) {
     return this.trashService.permanentDelete(type, parseInt(id));
   }
 
   @Delete('empty/:type')
+  @RequirePermission('trash.delete')
   @HttpCode(HttpStatus.OK)
   emptyTrash(@Param('type') type: string) {
     return this.trashService.emptyTrash(type);

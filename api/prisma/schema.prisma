@@ -122,6 +122,7 @@ model User {
   importBatches          LeadImportBatch[]         @relation("UserLeadImports")
   assignedLeads          Lead[]                    @relation("UserAssignedLeads")
   createdLeads           Lead[]                    @relation("UserCreatedLeads")
+  ownedLeads             Lead[]                    @relation("UserOwnedLeads")
   loginSessions          LoginSession[]
   notes                  Note[]                    @relation("UserNotes")
   notificationPreference NotificationPreference?   @relation("UserNotificationPreference")
@@ -231,6 +232,7 @@ model Lead {
   updatedAt              DateTime               @updatedAt
   sourceId               Int?
   assignedTo             Int?
+  ownerId                Int?
   companyId              Int?
   deletedAt              DateTime?
   budget                 Decimal?               @db.Decimal(10, 2)
@@ -267,6 +269,7 @@ model Lead {
   integrationSync        LeadIntegrationSync[]
   tags                   LeadTag[]
   assignedUser           User?                  @relation("UserAssignedLeads", fields: [assignedTo], references: [id])
+  ownerUser              User?                  @relation("UserOwnedLeads", fields: [ownerId], references: [id])
   companies              companies?             @relation(fields: [companyId], references: [id])
   createdByUser          User?                  @relation("UserCreatedLeads", fields: [createdBy], references: [id])
   source                 LeadSource?            @relation(fields: [sourceId], references: [id])

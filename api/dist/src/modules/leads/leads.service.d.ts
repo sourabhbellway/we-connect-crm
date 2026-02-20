@@ -43,6 +43,7 @@ export declare class LeadsService {
                 updatedAt: any;
                 sourceId: any;
                 assignedTo: any;
+                ownerId: any;
                 companyId: any;
                 deletedAt: any;
                 budget: any;
@@ -66,6 +67,8 @@ export declare class LeadsService {
                 previousStatus: any;
                 convertedToDealId: any;
                 assignedUser: any;
+                ownerUser: any;
+                createdByUser: any;
                 tags: {
                     id: any;
                     name: any;
@@ -116,6 +119,7 @@ export declare class LeadsService {
             position: string | null;
             status: import(".prisma/client").$Enums.LeadStatus;
             sourceId: number | null;
+            ownerId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             priority: import(".prisma/client").$Enums.LeadPriority;
@@ -142,6 +146,18 @@ export declare class LeadsService {
                 name: any;
                 color: any;
             }[];
+            assignedUser: {
+                email: string;
+                firstName: string;
+                lastName: string;
+                id: number;
+            } | null;
+            ownerUser: {
+                email: string;
+                firstName: string;
+                lastName: string;
+                id: number;
+            } | null;
             source: {
                 id: number;
                 name: string;
@@ -166,6 +182,7 @@ export declare class LeadsService {
             company: string | null;
             position: string | null;
             sourceId: number | null;
+            ownerId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             website: string | null;
@@ -228,6 +245,7 @@ export declare class LeadsService {
             position: string | null;
             status: import(".prisma/client").$Enums.LeadStatus;
             sourceId: number | null;
+            ownerId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             priority: import(".prisma/client").$Enums.LeadPriority;
@@ -294,6 +312,7 @@ export declare class LeadsService {
                 position: string | null;
                 status: import(".prisma/client").$Enums.LeadStatus;
                 sourceId: number | null;
+                ownerId: number | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
                 priority: import(".prisma/client").$Enums.LeadPriority;

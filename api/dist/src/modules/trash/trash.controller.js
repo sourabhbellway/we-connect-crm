@@ -16,6 +16,8 @@ exports.TrashController = void 0;
 const common_1 = require("@nestjs/common");
 const trash_service_1 = require("./trash.service");
 const passport_1 = require("@nestjs/passport");
+const permissions_guard_1 = require("../../common/guards/permissions.guard");
+const permission_decorator_1 = require("../../common/decorators/permission.decorator");
 let TrashController = class TrashController {
     trashService;
     constructor(trashService) {
@@ -45,12 +47,14 @@ let TrashController = class TrashController {
 exports.TrashController = TrashController;
 __decorate([
     (0, common_1.Get)('stats'),
+    (0, permission_decorator_1.RequirePermission)('trash.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], TrashController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, permission_decorator_1.RequirePermission)('trash.read'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('type')),
@@ -61,6 +65,7 @@ __decorate([
 ], TrashController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)(':type/:id/restore'),
+    (0, permission_decorator_1.RequirePermission)('trash.restore'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)('type')),
     __param(1, (0, common_1.Param)('id')),
@@ -70,6 +75,7 @@ __decorate([
 ], TrashController.prototype, "restore", null);
 __decorate([
     (0, common_1.Delete)(':type/:id'),
+    (0, permission_decorator_1.RequirePermission)('trash.delete'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)('type')),
     __param(1, (0, common_1.Param)('id')),
@@ -79,6 +85,7 @@ __decorate([
 ], TrashController.prototype, "permanentDelete", null);
 __decorate([
     (0, common_1.Delete)('empty/:type'),
+    (0, permission_decorator_1.RequirePermission)('trash.delete'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Param)('type')),
     __metadata("design:type", Function),
@@ -86,7 +93,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], TrashController.prototype, "emptyTrash", null);
 exports.TrashController = TrashController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('trash'),
     __metadata("design:paramtypes", [trash_service_1.TrashService])
 ], TrashController);
