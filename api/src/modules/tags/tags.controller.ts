@@ -20,7 +20,6 @@ export class TagsController {
   constructor(private readonly service: TagsService) { }
 
   @Get()
-  @RequirePermission('tags.read')
   list() {
     return this.service.list();
   }

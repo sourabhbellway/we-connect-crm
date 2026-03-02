@@ -129,7 +129,7 @@ let ActivitiesService = class ActivitiesService {
             }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async list({ page = 1, limit = 10, type, search, userId, }, user) {
+    async list({ page = 1, limit = 10, type, search, userId, dateFrom, dateTo, }, user) {
         const andConditions = [];
         if (type && type !== 'ALL') {
             let typeCondition;
@@ -215,6 +215,12 @@ let ActivitiesService = class ActivitiesService {
                     { description: { contains: q, mode: 'insensitive' } },
                 ],
             });
+        }
+        if (dateFrom) {
+            andConditions.push({ createdAt: { gte: dateFrom } });
+        }
+        if (dateTo) {
+            andConditions.push({ createdAt: { lte: dateTo } });
         }
         const where = andConditions.length > 0 ? { AND: andConditions } : {};
         const [items, total] = await Promise.all([

@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import BackButton from "./BackButton";
 import { useCounts } from "../contexts/CountsContext";
 import Loader from "./Loader";
+import { formatValidationErrors } from "../utils/errorUtils";
 
 const LeadEdit: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -58,6 +59,7 @@ const LeadEdit: React.FC = () => {
           budget: lead.budget,
           currency: lead.currency,
           leadScore: lead.leadScore,
+          productId: lead.productId,
 
           // Notes and Tags
           notes: lead.notes,
@@ -83,13 +85,18 @@ const LeadEdit: React.FC = () => {
         ...data,
         sourceId: data.sourceId ? Number(data.sourceId) : undefined,
         assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
+        productId: data.productId ? Number(data.productId) : undefined,
         tags: Array.isArray(data.tags) ? data.tags.filter(Boolean) : [],
       });
       await refreshLeadsCount();
       toast.success("Lead updated");
       navigate("/leads");
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || e?.message || "Update failed");
+      const data = e?.response?.data;
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        toast.error(formatValidationErrors(data.errors));
+      }
+      throw e;
     } finally {
       setSubmitting(false);
     }

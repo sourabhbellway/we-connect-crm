@@ -21,32 +21,32 @@ class CreateUserDto {
 }
 exports.CreateUserDto = CreateUserDto;
 __decorate([
-    (0, class_validator_1.IsEmail)(),
+    (0, class_validator_1.IsEmail)({}, { message: 'Please enter a valid email address' }),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "email", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'First name is required' }),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "firstName", void 0);
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Last name is required' }),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "lastName", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.MinLength)(8),
+    (0, class_validator_1.MinLength)(8, { message: 'Password must be at least 8 characters long' }),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "password", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsInt)({ message: 'Manager ID must be an integer' }),
     __metadata("design:type", Number)
 ], CreateUserDto.prototype, "managerId", void 0);
 __decorate([
-    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsArray)({ message: 'Roles must be an array' }),
     (0, class_validator_1.ArrayNotEmpty)({ message: 'At least one role must be selected' }),
-    (0, class_validator_1.ArrayUnique)(),
-    (0, class_validator_1.IsInt)({ each: true }),
+    (0, class_validator_1.ArrayUnique)({ message: 'Duplicate roles are not allowed' }),
+    (0, class_validator_1.IsInt)({ each: true, message: 'Role IDs must be integers' }),
     __metadata("design:type", Array)
 ], CreateUserDto.prototype, "roleIds", void 0);
 //# sourceMappingURL=create-user.dto.js.map

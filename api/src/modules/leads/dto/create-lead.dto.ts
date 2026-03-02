@@ -10,8 +10,29 @@ import {
   MaxLength,
   Matches,
   IsNotEmpty,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class LeadProductDto {
+  @IsNumber()
+  @IsNotEmpty()
+  productId: number;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  quantity?: number;
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  price?: number;
+}
 
 export class CreateLeadDto {
   // Basic - Now optional, validation will be dynamic based on field configs
@@ -69,16 +90,23 @@ export class CreateLeadDto {
   preferredContactMethod?: string;
 
   // Lead Management
-  @IsOptional() @Type(() => Number) @IsNumber() sourceId?: number;
-  @IsOptional() @IsString() status?: string; // maps to LeadStatus (uppercased)
-  @IsOptional() @IsIn(['low', 'medium', 'high', 'urgent']) priority?: string; // maps to LeadPriority (uppercased)
-  @IsOptional() @Type(() => Number) @IsNumber() assignedTo?: number;
-  @IsOptional() @Type(() => Number) @IsNumber() ownerId?: number;
+  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Source ID must be a number' }) sourceId?: number;
+  @IsOptional() @IsString({ message: 'Status must be a string' }) status?: string; // maps to LeadStatus (uppercased)
+  @IsOptional() @IsIn(['low', 'medium', 'high', 'urgent'], { message: 'Priority must be one of: low, medium, high, urgent' }) priority?: string; // maps to LeadPriority (uppercased)
+  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Assigned to ID must be a number' }) assignedTo?: number;
+  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Owner ID must be a number' }) ownerId?: number;
 
   // Business
-  @IsOptional() @Type(() => Number) @IsNumber() budget?: number;
-  @IsOptional() @IsString() currency?: string;
-  @IsOptional() @Type(() => Number) @IsNumber() leadScore?: number;
+  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Budget must be a number' }) budget?: number;
+  @IsOptional() @IsString({ message: 'Currency must be a string' }) currency?: string;
+  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Lead score must be a number' }) leadScore?: number;
+  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Product ID must be a number' }) productId?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LeadProductDto)
+  products?: LeadProductDto[];
 
   // Notes and Tags
   @IsOptional() @IsString() notes?: string;

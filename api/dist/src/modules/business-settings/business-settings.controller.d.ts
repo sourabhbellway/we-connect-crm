@@ -181,10 +181,13 @@ export declare class BusinessSettingsController {
                 sortOrder: number;
             }[];
             leadStatuses: {
-                id: number;
-                name: "NEW" | "CONTACTED" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED" | "LOST" | "CONVERTED";
-                color: string;
                 isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                id: number;
+                name: string;
+                description: string | null;
+                color: string;
                 sortOrder: number;
             }[];
             dealStatuses: {
@@ -270,6 +273,48 @@ export declare class BusinessSettingsController {
         };
     }>;
     deleteDealStatus(id: string): Promise<{
+        success: boolean;
+    }>;
+    listLeadStatuses(): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        }[];
+    }>;
+    createLeadStatus(body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        };
+    }>;
+    updateLeadStatus(id: string, body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        };
+    }>;
+    deleteLeadStatus(id: string): Promise<{
         success: boolean;
     }>;
     getAvailableIntegrations(): Promise<{
@@ -847,5 +892,50 @@ export declare class BusinessSettingsController {
     updateDashboardSettings(body: any): Promise<{
         success: boolean;
         data: any;
+    }>;
+    listLeadSections(): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            icon: string;
+            key: string;
+            color: string;
+            sortOrder: number;
+            label: string;
+        }[];
+    }>;
+    createLeadSection(body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            icon: string;
+            key: string;
+            color: string;
+            sortOrder: number;
+            label: string;
+        };
+    }>;
+    updateLeadSection(id: string, body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            icon: string;
+            key: string;
+            color: string;
+            sortOrder: number;
+            label: string;
+        };
+    }>;
+    deleteLeadSection(id: string): Promise<{
+        success: boolean;
     }>;
 }

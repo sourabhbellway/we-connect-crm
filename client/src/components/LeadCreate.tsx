@@ -4,12 +4,15 @@ import { leadService, LeadPayload } from "../services/leadService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import BackButton from "./BackButton";
+import { useAuth } from "../contexts/AuthContext";
 import { useCounts } from "../contexts/CountsContext";
+import { formatValidationErrors } from "../utils/errorUtils";
 
 const LeadCreate: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { refreshLeadsCount } = useCounts();
+  const { user } = useAuth();
 
   const handleSubmit = async (data: LeadPayload) => {
     try {
@@ -19,6 +22,7 @@ const LeadCreate: React.FC = () => {
         // ensure numeric conversions
         sourceId: data.sourceId ? Number(data.sourceId) : undefined,
         assignedTo: data.assignedTo ? Number(data.assignedTo) : undefined,
+        productId: data.productId ? Number(data.productId) : undefined,
         tags: Array.isArray(data.tags) ? data.tags.filter(Boolean) : [],
       });
       await refreshLeadsCount();
@@ -27,19 +31,12 @@ const LeadCreate: React.FC = () => {
     } catch (e: any) {
       const data = e?.response?.data;
       if (Array.isArray(data?.errors) && data.errors.length > 0) {
-        const messages: string[] = [];
-        for (const err of data.errors) {
-          const msg = err?.msg || err?.message;
-          if (msg) messages.push(msg);
-        }
-        toast.error(messages.join("\n") || data?.message || "Validation errors", {
+        const errorMessage = formatValidationErrors(data.errors);
+        toast.error(errorMessage || data?.message || "Validation failed", {
           toastId: "lead_create_validation_errors",
         });
-      } else {
-        toast.error(data?.message || e?.message || "Create failed", {
-          toastId: "lead_create_error",
-        });
       }
+      throw e;
     } finally {
       setSubmitting(false);
     }
@@ -61,7 +58,7 @@ const LeadCreate: React.FC = () => {
         </div>
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-        <LeadForm onSubmit={handleSubmit} submitting={submitting} />
+        <LeadForm onSubmit={handleSubmit} submitting={submitting} initial={user ? { ownerId: user.id } as LeadPayload : undefined} />
       </div>
     </div>
   );

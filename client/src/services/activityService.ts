@@ -2,7 +2,17 @@ import apiClient from "./apiClient";
 
 export const activityService = {
   // Get all activities with pagination and filters
-  getActivities: async (page = 1, limit = 10, filters?: { type?: string; userId?: number }) => {
+  getActivities: async (
+    page = 1,
+    limit = 10,
+    filters?: {
+      type?: string;
+      userId?: number;
+      search?: string;
+      dateFrom?: string;
+      dateTo?: string;
+    },
+  ) => {
     try {
       const response = await apiClient.get("/activities", {
         params: { page, limit, ...filters },

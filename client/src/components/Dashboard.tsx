@@ -37,6 +37,11 @@ function Dashboard() {
         const name = (role.name || '').toLowerCase();
         return name === 'admin' || name === 'super_admin' || name === 'super admin';
     });
+
+    // LOGIC: Automatically set scope based on admin status
+    // Admins see 'all', regular users see 'me'
+    const scope = isAdmin ? 'all' : 'me';
+
     const [userStats, setUserStats] = useState({
         totalUsers: 0,
         activeUsers: 0,
@@ -69,8 +74,7 @@ function Dashboard() {
         total: number;
     }>({ today: 0, week: 0, month: 0, total: 0 });
 
-    // Slider state and datasets
-    // const [currentSlide, setCurrentSlide] = useState<number>(0);
+    // Lead stats state
     const [leadStats, setLeadStats] = useState<{
         totalLeads: number;
         newLeads: number;
@@ -99,8 +103,6 @@ function Dashboard() {
     // Dashboard KPI state
     const [dashboardKPIs, setDashboardKPIs] = useState<DashboardKPIs | null>(null);
     const [isKPILoading, setIsKPILoading] = useState(true);
-    // Admin sees 'all' by default, regular users see only their own data
-    const [scope, setScope] = useState<'all' | 'me'>('me');
 
     // Activity Calendar state
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -113,6 +115,11 @@ function Dashboard() {
     const [salesPipelineData, setSalesPipelineData] = useState<any[]>([]);
     const [activityTrendsData, setActivityTrendsData] = useState<any[]>([]);
     const [isChartsLoading, setIsChartsLoading] = useState(true);
+
+    // Helper: Calculate Total Deals from KPIs (Won + Active + Lost)
+    const totalDeals = (dashboardKPIs?.revenue.wonDeals || 0) +
+        (dashboardKPIs?.revenue.activeDeals || 0) +
+        (dashboardKPIs?.revenue.lostDeals || 0);
 
 
     // Helpers for calendar
@@ -230,7 +237,8 @@ function Dashboard() {
         const fetchLeadStats = async () => {
             try {
                 if (hasPermission("lead.read")) {
-                    // If scope is 'me', compute stats from my assigned leads
+                    // Logic: If scope is 'me', compute stats from my assigned leads.
+                    // If scope is 'all' (admin), fetch global stats.
                     if (scope === 'me' && user?.id) {
                         const res: any = await leadService.getLeads({ page: 1, limit: 100, assignedTo: Number(user.id) });
                         const items = res?.data?.leads || res?.data?.items || [];
@@ -279,6 +287,7 @@ function Dashboard() {
                             lostLeads: counts.lostLeads || 0,
                         });
                     } else {
+                        // Admin / Global view
                         const response = await leadService.getLeadStats();
                         const ls = response?.data || response;
                         setLeadStats({
@@ -430,7 +439,6 @@ function Dashboard() {
             try {
                 setIsChartsLoading(true);
 
-                const scopeParam = scope === 'me' ? 'me' : 'all';
                 const userIdParam = scope === 'me' && user?.id ? user.id : undefined;
 
                 const [
@@ -439,10 +447,10 @@ function Dashboard() {
                     salesPipelineResponse,
                     activityTrendsResponse,
                 ] = await Promise.all([
-                    analyticsService.getRevenueTrends(12, userIdParam, scopeParam),
-                    analyticsService.getLeadConversionFunnel(userIdParam, scopeParam),
-                    analyticsService.getSalesPipelineFlow(6, userIdParam, scopeParam),
-                    analyticsService.getActivityTrends(12, userIdParam, scopeParam),
+                    analyticsService.getRevenueTrends(12, userIdParam, scope),
+                    analyticsService.getLeadConversionFunnel(userIdParam, scope),
+                    analyticsService.getSalesPipelineFlow(6, userIdParam, scope),
+                    analyticsService.getActivityTrends(12, userIdParam, scope),
                 ]);
 
                 setRevenueTrendsData(revenueTrendsResponse?.data || []);
@@ -496,43 +504,14 @@ function Dashboard() {
                                 <p className="text-white/80 text-base sm:text-lg leading-relaxed max-w-2xl">
                                     Here's what's happening with your CRM today. You have{" "}
                                     <span className="text-white font-semibold">
-                                        {userStats.totalUsers} users
+                                        {leadStats.totalLeads} leads
                                     </span>{" "}
                                     and{" "}
                                     <span className="text-white font-semibold">
-                                        {leadStats.totalLeads} leads
+                                        {totalDeals} total deals
                                     </span>{" "}
-                                    in your {scope === "me" ? "pipeline" : "system"}.
+                                    in your {scope === "all" ? "organization" : "pipeline"}.
                                 </p>
-                                {/* Show scope toggle only for admin users */}
-                                {isAdmin && (
-                                    <div className="inline-flex flex-col xs:flex-row items-start xs:items-center gap-2">
-                                        <div className="flex items-center bg-white/10 border border-white/20 rounded-full p-1 shadow-lg">
-                                            <button
-                                                type="button"
-                                                aria-pressed={scope === "all"}
-                                                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm transition-colors ${scope === "all"
-                                                    ? "bg-white text-black"
-                                                    : "text-white/80"
-                                                    }`}
-                                                onClick={() => setScope("all")}
-                                            >
-                                                All Data
-                                            </button>
-                                            <button
-                                                type="button"
-                                                aria-pressed={scope === "me"}
-                                                className={`px-4 py-1.5 rounded-full text-xs sm:text-sm transition-colors ${scope === "me"
-                                                    ? "bg-white text-black"
-                                                    : "text-white/80"
-                                                    }`}
-                                                onClick={() => setScope("me")}
-                                            >
-                                                My Data
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
 
                             {canViewAnyStats && (
@@ -570,6 +549,17 @@ function Dashboard() {
                                                 className=""
                                             />
                                         )}
+
+                                        {canViewLeadStats && (
+                                            <StatsCard
+                                                icon={<HiOutlineCurrencyDollar className="w-6 h-6" />}
+                                                title="Total Deals"
+                                                value={isKPILoading ? "..." : totalDeals}
+                                                subtitle={`${dashboardKPIs?.revenue.wonDeals || 0} won, ${dashboardKPIs?.revenue.activeDeals || 0} active`}
+                                                color="orange"
+                                                className=""
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -581,9 +571,6 @@ function Dashboard() {
             {/* Main Dashboard Content */}
             <div className="space-y-8 mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-                    {/* System Status Card */}
-
-
                     {/* System Activity Card */}
                     {canViewSystemActivity && (
                         <div className="relative bg-gray-200 dark:bg-gray-800 rounded-2xl  hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
@@ -814,7 +801,6 @@ function Dashboard() {
                         </div>
                     )}
 
-                    {/* Conversion & Performance Metrics */}
                     {/* Conversion & Performance Metrics */}
                     {canViewPerformance && (
                         <div className="lg:col-span-1 bg-gray-200 dark:bg-gray-800 rounded-2xl  hover:shadow-xl transition-all duration-300 p-6 sm:p-8 border border-gray-100 dark:border-gray-700 mt-6 lg:mt-0">

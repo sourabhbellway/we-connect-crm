@@ -90,9 +90,7 @@ export declare class ActivitiesService {
                     phone: string | null;
                     company: string | null;
                     position: string | null;
-                    status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
-                    ownerId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     priority: import(".prisma/client").$Enums.LeadPriority;
@@ -109,8 +107,10 @@ export declare class ActivitiesService {
                     timezone: string | null;
                     preferredContactMethod: string | null;
                     customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
+                    ownerId: number | null;
+                    status: string;
+                    previousStatus: string | null;
                 }[];
                 total: number;
                 pages: number;
@@ -131,12 +131,14 @@ export declare class ActivitiesService {
             };
         };
     }>;
-    list({ page, limit, type, search, userId, }: {
+    list({ page, limit, type, search, userId, dateFrom, dateTo, }: {
         page?: number;
         limit?: number;
         type?: string;
         search?: string;
         userId?: number;
+        dateFrom?: Date;
+        dateTo?: Date;
     }, user?: any): Promise<{
         success: boolean;
         data: {

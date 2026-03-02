@@ -71,6 +71,7 @@ export declare class AuthController {
         success: boolean;
         data: {
             accessToken: string;
+            refreshToken: string;
             tokenExpiry: string;
         };
         message?: undefined;

@@ -86,9 +86,21 @@ class BusinessSettingsService {
     return apiRequest.put(`/lead-sources/reorder`, { sourceIds });
   }
 
-  // Lead Statuses (Fixed)
+  // Lead Statuses (Dynamic)
   async getLeadStatuses(): Promise<BusinessSettingsResponse<LeadStatus[]>> {
     return apiRequest.get(`${this.baseUrl}/lead-statuses`);
+  }
+
+  async createLeadStatus(data: Partial<LeadStatus>): Promise<BusinessSettingsResponse<LeadStatus>> {
+    return apiRequest.post(`${this.baseUrl}/lead-statuses`, data);
+  }
+
+  async updateLeadStatus(id: string, data: Partial<LeadStatus>): Promise<BusinessSettingsResponse<LeadStatus>> {
+    return apiRequest.put(`${this.baseUrl}/lead-statuses/${id}`, data);
+  }
+
+  async deleteLeadStatus(id: string): Promise<BusinessSettingsResponse<void>> {
+    return apiRequest.delete(`${this.baseUrl}/lead-statuses/${id}`);
   }
 
   // Deal Statuses (Dynamic)

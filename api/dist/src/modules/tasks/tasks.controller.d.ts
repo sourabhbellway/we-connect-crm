@@ -37,8 +37,8 @@ export declare class TasksController {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import(".prisma/client").$Enums.TaskStatus;
                 priority: import(".prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -73,8 +73,8 @@ export declare class TasksController {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import(".prisma/client").$Enums.TaskStatus;
                 priority: import(".prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -121,8 +121,8 @@ export declare class TasksController {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import(".prisma/client").$Enums.TaskStatus;
                 priority: import(".prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -163,8 +163,8 @@ export declare class TasksController {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import(".prisma/client").$Enums.TaskStatus;
                 priority: import(".prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -204,8 +204,8 @@ export declare class TasksController {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import(".prisma/client").$Enums.TaskStatus;
                 priority: import(".prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;
@@ -245,8 +245,8 @@ export declare class TasksController {
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number;
-                status: import(".prisma/client").$Enums.TaskStatus;
                 priority: import(".prisma/client").$Enums.TaskPriority;
+                status: import(".prisma/client").$Enums.TaskStatus;
                 completedAt: Date | null;
                 dueDate: Date | null;
                 dealId: number | null;

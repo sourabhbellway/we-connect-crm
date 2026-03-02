@@ -53,7 +53,7 @@ const Login: React.FC = () => {
     }
   }, [authError]);
 
-const validateForm = () => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     const email = formData.email.trim();
@@ -67,7 +67,7 @@ const validateForm = () => {
 
     if (!password) {
       newErrors.password = "Password is required";
-    } 
+    }
 
     setErrors(newErrors);
 
@@ -77,7 +77,7 @@ const validateForm = () => {
     return true;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isLoading) return; // prevent multiple submits
@@ -108,10 +108,17 @@ const handleSubmit = async (e: React.FormEvent) => {
       // Otherwise navigate after the effect
     } catch (err) {
       const anyErr: any = err;
-      const message =
-        anyErr?.response?.data?.message || anyErr?.message || "Invalid credentials";
-      // Show inline error only (avoid duplicate toast + inline)
+      const message = anyErr?.message || "Invalid credentials";
       setSubmitError(message);
+
+      if (anyErr.validationErrors && Array.isArray(anyErr.validationErrors)) {
+        const newErrors: Record<string, string> = {};
+        anyErr.validationErrors.forEach((error: any) => {
+          if (error.field === 'email') newErrors.email = error.messages.join(', ');
+          if (error.field === 'password') newErrors.password = error.messages.join(', ');
+        });
+        setErrors(newErrors);
+      }
     }
   };
 
@@ -122,7 +129,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   }, [user?.mustChangePassword, user, navigate]);
 
-const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
@@ -159,7 +166,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         <div className="relative rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
           {/* Subtle inner glow */}
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/10 via-transparent to-transparent"></div>
-          
+
           {/* Header */}
           <div className="relative text-center mb-6">
             <div className="mb-6">
@@ -205,22 +212,21 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
-<input
+                <input
                   id="email"
                   name="email"
                   type="email"
                   inputMode="email"
                   autoComplete="email"
                   required
-      
+
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={handleTrimOnBlur}
-                  className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
-                    errors.email
+                  className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${errors.email
                       ? "border-red-400/60 ring-red-400/20"
                       : "border-white/10 hover:border-white/20 hover:bg-white/10"
-                  }`}
+                    }`}
                   placeholder="Enter your email address"
                 />
               </div>
@@ -240,7 +246,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-white/60 group-focus-within:text-weconnect-red transition-colors" />
                 </div>
-<input
+                <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -251,11 +257,10 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={handleTrimOnBlur}
-                  className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
-                    errors.password
+                  className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${errors.password
                       ? "border-red-400/60 ring-red-400/20"
                       : "border-white/10 hover:border-white/20 hover:bg-white/10"
-                  }`}
+                    }`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -310,7 +315,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
               </button>
             </div>
 
-<button
+            <button
               type="submit"
               disabled={isLoading}
               aria-disabled={isLoading}
@@ -332,7 +337,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       </div>
 
       {/* Password Change Modal */}
-      <MustChangePasswordModal 
+      <MustChangePasswordModal
         isOpen={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
         onNavigateToProfile={() => navigate("/", { replace: true })}

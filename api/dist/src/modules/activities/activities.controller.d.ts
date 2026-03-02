@@ -87,9 +87,7 @@ export declare class ActivitiesController {
                     phone: string | null;
                     company: string | null;
                     position: string | null;
-                    status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
-                    ownerId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     priority: import(".prisma/client").$Enums.LeadPriority;
@@ -106,8 +104,10 @@ export declare class ActivitiesController {
                     timezone: string | null;
                     preferredContactMethod: string | null;
                     customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
+                    ownerId: number | null;
+                    status: string;
+                    previousStatus: string | null;
                 }[];
                 total: number;
                 pages: number;
@@ -128,7 +128,7 @@ export declare class ActivitiesController {
             };
         };
     }>;
-    list(page?: string, limit?: string, type?: string, userId?: string, user?: any): Promise<{
+    list(page?: string, limit?: string, type?: string, userId?: string, search?: string, dateFrom?: string, dateTo?: string, user?: any): Promise<{
         success: boolean;
         data: {
             items: ({

@@ -43,12 +43,8 @@ function getCurrencyByCountry(country) {
 }
 function normalizeLeadStatus(status) {
     if (!status)
-        return client_2.LeadStatus.NEW;
-    const upper = String(status).toUpperCase();
-    if (Object.values(client_2.LeadStatus).includes(upper)) {
-        return upper;
-    }
-    return client_2.LeadStatus.NEW;
+        return 'NEW';
+    return String(status).toUpperCase();
 }
 function normalizeLeadPriority(priority) {
     if (!priority)
@@ -210,14 +206,6 @@ let LeadsService = class LeadsService {
                                 email: true,
                             },
                         },
-                        createdByUser: {
-                            select: {
-                                id: true,
-                                firstName: true,
-                                lastName: true,
-                                email: true,
-                            },
-                        },
                         tags: { include: { tag: true } },
                         source: {
                             select: { id: true, name: true, description: true },
@@ -256,6 +244,7 @@ let LeadsService = class LeadsService {
                     companySize: r.companySize,
                     annualRevenue: r.annualRevenue,
                     leadScore: r.leadScore,
+                    productId: r.productId,
                     address: r.address,
                     country: r.country,
                     state: r.state,
@@ -268,7 +257,6 @@ let LeadsService = class LeadsService {
                     convertedToDealId: r.convertedToDealId,
                     assignedUser: r.assignedUser,
                     ownerUser: r.ownerUser,
-                    createdByUser: r.createdByUser,
                     tags: Array.isArray(rawTags) && rawTags.length > 0
                         ? rawTags.map((lt) => ({
                             id: lt.tag?.id || lt.id,
@@ -324,9 +312,6 @@ let LeadsService = class LeadsService {
                 ownerUser: {
                     select: { id: true, firstName: true, lastName: true, email: true },
                 },
-                createdByUser: {
-                    select: { id: true, firstName: true, lastName: true, email: true },
-                },
                 tags: { include: { tag: true } },
                 source: {
                     select: { id: true, name: true, description: true },
@@ -342,7 +327,13 @@ let LeadsService = class LeadsService {
                         },
                     },
                 },
-                quotations: true,
+                products: {
+                    include: {
+                        product: {
+                            select: { id: true, name: true, sku: true, price: true, currency: true },
+                        },
+                    },
+                },
             },
         });
         if (!leadRow)
@@ -365,6 +356,16 @@ let LeadsService = class LeadsService {
                 }))
                 : [],
             payments,
+            products: Array.isArray(leadRow.products)
+                ? leadRow.products.map((lp) => ({
+                    productId: lp.productId,
+                    name: lp.name,
+                    quantity: lp.quantity,
+                    price: Number(lp.price),
+                    sku: lp.product?.sku,
+                    currency: lp.product?.currency,
+                }))
+                : [],
         };
         return { success: true, data: { lead } };
     }
@@ -480,7 +481,7 @@ let LeadsService = class LeadsService {
         if (!currency) {
             currency = 'USD';
         }
-        const { tags, customFields, ...leadData } = dto;
+        const { tags, products, customFields, ...leadData } = dto;
         const fieldConfigs = await this.prisma.fieldConfig.findMany({
             where: { entityType: 'lead', isVisible: true },
         });
@@ -511,6 +512,7 @@ let LeadsService = class LeadsService {
             'budget',
             'currency',
             'leadScore',
+            'productId',
             'notes',
             'tags',
             'lastContactedAt',
@@ -565,6 +567,18 @@ let LeadsService = class LeadsService {
                 customFields: Object.keys(customFieldsData).length > 0 ? customFieldsData : null,
             },
         });
+        if (Array.isArray(products) && products.length > 0) {
+            await this.prisma.leadProduct.createMany({
+                data: products.map((p) => ({
+                    leadId: lead.id,
+                    productId: p.productId,
+                    name: p.name,
+                    quantity: p.quantity || 1,
+                    price: p.price || 0,
+                })),
+                skipDuplicates: true,
+            });
+        }
         if (Array.isArray(tags) && tags.length > 0) {
             await this.prisma.leadTag.createMany({
                 data: tags.map((tagId) => ({
@@ -584,6 +598,7 @@ let LeadsService = class LeadsService {
                     select: { id: true, firstName: true, lastName: true, email: true },
                 },
                 tags: { include: { tag: true } },
+                products: { include: { product: true } },
                 source: {
                     select: { id: true, name: true, description: true },
                 },
@@ -601,6 +616,16 @@ let LeadsService = class LeadsService {
                         id: lt.tag.id,
                         name: lt.tag.name,
                         color: lt.tag.color,
+                    }))
+                    : [],
+                products: Array.isArray(leadWithTags.products)
+                    ? leadWithTags.products.map((lp) => ({
+                        productId: lp.productId,
+                        name: lp.name,
+                        quantity: lp.quantity,
+                        price: Number(lp.price),
+                        sku: lp.product?.sku,
+                        currency: lp.product?.currency,
                     }))
                     : [],
             }
@@ -642,7 +667,7 @@ let LeadsService = class LeadsService {
         if (!lead)
             return { success: false, message: 'Lead not found' };
         await this.validateDynamicFields(dto, true);
-        const { tags, ...rest } = dto;
+        const { tags, products, ...rest } = dto;
         const updateData = { ...rest, updatedAt: new Date() };
         if (rest.status)
             updateData.status = normalizeLeadStatus(rest.status);
@@ -656,6 +681,23 @@ let LeadsService = class LeadsService {
             where: { id },
             data: updateData,
         });
+        if (Array.isArray(products)) {
+            await this.prisma.leadProduct.deleteMany({
+                where: { leadId: id },
+            });
+            if (products.length > 0) {
+                await this.prisma.leadProduct.createMany({
+                    data: products.map((p) => ({
+                        leadId: id,
+                        productId: p.productId,
+                        name: p.name,
+                        quantity: p.quantity || 1,
+                        price: p.price || 0,
+                    })),
+                    skipDuplicates: true,
+                });
+            }
+        }
         if (Array.isArray(tags)) {
             await this.prisma.leadTag.deleteMany({
                 where: { leadId: id },
@@ -785,6 +827,7 @@ let LeadsService = class LeadsService {
                     select: { id: true, firstName: true, lastName: true, email: true },
                 },
                 tags: { include: { tag: true } },
+                products: { include: { product: true } },
                 source: {
                     select: { id: true, name: true, description: true },
                 },
@@ -802,6 +845,16 @@ let LeadsService = class LeadsService {
                         id: lt.tag.id,
                         name: lt.tag.name,
                         color: lt.tag.color,
+                    }))
+                    : [],
+                products: Array.isArray(updatedWithTags.products)
+                    ? updatedWithTags.products.map((lp) => ({
+                        productId: lp.productId,
+                        name: lp.name,
+                        quantity: lp.quantity,
+                        price: Number(lp.price),
+                        sku: lp.product?.sku,
+                        currency: lp.product?.currency,
                     }))
                     : [],
                 source: updatedWithTags.source || null,
@@ -1322,14 +1375,6 @@ let LeadsService = class LeadsService {
         const rows = [headers.join(',')];
         for (const l of leads) {
             const row = headers.map((header) => {
-                if (header === 'source' || header === 'sourceId') {
-                    return escape(l.source?.name || '');
-                }
-                if (header === 'assignedTo') {
-                    return escape(l.assignedUser
-                        ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
-                        : '');
-                }
                 if (header in l) {
                     const val = l[header];
                     if (header === 'createdAt' ||
@@ -1340,6 +1385,12 @@ let LeadsService = class LeadsService {
                     }
                     return escape(val);
                 }
+                if (header === 'source')
+                    return escape(l.source?.name || '');
+                if (header === 'assignedTo')
+                    return escape(l.assignedUser
+                        ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
+                        : '');
                 const customFields = l.customFields || {};
                 if (header in customFields) {
                     return escape(customFields[header]);

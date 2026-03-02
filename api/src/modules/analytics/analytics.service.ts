@@ -382,16 +382,14 @@ export class AnalyticsService {
       _count: { status: true },
     });
 
-    const statusMap: Record<string, string> = {
-      NEW: 'New',
-      CONTACTED: 'Contacted',
-      QUALIFIED: 'Qualified',
-      PROPOSAL: 'Proposal',
-      NEGOTIATION: 'Negotiation',
-      CLOSED: 'Closed',
-      LOST: 'Lost',
-      CONVERTED: 'Converted',
-    };
+    const options = await this.prisma.leadStatusOption.findMany({
+      select: { name: true },
+    });
+
+    const statusMap: Record<string, string> = {};
+    options.forEach(opt => {
+      statusMap[opt.name] = opt.name.charAt(0) + opt.name.slice(1).toLowerCase();
+    });
 
     const data = statusCounts.map((item) => ({
       name: statusMap[item.status] || item.status,
@@ -1222,17 +1220,11 @@ export class AnalyticsService {
       prevAvgResponseTimeHours = totalHours / prevLeadsWithResponse.length;
     }
 
-    // 2. Conversion Funnel (Dynamic)
-    // We'll use the LeadStatus enum values as stages
-    const stages = [
-      'NEW',
-      'CONTACTED',
-      'QUALIFIED',
-      'PROPOSAL',
-      'NEGOTIATION',
-      'CLOSED',
-      'CONVERTED',
-    ];
+    const leadStatusOptions = await this.prisma.leadStatusOption.findMany({
+      orderBy: { sortOrder: 'asc' },
+      select: { name: true }
+    });
+    const stages = leadStatusOptions.map(opt => opt.name);
     const funnelCounts = await Promise.all(
       stages.map((status) =>
         this.prisma.lead.count({

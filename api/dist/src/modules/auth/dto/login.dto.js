@@ -23,6 +23,12 @@ __decorate([
 ], LoginDto.prototype, "email", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)({ message: 'Password is required' }),
+    (0, class_validator_1.IsString)({ message: 'Password must be a string' }),
+    (0, class_validator_1.MinLength)(8, { message: 'Password must be at least 8 characters long' }),
+    (0, class_validator_1.MaxLength)(50, { message: 'Password cannot exceed 50 characters' }),
+    (0, class_validator_1.Matches)(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,50}$/, {
+        message: 'Password must contain at least 1 letter and 1 number and be 8-50 characters long',
+    }),
     __metadata("design:type", String)
 ], LoginDto.prototype, "password", void 0);
 __decorate([

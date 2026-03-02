@@ -83,6 +83,7 @@ export interface RefreshTokenResponse {
   data: {
     accessToken: string;
     tokenExpiry: string;
+    refreshToken: string;
   };
 }
 
@@ -96,7 +97,7 @@ export interface PasswordRequirements {
 
 export interface ValidationError {
   field: string;
-  message: string;
+  messages: string[];
 }
 
 export interface AuthState {
@@ -107,6 +108,7 @@ export interface AuthState {
   isLoading: boolean;
   isBootstrapping: boolean;
   error: string | null;
+  validationErrors?: ValidationError[];
   passwordRequirements: PasswordRequirements | null;
   passwordChangeRequired?: boolean;
 }

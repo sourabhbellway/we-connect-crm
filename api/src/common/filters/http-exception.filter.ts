@@ -15,22 +15,40 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string = 'Internal server error';
 
-    if (exception instanceof HttpException) {
-      status = exception.getStatus();
-      const res = exception.getResponse();
+    const isHttpException = exception instanceof HttpException ||
+      (typeof exception === 'object' && exception !== null && 'getStatus' in exception && 'getResponse' in exception);
 
-      if (typeof res === 'string') {
-        message = res;
-      } else if (res && typeof res === 'object') {
-        const r: any = res;
+    if (isHttpException) {
+      const httpException = exception as any;
+      const httpStatus = httpException.getStatus();
+      const httpRes = httpException.getResponse();
 
-        if (Array.isArray(r.message) && r.message.length > 0) {
-          message = r.message[0];
-        } else if (typeof r.message === 'string') {
-          message = r.message;
-        } else if (typeof r.error === 'string') {
-          message = r.error;
-        }
+      // Enhanced Validation Error Handling
+      if (httpStatus === HttpStatus.BAD_REQUEST && httpRes.message && Array.isArray(httpRes.message)) {
+        response.status(httpStatus).json({
+          success: false,
+          message: 'Validation failed',
+          errors: httpRes.errors || httpRes.message.map((msg: string) => ({
+            field: msg.split(' ')[0] || 'field',
+            messages: [msg],
+          })),
+        });
+        return;
+      }
+
+      // If the response is already an object (e.g., our custom payload), forward it
+      if (httpRes && typeof httpRes === 'object') {
+        response.status(httpStatus).json({
+          success: false, // Ensure success: false is always present
+          ...httpRes,
+        });
+        return;
+      }
+
+      // Fallback for string messages
+      status = httpStatus;
+      if (typeof httpRes === 'string') {
+        message = httpRes;
       }
     } else {
       const anyException: any = exception;

@@ -25,39 +25,42 @@ class CreateQuotationItemDto {
 exports.CreateQuotationItemDto = CreateQuotationItemDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Product ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationItemDto.prototype, "productId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Item name must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Item name is required' }),
     __metadata("design:type", String)
 ], CreateQuotationItemDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationItemDto.prototype, "description", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Quantity must be a valid number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Quantity is required' }),
     __metadata("design:type", Number)
 ], CreateQuotationItemDto.prototype, "quantity", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Unit must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationItemDto.prototype, "unit", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Unit price must be a valid number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Unit price is required' }),
     __metadata("design:type", Number)
 ], CreateQuotationItemDto.prototype, "unitPrice", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Tax rate must be a valid number' }),
     __metadata("design:type", Number)
 ], CreateQuotationItemDto.prototype, "taxRate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Discount rate must be a valid number' }),
     __metadata("design:type", Number)
 ], CreateQuotationItemDto.prototype, "discountRate", void 0);
 class CreateQuotationDto {
@@ -80,76 +83,78 @@ class CreateQuotationDto {
 exports.CreateQuotationDto = CreateQuotationDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Quotation number must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "quotationNumber", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Title must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Title is required' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Status must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Discount amount must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationDto.prototype, "discountAmount", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Currency must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "currency", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)(),
+    (0, class_validator_1.IsDateString)({}, { message: 'Valid until must be a valid date string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "validUntil", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Notes must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "notes", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Terms must be a string' }),
     __metadata("design:type", String)
 ], CreateQuotationDto.prototype, "terms", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Company ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationDto.prototype, "companyId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationDto.prototype, "leadId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Deal ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationDto.prototype, "dealId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Contact ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationDto.prototype, "contactId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Creator ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateQuotationDto.prototype, "createdBy", void 0);
 __decorate([
-    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsArray)({ message: 'Items must be an array' }),
     (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Items are required' }),
     (0, class_transformer_1.Type)(() => CreateQuotationItemDto),
     __metadata("design:type", Array)
 ], CreateQuotationDto.prototype, "items", void 0);

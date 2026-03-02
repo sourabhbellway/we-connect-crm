@@ -5,6 +5,7 @@ import { Button } from "./ui";
 import { dealService } from "../services/dealService";
 import { toast } from "react-toastify";
 import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
+import { formatValidationErrors } from "../utils/errorUtils";
 
 const DealCreate: React.FC = () => {
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ const DealCreate: React.FC = () => {
     } catch (e: any) {
       const data = e?.response?.data;
       const message = Array.isArray(data?.errors)
-        ? data.errors.map((x: any) => x?.msg || x?.message).filter(Boolean).join("\n")
+        ? formatValidationErrors(data.errors)
         : data?.message || e?.message || "Failed to create deal";
       toast.error(message);
     } finally {

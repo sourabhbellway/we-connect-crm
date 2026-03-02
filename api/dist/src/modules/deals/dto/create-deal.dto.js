@@ -26,56 +26,58 @@ class CreateDealDto {
 }
 exports.CreateDealDto = CreateDealDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Title must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Title is required' }),
     __metadata("design:type", String)
 ], CreateDealDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateDealDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Value must be a number' }),
     __metadata("design:type", Number)
 ], CreateDealDto.prototype, "value", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Currency must be a string' }),
     __metadata("design:type", String)
 ], CreateDealDto.prototype, "currency", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Status must be a string' }),
     __metadata("design:type", String)
 ], CreateDealDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Probability must be a number' }),
     __metadata("design:type", Number)
 ], CreateDealDto.prototype, "probability", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Expected close date must be a string' }),
     __metadata("design:type", String)
 ], CreateDealDto.prototype, "expectedCloseDate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Assigned to ID must be a number' }),
     __metadata("design:type", Object)
 ], CreateDealDto.prototype, "assignedTo", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Contact ID must be a number' }),
     __metadata("design:type", Object)
 ], CreateDealDto.prototype, "contactId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead ID must be a number' }),
     __metadata("design:type", Object)
 ], CreateDealDto.prototype, "leadId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Company ID must be a number' }),
     __metadata("design:type", Object)
 ], CreateDealDto.prototype, "companyId", void 0);
 //# sourceMappingURL=create-deal.dto.js.map

@@ -149,12 +149,16 @@ export class ActivitiesService {
       type,
       search,
       userId,
+      dateFrom,
+      dateTo,
     }: {
       page?: number;
       limit?: number;
       type?: string;
       search?: string;
       userId?: number;
+      dateFrom?: Date;
+      dateTo?: Date;
     },
     user?: any,
   ) {
@@ -253,6 +257,14 @@ export class ActivitiesService {
           { description: { contains: q, mode: 'insensitive' } },
         ],
       });
+    }
+
+    // Date range filter
+    if (dateFrom) {
+      andConditions.push({ createdAt: { gte: dateFrom } });
+    }
+    if (dateTo) {
+      andConditions.push({ createdAt: { lte: dateTo } });
     }
 
     const where: any = andConditions.length > 0 ? { AND: andConditions } : {};

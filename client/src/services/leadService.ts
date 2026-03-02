@@ -22,6 +22,22 @@ const retryWithBackoff = async (
   }
 };
 
+export interface LeadProduct {
+  productId: number;
+  name: string;
+  quantity: number;
+  price: number;
+  sku?: string;
+  currency?: string;
+}
+
+export interface LeadProductPayload {
+  productId: number;
+  name: string;
+  quantity?: number;
+  price?: number;
+}
+
 export interface Lead {
   id: number;
   firstName: string;
@@ -89,6 +105,8 @@ export interface Lead {
   linkedinProfile?: string;
   lastContactedAt?: string | null;
   nextFollowUpAt?: string | null;
+  customFields?: Record<string, any>;
+  products?: LeadProduct[];
 }
 
 // Payload used by create/update endpoints. Backend expects tag IDs (number[]) not tag objects.
@@ -138,6 +156,7 @@ export interface LeadPayload {
   budget?: number;
   currency?: string;
   leadScore?: number;
+  productId?: number;
 
   // Notes and Tags
   notes?: string;
@@ -149,6 +168,7 @@ export interface LeadPayload {
 
   // Custom Fields
   customFields?: Record<string, any>;
+  products?: LeadProductPayload[];
 }
 
 export interface LeadStats {

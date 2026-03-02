@@ -306,16 +306,13 @@ let AnalyticsService = class AnalyticsService {
             where: whereClause,
             _count: { status: true },
         });
-        const statusMap = {
-            NEW: 'New',
-            CONTACTED: 'Contacted',
-            QUALIFIED: 'Qualified',
-            PROPOSAL: 'Proposal',
-            NEGOTIATION: 'Negotiation',
-            CLOSED: 'Closed',
-            LOST: 'Lost',
-            CONVERTED: 'Converted',
-        };
+        const options = await this.prisma.leadStatusOption.findMany({
+            select: { name: true },
+        });
+        const statusMap = {};
+        options.forEach(opt => {
+            statusMap[opt.name] = opt.name.charAt(0) + opt.name.slice(1).toLowerCase();
+        });
         const data = statusCounts.map((item) => ({
             name: statusMap[item.status] || item.status,
             value: item._count.status,
@@ -909,15 +906,11 @@ let AnalyticsService = class AnalyticsService {
             }, 0);
             prevAvgResponseTimeHours = totalHours / prevLeadsWithResponse.length;
         }
-        const stages = [
-            'NEW',
-            'CONTACTED',
-            'QUALIFIED',
-            'PROPOSAL',
-            'NEGOTIATION',
-            'CLOSED',
-            'CONVERTED',
-        ];
+        const leadStatusOptions = await this.prisma.leadStatusOption.findMany({
+            orderBy: { sortOrder: 'asc' },
+            select: { name: true }
+        });
+        const stages = leadStatusOptions.map(opt => opt.name);
         const funnelCounts = await Promise.all(stages.map((status) => this.prisma.lead.count({
             where: { ...leadWhereBase, status: status },
         })));

@@ -55,6 +55,9 @@ export class ActivitiesController {
     @Query('limit') limit?: string,
     @Query('type') type?: string,
     @Query('userId') userId?: string,
+    @Query('search') search?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
     @User() user?: any,
   ) {
     return this.service.list(
@@ -63,6 +66,9 @@ export class ActivitiesController {
         limit: limit ? parseInt(limit) : 10,
         type,
         userId: userId ? parseInt(userId) : undefined,
+        search,
+        dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+        dateTo: dateTo ? new Date(dateTo) : undefined,
       },
       user,
     );

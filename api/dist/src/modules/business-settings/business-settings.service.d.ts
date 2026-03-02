@@ -279,10 +279,13 @@ export declare class BusinessSettingsService {
                 sortOrder: number;
             }[];
             leadStatuses: {
-                id: number;
-                name: "NEW" | "CONTACTED" | "QUALIFIED" | "PROPOSAL" | "NEGOTIATION" | "CLOSED" | "LOST" | "CONVERTED";
-                color: string;
                 isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                id: number;
+                name: string;
+                description: string | null;
+                color: string;
                 sortOrder: number;
             }[];
             dealStatuses: {
@@ -301,6 +304,90 @@ export declare class BusinessSettingsService {
                 shippingTerms: any;
             };
         };
+    }>;
+    listDealStatuses(): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        }[];
+    }>;
+    createDealStatus(body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        };
+    }>;
+    updateDealStatus(id: number, body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        };
+    }>;
+    deleteDealStatus(id: number): Promise<{
+        success: boolean;
+    }>;
+    listLeadStatuses(): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        }[];
+    }>;
+    createLeadStatus(body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        };
+    }>;
+    updateLeadStatus(id: number, body: any): Promise<{
+        success: boolean;
+        data: {
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            id: number;
+            name: string;
+            description: string | null;
+            color: string;
+            sortOrder: number;
+        };
+    }>;
+    deleteLeadStatus(id: number): Promise<{
+        success: boolean;
     }>;
     getNumbering(): Promise<{
         success: boolean;
@@ -862,46 +949,53 @@ export declare class BusinessSettingsService {
             category: string | null;
         };
     }>;
-    listDealStatuses(): Promise<{
+    listLeadSections(): Promise<{
         success: boolean;
         data: {
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             id: number;
-            name: string;
-            description: string | null;
+            icon: string;
+            key: string;
             color: string;
             sortOrder: number;
+            label: string;
         }[];
     }>;
-    createDealStatus(body: any): Promise<{
+    createLeadSection(body: any): Promise<{
         success: boolean;
         data: {
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             id: number;
-            name: string;
-            description: string | null;
+            icon: string;
+            key: string;
             color: string;
             sortOrder: number;
+            label: string;
         };
     }>;
-    updateDealStatus(id: number, body: any): Promise<{
+    updateLeadSection(id: number, body: any): Promise<{
         success: boolean;
         data: {
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
             id: number;
-            name: string;
-            description: string | null;
+            icon: string;
+            key: string;
             color: string;
             sortOrder: number;
+            label: string;
         };
     }>;
-    deleteDealStatus(id: number): Promise<{
+    deleteLeadSection(id: number): Promise<{
         success: boolean;
+    }>;
+    initializeDefaultLeadSections(): Promise<{
+        success: boolean;
+        message: string;
     }>;
 }

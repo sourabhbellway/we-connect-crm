@@ -81,14 +81,22 @@ const RoleForm: React.FC<RoleFormProps> = ({
   const fetchPermissions = async () => {
     try {
       const response = await roleService.getPermissions();
+      // if the backend still returns contact permission make sure to handle on the backend as well
 
       // response shape from API: { success: boolean, data: Permission[] }
       const list: Permission[] = Array.isArray(response?.data)
         ? (response.data as Permission[])
         : (response?.permissions as Permission[]) || (response?.data as Permission[]) || [];
 
+      // remove contact permission entirely before grouping
+      const filteredList = list.filter(p => {
+        // adjust condition depending on how the API labels the permission
+        return !(p.key?.toLowerCase() === 'contact' ||
+                 p.name?.toLowerCase().includes('contact'));
+      });
+
       // Group permissions by module on the frontend
-      const grouped = (list || []).reduce(
+      const grouped = (filteredList || []).reduce(
         (acc: Record<string, Permission[]>, permission: Permission) => {
           if (!permission) return acc;
           const mod = permission.module || 'GENERAL';
@@ -100,12 +108,22 @@ const RoleForm: React.FC<RoleFormProps> = ({
       );
 
       setGroupedPermissions(grouped);
+      // ensure any selected contact permission ids are also removed from form data
+      setFormData(prev => ({
+        ...prev,
+        permissionIds: prev.permissionIds.filter(id => {
+          const perm = list.find(p => p.id === id);
+          return perm && !(perm.key?.toLowerCase() === 'contact' || perm.name?.toLowerCase().includes('contact'));
+        })
+      }));
     } catch (error) {
       console.error("Error fetching permissions:", error);
       toast.error("Failed to fetch permissions");
     } finally {
       setIsLoading(false);
     }
+
+  // Optionally call a server endpoint to purge contact permissions entirely
   };
 
   const handleSubmit = (e: React.FormEvent) => {

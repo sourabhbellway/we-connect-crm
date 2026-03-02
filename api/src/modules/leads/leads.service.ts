@@ -9,7 +9,7 @@ import { AutomationService } from '../automation/automation.service';
 import { WorkflowTrigger } from '../automation/dto/create-workflow.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '@prisma/client';
-import { PrismaClient, LeadPriority, LeadStatus } from '@prisma/client';
+import { PrismaClient, LeadPriority } from '@prisma/client';
 import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
 
 // --- NEW CODE: Country-to-Currency Mapping ---
@@ -41,13 +41,9 @@ function getCurrencyByCountry(country: string): string | null {
 // --- NEW CODE END ---
 
 // --- UPDATED HELPER: normalizeLeadStatus ---
-function normalizeLeadStatus(status?: string): LeadStatus {
-  if (!status) return LeadStatus.NEW;
-  const upper = String(status).toUpperCase();
-  if (Object.values(LeadStatus).includes(upper as any)) {
-    return upper as LeadStatus;
-  }
-  return LeadStatus.NEW;
+function normalizeLeadStatus(status?: string): string {
+  if (!status) return 'NEW';
+  return String(status).toUpperCase();
 }
 
 function normalizeLeadPriority(priority?: string): LeadPriority {
@@ -259,14 +255,6 @@ export class LeadsService {
                 email: true,
               },
             },
-            createdByUser: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
             tags: { include: { tag: true } },
             source: {
               select: { id: true, name: true, description: true },
@@ -309,6 +297,7 @@ export class LeadsService {
           companySize: r.companySize,
           annualRevenue: r.annualRevenue,
           leadScore: r.leadScore,
+          productId: r.productId,
           address: r.address,
           country: r.country,
           state: r.state,
@@ -321,7 +310,6 @@ export class LeadsService {
           convertedToDealId: r.convertedToDealId,
           assignedUser: r.assignedUser,
           ownerUser: r.ownerUser,
-          createdByUser: r.createdByUser,
           tags:
             Array.isArray(rawTags) && rawTags.length > 0
               ? rawTags.map((lt: any) => ({
@@ -388,9 +376,6 @@ export class LeadsService {
         ownerUser: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
-        createdByUser: {
-          select: { id: true, firstName: true, lastName: true, email: true },
-        },
         tags: { include: { tag: true } },
         source: {
           select: { id: true, name: true, description: true },
@@ -406,7 +391,13 @@ export class LeadsService {
             },
           },
         },
-        quotations: true,
+        products: {
+          include: {
+            product: {
+              select: { id: true, name: true, sku: true, price: true, currency: true },
+            },
+          },
+        },
       },
     });
     if (!leadRow) return { success: false, message: 'Lead not found' };
@@ -435,6 +426,16 @@ export class LeadsService {
         }))
         : [],
       payments,
+      products: Array.isArray(leadRow.products)
+        ? leadRow.products.map((lp: any) => ({
+          productId: lp.productId,
+          name: lp.name,
+          quantity: lp.quantity,
+          price: Number(lp.price),
+          sku: lp.product?.sku,
+          currency: lp.product?.currency,
+        }))
+        : [],
     };
 
     return { success: true, data: { lead } };
@@ -593,7 +594,7 @@ export class LeadsService {
       currency = 'USD';
     }
 
-    const { tags, customFields, ...leadData } = dto as any;
+    const { tags, products, customFields, ...leadData } = dto as any;
 
     // Get field configs to determine which fields go to customFields
     const fieldConfigs = await this.prisma.fieldConfig.findMany({
@@ -627,6 +628,7 @@ export class LeadsService {
       'budget',
       'currency',
       'leadScore',
+      'productId',
       'notes',
       'tags',
       'lastContactedAt',
@@ -687,6 +689,20 @@ export class LeadsService {
       },
     });
 
+    // Handle products if provided
+    if (Array.isArray(products) && products.length > 0) {
+      await this.prisma.leadProduct.createMany({
+        data: products.map((p: any) => ({
+          leadId: lead.id,
+          productId: p.productId,
+          name: p.name,
+          quantity: p.quantity || 1,
+          price: p.price || 0,
+        })),
+        skipDuplicates: true,
+      });
+    }
+
     // Handle tags if provided
     if (Array.isArray(tags) && tags.length > 0) {
       await this.prisma.leadTag.createMany({
@@ -709,6 +725,7 @@ export class LeadsService {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
         tags: { include: { tag: true } },
+        products: { include: { product: true } },
         source: {
           select: { id: true, name: true, description: true },
         },
@@ -727,6 +744,16 @@ export class LeadsService {
             id: lt.tag.id,
             name: lt.tag.name,
             color: lt.tag.color,
+          }))
+          : [],
+        products: Array.isArray(leadWithTags.products)
+          ? leadWithTags.products.map((lp: any) => ({
+            productId: lp.productId,
+            name: lp.name,
+            quantity: lp.quantity,
+            price: Number(lp.price),
+            sku: lp.product?.sku,
+            currency: lp.product?.currency,
           }))
           : [],
       }
@@ -783,7 +810,7 @@ export class LeadsService {
     // Validate dynamic fields
     await this.validateDynamicFields(dto, true);
 
-    const { tags, ...rest } = dto as any;
+    const { tags, products, ...rest } = dto as any;
     const updateData: any = { ...rest, updatedAt: new Date() };
     if (rest.status) updateData.status = normalizeLeadStatus(rest.status);
     if (rest.priority)
@@ -797,6 +824,28 @@ export class LeadsService {
       where: { id },
       data: updateData,
     });
+
+    // Handle products if provided
+    if (Array.isArray(products)) {
+      // Delete existing products
+      await this.prisma.leadProduct.deleteMany({
+        where: { leadId: id },
+      });
+
+      // Create new products
+      if (products.length > 0) {
+        await this.prisma.leadProduct.createMany({
+          data: products.map((p: any) => ({
+            leadId: id,
+            productId: p.productId,
+            name: p.name,
+            quantity: p.quantity || 1,
+            price: p.price || 0,
+          })),
+          skipDuplicates: true,
+        });
+      }
+    }
 
     // Handle tags if provided
     if (Array.isArray(tags)) {
@@ -962,6 +1011,7 @@ export class LeadsService {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
         tags: { include: { tag: true } },
+        products: { include: { product: true } },
         source: {
           select: { id: true, name: true, description: true },
         },
@@ -980,6 +1030,16 @@ export class LeadsService {
             id: lt.tag.id,
             name: lt.tag.name,
             color: lt.tag.color,
+          }))
+          : [],
+        products: Array.isArray(updatedWithTags.products)
+          ? updatedWithTags.products.map((lp: any) => ({
+            productId: lp.productId,
+            name: lp.name,
+            quantity: lp.quantity,
+            price: Number(lp.price),
+            sku: lp.product?.sku,
+            currency: lp.product?.currency,
           }))
           : [],
         source: updatedWithTags.source || null,
@@ -1612,21 +1672,7 @@ export class LeadsService {
     const rows = [headers.join(',')];
     for (const l of leads) {
       const row = headers.map((header) => {
-        // Handle special relations or mapped fields first so we don't
-        // accidentally return raw IDs when the property also exists on
-        // the lead object.
-        if (header === 'source' || header === 'sourceId') {
-          return escape(l.source?.name || '');
-        }
-        if (header === 'assignedTo') {
-          return escape(
-            l.assignedUser
-              ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
-              : '',
-          );
-        }
-
-        // Handle standard scalar fields
+        // Handle standard fields
         if (header in l) {
           const val = (l as any)[header];
           if (
@@ -1639,6 +1685,15 @@ export class LeadsService {
           }
           return escape(val);
         }
+
+        // Handle special relations or mapped fields
+        if (header === 'source') return escape(l.source?.name || '');
+        if (header === 'assignedTo')
+          return escape(
+            l.assignedUser
+              ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
+              : '',
+          );
 
         // Handle custom fields
         const customFields = (l.customFields as any) || {};

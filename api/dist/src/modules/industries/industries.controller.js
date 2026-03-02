@@ -50,7 +50,6 @@ let IndustriesController = class IndustriesController {
 exports.IndustriesController = IndustriesController;
 __decorate([
     (0, common_1.Get)(),
-    (0, permission_decorator_1.RequirePermission)('industries.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)

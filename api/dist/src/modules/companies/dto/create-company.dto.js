@@ -19,22 +19,23 @@ class CreateCompanyDto {
 }
 exports.CreateCompanyDto = CreateCompanyDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Name must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Company name is required' }),
     __metadata("design:type", String)
 ], CreateCompanyDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Domain must be a string' }),
     __metadata("design:type", String)
 ], CreateCompanyDto.prototype, "domain", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Slug must be a string' }),
     __metadata("design:type", String)
 ], CreateCompanyDto.prototype, "slug", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Industry ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateCompanyDto.prototype, "industryId", void 0);
 //# sourceMappingURL=create-company.dto.js.map

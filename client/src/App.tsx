@@ -17,7 +17,8 @@ import LeadSourcesPage from "./pages/business-settings/LeadSourcesPage";
 import LeadFieldsSettingsPage from "./pages/business-settings/LeadFieldsSettingsPage";
 import TagsPage from "./pages/business-settings/TagsPage";
 import IndustriesPage from "./pages/business-settings/IndustriesPage";
-import LeadStatusesPage from "./pages/business-settings/DealStagesPage";
+import LeadStatusesPage from "./pages/business-settings/LeadStatusesPage";
+import DealStagesPage from "./pages/business-settings/DealStagesPage";
 import CommunicationPage from "./pages/business-settings/CommunicationPage";
 import CommunicationAPIPage from "./pages/business-settings/CommunicationAPIPage";
 import QuotationTemplatesPage from "./pages/business-settings/QuotationTemplatesPage";
@@ -558,9 +559,19 @@ function AppContent() {
           <Route
             path="/business-settings/lead-statuses"
             element={
-              <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.READ}>
+              <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.LEAD_STATUS.READ}>
                 <MainLayout>
                   <LeadStatusesPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/business-settings/deal-stages"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.DEAL_STATUS.READ}>
+                <MainLayout>
+                  <DealStagesPage />
                 </MainLayout>
               </ProtectedRoute>
             }

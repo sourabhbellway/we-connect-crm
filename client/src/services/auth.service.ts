@@ -18,7 +18,7 @@ import { API_BASE_URL as API_ROOT } from '../config/config';
 const API_BASE_URL = `${API_ROOT}/auth`;
 
 class AuthService {
-  constructor() {}
+  constructor() { }
 
   private getAuthHeaders() {
     return {
@@ -46,14 +46,14 @@ class AuthService {
 
       if (response.data.success) {
         const { accessToken, refreshToken, user, tokenExpiry } = response.data.data;
-        
+
         // Store tokens securely
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
         localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
         localStorage.setItem('tokenExpiry', tokenExpiry);
         localStorage.setItem('userId', user.id.toString()); // Store userId for token validation
-        
+
         // Set default authorization header for subsequent requests
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       }
@@ -129,8 +129,9 @@ class AuthService {
       );
 
       if (response.data.success) {
-        const { accessToken, tokenExpiry } = response.data.data;
+        const { accessToken, refreshToken: newRefreshToken, tokenExpiry } = response.data.data;
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
         localStorage.setItem('tokenExpiry', tokenExpiry);
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       }
@@ -300,7 +301,7 @@ class AuthService {
   getCurrentUser(): User | null {
     const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA);
     if (!userData) return null;
-    
+
     try {
       return JSON.parse(userData);
     } catch (error) {
@@ -316,23 +317,30 @@ class AuthService {
   }
 
   private handleAuthError(error: any): Error {
-    const message = error.response?.data?.message || 'Authentication error occurred';
+    const data = error.response?.data;
+    const message = data?.message || 'Authentication error occurred';
     const status = error.response?.status;
+    const validationErrors = data?.errors;
+
+    const authError = new Error(message) as any;
+    authError.status = status;
+    authError.validationErrors = validationErrors;
 
     // Map 403 Forbidden to a clear blocked/deactivated message for login attempts
     if (status === 403) {
-      return new Error(message || 'Your login is blocked please contact your administrator');
+      authError.message = message || 'Your login is blocked please contact your administrator';
+      return authError;
     }
 
     if (status === 423) {
-      return new Error('Account is temporarily locked. Please try again later.');
+      authError.message = 'Account is temporarily locked. Please try again later.';
     } else if (status === 429) {
-      return new Error('Too many attempts. Please wait before trying again.');
-    } else if (status === 401 && error.response?.data?.requiresEmailVerification) {
-      return new Error('Please verify your email address before logging in.');
+      authError.message = 'Too many attempts. Please wait before trying again.';
+    } else if (status === 401 && data?.requiresEmailVerification) {
+      authError.message = 'Please verify your email address before logging in.';
     }
 
-    return new Error(message);
+    return authError;
   }
 
   // Auto-login functionality

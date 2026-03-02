@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { EmailTemplateCategory, LeadStatus } from '@prisma/client';
+import { EmailTemplateCategory } from '@prisma/client';
 
 // Map DB BusinessSettings to frontend CompanySettings shape
 function mapToCompanySettings(bs: any) {
@@ -285,14 +285,43 @@ export class BusinessSettingsService {
       });
     }
 
-    // Lead Statuses (Fixed Enum)
-    const leadStatuses = Object.values(LeadStatus).map((name, index) => ({
-      id: index + 1,
-      name,
-      color: '#6B7280',
-      isActive: true,
-      sortOrder: index,
-    }));
+    // Handle Lead Statuses (Dynamic)
+    let leadStatuses = await this.prisma.leadStatusOption.findMany({
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    if (leadStatuses.length === 0) {
+      const defaultLeadStatuses = [
+        'NEW',
+        'CONTACTED',
+        'QUALIFIED',
+        'NEGOTIATION',
+        'LOST',
+        'CONVERTED',
+        'NO ANSWER',
+        'GATEKEEPER',
+        'FOLLOW UP SCHEDULED',
+        'PROSPECT',
+        'NOT INTERESTED',
+        'BAD TIMING',
+        'DELAYED'
+      ];
+      for (let i = 0; i < defaultLeadStatuses.length; i++) {
+        await this.prisma.leadStatusOption.upsert({
+          where: { name: defaultLeadStatuses[i] },
+          update: {},
+          create: {
+            name: defaultLeadStatuses[i],
+            sortOrder: i,
+            isActive: true,
+            color: this.generateUniqueColor(),
+          },
+        });
+      }
+      leadStatuses = await this.prisma.leadStatusOption.findMany({
+        orderBy: { sortOrder: 'asc' },
+      });
+    }
 
     // Fetch all active currencies
     const dbCurrencies = await this.prisma.currency.findMany({
@@ -301,8 +330,8 @@ export class BusinessSettingsService {
 
     const currency = {
       id: '1',
-      primary: bs.currency || 'USD',
-      baseCurrency: bs.currency || 'USD',
+      primary: bs.currency || 'Rs',
+      baseCurrency: bs.currency || 'Rs',
       decimalPlaces: 2,
       symbolPosition: 'before',
       thousandSeparator: ',',
@@ -341,6 +370,88 @@ export class BusinessSettingsService {
         numbering,
       },
     };
+  }
+
+  // ── Deal Status CRUD ──────────────────────────────────────────────────────
+  async listDealStatuses() {
+    const items = await this.prisma.dealStatus.findMany({
+      orderBy: { sortOrder: 'asc' },
+    });
+    return { success: true, data: items };
+  }
+
+  async createDealStatus(body: any) {
+    const color = body.color || this.generateUniqueColor();
+    const maxOrder = await this.prisma.dealStatus.count();
+    const item = await this.prisma.dealStatus.create({
+      data: {
+        name: body.name,
+        color,
+        sortOrder: body.sortOrder ?? maxOrder,
+        isActive: body.isActive !== undefined ? body.isActive : true,
+        description: body.description ?? null,
+      },
+    });
+    return { success: true, data: item };
+  }
+
+  async updateDealStatus(id: number, body: any) {
+    const item = await this.prisma.dealStatus.update({
+      where: { id },
+      data: {
+        name: body.name !== undefined ? body.name : undefined,
+        color: body.color !== undefined ? body.color : undefined,
+        sortOrder: body.sortOrder !== undefined ? body.sortOrder : undefined,
+        isActive: body.isActive !== undefined ? body.isActive : undefined,
+        description: body.description !== undefined ? body.description : undefined,
+      },
+    });
+    return { success: true, data: item };
+  }
+
+  async deleteDealStatus(id: number) {
+    await this.prisma.dealStatus.delete({ where: { id } });
+    return { success: true };
+  }
+
+  // ── Lead Status CRUD ──────────────────────────────────────────────────────
+  async listLeadStatuses() {
+    const items = await this.prisma.leadStatusOption.findMany({
+      orderBy: { sortOrder: 'asc' },
+    });
+    return { success: true, data: items };
+  }
+
+  async createLeadStatus(body: any) {
+    const color = body.color || this.generateUniqueColor();
+    const maxOrder = await this.prisma.leadStatusOption.count();
+    const item = await this.prisma.leadStatusOption.create({
+      data: {
+        name: body.name,
+        color,
+        sortOrder: body.sortOrder ?? maxOrder,
+        isActive: body.isActive !== undefined ? body.isActive : true,
+      },
+    });
+    return { success: true, data: item };
+  }
+
+  async updateLeadStatus(id: number, body: any) {
+    const item = await this.prisma.leadStatusOption.update({
+      where: { id },
+      data: {
+        name: body.name !== undefined ? body.name : undefined,
+        color: body.color !== undefined ? body.color : undefined,
+        sortOrder: body.sortOrder !== undefined ? body.sortOrder : undefined,
+        isActive: body.isActive !== undefined ? body.isActive : undefined,
+      },
+    });
+    return { success: true, data: item };
+  }
+
+  async deleteLeadStatus(id: number) {
+    await this.prisma.leadStatusOption.delete({ where: { id } });
+    return { success: true };
   }
 
   async getNumbering() {
@@ -1545,65 +1656,83 @@ export class BusinessSettingsService {
     return { success: true, data: template };
   }
 
-  // Deal Status Methods
-  async listDealStatuses() {
-    const items = await this.prisma.dealStatus.findMany({
+
+  // Lead Section Methods
+  async listLeadSections() {
+    let sections = await this.prisma.leadSection.findMany({
       orderBy: { sortOrder: 'asc' },
     });
-    return { success: true, data: items };
+
+    if (sections.length === 0) {
+      await this.initializeDefaultLeadSections();
+      sections = await this.prisma.leadSection.findMany({
+        orderBy: { sortOrder: 'asc' },
+      });
+    }
+
+    return { success: true, data: sections };
   }
 
-  async createDealStatus(body: any) {
-    const maxSortOrder = await this.prisma.dealStatus.findFirst({
-      orderBy: { sortOrder: 'desc' },
-    });
-    const sortOrder = (maxSortOrder?.sortOrder ?? -1) + 1;
-
-    const item = await this.prisma.dealStatus.create({
+  async createLeadSection(body: any) {
+    const maxOrder = await this.prisma.leadSection.count();
+    const section = await this.prisma.leadSection.create({
       data: {
-        name: body.name,
-        color: body.color || this.generateUniqueColor(),
-        sortOrder: body.sortOrder ?? sortOrder,
+        key: body.key,
+        label: body.label,
+        icon: body.icon || 'MessageSquare',
+        color: body.color || 'blue',
+        sortOrder: body.sortOrder ?? maxOrder,
         isActive: body.isActive !== undefined ? body.isActive : true,
-        description: body.description || null,
       },
     });
-    return { success: true, data: item };
+    return { success: true, data: section };
   }
 
-  async updateDealStatus(id: number, body: any) {
-    const item = await this.prisma.dealStatus.update({
-      where: { id: Number(id) },
+  async updateLeadSection(id: number, body: any) {
+    const section = await this.prisma.leadSection.update({
+      where: { id },
       data: {
-        name: body.name,
+        key: body.key,
+        label: body.label,
+        icon: body.icon,
         color: body.color,
         sortOrder: body.sortOrder,
         isActive: body.isActive,
-        description: body.description,
       },
     });
-    return { success: true, data: item };
+    return { success: true, data: section };
   }
 
-  async deleteDealStatus(id: number) {
-    const status = await this.prisma.dealStatus.findUnique({
-      where: { id: Number(id) },
-    });
-    if (!status) throw new NotFoundException('Status not found');
+  async deleteLeadSection(id: number) {
+    const section = await this.prisma.leadSection.findUnique({ where: { id } });
+    if (section) {
+      const protectedKeys = ['personal', 'company', 'location', 'lead_management', 'notes'];
+      if (protectedKeys.includes(section.key)) {
+        throw new BadRequestException('Cannot delete core system sections');
+      }
+    }
+    await this.prisma.leadSection.delete({ where: { id } });
+    return { success: true };
+  }
 
-    const dealsCount = await this.prisma.deal.count({
-      where: { status: status.name },
-    });
+  async initializeDefaultLeadSections() {
+    const defaultSections = [
+      { key: 'personal', label: 'Personal Information', icon: 'User', color: 'blue', sortOrder: 1 },
+      { key: 'company', label: 'Company Information', icon: 'Building', color: 'green', sortOrder: 2 },
+      { key: 'location', label: 'Location & Contact', icon: 'MapPin', color: 'purple', sortOrder: 3 },
+      { key: 'lead_management', label: 'Lead Management', icon: 'Award', color: 'orange', sortOrder: 4 },
+      { key: 'notes', label: 'Notes & Tags', icon: 'MessageSquare', color: 'indigo', sortOrder: 5 },
+    ];
 
-    if (dealsCount > 0) {
-      throw new BadRequestException(
-        'Cannot delete status that is currently used by deals',
-      );
+    for (const section of defaultSections) {
+      const existing = await this.prisma.leadSection.findUnique({
+        where: { key: section.key },
+      });
+      if (!existing) {
+        await this.prisma.leadSection.create({ data: section });
+      }
     }
 
-    await this.prisma.dealStatus.delete({
-      where: { id: Number(id) },
-    });
-    return { success: true };
+    return { success: true, message: 'Default lead sections initialized' };
   }
 }

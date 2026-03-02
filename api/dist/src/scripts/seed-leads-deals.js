@@ -17,7 +17,7 @@ const INDUSTRIES = [
     'Manufacturing',
     'Retail',
 ];
-const LEAD_STATUS_NAMES = Object.values(client_1.LeadStatus);
+const LEAD_STATUS_NAMES = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED', 'LOST', 'CONVERTED'];
 const DEAL_STATUS_NAMES = [
     'DRAFT',
     'PROPOSAL',
@@ -141,7 +141,7 @@ async function main() {
                 lead.status !== 'CONVERTED') {
                 await prisma.lead.update({
                     where: { id: lead.id },
-                    data: { status: client_1.LeadStatus.CONVERTED },
+                    data: { status: 'CONVERTED' },
                 });
             }
         }

@@ -23,7 +23,7 @@ import {
     X,
     Zap,
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import Pagination from '../components/Pagination';
 
 // Fix: remove extra spaces in label
@@ -61,25 +61,22 @@ const LogsPage: React.FC = () => {
     const [dateFrom, setDateFrom] = useState<string | null>(null);
     const [dateTo, setDateTo] = useState<string | null>(null);
 
-    // Local filtered activities (for frontend search)
-    const [filteredActivities, setFilteredActivities] = useState<any[]>([]);
-
     const fetchActivities = async () => {
         try {
             setActivityLoading(true);
-            const filters: any = {};
-            if (selectedType !== 'ALL') filters.type = selectedType;
+            const params: any = {};
+            if (selectedType !== 'ALL') params.type = selectedType;
+            if (searchTerm.trim()) params.search = searchTerm.trim();
+            if (dateFrom) params.dateFrom = dateFrom;
+            if (dateTo) params.dateTo = dateTo;
 
-            const response = await activityService.getActivities(activityPage, limit, filters);
+            const response = await activityService.getActivities(activityPage, limit, params);
             const items = response?.items || response?.data?.items || response?.data || [];
             const total = response?.total || response?.data?.total || items.length;
 
             const transformed = items.map(transformActivityData);
             setActivities(transformed);
             setActivityTotal(total);
-
-            // Also apply local filters
-            applyLocalFilters(transformed);
         } catch (err) {
             console.error('Error fetching activities:', err);
         } finally {
@@ -111,49 +108,28 @@ const LogsPage: React.FC = () => {
         }
     };
 
-    // Apply local search & date filters
-    const applyLocalFilters = (data: any[]) => {
-        let filtered = data;
-
-        if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase().trim();
-            filtered = filtered.filter(item =>
-                item.user?.firstName?.toLowerCase().includes(term) ||
-                item.user?.lastName?.toLowerCase().includes(term) ||
-                item.user?.email?.toLowerCase().includes(term) ||
-                item.title?.toLowerCase().includes(term) ||
-                item.description?.toLowerCase().includes(term)
-            );
-        }
-
-        if (dateFrom) {
-            const from = new Date(dateFrom);
-            filtered = filtered.filter(item => new Date(item.createdAt) >= from);
-        }
-
-        if (dateTo) {
-            const to = new Date(dateTo);
-            filtered = filtered.filter(item => new Date(item.createdAt) <= to);
-        }
-
-        setFilteredActivities(filtered);
-    };
 
     useEffect(() => {
+        // whenever tab changes reset filters and pages appropriately
+        setActivityPage(1);
+        setCallPage(1);
         if (selectedType === 'CALL') {
-            setCallPage(1);
+            // clear filters when switching to call logs
+            setSearchTerm('');
+            setDateFrom(null);
+            setDateTo(null);
             fetchCallLogs();
         } else {
-            setActivityPage(1);
             fetchActivities();
         }
     }, [selectedType]);
 
     useEffect(() => {
         if (selectedType !== 'CALL') {
-            applyLocalFilters(activities);
+            // reset to first page and let page-change effect trigger network request
+            setActivityPage(1);
         }
-    }, [searchTerm, dateFrom, dateTo, activities]);
+    }, [searchTerm, dateFrom, dateTo, selectedType]);
 
     useEffect(() => {
         if (selectedType === 'CALL') {
@@ -327,7 +303,7 @@ const LogsPage: React.FC = () => {
                                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-weconnect-red/20 border-t-weconnect-red"></div>
                                 <p className="text-sm font-medium text-gray-500">Fetching activities...</p>
                             </div>
-                        ) : filteredActivities.length === 0 ? (
+                        ) : activities.length === 0 ? (
                             <div className="text-center py-32">
                                 <div className="w-20 h-20 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <History size={40} className="text-gray-300" />
@@ -338,7 +314,7 @@ const LogsPage: React.FC = () => {
                         ) : (
                             <>
                                 <div className="divide-y divide-gray-50 dark:divide-slate-800">
-                                    {filteredActivities.map((activity) => {
+                                    {activities.map((activity) => {
                                         const Icon = activity.icon;
                                         return (
                                             <div key={activity.id} className="p-6 hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-all group">
@@ -385,8 +361,8 @@ const LogsPage: React.FC = () => {
                                 <div className="p-6 bg-gray-50/50 dark:bg-slate-800/30 border-t border-gray-100 dark:border-slate-800">
                                     <Pagination
                                         currentPage={activityPage}
-                                        totalPages={Math.ceil(filteredActivities.length / limit)} // Use filtered count
-                                        totalItems={filteredActivities.length}
+                                        totalPages={Math.ceil(activityTotal / limit)}
+                                        totalItems={activityTotal}
                                         onPageChange={setActivityPage}
                                         itemsPerPage={limit}
                                     />

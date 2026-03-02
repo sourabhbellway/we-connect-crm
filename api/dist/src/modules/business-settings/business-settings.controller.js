@@ -66,6 +66,18 @@ let BusinessSettingsController = class BusinessSettingsController {
     deleteDealStatus(id) {
         return this.service.deleteDealStatus(Number(id));
     }
+    listLeadStatuses() {
+        return this.service.listLeadStatuses();
+    }
+    createLeadStatus(body) {
+        return this.service.createLeadStatus(body);
+    }
+    updateLeadStatus(id, body) {
+        return this.service.updateLeadStatus(Number(id), body);
+    }
+    deleteLeadStatus(id) {
+        return this.service.deleteLeadStatus(Number(id));
+    }
     getAvailableIntegrations() {
         return this.service.getAvailableIntegrations();
     }
@@ -173,6 +185,18 @@ let BusinessSettingsController = class BusinessSettingsController {
     }
     updateDashboardSettings(body) {
         return this.service.updateDashboardSettings(body);
+    }
+    listLeadSections() {
+        return this.service.listLeadSections();
+    }
+    createLeadSection(body) {
+        return this.service.createLeadSection(body);
+    }
+    updateLeadSection(id, body) {
+        return this.service.updateLeadSection(Number(id), body);
+    }
+    deleteLeadSection(id) {
+        return this.service.deleteLeadSection(Number(id));
     }
 };
 exports.BusinessSettingsController = BusinessSettingsController;
@@ -284,6 +308,38 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "deleteDealStatus", null);
+__decorate([
+    (0, common_1.Get)('lead-statuses'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.read'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "listLeadStatuses", null);
+__decorate([
+    (0, common_1.Post)('lead-statuses'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.create'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "createLeadStatus", null);
+__decorate([
+    (0, common_1.Put)('lead-statuses/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.update'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "updateLeadStatus", null);
+__decorate([
+    (0, common_1.Delete)('lead-statuses/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_deal_status.delete'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "deleteLeadStatus", null);
 __decorate([
     (0, common_1.Get)('integrations/available'),
     (0, permission_decorator_1.RequirePermission)('business_settings_integrations.read'),
@@ -515,7 +571,6 @@ __decorate([
 ], BusinessSettingsController.prototype, "deleteEmailTemplate", null);
 __decorate([
     (0, common_1.Get)('field-configs/:entityType'),
-    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.read'),
     __param(0, (0, common_1.Param)('entityType')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -568,6 +623,38 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], BusinessSettingsController.prototype, "updateDashboardSettings", null);
+__decorate([
+    (0, common_1.Get)('lead-sections'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.read'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "listLeadSections", null);
+__decorate([
+    (0, common_1.Post)('lead-sections'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.create'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "createLeadSection", null);
+__decorate([
+    (0, common_1.Put)('lead-sections/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.update'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "updateLeadSection", null);
+__decorate([
+    (0, common_1.Delete)('lead-sections/:id'),
+    (0, permission_decorator_1.RequirePermission)('business_settings_field_config.delete'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], BusinessSettingsController.prototype, "deleteLeadSection", null);
 exports.BusinessSettingsController = BusinessSettingsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), permissions_guard_1.PermissionsGuard),
     (0, common_1.Controller)('business-settings'),

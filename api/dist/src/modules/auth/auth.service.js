@@ -45,19 +45,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
+const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../../database/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
 const activities_service_1 = require("../activities/activities.service");
-const REFRESH_LIFETIME_DAYS = 7;
-const ACCESS_LIFETIME_HOURS = 24;
 let AuthService = class AuthService {
     prisma;
     jwt;
     activitiesService;
-    constructor(prisma, jwt, activitiesService) {
+    config;
+    constructor(prisma, jwt, activitiesService, config) {
         this.prisma = prisma;
         this.jwt = jwt;
         this.activitiesService = activitiesService;
+        this.config = config;
     }
     tokenExpiryISO(hours) {
         const d = new Date();
@@ -101,8 +102,9 @@ let AuthService = class AuthService {
             name: ur.role.name,
             permissions: ur.role.permissions.map((rp) => rp.permission),
         }));
+        const bootstrapRole = this.config.get('auth.bootstrapAdmin.roleName') || 'admin';
         if (!transformedRoles.length &&
-            (process.env.BOOTSTRAP_ADMIN === 'true' ||
+            (this.config.get('auth.bootstrapAdmin.enabled') ||
                 process.env.NODE_ENV !== 'production')) {
             const keys = [
                 'dashboard.read',
@@ -136,7 +138,7 @@ let AuthService = class AuthService {
             transformedRoles = [
                 {
                     id: 0,
-                    name: 'admin',
+                    name: bootstrapRole,
                     permissions: keys.map((key) => ({
                         id: 0,
                         key,
@@ -171,10 +173,13 @@ let AuthService = class AuthService {
             });
             if (!user) {
                 console.warn('[Auth] User not found for email', email);
-                if ((process.env.NODE_ENV !== 'production' ||
-                    process.env.BOOTSTRAP_ADMIN === 'true') &&
-                    (email === 'admin@weconnect.com' || email === 'admin@weconnet.com') &&
-                    password === 'admin123') {
+                const bootstrapConfig = this.config.get('auth.bootstrapAdmin');
+                const defaultEmail = bootstrapConfig.email;
+                const defaultPassword = bootstrapConfig.password;
+                const defaultRole = bootstrapConfig.roleName;
+                if ((process.env.NODE_ENV !== 'production' || bootstrapConfig.enabled) &&
+                    (email === defaultEmail || email === 'admin@weconnect.com') &&
+                    password === defaultPassword) {
                     console.log('[Auth] Auto-creating admin user via bootstrap helper');
                     const hashed = await bcrypt.hash(password, 10);
                     const created = await this.prisma.user.create({
@@ -188,12 +193,12 @@ let AuthService = class AuthService {
                         },
                     });
                     let adminRole = await this.prisma.role.findUnique({
-                        where: { name: 'Admin' },
+                        where: { name: defaultRole },
                     });
                     if (!adminRole) {
                         adminRole = await this.prisma.role.create({
                             data: {
-                                name: 'Admin',
+                                name: defaultRole,
                                 description: 'Administrator role with full access',
                                 isActive: true,
                                 accessScope: 'GLOBAL',
@@ -271,19 +276,21 @@ let AuthService = class AuthService {
                     };
                 }
             }
+            const accessLifetimeHours = this.config.get('auth.accessLifetimeHours') || 24;
+            const refreshLifetimeDays = this.config.get('auth.refreshLifetimeDays') || 7;
             const payload = { userId: user.id, email: user.email };
             const accessToken = await this.jwt.signAsync(payload, {
-                expiresIn: `${ACCESS_LIFETIME_HOURS}h`,
+                expiresIn: `${accessLifetimeHours}h`,
             });
             console.log('[Auth] Login success for', dto.email, 'userId=', user.id);
-            const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
-            const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);
+            const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
+            const refreshToken = await this.jwt.signAsync({ userId: user.id, email: user.email, type: 'refresh' }, { expiresIn: `${refreshLifetimeDays}d` });
             try {
                 await this.prisma.refreshToken.create({
                     data: {
                         token: refreshToken,
                         userId: user.id,
-                        expiresAt: new Date(Date.now() + REFRESH_LIFETIME_DAYS * 24 * 60 * 60 * 1000),
+                        expiresAt: new Date(Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000),
                     },
                 });
             }
@@ -357,21 +364,57 @@ let AuthService = class AuthService {
         return { success: true, data: { user: enrichedUser } };
     }
     async refreshToken(dto) {
-        const record = await this.prisma.refreshToken.findUnique({
-            where: { token: dto.refreshToken },
-        });
-        if (!record || record.isRevoked || record.expiresAt <= new Date()) {
-            return { success: false, message: 'Invalid refresh token' };
+        try {
+            const decoded = await this.jwt.verifyAsync(dto.refreshToken).catch(() => null);
+            if (!decoded || decoded.type !== 'refresh') {
+                return {
+                    success: false,
+                    message: 'Invalid or expired refresh token structure',
+                };
+            }
+            const record = await this.prisma.refreshToken.findUnique({
+                where: { token: dto.refreshToken },
+            });
+            if (!record || record.isRevoked || record.expiresAt <= new Date()) {
+                return { success: false, message: 'Refresh token is revoked or expired' };
+            }
+            const user = await this.prisma.user.findUnique({
+                where: { id: record.userId },
+            });
+            if (!user)
+                return { success: false, message: 'User not found' };
+            await this.prisma.refreshToken.update({
+                where: { id: record.id },
+                data: { isRevoked: true },
+            });
+            const accessLifetimeHours = this.config.get('auth.accessLifetimeHours') || 24;
+            const refreshLifetimeDays = this.config.get('auth.refreshLifetimeDays') || 7;
+            const payload = { userId: user.id, email: user.email };
+            const accessToken = await this.jwt.signAsync(payload, {
+                expiresIn: `${accessLifetimeHours}h`,
+            });
+            const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
+            const newRefreshToken = await this.jwt.signAsync({ userId: user.id, email: user.email, type: 'refresh' }, { expiresIn: `${refreshLifetimeDays}d` });
+            await this.prisma.refreshToken.create({
+                data: {
+                    token: newRefreshToken,
+                    userId: user.id,
+                    expiresAt: new Date(Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000),
+                },
+            });
+            return {
+                success: true,
+                data: {
+                    accessToken,
+                    refreshToken: newRefreshToken,
+                    tokenExpiry,
+                },
+            };
         }
-        const user = await this.prisma.user.findUnique({
-            where: { id: record.userId },
-        });
-        if (!user)
-            return { success: false, message: 'User not found' };
-        const payload = { userId: user.id, email: user.email };
-        const accessToken = await this.jwt.signAsync(payload);
-        const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
-        return { success: true, data: { accessToken, tokenExpiry } };
+        catch (err) {
+            console.error('[Auth] Refresh token error:', err);
+            return { success: false, message: 'Could not refresh token' };
+        }
     }
     async logout(refreshToken) {
         if (refreshToken) {
@@ -400,6 +443,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         jwt_1.JwtService,
-        activities_service_1.ActivitiesService])
+        activities_service_1.ActivitiesService,
+        config_1.ConfigService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
+import authConfig from './config/auth.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './database/prisma.service';
@@ -49,7 +50,7 @@ import { TrashModule } from './modules/trash/trash.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, appConfig],
+      load: [databaseConfig, jwtConfig, appConfig, authConfig],
     }),
     // Schedule module for cron jobs (task/follow-up reminders)
     ScheduleModule.forRoot(),
@@ -95,4 +96,4 @@ import { TrashModule } from './modules/trash/trash.module';
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],
 })
-export class AppModule {}
+export class AppModule { }

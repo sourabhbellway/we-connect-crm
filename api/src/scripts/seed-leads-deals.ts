@@ -1,4 +1,4 @@
-import { PrismaClient, LeadPriority, Prisma, LeadStatus } from '@prisma/client';
+import { PrismaClient, LeadPriority, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -19,7 +19,7 @@ const INDUSTRIES = [
   'Retail',
 ];
 
-const LEAD_STATUS_NAMES = Object.values(LeadStatus);
+const LEAD_STATUS_NAMES = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED', 'LOST', 'CONVERTED'];
 const DEAL_STATUS_NAMES = [
   'DRAFT',
   'PROPOSAL',
@@ -179,7 +179,7 @@ async function main() {
       ) {
         await prisma.lead.update({
           where: { id: lead.id },
-          data: { status: LeadStatus.CONVERTED },
+          data: { status: 'CONVERTED' },
         });
       }
     }

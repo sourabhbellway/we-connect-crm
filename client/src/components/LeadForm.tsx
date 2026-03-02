@@ -7,10 +7,11 @@ import { userService } from "../services/userService";
 // Lead sources and field configs now come from BusinessSettingsContext
 import { tagService, Tag } from "../services/tagService";
 import { industryService, Industry } from "../services/industryService";
+import { productsService, Product } from "../services/productsService";
 import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 import { countries } from "../data/countries";
-import { countryToCurrency } from "../utils/countryUtils";
 import { Country as CSCCountry, State, City } from 'country-state-city';
+import { useAuth } from "../contexts/AuthContext";
 import apiClient from "../services/apiClient";
 import {
   Mail,
@@ -31,6 +32,9 @@ import {
   Linkedin,
   MessageSquare,
   DollarSign,
+  Package,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 export interface LeadFormProps {
@@ -74,6 +78,16 @@ interface FormSection {
   color: string;
 }
 
+interface LeadSection {
+  id: number;
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 const defaultState: LeadPayload = {
   firstName: "",
   lastName: "",
@@ -88,7 +102,7 @@ const defaultState: LeadPayload = {
   tags: [],
   // Enhanced fields
   budget: undefined,
-  currency: "USD",
+  currency: "Rs",
   priority: "medium",
   website: "",
   address: "",
@@ -96,6 +110,8 @@ const defaultState: LeadPayload = {
   companySize: undefined,
   annualRevenue: undefined,
   leadScore: undefined,
+  productId: undefined,
+  products: [],
   country: "",
   state: "",
   city: "",
@@ -113,11 +129,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
   onSubmit,
   submitting,
 }) => {
-  const { currencySettings } = useBusinessSettings();
+  const { currencySettings, leadStatuses } = useBusinessSettings();
+  const { user: currentUser } = useAuth();
+
+  // Check if user is admin or super admin
+  const isAdmin = currentUser?.roles?.some(
+    (role) => role.name.toLowerCase() === 'admin' || role.name.toLowerCase() === 'super admin' || role.name.toLowerCase() === 'super_admin'
+  ) || false;
+
   const [formState, setFormState] = useState<FormState>({
     form: {
       ...defaultState,
-      currency: currencySettings?.primary || "USD",
+      currency: currencySettings?.primary || "Rs",
       ...(initial || {}),
     },
     errors: {},
@@ -131,8 +154,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const [selectedLeadSourceId, setSelectedLeadSourceId] = useState<string | number>("");
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [industries, setIndustries] = useState<Industry[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [showOtherIndustryInput, setShowOtherIndustryInput] = useState(false);
   const [fieldConfigs, setFieldConfigs] = useState<FieldConfig[]>([]);
+  const [sections, setSections] = useState<LeadSection[]>([]);
   const [states, setStates] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
 
@@ -196,7 +221,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }
 
     // Sort: Primary first, then alphabetically
-    const primary = currencySettings?.primary || "USD";
+    const primary = currencySettings?.primary || "Rs";
     return filtered.sort((a, b) => {
       if (a.value === primary) return -1;
       if (b.value === primary) return 1;
@@ -267,7 +292,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         ...prev,
         form: {
           ...defaultState,
-          currency: currencySettings?.primary || "USD",
+          currency: currencySettings?.primary || "Rs",
           ...initial,
           tags: tagsArray,
         },
@@ -329,10 +354,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
   useEffect(() => {
     const load = async () => {
       try {
-        const [usersRes, tagsRes, industriesRes] = await Promise.all([
+        const [usersRes, tagsRes, industriesRes, productsRes] = await Promise.all([
           userService.getUsers(),
           tagService.getTags(),
           industryService.getIndustries().catch(() => []), // Handle errors gracefully
+          productsService.list().catch(() => []), // Handle errors gracefully
         ]);
 
         // Handle different API response structures - normalize to arrays
@@ -343,11 +369,19 @@ const LeadForm: React.FC<LeadFormProps> = ({
         // Lead sources now managed via BusinessSettingsContext (settingsLeadSources)
         const tagsData =
           (tagsRes as any)?.data ?? (tagsRes as any)?.tags ?? tagsRes;
+        const productsData =
+          (productsRes as any)?.data?.items ??
+          (productsRes as any)?.data?.products ??
+          (Array.isArray((productsRes as any)?.data) ? (productsRes as any)?.data : undefined) ??
+          (productsRes as any)?.products ??
+          (productsRes as any)?.items ??
+          productsRes;
 
         setUsers(Array.isArray(usersData) ? usersData : []);
         // No set needed; using settingsLeadSources
         setAllTags(Array.isArray(tagsData) ? tagsData : []);
         setIndustries(Array.isArray(industriesRes) ? industriesRes : []);
+        setProducts(Array.isArray(productsData) ? productsData : []);
 
         if (!Array.isArray(tagsData)) {
           console.warn('Tags payload not array:', tagsRes);
@@ -365,6 +399,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         setUsers([]);
         setAllTags([]);
         setIndustries([]);
+        setProducts([]);
 
         // Add some sample data for testing if APIs fail
         console.log("Setting fallback empty arrays due to API error");
@@ -377,6 +412,22 @@ const LeadForm: React.FC<LeadFormProps> = ({
     };
     load();
   }, []);
+
+  // Sync currency from Business Settings when it loads (may load after form init)
+  useEffect(() => {
+    if (currencySettings?.primary && !initial?.currency) {
+      setFormState((prev) => {
+        // Only update if still on fallback "USD" and settings have a different default
+        if (prev.form.currency === "USD" && currencySettings.primary !== "USD") {
+          return {
+            ...prev,
+            form: { ...prev.form, currency: currencySettings.primary },
+          };
+        }
+        return prev;
+      });
+    }
+  }, [currencySettings?.primary]);
 
   // Check if current industry is in the list or needs "Other" input
   useEffect(() => {
@@ -396,22 +447,62 @@ const LeadForm: React.FC<LeadFormProps> = ({
     try {
       const response = await apiClient.get('/business-settings/field-configs/lead');
       if (response.data?.success) {
-        setFieldConfigs(response.data.data);
+        let configs = response.data.data;
+        // Inject ownerId if it doesn't exist
+        const hasOwnerId = configs.some((f: any) => f.fieldName === 'ownerId');
+        if (!hasOwnerId) {
+          configs.push({
+            id: -1,
+            entityType: 'lead',
+            fieldName: 'ownerId',
+            label: 'Lead Owner',
+            isRequired: false,
+            isVisible: true,
+            displayOrder: 99,
+            section: 'lead_management',
+            placeholder: 'Select owner'
+          });
+        }
+        setFieldConfigs(configs);
       }
     } catch (error) {
       console.error('Error fetching field configs:', error);
       // Fallback to empty configs if API fails
-      setFieldConfigs([]);
+      setFieldConfigs([{
+        id: -1,
+        entityType: 'lead',
+        fieldName: 'ownerId',
+        label: 'Lead Owner',
+        isRequired: false,
+        isVisible: true,
+        displayOrder: 99,
+        section: 'lead_management',
+        placeholder: 'Select owner'
+      }]);
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      const response = await apiClient.get('/business-settings/lead-sections');
+      if (response.data?.success) {
+        setSections(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching sections:', error);
     }
   };
 
   useEffect(() => {
     fetchFieldConfigs();
-    const handler = () => fetchFieldConfigs();
+    fetchSections();
+    const handler = () => {
+      fetchFieldConfigs();
+      fetchSections();
+    };
     window.addEventListener('fieldConfigsUpdated', handler as EventListener);
     return () => window.removeEventListener('fieldConfigsUpdated', handler as EventListener);
   }, []);
-
 
   // Validation functions
   const validateEmail = (email: string): string | null => {
@@ -467,47 +558,61 @@ const LeadForm: React.FC<LeadFormProps> = ({
     NG: { min: 8, max: 10 },  // Nigeria
   };
 
+  // Helper to render icon by name
+  const renderIconByName = (iconName: string) => {
+    const props = { className: "h-5 w-5" };
+    switch (iconName.toLowerCase()) {
+      case 'user': return <UserIcon {...props} />;
+      case 'building': return <BuildingIcon {...props} />;
+      case 'mappin':
+      case 'map-pin': return <MapPin {...props} />;
+      case 'award': return <Award {...props} />;
+      case 'messagesquare':
+      case 'message-square': return <MessageSquare {...props} />;
+      case 'briefcase': return <BriefcaseIcon {...props} />;
+      case 'globe': return <Globe {...props} />;
+      case 'trendingup':
+      case 'trending-up': return <TrendingUp {...props} />;
+      default: return <MessageSquare {...props} />;
+    }
+  };
+
   // Group fields by section and sort
   const getGroupedAndSortedFields = (): FormSection[] => {
     if (!fieldConfigs.length) return [];
 
     const sectionMap: { [key: string]: FormSection } = {};
 
-    const sectionConfig: Record<string, { title: string; icon: React.ReactNode; color: string }> = {
-      personal: { title: 'Personal Information', icon: <UserIcon className="h-5 w-5" />, color: 'blue' },
-      company: { title: 'Company Information', icon: <BuildingIcon className="h-5 w-5" />, color: 'green' },
-      location: { title: 'Location & Contact', icon: <MapPin className="h-5 w-5" />, color: 'purple' },
-      lead_management: { title: 'Lead Management', icon: <Award className="h-5 w-5" />, color: 'orange' },
-      notes: { title: 'Notes & Tags', icon: <MessageSquare className="h-5 w-5" />, color: 'indigo' },
-    };
-
-    // Filter visible fields and group by section
-    fieldConfigs
+    // Group fields by section
+    const visibleFields = fieldConfigs
       .filter(f => f.isVisible)
-      .sort((a, b) => a.displayOrder - b.displayOrder)
-      .forEach(field => {
-        const section = field.section || 'other';
-        if (!sectionMap[section]) {
-          const config = sectionConfig[section] || {
-            title: section.replace(/_/g, ' '),
-            icon: <MessageSquare className="h-5 w-5" />,
-            color: 'gray'
-          };
-          sectionMap[section] = {
-            id: section,
-            ...config,
-            fields: [],
-          };
-        }
-        sectionMap[section].fields.push(field);
-      });
+      .sort((a, b) => a.displayOrder - b.displayOrder);
 
-    // Return sections in preferred order
-    const preferredOrder = ['personal', 'company', 'location', 'lead_management', 'notes'];
-    return preferredOrder
+    visibleFields.forEach(field => {
+      const sectionKey = field.section || 'other';
+      if (!sectionMap[sectionKey]) {
+        const sectionInfo = sections.find(s => s.key === sectionKey);
+        sectionMap[sectionKey] = {
+          id: sectionKey,
+          title: sectionInfo?.label || sectionKey.replace(/_/g, ' '),
+          icon: sectionInfo ? renderIconByName(sectionInfo.icon) : <MessageSquare className="h-5 w-5" />,
+          color: sectionInfo?.color || 'gray',
+          fields: [],
+        };
+      }
+      sectionMap[sectionKey].fields.push(field);
+    });
+
+    // Sort sections based on the 'sections' metadata from API
+    const sortedSectionKeys = sections.map(s => s.key);
+
+    return sortedSectionKeys
       .filter(key => sectionMap[key])
       .map(key => sectionMap[key])
-      .concat(Object.values(sectionMap).filter(s => !preferredOrder.includes(s.id)));
+      .concat(
+        Object.values(sectionMap)
+          .filter(s => !sortedSectionKeys.includes(s.id))
+      );
   };
 
   // Get section color class - Unified for cleaner look
@@ -518,6 +623,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
       purple: { bg: 'bg-transparent', icon: 'text-purple-600 dark:text-purple-400', border: 'border-gray-200 dark:border-gray-700' },
       orange: { bg: 'bg-transparent', icon: 'text-orange-600 dark:text-orange-400', border: 'border-gray-200 dark:border-gray-700' },
       indigo: { bg: 'bg-transparent', icon: 'text-indigo-600 dark:text-indigo-400', border: 'border-gray-200 dark:border-gray-700' },
+      red: { bg: 'bg-transparent', icon: 'text-red-600 dark:text-red-400', border: 'border-gray-200 dark:border-gray-700' },
       gray: { bg: 'bg-transparent', icon: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700' },
     };
     return colors[color] || colors.gray;
@@ -610,6 +716,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={true}
             clearable={!field.isRequired}
             required={field.isRequired}
+            error={error}
           />
         );
       case 'checkbox':
@@ -625,6 +732,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
               {field.label}
               {field.isRequired && <span className="text-red-500 ml-1">*</span>}
             </label>
+            {error && (
+              <p className="ml-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>
+            )}
           </div>
         );
       default:
@@ -663,8 +773,8 @@ const LeadForm: React.FC<LeadFormProps> = ({
       'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
       'website', 'companySize', 'annualRevenue', 'country', 'state', 'city', 'zipCode',
       'address', 'timezone', 'linkedinProfile', 'sourceId', 'status', 'priority',
-      'assignedTo', 'budget', 'currency', 'leadScore', 'preferredContactMethod',
-      'nextFollowUpAt', 'notes', 'tags'
+      'assignedTo', 'ownerId', 'budget', 'currency', 'leadScore', 'preferredContactMethod',
+      'nextFollowUpAt', 'notes', 'tags', 'productId'
     ].includes(field.fieldName);
 
     if (isCustomField) {
@@ -743,6 +853,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
+      case 'productId':
+        // Hide individual productId field since we use a dedicated Products section
+        return null;
+
       case 'industry':
         return (
           <div key={field.fieldName}>
@@ -770,6 +884,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
               ]}
               placeholder={field.placeholder || "Select industry"}
               required={field.isRequired}
+              error={error}
             />
             {showOtherIndustryInput && (
               <div className="mt-2">
@@ -796,6 +911,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value)}
             placeholder={field.placeholder || "https://company.com"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -810,6 +926,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
             placeholder={field.placeholder || "Number of employees"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -824,6 +941,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
             placeholder={field.placeholder || "Annual revenue"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -862,6 +980,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={true}
             clearable={true}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -884,6 +1003,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={true}
             disabled={!formState.form.country}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -906,6 +1026,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={true}
             disabled={!formState.form.state}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -919,6 +1040,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value)}
             placeholder={field.placeholder || "ZIP/Postal Code"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -932,6 +1054,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder || "Address"}
             rows={3}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -945,6 +1068,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value)}
             placeholder={field.placeholder || "e.g. PST, EST, GMT"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -959,6 +1083,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value)}
             placeholder={field.placeholder || "LinkedIn URL"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -989,6 +1114,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={true}
             clearable={true}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -1000,19 +1126,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
             leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
             value={value || "new"}
             placeholder={field.placeholder || "Select status"}
-            options={[
-              { value: "new", label: "New", description: "Newly generated lead" },
-              { value: "contacted", label: "Contacted", description: "Initial contact made" },
-              { value: "qualified", label: "Qualified", description: "Lead has been qualified" },
-              { value: "proposal", label: "Proposal", description: "Proposal sent" },
-              { value: "negotiation", label: "Negotiation", description: "In negotiation phase" },
-              { value: "closed", label: "Closed", description: "Successfully closed" },
-              { value: "lost", label: "Lost", description: "Lead was lost" }
-            ]}
+            options={leadStatuses
+              .filter(s => s.isActive)
+              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .map(s => ({
+                value: s.name.toLowerCase(),
+                label: s.name,
+              }))}
             onChange={(v) => handleChange(field.fieldName, v)}
             searchable={false}
             clearable={false}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -1034,11 +1159,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={false}
             clearable={false}
             required={field.isRequired}
+            error={error}
           />
         );
 
       case 'assignedTo':
-      case 'ownerId':
         return (
           <EnhancedSelectField
             key={field.fieldName}
@@ -1059,6 +1184,33 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={true}
             clearable={true}
             required={field.isRequired}
+            error={error}
+          />
+        );
+
+      case 'ownerId':
+        return (
+          <EnhancedSelectField
+            key={field.fieldName}
+            label={field.label || "Lead Owner"}
+            leftIcon={<UserCheck className="h-4 w-4 text-gray-400" />}
+            value={value ?? ""}
+            placeholder={field.placeholder || "Select owner"}
+            options={[
+              { value: "", label: "Select owner" },
+              ...Array.isArray(users) ? users.map((u) => ({
+                value: u.id,
+                label: `${u.firstName} ${u.lastName}`,
+                icon: <UserIcon className="h-4 w-4 text-blue-500" />,
+                description: `User ID: ${u.id}`
+              })) : []
+            ]}
+            onChange={(v) => handleChange(field.fieldName, v ? Number(v) : undefined)}
+            searchable={true}
+            clearable={true}
+            required={field.isRequired}
+            disabled={!isAdmin}
+            error={error}
           />
         );
 
@@ -1073,7 +1225,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
               label={field.label}
               leftIcon={
                 <span className="text-gray-400 font-medium text-sm">
-                  {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "USD")}
+                  {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "Rs")}
                 </span>
               }
               type="number"
@@ -1106,6 +1258,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
                   value={value || ""}
                   onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
                   placeholder={field.placeholder || "Enter amount"}
+                  error={error}
                 />
               </div>
               <div>
@@ -1116,6 +1269,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
                   onChange={(v) => handleChange("currency", v)}
                   searchable
                   clearable={false}
+                  error={(formState.errors as any).currency}
                 />
               </div>
             </div>
@@ -1135,13 +1289,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
             key={field.fieldName}
             label={field.label}
             leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />}
-            value={value || currencySettings?.primary || "USD"}
+            value={value || currencySettings?.primary || "Rs"}
             placeholder={field.placeholder || "Select currency"}
             options={getCurrencyOptions()}
             onChange={(v) => handleChange(field.fieldName, v)}
             searchable={true}
             clearable={false}
             required={field.isRequired}
+            error={error}
           />
         );
       }
@@ -1159,6 +1314,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
             placeholder={field.placeholder || "Score (0-100)"}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -1181,6 +1337,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             searchable={false}
             clearable={false}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -1194,6 +1351,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
             value={value || ""}
             onChange={(e) => handleChange(field.fieldName, e.target.value || undefined)}
             required={field.isRequired}
+            error={error}
           />
         );
 
@@ -1236,7 +1394,13 @@ const LeadForm: React.FC<LeadFormProps> = ({
                     </button>
                   );
                 })}
+              {(!allTags || allTags.length === 0) && (
+                <p className="text-sm text-gray-500 italic">No tags available</p>
+              )}
             </div>
+            {error && (
+              <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>
+            )}
           </div>
         );
 
@@ -1291,10 +1455,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
     return null;
   };
-
-  // TODO: Add missing handler functions and main component return statement
-  // The file appears to be corrupted - missing handleChange, toggleTag, handleSubmit functions
-  // and the main component return statement
 
   // Basic change handler used by renderField inputs
   const handleChange = (fieldName: string, value: any) => {
@@ -1366,6 +1526,38 @@ const LeadForm: React.FC<LeadFormProps> = ({
     return Object.keys(errors).length === 0;
   };
 
+  const handleAddProductById = (idOrValue: string | number) => {
+    const productId = Number(idOrValue);
+    if (!productId) return;
+
+    const found = products.find(p => p.id === productId);
+    if (!found) return;
+
+    // Don't add if already added (optional, but cleaner)
+    if (formState.form.products?.some(p => p.productId === productId)) {
+      return;
+    }
+
+    setFormState(prev => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        products: [
+          ...(prev.form.products || []),
+          { productId: found.id, name: found.name, quantity: 1, price: found.price }
+        ]
+      }
+    }));
+  };
+
+  const removeProduct = (idx: number) => {
+    setFormState(prev => {
+      const newProducts = [...(prev.form.products || [])];
+      newProducts.splice(idx, 1);
+      return { ...prev, form: { ...prev.form, products: newProducts } };
+    });
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
     if (!validateForm()) return;
@@ -1374,18 +1566,29 @@ const LeadForm: React.FC<LeadFormProps> = ({
       setFormState(prev => ({ ...prev, isSubmitting: true }));
       await onSubmit(formState.form);
       setFormState(prev => ({ ...prev, hasSubmitted: true, isSubmitting: false }));
-    } catch (err) {
+    } catch (err: any) {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
       console.error('Error submitting lead:', err);
+
+      const data = err?.response?.data;
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        const apiErrors: ValidationErrors = {};
+        data.errors.forEach((e: any) => {
+          if (e.field) {
+            apiErrors[e.field] = Array.isArray(e.messages) ? e.messages.join(', ') : (e.msg || e.message);
+          }
+        });
+        setFormState(prev => ({ ...prev, errors: { ...prev.errors, ...apiErrors } }));
+      }
     }
   };
 
   // Minimal form rendering: render grouped sections and a submit button
-  const sections = getGroupedAndSortedFields();
+  const formSections = getGroupedAndSortedFields();
 
   return (
     <form onSubmit={handleSubmit} className="bg-transparent space-y-8">
-      {sections.map(section => {
+      {formSections.map(section => {
         const colorClass = getSectionColorClass(section.color);
         return (
           <div key={section.id} className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
@@ -1411,6 +1614,75 @@ const LeadForm: React.FC<LeadFormProps> = ({
           </div>
         );
       })}
+
+      <div className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+        <div className="flex items-center mb-6">
+          <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-blue-600 dark:text-blue-400">
+            <Package className="h-5 w-5" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white ml-3 tracking-tight">
+            Select Products
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="w-full">
+            <EnhancedSelectField
+              placeholder="Search and select products..."
+              options={products
+                .filter(p => !formState.form.products?.some(sp => sp.productId === p.id))
+                .map(p => ({
+                  value: p.id,
+                  label: `${p.name} - ${p.currency} ${p.price}`,
+                  description: p.sku || 'No SKU'
+                }))}
+              onChange={handleAddProductById}
+              leftIcon={<Package className="h-4 w-4 text-gray-400" />}
+            />
+          </div>
+        </div>
+
+        {formState.form.products && formState.form.products.length > 0 && (
+          <div className="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">
+              Selected Products ({formState.form.products.length})
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {formState.form.products.map((p, idx) => (
+                <div
+                  key={`${p.productId}-${idx}`}
+                  className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm group hover:border-blue-300 dark:hover:border-blue-700 transition-all"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[150px]">
+                      {p.name}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Qty: {p.quantity} | {p.price}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeProduct(idx)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+              <div className="text-right">
+                <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Total Value</span>
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  {formState.form.currency} {formState.form.products.reduce((acc, p) => acc + (Number(p.price) * (p.quantity || 1)), 0).toFixed(2)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
         <button

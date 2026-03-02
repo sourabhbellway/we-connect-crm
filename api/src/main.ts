@@ -22,15 +22,15 @@ async function bootstrap() {
       },
       disableErrorMessages: false,
       exceptionFactory: (errors) => {
-        const messages = errors.map((error) => {
-          const constraints = error.constraints || {};
-          return Object.values(constraints).join(', ');
-        });
+        const detailedErrors = errors.map((error) => ({
+          field: error.property,
+          messages: Object.values(error.constraints || {}),
+        }));
         return new HttpException(
           {
             success: false,
             message: 'Validation failed',
-            errors: messages,
+            errors: detailedErrors,
           },
           HttpStatus.BAD_REQUEST,
         );
@@ -49,14 +49,14 @@ async function bootstrap() {
   const corsOrigins =
     process.env.NODE_ENV === 'production'
       ? [
-          'http://147.93.27.62',
-          'http://147.93.27.62:4176',
-          'http://147.93.27.62:3010',
-          'http://31.97.233.21',
-          'http://31.97.233.21:8081',
-          'http://31.97.233.21:7001',
-          'http://31.97.233.21:3001',
-        ]
+        'http://147.93.27.62',
+        'http://147.93.27.62:4176',
+        'http://147.93.27.62:3010',
+        'http://31.97.233.21',
+        'http://31.97.233.21:8081',
+        'http://31.97.233.21:7001',
+        'http://31.97.233.21:3001',
+      ]
       : true; // Allow all origins in development
 
   app.enableCors({

@@ -28,12 +28,14 @@ class CreateExpenseDto {
 }
 exports.CreateExpenseDto = CreateExpenseDto;
 __decorate([
-    (0, class_validator_1.IsDateString)(),
+    (0, class_validator_1.IsDateString)({}, { message: 'Expense date must be a valid date string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Expense date is required' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "expenseDate", void 0);
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Amount must be a valid number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Amount is required' }),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "amount", void 0);
 __decorate([
@@ -51,55 +53,59 @@ __decorate([
         'CONSULTING',
         'MISCELLANEOUS',
         'OTHER',
-    ]),
+    ], {
+        message: 'Type must be one of: TRAVEL, MEALS, ACCOMMODATION, OFFICE_SUPPLIES, UTILITIES, MARKETING, ENTERTAINMENT, TRAINING, EQUIPMENT, SOFTWARE, CONSULTING, MISCELLANEOUS, OTHER',
+    }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Type is required' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "type", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Category must be a string' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "category", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Remarks must be a string' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "remarks", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Receipt URL must be a string' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "receiptUrl", void 0);
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Submitted By must be a valid user ID' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Submitted By (User ID) is required' }),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "submittedBy", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Project ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "projectId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Deal ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "dealId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateExpenseDto.prototype, "leadId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Currency must be a string' }),
     __metadata("design:type", String)
 ], CreateExpenseDto.prototype, "currency", void 0);
 //# sourceMappingURL=create-expense.dto.js.map

@@ -9,9 +9,38 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateLeadDto = void 0;
+exports.CreateLeadDto = exports.LeadProductDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
+class LeadProductDto {
+    productId;
+    name;
+    quantity;
+    price;
+}
+exports.LeadProductDto = LeadProductDto;
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Number)
+], LeadProductDto.prototype, "productId", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], LeadProductDto.prototype, "name", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], LeadProductDto.prototype, "quantity", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    __metadata("design:type", Number)
+], LeadProductDto.prototype, "price", void 0);
 class CreateLeadDto {
     firstName;
     lastName;
@@ -39,6 +68,8 @@ class CreateLeadDto {
     budget;
     currency;
     leadScore;
+    productId;
+    products;
     notes;
     tags;
     lastContactedAt;
@@ -156,48 +187,61 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Source ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateLeadDto.prototype, "sourceId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Status must be a string' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsIn)(['low', 'medium', 'high', 'urgent']),
+    (0, class_validator_1.IsIn)(['low', 'medium', 'high', 'urgent'], { message: 'Priority must be one of: low, medium, high, urgent' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "priority", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Assigned to ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateLeadDto.prototype, "assignedTo", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Owner ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateLeadDto.prototype, "ownerId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Budget must be a number' }),
     __metadata("design:type", Number)
 ], CreateLeadDto.prototype, "budget", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Currency must be a string' }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "currency", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead score must be a number' }),
     __metadata("design:type", Number)
 ], CreateLeadDto.prototype, "leadScore", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)({}, { message: 'Product ID must be a number' }),
+    __metadata("design:type", Number)
+], CreateLeadDto.prototype, "productId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => LeadProductDto),
+    __metadata("design:type", Array)
+], CreateLeadDto.prototype, "products", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

@@ -177,6 +177,12 @@ export const PERMISSIONS = {
       UPDATE: 'business_settings_deal_status.update',
       DELETE: 'business_settings_deal_status.delete',
     },
+    LEAD_STATUS: {
+      CREATE: 'business_settings_lead_status.create',
+      READ: 'business_settings_lead_status.read',
+      UPDATE: 'business_settings_lead_status.update',
+      DELETE: 'business_settings_lead_status.delete',
+    },
     LEAD_SOURCE: {
       CREATE: 'business_settings_lead_source.create',
       READ: 'business_settings_lead_source.read',

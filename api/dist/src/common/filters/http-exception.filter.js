@@ -14,23 +14,33 @@ let HttpExceptionFilter = class HttpExceptionFilter {
         const response = ctx.getResponse();
         let status = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal server error';
-        if (exception instanceof common_1.HttpException) {
-            status = exception.getStatus();
-            const res = exception.getResponse();
-            if (typeof res === 'string') {
-                message = res;
+        const isHttpException = exception instanceof common_1.HttpException ||
+            (typeof exception === 'object' && exception !== null && 'getStatus' in exception && 'getResponse' in exception);
+        if (isHttpException) {
+            const httpException = exception;
+            const httpStatus = httpException.getStatus();
+            const httpRes = httpException.getResponse();
+            if (httpStatus === common_1.HttpStatus.BAD_REQUEST && httpRes.message && Array.isArray(httpRes.message)) {
+                response.status(httpStatus).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: httpRes.errors || httpRes.message.map((msg) => ({
+                        field: msg.split(' ')[0] || 'field',
+                        messages: [msg],
+                    })),
+                });
+                return;
             }
-            else if (res && typeof res === 'object') {
-                const r = res;
-                if (Array.isArray(r.message) && r.message.length > 0) {
-                    message = r.message[0];
-                }
-                else if (typeof r.message === 'string') {
-                    message = r.message;
-                }
-                else if (typeof r.error === 'string') {
-                    message = r.error;
-                }
+            if (httpRes && typeof httpRes === 'object') {
+                response.status(httpStatus).json({
+                    success: false,
+                    ...httpRes,
+                });
+                return;
+            }
+            status = httpStatus;
+            if (typeof httpRes === 'string') {
+                message = httpRes;
             }
         }
         else {

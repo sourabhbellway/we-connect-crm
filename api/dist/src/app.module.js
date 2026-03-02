@@ -16,6 +16,7 @@ const schedule_1 = require("@nestjs/schedule");
 const database_config_1 = __importDefault(require("./config/database.config"));
 const jwt_config_1 = __importDefault(require("./config/jwt.config"));
 const app_config_1 = __importDefault(require("./config/app.config"));
+const auth_config_1 = __importDefault(require("./config/auth.config"));
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const database_module_1 = require("./database/database.module");
@@ -62,7 +63,7 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                load: [database_config_1.default, jwt_config_1.default, app_config_1.default],
+                load: [database_config_1.default, jwt_config_1.default, app_config_1.default, auth_config_1.default],
             }),
             schedule_1.ScheduleModule.forRoot(),
             database_module_1.DatabaseModule,

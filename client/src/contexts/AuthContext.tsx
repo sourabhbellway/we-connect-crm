@@ -12,12 +12,13 @@ import {
   RegisterRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
-  PasswordRequirements
+  PasswordRequirements,
+  ValidationError
 } from "../types/auth";
 import { authService } from "../services/auth.service";
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<any>;
   register: (userData: RegisterRequest) => Promise<any>;
   logout: () => Promise<void>;
   forgotPassword: (data: ForgotPasswordRequest) => Promise<any>;
@@ -36,10 +37,10 @@ interface AuthContextType extends AuthState {
 type AuthAction =
   | { type: "LOGIN_START" }
   | { type: "LOGIN_SUCCESS"; payload: { user: User; accessToken: string; refreshToken: string; tokenExpiry: string } }
-  | { type: "LOGIN_FAILURE"; payload: string }
+  | { type: "LOGIN_FAILURE"; payload: { message: string; validationErrors?: ValidationError[] } }
   | { type: "REGISTER_START" }
   | { type: "REGISTER_SUCCESS" }
-  | { type: "REGISTER_FAILURE"; payload: string }
+  | { type: "REGISTER_FAILURE"; payload: { message: string; validationErrors?: ValidationError[] } }
   | { type: "LOGOUT" }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "CHECK_AUTH_SUCCESS"; payload: User }
@@ -112,7 +113,8 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
-        error: action.payload,
+        error: action.payload.message,
+        validationErrors: action.payload.validationErrors,
       };
     case "LOGOUT":
       return {
@@ -164,6 +166,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         error: null,
+        validationErrors: undefined,
       };
     case "SET_PASSWORD_REQUIREMENTS":
       return {
@@ -242,7 +245,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Listen for role deactivation events - auto logout affected users
   useEffect(() => {
     const handleRoleDeactivated = (event: Event) => {
-      const custom = event as CustomEvent<{ detail: { userIds: number[]; roleName: string; timestamp: string } }>;
+      const custom = event as CustomEvent<{ userIds: number[]; roleName: string; timestamp: string }>;
       const { userIds, roleName } = custom?.detail || {};
       const currentUserId = state.user?.id;
 
@@ -279,7 +282,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Check if response is successful
       if (!response.success) {
         const errorMessage = response.message || 'Invalid credentials';
-        dispatch({ type: "LOGIN_FAILURE", payload: errorMessage });
+        dispatch({
+          type: "LOGIN_FAILURE",
+          payload: { message: errorMessage }
+        });
         throw new Error(errorMessage);
       }
 
@@ -299,9 +305,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Return the full response so callers can inspect mustChangePassword
       return response;
     } catch (error: any) {
-      const message = error.message || error.response?.data?.message || "Login failed";
+      const message = error.message || "Login failed";
+      const validationErrors = error.validationErrors;
       console.error('Login error:', error);
-      dispatch({ type: "LOGIN_FAILURE", payload: message });
+      dispatch({
+        type: "LOGIN_FAILURE",
+        payload: { message, validationErrors }
+      });
       throw error;
     }
   };
@@ -314,7 +324,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return response;
     } catch (error: any) {
       const message = error.message || "Registration failed";
-      dispatch({ type: "REGISTER_FAILURE", payload: message });
+      const validationErrors = error.validationErrors;
+      dispatch({
+        type: "REGISTER_FAILURE",
+        payload: { message, validationErrors }
+      });
       throw error;
     }
   };

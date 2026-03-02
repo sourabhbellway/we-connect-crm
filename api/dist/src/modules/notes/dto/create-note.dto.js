@@ -20,24 +20,28 @@ class CreateNoteDto {
 }
 exports.CreateNoteDto = CreateNoteDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Title must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Title is required' }),
     __metadata("design:type", String)
 ], CreateNoteDto.prototype, "title", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Content must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Content is required' }),
     __metadata("design:type", String)
 ], CreateNoteDto.prototype, "content", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsBoolean)({ message: 'IsPinned must be a boolean' }),
     __metadata("design:type", Boolean)
 ], CreateNoteDto.prototype, "isPinned", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead ID must be a number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Lead ID is required' }),
     __metadata("design:type", Number)
 ], CreateNoteDto.prototype, "leadId", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Creator ID must be a number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Creator ID is required' }),
     __metadata("design:type", Number)
 ], CreateNoteDto.prototype, "createdBy", void 0);
 //# sourceMappingURL=create-note.dto.js.map

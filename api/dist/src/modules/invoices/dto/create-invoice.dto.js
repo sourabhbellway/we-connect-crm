@@ -25,39 +25,42 @@ class CreateInvoiceItemDto {
 exports.CreateInvoiceItemDto = CreateInvoiceItemDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Product ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceItemDto.prototype, "productId", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Item name must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Item name is required' }),
     __metadata("design:type", String)
 ], CreateInvoiceItemDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceItemDto.prototype, "description", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Quantity must be a valid number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Quantity is required' }),
     __metadata("design:type", Number)
 ], CreateInvoiceItemDto.prototype, "quantity", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Unit must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceItemDto.prototype, "unit", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Unit price must be a valid number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Unit price is required' }),
     __metadata("design:type", Number)
 ], CreateInvoiceItemDto.prototype, "unitPrice", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Tax rate must be a valid number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceItemDto.prototype, "taxRate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Discount rate must be a valid number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceItemDto.prototype, "discountRate", void 0);
 class CreateInvoiceDto {
@@ -80,76 +83,78 @@ class CreateInvoiceDto {
 exports.CreateInvoiceDto = CreateInvoiceDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Invoice number must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "invoiceNumber", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Title must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Title is required' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Status must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Discount amount must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceDto.prototype, "discountAmount", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Currency must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "currency", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)(),
+    (0, class_validator_1.IsDateString)({}, { message: 'Due date must be a valid date string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "dueDate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Notes must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "notes", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Terms must be a string' }),
     __metadata("design:type", String)
 ], CreateInvoiceDto.prototype, "terms", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Company ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceDto.prototype, "companyId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceDto.prototype, "leadId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Deal ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceDto.prototype, "dealId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Contact ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceDto.prototype, "contactId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Creator ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateInvoiceDto.prototype, "createdBy", void 0);
 __decorate([
-    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsArray)({ message: 'Items must be an array' }),
     (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Items are required' }),
     (0, class_transformer_1.Type)(() => CreateInvoiceItemDto),
     __metadata("design:type", Array)
 ], CreateInvoiceDto.prototype, "items", void 0);

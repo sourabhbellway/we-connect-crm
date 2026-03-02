@@ -1,3 +1,9 @@
+export declare class LeadProductDto {
+    productId: number;
+    name: string;
+    quantity?: number;
+    price?: number;
+}
 export declare class CreateLeadDto {
     firstName?: string;
     lastName?: string;
@@ -25,6 +31,8 @@ export declare class CreateLeadDto {
     budget?: number;
     currency?: string;
     leadScore?: number;
+    productId?: number;
+    products?: LeadProductDto[];
     notes?: string;
     tags?: number[];
     lastContactedAt?: string;

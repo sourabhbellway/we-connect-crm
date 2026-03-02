@@ -104,6 +104,30 @@ export class BusinessSettingsController {
     return this.service.deleteDealStatus(Number(id));
   }
 
+  @Get('lead-statuses')
+  @RequirePermission('business_settings_deal_status.read')
+  listLeadStatuses() {
+    return this.service.listLeadStatuses();
+  }
+
+  @Post('lead-statuses')
+  @RequirePermission('business_settings_deal_status.create')
+  createLeadStatus(@Body() body: any) {
+    return this.service.createLeadStatus(body);
+  }
+
+  @Put('lead-statuses/:id')
+  @RequirePermission('business_settings_deal_status.update')
+  updateLeadStatus(@Param('id') id: string, @Body() body: any) {
+    return this.service.updateLeadStatus(Number(id), body);
+  }
+
+  @Delete('lead-statuses/:id')
+  @RequirePermission('business_settings_deal_status.delete')
+  deleteLeadStatus(@Param('id') id: string) {
+    return this.service.deleteLeadStatus(Number(id));
+  }
+
   @Get('integrations/available')
   @RequirePermission('business_settings_integrations.read')
   getAvailableIntegrations() {
@@ -282,7 +306,6 @@ export class BusinessSettingsController {
 
   // Field Configuration endpoints
   @Get('field-configs/:entityType')
-  @RequirePermission('business_settings_field_config.read')
   getFieldConfigs(@Param('entityType') entityType: string) {
     return this.service.getFieldConfigs(entityType);
   }
@@ -322,5 +345,30 @@ export class BusinessSettingsController {
   @RequirePermission('business_settings_dashboard.update')
   updateDashboardSettings(@Body() body: any) {
     return this.service.updateDashboardSettings(body);
+  }
+
+  // Lead Section endpoints
+  @Get('lead-sections')
+  @RequirePermission('business_settings_field_config.read')
+  listLeadSections() {
+    return this.service.listLeadSections();
+  }
+
+  @Post('lead-sections')
+  @RequirePermission('business_settings_field_config.create')
+  createLeadSection(@Body() body: any) {
+    return this.service.createLeadSection(body);
+  }
+
+  @Put('lead-sections/:id')
+  @RequirePermission('business_settings_field_config.update')
+  updateLeadSection(@Param('id') id: string, @Body() body: any) {
+    return this.service.updateLeadSection(Number(id), body);
+  }
+
+  @Delete('lead-sections/:id')
+  @RequirePermission('business_settings_field_config.delete')
+  deleteLeadSection(@Param('id') id: string) {
+    return this.service.deleteLeadSection(Number(id));
   }
 }

@@ -48,10 +48,10 @@ export declare class QuotationsController {
                     productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
+                    quantity: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     quotationId: number;
-                    quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
@@ -110,7 +110,6 @@ export declare class QuotationsController {
                     assignedTo: number | null;
                     createdBy: number | null;
                     phone: string | null;
-                    status: import(".prisma/client").$Enums.CompanyStatus;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     website: string | null;
@@ -124,6 +123,7 @@ export declare class QuotationsController {
                     zipCode: string | null;
                     linkedinProfile: string | null;
                     timezone: string | null;
+                    status: import(".prisma/client").$Enums.CompanyStatus;
                     employeeCount: string | null;
                     domain: string | null;
                     slug: string | null;
@@ -153,9 +153,7 @@ export declare class QuotationsController {
                     phone: string | null;
                     company: string | null;
                     position: string | null;
-                    status: import(".prisma/client").$Enums.LeadStatus;
                     sourceId: number | null;
-                    ownerId: number | null;
                     lastContactedAt: Date | null;
                     nextFollowUpAt: Date | null;
                     priority: import(".prisma/client").$Enums.LeadPriority;
@@ -172,8 +170,10 @@ export declare class QuotationsController {
                     timezone: string | null;
                     preferredContactMethod: string | null;
                     customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                    previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                     convertedToDealId: number | null;
+                    ownerId: number | null;
+                    status: string;
+                    previousStatus: string | null;
                 } | null;
                 deal: {
                     isActive: boolean;
@@ -204,10 +204,10 @@ export declare class QuotationsController {
                     productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
+                    quantity: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     quotationId: number;
-                    quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
@@ -254,10 +254,10 @@ export declare class QuotationsController {
                 productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
+                quantity: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 quotationId: number;
-                quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
             }[];
@@ -303,10 +303,10 @@ export declare class QuotationsController {
                     productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
+                    quantity: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     quotationId: number;
-                    quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
@@ -355,10 +355,10 @@ export declare class QuotationsController {
                 productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
+                quantity: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 quotationId: number;
-                quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
             };
@@ -377,10 +377,10 @@ export declare class QuotationsController {
                 productId: number | null;
                 unit: string | null;
                 taxRate: import("@prisma/client/runtime/library").Decimal;
+                quantity: import("@prisma/client/runtime/library").Decimal;
                 subtotal: import("@prisma/client/runtime/library").Decimal;
                 totalAmount: import("@prisma/client/runtime/library").Decimal;
                 quotationId: number;
-                quantity: import("@prisma/client/runtime/library").Decimal;
                 unitPrice: import("@prisma/client/runtime/library").Decimal;
                 discountRate: import("@prisma/client/runtime/library").Decimal;
             };
@@ -503,10 +503,10 @@ export declare class QuotationsController {
                     productId: number | null;
                     unit: string | null;
                     taxRate: import("@prisma/client/runtime/library").Decimal;
+                    quantity: import("@prisma/client/runtime/library").Decimal;
                     subtotal: import("@prisma/client/runtime/library").Decimal;
                     totalAmount: import("@prisma/client/runtime/library").Decimal;
                     invoiceId: number;
-                    quantity: import("@prisma/client/runtime/library").Decimal;
                     unitPrice: import("@prisma/client/runtime/library").Decimal;
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];

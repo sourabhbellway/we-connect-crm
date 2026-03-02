@@ -116,12 +116,22 @@ const BusinessSettingsPage: React.FC = () => {
         },
         {
             id: BUSINESS_SETTINGS.CATEGORIES.LEAD_STATUSES,
-            name: 'Deal Status',
-            description: 'Customizable  deal statuses',
+            name: 'Lead Statuses',
+            description: 'Customizable lead statuses for your pipeline',
+            icon: <Workflow className="w-6 h-6" />,
+            color: 'bg-blue-500',
+            items: [
+                { name: 'Lead Status Management', description: 'Configure dynamic lead statuses', path: '/business-settings/lead-statuses', permission: PERMS.BUSINESS_SETTINGS.DEAL_STATUS.READ },
+            ],
+        },
+        {
+            id: 'deal-stages',
+            name: 'Deal Stages',
+            description: 'Customizable deal stages for your sales pipeline',
             icon: <Workflow className="w-6 h-6" />,
             color: 'bg-orange-500',
             items: [
-                { name: 'Deal Status Management', description: 'Configure dynamic  deal statuses', path: '/business-settings/lead-statuses', permission: PERMS.BUSINESS_SETTINGS.DEAL_STATUS.READ },
+                { name: 'Deal Stage Management', description: 'Configure dynamic deal stages', path: '/business-settings/deal-stages', permission: PERMS.BUSINESS_SETTINGS.DEAL_STATUS.READ },
             ],
         },
 

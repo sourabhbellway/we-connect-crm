@@ -32,7 +32,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     const wasRemembered = localStorage.getItem('rememberMe') === 'true';
-    
+
     if (rememberedEmail && wasRemembered) {
       setFormData(prev => ({ ...prev, email: rememberedEmail }));
       setRememberMe(true);
@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
     }
   }, [formData]);
 
-const validateEmail = (rawEmail: string): string | undefined => {
+  const validateEmail = (rawEmail: string): string | undefined => {
     const email = rawEmail.trim();
     if (!email) {
       return 'Email is required';
@@ -94,9 +94,9 @@ const validateEmail = (rawEmail: string): string | undefined => {
     }
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Trim before validating/submitting
     const trimmed: LoginRequest = {
       email: formData.email.trim(),
@@ -127,8 +127,17 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Login failed. Please try again.';
-      setErrors({ general: errorMessage });
-      
+      const newErrors: FormErrors = { general: errorMessage };
+
+      if (error.validationErrors && Array.isArray(error.validationErrors)) {
+        error.validationErrors.forEach((err: any) => {
+          if (err.field === 'email') newErrors.email = err.messages.join(', ');
+          if (err.field === 'password') newErrors.password = err.messages.join(', ');
+        });
+      }
+
+      setErrors(newErrors);
+
       if (onError) {
         onError(errorMessage);
       }
@@ -166,7 +175,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address
               </label>
-<input
+              <input
                 id="email"
                 name="email"
                 type="email"
@@ -180,11 +189,10 @@ const handleSubmit = async (e: React.FormEvent) => {
                   const v = e.target.value.trim();
                   if (v !== e.target.value) setFormData(prev => ({ ...prev, email: v }));
                 }}
-                className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.email
+                className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email
                     ? 'border-red-300 bg-red-50'
                     : 'border-gray-300 bg-white'
-                }`}
+                  }`}
                 placeholder="Enter your email"
               />
               {errors.email && (
@@ -197,7 +205,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 Password
               </label>
               <div className="relative">
-<input
+                <input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
@@ -211,11 +219,10 @@ const handleSubmit = async (e: React.FormEvent) => {
                     const v = e.target.value.trim();
                     if (v !== e.target.value) setFormData(prev => ({ ...prev, password: v }));
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
-                    errors.password
+                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${errors.password
                       ? 'border-red-300 bg-red-50'
                       : 'border-gray-300 bg-white'
-                  }`}
+                    }`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -265,16 +272,15 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
             </div>
 
-<button
+            <button
               type="submit"
               disabled={isLoading}
               aria-disabled={isLoading}
               aria-busy={isLoading}
-              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
-                isLoading
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 active:bg-blue-800'
-              }`}
+                }`}
             >
               {isLoading ? (
                 <div className="flex items-center">

@@ -18,15 +18,51 @@ interface FieldConfig {
   options?: any;
 }
 
+interface LeadSection {
+  id: number;
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 const LeadFieldsSettings: React.FC = () => {
   const [fields, setFields] = useState<FieldConfig[]>([]);
+  const [sections, setSections] = useState<LeadSection[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<FieldConfig>>({});
+  const [showSectionManager, setShowSectionManager] = useState(false);
+  const [editingSectionId, setEditingSectionId] = useState<number | null>(null);
+  const [sectionForm, setSectionForm] = useState<Partial<LeadSection>>({
+    key: '',
+    label: '',
+    icon: 'MessageSquare',
+    color: 'blue'
+  });
 
   useEffect(() => {
-    fetchFields();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([fetchFields(), fetchSections()]);
+    setLoading(false);
+  };
+
+  const fetchSections = async () => {
+    try {
+      const response = await apiClient.get('/business-settings/lead-sections');
+      if (response.data?.success) {
+        setSections(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching sections:', error);
+    }
+  };
 
   const fetchFields = async () => {
     try {
@@ -207,15 +243,43 @@ const LeadFieldsSettings: React.FC = () => {
     }
   };
 
-  const getSectionColor = (section: string) => {
-    const colors = {
-      personal: 'blue',
-      company: 'green',
-      location: 'purple',
-      lead_management: 'orange',
-      notes: 'indigo',
-    };
-    return colors[section as keyof typeof colors] || 'gray';
+  const handleSaveSection = async () => {
+    if (!sectionForm.key || !sectionForm.label) {
+      toast.error('Key and Label are required');
+      return;
+    }
+    try {
+      if (editingSectionId) {
+        await apiClient.put(`/business-settings/lead-sections/${editingSectionId}`, sectionForm);
+        toast.success('Section updated');
+      } else {
+        await apiClient.post('/business-settings/lead-sections', sectionForm);
+        toast.success('Section created');
+      }
+      setEditingSectionId(null);
+      setSectionForm({ key: '', label: '', icon: 'MessageSquare', color: 'blue' });
+      await fetchSections();
+    } catch (error) {
+      console.error('Error saving section:', error);
+      toast.error('Failed to save section');
+    }
+  };
+
+  const handleDeleteSection = async (id: number) => {
+    if (!confirm('Delete this section? This will not delete fields in it, but they will become unassigned.')) return;
+    try {
+      await apiClient.delete(`/business-settings/lead-sections/${id}`);
+      toast.success('Section deleted');
+      await fetchSections();
+    } catch (error: any) {
+      console.error('Error deleting section:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete section');
+    }
+  };
+
+  const getSectionColor = (sectionKey: string) => {
+    const section = sections.find(s => s.key === sectionKey);
+    return section?.color || 'gray';
   };
 
   if (loading) {
@@ -228,10 +292,112 @@ const LeadFieldsSettings: React.FC = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Lead Form Fields</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Show, hide, reorder, and configure lead form fields</p>
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Manage Lead Form Fields</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Show, hide, reorder, and configure lead form fields</p>
+        </div>
+        <button
+          onClick={() => setShowSectionManager(!showSectionManager)}
+          className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+        >
+          {showSectionManager ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {showSectionManager ? 'Close Section Manager' : 'Manage Sections'}
+        </button>
       </div>
+
+      {showSectionManager && (
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-blue-50/30 dark:bg-blue-900/10">
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Manage Lead Form Sections</h4>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-6">
+            <div>
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Key (Internal)</label>
+              <input
+                type="text"
+                placeholder="e.g. basic_info"
+                value={sectionForm.key}
+                onChange={(e) => setSectionForm({ ...sectionForm, key: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Label (Display)</label>
+              <input
+                type="text"
+                placeholder="e.g. Basic Information"
+                value={sectionForm.label}
+                onChange={(e) => setSectionForm({ ...sectionForm, label: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Color</label>
+              <select
+                value={sectionForm.color}
+                onChange={(e) => setSectionForm({ ...sectionForm, color: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 text-sm"
+              >
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="purple">Purple</option>
+                <option value="orange">Orange</option>
+                <option value="indigo">Indigo</option>
+                <option value="red">Red</option>
+                <option value="gray">Gray</option>
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveSection}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+              >
+                {editingSectionId ? 'Update Section' : 'Add Section'}
+              </button>
+              {editingSectionId && (
+                <button
+                  onClick={() => {
+                    setEditingSectionId(null);
+                    setSectionForm({ key: '', label: '', icon: 'MessageSquare', color: 'blue' });
+                  }}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {sections.map(s => (
+              <div
+                key={s.id}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${editingSectionId === s.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 dark:border-gray-700'
+                  } bg-white dark:bg-gray-800`}
+              >
+                <span className={`w-2 h-2 rounded-full bg-${s.color}-500`}></span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{s.label}</span>
+                <button
+                  onClick={() => {
+                    setEditingSectionId(s.id);
+                    setSectionForm(s);
+                  }}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-blue-600"
+                >
+                  <Edit2 className="h-3 w-3" />
+                </button>
+                {!['personal', 'company', 'location', 'lead_management', 'notes'].includes(s.key) && (
+                  <button
+                    onClick={() => handleDeleteSection(s.id)}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-600"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
@@ -273,15 +439,13 @@ const LeadFieldsSettings: React.FC = () => {
           <div>
             <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Section</label>
             <select
-              value={newField.section || 'personal'}
+              value={newField.section || (sections[0]?.key || 'personal')}
               onChange={(e) => setNewField({ ...newField, section: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 text-sm"
             >
-              <option value="personal">Personal</option>
-              <option value="company">Company</option>
-              <option value="location">Location</option>
-              <option value="lead_management">Lead Management</option>
-              <option value="notes">Notes</option>
+              {sections.map(s => (
+                <option key={s.id} value={s.key}>{s.label}</option>
+              ))}
             </select>
           </div>
           <div className="flex gap-4 items-center">
@@ -354,13 +518,14 @@ const LeadFieldsSettings: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium
-                    ${field.section === 'personal' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-                      field.section === 'company' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                        field.section === 'location' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
-                          field.section === 'lead_management' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
-                            field.section === 'notes' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' :
-                              'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'}`}>
-                    {field.section.replace(/_/g, ' ')}
+                    ${getSectionColor(field.section) === 'blue' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                      getSectionColor(field.section) === 'green' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                        getSectionColor(field.section) === 'purple' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
+                          getSectionColor(field.section) === 'orange' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
+                            getSectionColor(field.section) === 'indigo' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300' :
+                              getSectionColor(field.section) === 'red' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'}`}>
+                    {sections.find(s => s.key === field.section)?.label || field.section.replace(/_/g, ' ')}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">

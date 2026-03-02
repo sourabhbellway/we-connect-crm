@@ -43,6 +43,7 @@ export declare class LeadsController {
                 companySize: any;
                 annualRevenue: any;
                 leadScore: any;
+                productId: any;
                 address: any;
                 country: any;
                 state: any;
@@ -55,7 +56,6 @@ export declare class LeadsController {
                 convertedToDealId: any;
                 assignedUser: any;
                 ownerUser: any;
-                createdByUser: any;
                 tags: {
                     id: any;
                     name: any;
@@ -103,9 +103,7 @@ export declare class LeadsController {
             phone: string | null;
             company: string | null;
             position: string | null;
-            status: import(".prisma/client").$Enums.LeadStatus;
             sourceId: number | null;
-            ownerId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             priority: import(".prisma/client").$Enums.LeadPriority;
@@ -122,8 +120,10 @@ export declare class LeadsController {
             timezone: string | null;
             preferredContactMethod: string | null;
             customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
+            ownerId: number | null;
+            status: string;
+            previousStatus: string | null;
         } | {
             status: string;
             priority: string | undefined;
@@ -131,6 +131,14 @@ export declare class LeadsController {
                 id: any;
                 name: any;
                 color: any;
+            }[];
+            products: {
+                productId: any;
+                name: any;
+                quantity: any;
+                price: number;
+                sku: any;
+                currency: any;
             }[];
             assignedUser: {
                 email: string;
@@ -168,7 +176,6 @@ export declare class LeadsController {
             company: string | null;
             position: string | null;
             sourceId: number | null;
-            ownerId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             website: string | null;
@@ -184,8 +191,9 @@ export declare class LeadsController {
             timezone: string | null;
             preferredContactMethod: string | null;
             customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
+            ownerId: number | null;
+            previousStatus: string | null;
         };
     }>;
     update(id: string, dto: UpdateLeadDto): Promise<{
@@ -233,9 +241,7 @@ export declare class LeadsController {
             phone: string | null;
             company: string | null;
             position: string | null;
-            status: import(".prisma/client").$Enums.LeadStatus;
             sourceId: number | null;
-            ownerId: number | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             priority: import(".prisma/client").$Enums.LeadPriority;
@@ -252,8 +258,10 @@ export declare class LeadsController {
             timezone: string | null;
             preferredContactMethod: string | null;
             customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
             convertedToDealId: number | null;
+            ownerId: number | null;
+            status: string;
+            previousStatus: string | null;
         };
     }>;
     bulkAssign(dto: BulkAssignDto): Promise<{
@@ -300,9 +308,7 @@ export declare class LeadsController {
                 phone: string | null;
                 company: string | null;
                 position: string | null;
-                status: import(".prisma/client").$Enums.LeadStatus;
                 sourceId: number | null;
-                ownerId: number | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
                 priority: import(".prisma/client").$Enums.LeadPriority;
@@ -319,8 +325,10 @@ export declare class LeadsController {
                 timezone: string | null;
                 preferredContactMethod: string | null;
                 customFields: import("@prisma/client/runtime/library").JsonValue | null;
-                previousStatus: import(".prisma/client").$Enums.LeadStatus | null;
                 convertedToDealId: number | null;
+                ownerId: number | null;
+                status: string;
+                previousStatus: string | null;
             };
         };
     }>;

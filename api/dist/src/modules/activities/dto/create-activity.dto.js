@@ -25,30 +25,33 @@ class CreateActivityDto {
 }
 exports.CreateActivityDto = CreateActivityDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Title must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Title is required' }),
     __metadata("design:type", String)
 ], CreateActivityDto.prototype, "title", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Description is required' }),
     __metadata("design:type", String)
 ], CreateActivityDto.prototype, "description", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Type must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Type is required' }),
     __metadata("design:type", String)
 ], CreateActivityDto.prototype, "type", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Icon must be a string' }),
     __metadata("design:type", String)
 ], CreateActivityDto.prototype, "icon", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Icon color must be a string' }),
     __metadata("design:type", String)
 ], CreateActivityDto.prototype, "iconColor", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsArray)({ message: 'Tags must be an array' }),
     __metadata("design:type", Array)
 ], CreateActivityDto.prototype, "tags", void 0);
 __decorate([
@@ -57,17 +60,17 @@ __decorate([
 ], CreateActivityDto.prototype, "metadata", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'User ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateActivityDto.prototype, "userId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Super Admin ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateActivityDto.prototype, "superAdminId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.IsNumber)({}, { message: 'Lead ID must be a number' }),
     __metadata("design:type", Number)
 ], CreateActivityDto.prototype, "leadId", void 0);
 //# sourceMappingURL=create-activity.dto.js.map

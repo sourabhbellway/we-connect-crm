@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -7,16 +8,14 @@ import { RefreshDto } from './dto/refresh.dto';
 import * as bcrypt from 'bcryptjs';
 import { ActivitiesService } from '../activities/activities.service';
 
-const REFRESH_LIFETIME_DAYS = 7;
-const ACCESS_LIFETIME_HOURS = 24;
-
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly activitiesService: ActivitiesService,
-  ) {}
+    private readonly config: ConfigService,
+  ) { }
 
   private tokenExpiryISO(hours: number) {
     const d = new Date();
@@ -65,9 +64,10 @@ export class AuthService {
     }));
 
     // Optional bootstrap: grant synthetic admin only when explicitly enabled
+    const bootstrapRole = this.config.get<string>('auth.bootstrapAdmin.roleName') || 'admin';
     if (
       !transformedRoles.length &&
-      (process.env.BOOTSTRAP_ADMIN === 'true' ||
+      (this.config.get<boolean>('auth.bootstrapAdmin.enabled') ||
         process.env.NODE_ENV !== 'production')
     ) {
       const keys = [
@@ -102,7 +102,7 @@ export class AuthService {
       transformedRoles = [
         {
           id: 0,
-          name: 'admin',
+          name: bootstrapRole,
           permissions: keys.map((key) => ({
             id: 0,
             key,
@@ -144,11 +144,15 @@ export class AuthService {
         // Bootstrap helper: auto-create admin user for default credentials
         // - Always active in non-production
         // - In production, only when BOOTSTRAP_ADMIN === 'true'
+        const bootstrapConfig = this.config.get('auth.bootstrapAdmin');
+        const defaultEmail = bootstrapConfig.email;
+        const defaultPassword = bootstrapConfig.password;
+        const defaultRole = bootstrapConfig.roleName;
+
         if (
-          (process.env.NODE_ENV !== 'production' ||
-            process.env.BOOTSTRAP_ADMIN === 'true') &&
-          (email === 'admin@weconnect.com' || email === 'admin@weconnet.com') &&
-          password === 'admin123'
+          (process.env.NODE_ENV !== 'production' || bootstrapConfig.enabled) &&
+          (email === defaultEmail || email === 'admin@weconnect.com') &&
+          password === defaultPassword
         ) {
           console.log('[Auth] Auto-creating admin user via bootstrap helper');
           const hashed = await bcrypt.hash(password, 10);
@@ -166,12 +170,12 @@ export class AuthService {
           });
           // Ensure Admin role exists and assign
           let adminRole = await this.prisma.role.findUnique({
-            where: { name: 'Admin' },
+            where: { name: defaultRole },
           });
           if (!adminRole) {
             adminRole = await this.prisma.role.create({
               data: {
-                name: 'Admin',
+                name: defaultRole,
                 description: 'Administrator role with full access',
                 isActive: true,
                 accessScope: 'GLOBAL',
@@ -285,22 +289,30 @@ export class AuthService {
         }
       }
 
+      const accessLifetimeHours = this.config.get<number>('auth.accessLifetimeHours') || 24;
+      const refreshLifetimeDays = this.config.get<number>('auth.refreshLifetimeDays') || 7;
+
       const payload = { userId: user.id, email: user.email };
+
       const accessToken = await this.jwt.signAsync(payload, {
-        expiresIn: `${ACCESS_LIFETIME_HOURS}h`,
+        expiresIn: `${accessLifetimeHours}h`,
       });
       console.log('[Auth] Login success for', dto.email, 'userId=', user.id);
 
-      const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
+      const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
 
-      const refreshToken = await bcrypt.hash(`${user.id}:${Date.now()}`, 10);
+      const refreshToken = await this.jwt.signAsync(
+        { userId: user.id, email: user.email, type: 'refresh' },
+        { expiresIn: `${refreshLifetimeDays}d` },
+      );
+
       try {
         await this.prisma.refreshToken.create({
           data: {
             token: refreshToken,
             userId: user.id,
             expiresAt: new Date(
-              Date.now() + REFRESH_LIFETIME_DAYS * 24 * 60 * 60 * 1000,
+              Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000,
             ),
           },
         });
@@ -380,22 +392,74 @@ export class AuthService {
   }
 
   async refreshToken(dto: RefreshDto) {
-    const record = await this.prisma.refreshToken.findUnique({
-      where: { token: dto.refreshToken },
-    });
-    if (!record || record.isRevoked || record.expiresAt <= new Date()) {
-      return { success: false, message: 'Invalid refresh token' };
+    try {
+      // 1. Verify JWT cryptographically first (Stateless part)
+      const decoded = await this.jwt.verifyAsync(dto.refreshToken).catch(() => null);
+      if (!decoded || decoded.type !== 'refresh') {
+        return {
+          success: false,
+          message: 'Invalid or expired refresh token structure',
+        };
+      }
+
+      // 2. Check DB for revocation (Stateful part for revocation management)
+      const record = await this.prisma.refreshToken.findUnique({
+        where: { token: dto.refreshToken },
+      });
+
+      if (!record || record.isRevoked || record.expiresAt <= new Date()) {
+        return { success: false, message: 'Refresh token is revoked or expired' };
+      }
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: record.userId },
+      });
+      if (!user) return { success: false, message: 'User not found' };
+
+      // 3. Implement Rotation: Invalidate the old token
+      await this.prisma.refreshToken.update({
+        where: { id: record.id },
+        data: { isRevoked: true },
+      });
+
+      // 4. Generate new tokens
+      const accessLifetimeHours = this.config.get<number>('auth.accessLifetimeHours') || 24;
+      const refreshLifetimeDays = this.config.get<number>('auth.refreshLifetimeDays') || 7;
+
+      const payload = { userId: user.id, email: user.email };
+      const accessToken = await this.jwt.signAsync(payload, {
+        expiresIn: `${accessLifetimeHours}h`,
+      });
+      const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
+
+      const newRefreshToken = await this.jwt.signAsync(
+        { userId: user.id, email: user.email, type: 'refresh' },
+        { expiresIn: `${refreshLifetimeDays}d` },
+      );
+
+      // 5. Persist the new refresh token in DB
+      await this.prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: user.id,
+          expiresAt: new Date(
+            Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000,
+          ),
+        },
+      });
+
+      return {
+        success: true,
+        data: {
+          accessToken,
+          refreshToken: newRefreshToken,
+          tokenExpiry,
+        },
+      };
+    } catch (err) {
+      console.error('[Auth] Refresh token error:', err);
+      return { success: false, message: 'Could not refresh token' };
     }
-    const user = await this.prisma.user.findUnique({
-      where: { id: record.userId },
-    });
-    if (!user) return { success: false, message: 'User not found' };
-
-    const payload = { userId: user.id, email: user.email };
-    const accessToken = await this.jwt.signAsync(payload);
-    const tokenExpiry = this.tokenExpiryISO(ACCESS_LIFETIME_HOURS);
-
-    return { success: true, data: { accessToken, tokenExpiry } };
   }
 
   async logout(refreshToken?: string) {

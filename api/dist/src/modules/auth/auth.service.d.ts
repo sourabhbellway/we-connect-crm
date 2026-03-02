@@ -1,4 +1,5 @@
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -8,7 +9,8 @@ export declare class AuthService {
     private readonly prisma;
     private readonly jwt;
     private readonly activitiesService;
-    constructor(prisma: PrismaService, jwt: JwtService, activitiesService: ActivitiesService);
+    private readonly config;
+    constructor(prisma: PrismaService, jwt: JwtService, activitiesService: ActivitiesService, config: ConfigService);
     private tokenExpiryISO;
     private buildUserWithRoles;
     login(dto: LoginDto): Promise<{
@@ -77,6 +79,7 @@ export declare class AuthService {
         success: boolean;
         data: {
             accessToken: string;
+            refreshToken: string;
             tokenExpiry: string;
         };
         message?: undefined;

@@ -29,8 +29,11 @@ interface BusinessSettingsContextType {
   deleteLeadSource: (id: string) => Promise<void>;
   reorderLeadSources: (sourceIds: string[]) => Promise<void>;
 
-  // Lead Statuses (Fixed)
+  // Lead Statuses (Dynamic)
   getLeadStatuses: () => LeadStatus[];
+  addLeadStatus: (data: Omit<LeadStatus, 'id'>) => Promise<void>;
+  updateLeadStatus: (id: string, data: Partial<LeadStatus>) => Promise<void>;
+  deleteLeadStatus: (id: string) => Promise<void>;
 
   // Deal Statuses (Dynamic)
   getDealStages: () => DealStatus[]; // Renamed from getDealStages but kept for BC/Compatibility
@@ -222,9 +225,45 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
     }
   };
 
-  // Lead Statuses
+  // Lead Statuses Methods
   const getLeadStatuses = (): LeadStatus[] => {
     return leadStatuses;
+  };
+
+  const addLeadStatus = async (data: Omit<LeadStatus, 'id'>) => {
+    try {
+      const response = await businessSettingsService.createLeadStatus(data);
+      setLeadStatuses(prev => [...prev, response.data]);
+      toast.success('Lead status added successfully');
+    } catch (error) {
+      console.error('Failed to add lead status:', error);
+      toast.error('Failed to add lead status');
+      throw error;
+    }
+  };
+
+  const updateLeadStatus = async (id: string, data: Partial<LeadStatus>) => {
+    try {
+      const response = await businessSettingsService.updateLeadStatus(id, data);
+      setLeadStatuses(prev => prev.map(s => s.id === id ? response.data : s));
+      toast.success('Lead status updated successfully');
+    } catch (error) {
+      console.error('Failed to update lead status:', error);
+      toast.error('Failed to update lead status');
+      throw error;
+    }
+  };
+
+  const deleteLeadStatus = async (id: string) => {
+    try {
+      await businessSettingsService.deleteLeadStatus(id);
+      setLeadStatuses(prev => prev.filter(s => s.id !== id));
+      toast.success('Lead status deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete lead status:', error);
+      toast.error('Failed to delete lead status');
+      throw error;
+    }
   };
 
   // Deal Statuses Methods
@@ -334,6 +373,9 @@ export const BusinessSettingsProvider: React.FC<BusinessSettingsProviderProps> =
     deleteLeadSource,
     reorderLeadSources,
     getLeadStatuses,
+    addLeadStatus,
+    updateLeadStatus,
+    deleteLeadStatus,
     getDealStages,
     addDealStatus,
     updateDealStatus,

@@ -21,7 +21,6 @@ export class IndustriesController {
   constructor(private readonly service: IndustriesService) { }
 
   @Get()
-  @RequirePermission('industries.read')
   list() {
     return this.service.list();
   }

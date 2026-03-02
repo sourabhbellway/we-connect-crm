@@ -17,13 +17,13 @@ import {
     FileDown,
     RefreshCw,
     ArrowRightLeft,
-    ChevronDown,
     LayoutList,
     LayoutGrid,
     MoreVertical,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { leadService, Lead, LeadFilters, ConversionData } from "../services/leadService";
+import { integrationService } from "../services/integrationService";
 import { businessSettingsService } from "../features/business-settings/services/businessSettingsService";
 import { toast } from "react-toastify";
 import ConfirmModal from "./ConfirmModal";
@@ -38,6 +38,7 @@ import { STORAGE_KEYS } from "../constants";
 import MetaBar from "./list/MetaBar";
 import ListToolbar from "./list/ListToolbar";
 import TableSortHeader from "./list/TableSortHeader";
+import { formatValidationErrors } from "../utils/errorUtils";
 
 // Add getStatusColor function that was missing
 const getStatusColor = (status: string) => {
@@ -201,7 +202,7 @@ const LeadActionMenu = ({
                             className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2.5"
                         >
                             <ArrowRightLeft className="h-4 w-4 text-purple-500" />
-                            {t("leads.convertLead") || "Convert"}
+                            {t("leads.convertLead") || "Lead Convert"}
                         </button>
                     )}
                     <button
@@ -291,6 +292,7 @@ const Leads: React.FC = () => {
     const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>([]);
     const [isBulkAssigning, setIsBulkAssigning] = useState(false);
     const [fieldConfigs, setFieldConfigs] = useState<any[]>([]);
+    const [hasActiveIntegrations, setHasActiveIntegrations] = useState(false);
 
     // Debounced search with 500ms delay for better UX
     const { searchValue, debouncedSearchValue, setSearch, isSearching } =
@@ -398,6 +400,14 @@ const Leads: React.FC = () => {
 
         window.addEventListener('fieldConfigsUpdated', fetchFieldConfigs);
         return () => window.removeEventListener('fieldConfigsUpdated', fetchFieldConfigs);
+    }, []);
+
+    useEffect(() => {
+        const checkIntegrations = async () => {
+            const active = await integrationService.getActiveIntegrations();
+            setHasActiveIntegrations(active.length > 0);
+        };
+        checkIntegrations();
     }, []);
 
     // Load column visibility preferences
@@ -524,47 +534,8 @@ const Leads: React.FC = () => {
         setEmailSearch("");
     };
 
-    // Quick status change functionality
-    const [updatingStatus, setUpdatingStatus] = useState<{ [key: number]: boolean }>({});
-
-    const handleStatusChange = async (leadId: number, newStatus: string) => {
-        setUpdatingStatus(prev => ({ ...prev, [leadId]: true }));
-        try {
-            // Check if status change should trigger conversion
-            const shouldConvert = newStatus === 'closed' || newStatus === 'converted';
-
-            if (shouldConvert) {
-                // Find the lead to trigger conversion modal
-                const lead = leads.find(l => l.id === leadId);
-                if (!lead) {
-                    throw new Error('Lead not found');
-                }
-
-                // Trigger the conversion modal instead of direct conversion
-                setLeadToConvert(lead);
-                setShowConversionModal(true);
-            } else {
-                // Regular status update
-                await leadService.updateLeadStatus(leadId, newStatus);
-
-                // Update the leads array locally
-                setLeads(prev => prev.map(lead =>
-                    lead.id === leadId ? { ...lead, status: newStatus as Lead['status'] } : lead
-                ));
-
-                toast.success('Lead status updated successfully');
-            }
-
-            await refreshLeadsCount();
-            await refreshDealsCount();
-        } catch (err: any) {
-            const message = err?.response?.data?.message || 'Failed to update status';
-            toast.error(message);
-        } finally {
-            setUpdatingStatus(prev => ({ ...prev, [leadId]: false }));
-        }
-    };
-
+    // Note: status is now displayed as static text rather than editable, so we no longer track
+    // updatingStatus or provide a handleStatusChange function.
     // Bulk selection handlers
     const handleSelectLead = (leadId: number) => {
         const newSelected = new Set(selectedLeadIds);
@@ -616,7 +587,10 @@ const Leads: React.FC = () => {
 
             toast.success(`Successfully assigned ${leadIdArray.length} leads`);
         } catch (err: any) {
-            const message = err?.response?.data?.message || 'Failed to bulk assign leads';
+            const data = err?.response?.data;
+            const message = Array.isArray(data?.errors)
+                ? formatValidationErrors(data.errors)
+                : data?.message || err?.message || 'Failed to bulk assign leads';
             toast.error(message);
         } finally {
             setIsBulkAssigning(false);
@@ -761,7 +735,11 @@ const Leads: React.FC = () => {
             refreshLeadsCount();
         } catch (error: any) {
             console.error('Import error:', error);
-            toast.error(error.message || 'Failed to import leads');
+            const data = error?.response?.data;
+            const message = Array.isArray(data?.errors)
+                ? formatValidationErrors(data.errors)
+                : error.message || 'Failed to import leads';
+            toast.error(message);
         } finally {
             setIsImporting(false);
         }
@@ -934,7 +912,9 @@ const Leads: React.FC = () => {
                     addLabel="Add Lead"
                     onAdd={handleCreateLead}
                     actions={[
-                        { label: 'Sync Integrations', onClick: handleSyncIntegrations, icon: <RefreshCw className="w-4 h-4" />, loading: isSyncingIntegrations },
+                        ...(hasActiveIntegrations ? [
+                            { label: 'Sync Integrations', onClick: handleSyncIntegrations, icon: <RefreshCw className="w-4 h-4" />, loading: isSyncingIntegrations }
+                        ] : []),
                     ]}
                     bulkActions={[
                         { label: 'Download Template', onClick: handleDownloadTemplate, icon: <FileDown className="w-4 h-4" /> },
@@ -969,7 +949,7 @@ const Leads: React.FC = () => {
                     </div>
 
                     {/* Email Search */}
-                    <div className="">
+                    {/* <div className="">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             <div className="flex items-center gap-2">
                                 Email Search
@@ -990,7 +970,7 @@ const Leads: React.FC = () => {
                             placeholder="Search by email..."
                             className="max-w-full"
                         />
-                    </div>
+                    </div> */}
 
                     {/* Status */}
                     <div className="w-full sm:w-48 sm:min-w-[220px]">
@@ -1147,7 +1127,7 @@ const Leads: React.FC = () => {
                                     <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                                         <div className="flex items-center justify-between">
                                             <div className="text-xs text-gray-400">
-                                                ID: #{lead.id}
+                                                {/* ID: #{lead.id} */}
                                             </div>
                                             <LeadActionMenu
                                                 lead={lead}
@@ -1327,26 +1307,10 @@ const Leads: React.FC = () => {
                                                         </td>
                                                         <td className={`px-6 py-4 whitespace-nowrap text-center ${!isColumnVisible('status') ? 'hidden' : ''}`} data-label="Status">
                                                             <div className="relative inline-flex items-center justify-center">
-                                                                <select
-                                                                    value={lead.status}
-                                                                    onChange={(e) => handleStatusChange(lead.id, e.target.value)}
-                                                                    disabled={updatingStatus[lead.id]}
-                                                                    style={{ WebkitAppearance: 'none', backgroundImage: 'none', lineHeight: '1.5', textAlign: 'center', textAlignLast: 'center' }}
-                                                                    className={`pr-5 pl-3 text-xs font-semibold rounded-full py-1 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 text-center leading-tight ${getStatusColor(lead.status)
-                                                                        }`}
-                                                                >
-                                                                    {statusOptions.map((option) => (
-                                                                        <option key={option.value} value={option.value}>
-                                                                            {option.label}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                                <ChevronDown className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-blue-800/80 dark:text-blue-300/80" />
-                                                                {updatingStatus[lead.id] && (
-                                                                    <div className="absolute right-1 top-1 w-3 h-3">
-                                                                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
-                                                                    </div>
-                                                                )}
+                                                                {/* Static status display instead of dropdown */}
+                                                                <span className={`pr-5 pl-3 text-xs font-semibold rounded-full py-1 ${getStatusColor(lead.status)}`}>
+                                                                    {statusOptions.find(opt => opt.value === lead.status)?.label || lead.status}
+                                                                </span>
                                                             </div>
                                                         </td>
                                                         <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('assignedTo') ? 'hidden' : ''}`} data-label="Assigned to">

@@ -37,7 +37,6 @@ let PermissionsService = class PermissionsService {
             business_settings_email_template: ['create', 'read', 'update', 'delete'],
             business_settings_integrations: ['read', 'update', 'sync'],
             lead: ['create', 'read', 'update', 'delete', 'transfer', 'convert', 'export', 'import'],
-            contact: ['create', 'read', 'update', 'delete'],
             deal: ['create', 'read', 'update', 'delete'],
             activity: ['read'],
             files: ['read', 'create', 'delete'],

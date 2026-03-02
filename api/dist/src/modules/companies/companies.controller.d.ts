@@ -36,7 +36,6 @@ export declare class CompaniesController {
             assignedTo: number | null;
             createdBy: number | null;
             phone: string | null;
-            status: import(".prisma/client").$Enums.CompanyStatus;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
             website: string | null;
@@ -50,6 +49,7 @@ export declare class CompaniesController {
             zipCode: string | null;
             linkedinProfile: string | null;
             timezone: string | null;
+            status: import(".prisma/client").$Enums.CompanyStatus;
             employeeCount: string | null;
             domain: string | null;
             slug: string | null;
@@ -98,7 +98,6 @@ export declare class CompaniesController {
                 assignedTo: number | null;
                 createdBy: number | null;
                 phone: string | null;
-                status: import(".prisma/client").$Enums.CompanyStatus;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
                 website: string | null;
@@ -112,6 +111,7 @@ export declare class CompaniesController {
                 zipCode: string | null;
                 linkedinProfile: string | null;
                 timezone: string | null;
+                status: import(".prisma/client").$Enums.CompanyStatus;
                 employeeCount: string | null;
                 domain: string | null;
                 slug: string | null;
@@ -144,7 +144,6 @@ export declare class CompaniesController {
                 assignedTo: number | null;
                 createdBy: number | null;
                 phone: string | null;
-                status: import(".prisma/client").$Enums.CompanyStatus;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
                 website: string | null;
@@ -158,6 +157,7 @@ export declare class CompaniesController {
                 zipCode: string | null;
                 linkedinProfile: string | null;
                 timezone: string | null;
+                status: import(".prisma/client").$Enums.CompanyStatus;
                 employeeCount: string | null;
                 domain: string | null;
                 slug: string | null;
@@ -189,7 +189,6 @@ export declare class CompaniesController {
                 assignedTo: number | null;
                 createdBy: number | null;
                 phone: string | null;
-                status: import(".prisma/client").$Enums.CompanyStatus;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
                 website: string | null;
@@ -203,6 +202,7 @@ export declare class CompaniesController {
                 zipCode: string | null;
                 linkedinProfile: string | null;
                 timezone: string | null;
+                status: import(".prisma/client").$Enums.CompanyStatus;
                 employeeCount: string | null;
                 domain: string | null;
                 slug: string | null;

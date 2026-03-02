@@ -53,14 +53,14 @@ async function bootstrap() {
         },
         disableErrorMessages: false,
         exceptionFactory: (errors) => {
-            const messages = errors.map((error) => {
-                const constraints = error.constraints || {};
-                return Object.values(constraints).join(', ');
-            });
+            const detailedErrors = errors.map((error) => ({
+                field: error.property,
+                messages: Object.values(error.constraints || {}),
+            }));
             return new common_1.HttpException({
                 success: false,
                 message: 'Validation failed',
-                errors: messages,
+                errors: detailedErrors,
             }, common_1.HttpStatus.BAD_REQUEST);
         },
     }));

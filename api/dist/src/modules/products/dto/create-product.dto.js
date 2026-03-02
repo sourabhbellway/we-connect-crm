@@ -32,32 +32,34 @@ class CreateProductDto {
 }
 exports.CreateProductDto = CreateProductDto;
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Product name must be a string' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Product name is required' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Description must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "description", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'SKU must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "sku", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Type must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "type", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Category must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "category", void 0);
 __decorate([
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'Price must be a valid number' }),
+    (0, class_validator_1.IsNotEmpty)({ message: 'Price is required' }),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "price", void 0);
 __decorate([
@@ -68,12 +70,12 @@ __decorate([
 ], CreateProductDto.prototype, "cost", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Currency must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "currency", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Unit must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "unit", void 0);
 __decorate([
@@ -84,7 +86,7 @@ __decorate([
 ], CreateProductDto.prototype, "taxRate", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'HSN code must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "hsnCode", void 0);
 __decorate([
@@ -107,12 +109,12 @@ __decorate([
 ], CreateProductDto.prototype, "maxStockLevel", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsString)({ message: 'Image path must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "image", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsBoolean)({ message: 'isActive must be a boolean' }),
     __metadata("design:type", Boolean)
 ], CreateProductDto.prototype, "isActive", void 0);
 //# sourceMappingURL=create-product.dto.js.map
