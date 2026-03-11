@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { X, Upload, Package, Plus } from 'lucide-react';
-import { productsService, Product, CreateProductDto, UpdateProductDto } from '../services/productsService';
-import { productCategoriesService, ProductCategory } from '../services/productCategoriesService';
-import { unitTypesService, UnitType } from '../services/unitTypesService';
-import { API_BASE_URL } from '../config/config';
-import { toast } from 'react-toastify';
-import { taxesService, Tax } from '../services/taxesService';
-import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { X, Upload, Package, Plus } from "lucide-react";
+import {
+  productsService,
+  Product,
+  CreateProductDto,
+  UpdateProductDto,
+} from "../services/productsService";
+import { productCategoriesService, ProductCategory } from "../services/productCategoriesService";
+import { unitTypesService, UnitType } from "../services/unitTypesService";
+import { API_BASE_URL } from "../config/config";
+import { toast } from "react-toastify";
+import { taxesService, Tax } from "../services/taxesService";
+import { currenciesService, Currency } from "../services/currenciesService";
+import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 
 interface ProductFormProps {
   onClose: () => void;
@@ -19,19 +25,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
   const navigate = useNavigate();
   const { currencySettings } = useBusinessSettings();
   const [formData, setFormData] = useState<CreateProductDto & UpdateProductDto>({
-    name: initialProduct?.name || '',
-    description: initialProduct?.description || '',
-    sku: initialProduct?.sku || '',
-    type: initialProduct?.type || 'PHYSICAL',
-    category: initialProduct?.category || '',
+    name: initialProduct?.name || "",
+    description: initialProduct?.description || "",
+    sku: initialProduct?.sku || "",
+    type: initialProduct?.type || "PHYSICAL",
+    category: initialProduct?.category || "",
     price: initialProduct?.price || 0,
     cost: initialProduct?.cost || 0,
-    currency: initialProduct?.currency || currencySettings?.primary || 'USD',
-    unit: initialProduct?.unit || 'pcs',
+    currency: initialProduct?.currency || currencySettings?.primary || "USD",
+    unit: initialProduct?.unit || "pcs",
     taxRate: initialProduct?.taxRate || 0,
-    hsnCode: initialProduct?.hsnCode || '',
-
-
+    hsnCode: initialProduct?.hsnCode || "",
+    categoryId: initialProduct?.categoryId,
+    currencyId: initialProduct?.currencyId,
+    taxId: initialProduct?.taxId,
+    unitId: initialProduct?.unitId,
+    pricingEnabled: initialProduct?.pricingEnabled ?? true,
     isActive: initialProduct?.isActive ?? true,
   });
 
@@ -44,12 +53,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
   const [unitTypesLoading, setUnitTypesLoading] = useState(true);
   const [taxes, setTaxes] = useState<Tax[]>([]);
   const [taxesLoading, setTaxesLoading] = useState(true);
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [currenciesLoading, setCurrenciesLoading] = useState(true);
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -57,18 +68,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
       if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({ ...prev, image: 'Please select a valid image file (JPEG, PNG, GIF, WebP)' }));
+        setErrors((prev) => ({
+          ...prev,
+          image: "Please select a valid image file (JPEG, PNG, GIF, WebP)",
+        }));
         return;
       }
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, image: 'File size must be less than 5MB' }));
+        setErrors((prev) => ({ ...prev, image: "File size must be less than 5MB" }));
         return;
       }
       setSelectedFile(file);
-      setErrors(prev => ({ ...prev, image: '' }));
+      setErrors((prev) => ({ ...prev, image: "" }));
     }
   };
 
@@ -76,13 +90,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required';
+      newErrors.name = "Product name is required";
     }
 
-    if (formData.price <= 0) {
-      newErrors.price = 'Price must be greater than 0';
+    if (formData.pricingEnabled && formData.price <= 0) {
+      newErrors.price = "Price must be greater than 0";
     }
-
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -95,8 +108,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
         const fetchedCategories = await productCategoriesService.getProductCategories();
         setCategories(fetchedCategories);
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        toast.error('Failed to load product categories');
+        console.error("Failed to fetch categories:", error);
+        toast.error("Failed to load product categories");
       } finally {
         setCategoriesLoading(false);
       }
@@ -112,8 +125,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
         const fetchedUnitTypes = await unitTypesService.getAll();
         setUnitTypes(fetchedUnitTypes);
       } catch (error) {
-        console.error('Failed to fetch unit types:', error);
-        toast.error('Failed to load unit types');
+        console.error("Failed to fetch unit types:", error);
+        toast.error("Failed to load unit types");
       } finally {
         setUnitTypesLoading(false);
       }
@@ -129,8 +142,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
         const fetchedTaxes = await taxesService.getAll();
         setTaxes(fetchedTaxes);
       } catch (error) {
-        console.error('Failed to fetch taxes:', error);
-        toast.error('Failed to load tax rates');
+        console.error("Failed to fetch taxes:", error);
+        toast.error("Failed to load tax rates");
       } finally {
         setTaxesLoading(false);
       }
@@ -139,10 +152,43 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
     fetchTaxes();
   }, []);
 
+  // Fetch currencies on component mount
+  useEffect(() => {
+    const fetchCurrencies = async () => {
+      try {
+        const fetchedCurrencies = await currenciesService.getAll();
+        setCurrencies(fetchedCurrencies);
+
+        // If creating new and no currencyId is set, try to find default or matching code
+        if (!initialProduct && !formData.currencyId && fetchedCurrencies.length > 0) {
+          const defaultCurr =
+            fetchedCurrencies.find((c) => c.isDefault) ||
+            fetchedCurrencies.find((c) => c.code === formData.currency);
+          if (defaultCurr) {
+            setFormData((prev) => ({
+              ...prev,
+              currencyId: defaultCurr.id,
+              currency: defaultCurr.code,
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch currencies:", error);
+      } finally {
+        setCurrenciesLoading(false);
+      }
+    };
+    fetchCurrencies();
+  }, [initialProduct]);
+
   // Sync default currency when settings load
   useEffect(() => {
-    if (currencySettings?.primary && !initialProduct && (formData.currency === 'INR' || !formData.currency)) {
-      setFormData(prev => ({ ...prev, currency: currencySettings.primary }));
+    if (
+      currencySettings?.primary &&
+      !initialProduct &&
+      (formData.currency === "INR" || !formData.currency)
+    ) {
+      setFormData((prev) => ({ ...prev, currency: currencySettings.primary }));
     }
   }, [currencySettings, initialProduct]);
 
@@ -157,13 +203,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
       const productData: any = {
         ...formData,
         // Ensure type is a valid ProductType enum value (PHYSICAL, DIGITAL, SERVICE)
-        type: formData.type === 'product' ? 'PHYSICAL' : (formData.type || 'PHYSICAL'),
+        type: formData.type === "product" ? "PHYSICAL" : formData.type || "PHYSICAL",
         price: Number(formData.price) || 0,
         cost: formData.cost ? Number(formData.cost) : undefined,
         taxRate: formData.taxRate ? Number(formData.taxRate) : undefined,
-
+        categoryId: formData.categoryId ? Number(formData.categoryId) : undefined,
+        currencyId: formData.currencyId ? Number(formData.currencyId) : undefined,
+        taxId: formData.taxId ? Number(formData.taxId) : undefined,
+        unitId: formData.unitId ? Number(formData.unitId) : undefined,
       };
-
 
       // Remove empty strings and convert to null/undefined
       if (!productData.description || !productData.description.trim()) {
@@ -185,40 +233,41 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
         // Update existing product
         createdProduct = await productsService.update(initialProduct.id, productData);
         if (!createdProduct.success) {
-          throw new Error(createdProduct.message || 'Failed to update product');
+          throw new Error(createdProduct.message || "Failed to update product");
         }
-        toast.success('Product updated successfully!');
+        toast.success("Product updated successfully!");
       } else {
         // Create new product
         createdProduct = await productsService.create(productData);
         if (!createdProduct.success) {
-          throw new Error(createdProduct.message || 'Failed to create product');
+          throw new Error(createdProduct.message || "Failed to create product");
         }
-        toast.success('Product created successfully!');
+        toast.success("Product created successfully!");
       }
 
       // Upload file if selected
       if (selectedFile) {
         try {
-          const productId = initialProduct?.id || createdProduct?.data?.product?.id || createdProduct?.id;
+          const productId =
+            initialProduct?.id || createdProduct?.data?.product?.id || createdProduct?.id;
 
           if (productId) {
             const formDataUpload = new FormData();
-            formDataUpload.append('file', selectedFile);
-            formDataUpload.append('entityType', 'product');
-            formDataUpload.append('entityId', productId.toString());
-            formDataUpload.append('name', selectedFile.name);
+            formDataUpload.append("file", selectedFile);
+            formDataUpload.append("entityType", "product");
+            formDataUpload.append("entityId", productId.toString());
+            formDataUpload.append("name", selectedFile.name);
 
             const uploadResponse = await fetch(`${API_BASE_URL}/files/upload`, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('authToken')}`,
+                Authorization: `Bearer ${localStorage.getItem("token") || localStorage.getItem("authToken")}`,
               },
               body: formDataUpload,
             });
 
             if (!uploadResponse.ok) {
-              throw new Error('Failed to upload image');
+              throw new Error("Failed to upload image");
             }
 
             const uploadResult = await uploadResponse.json();
@@ -230,16 +279,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
             }
           }
         } catch (uploadError) {
-          console.error('Failed to upload image:', uploadError);
-          toast.error('Product saved but failed to upload image.');
+          console.error("Failed to upload image:", uploadError);
+          toast.error("Product saved but failed to upload image.");
         }
       }
 
       onSave();
       onClose();
     } catch (error: any) {
-      console.error('Failed to save product:', error);
-      const errorMessage = error?.response?.data?.message || 'Failed to save product. Please try again.';
+      console.error("Failed to save product:", error);
+      const errorMessage =
+        error?.response?.data?.message || "Failed to save product. Please try again.";
       toast.error(errorMessage);
     } finally {
       setIsSaving(false);
@@ -247,7 +297,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSave();
+      }}
+      noValidate
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto"
+    >
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -256,7 +313,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
               <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {initialProduct ? 'Edit Product' : 'Add New Product'}
+              {initialProduct ? "Edit Product" : "Add New Product"}
             </h2>
           </div>
           <button
@@ -281,12 +338,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Product Name *
                 </label>
                 <input
+                  id="field_name"
                   type="text"
                   value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Enter product name"
-                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
+                    errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                  }`}
                 />
                 {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
@@ -298,7 +357,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 <input
                   type="text"
                   value={formData.sku}
-                  onChange={(e) => handleInputChange('sku', e.target.value)}
+                  onChange={(e) => handleInputChange("sku", e.target.value)}
                   placeholder="Enter SKU"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
@@ -311,7 +370,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) => handleInputChange("description", e.target.value)}
                 placeholder="Enter product description"
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -321,10 +380,31 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
 
           {/* Pricing & Inventory */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-              Pricing & Inventory
-            </h3>
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Pricing & Inventory
+              </h3>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  {formData.pricingEnabled ? "Pricing Enabled" : "Pricing Disabled"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange("pricingEnabled", !formData.pricingEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    formData.pricingEnabled ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
+                      formData.pricingEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
 
+            {formData.pricingEnabled && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -332,19 +412,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-gray-500 font-medium text-xs">
-                    {currencySettings?.currencies?.find(c => c.code === formData.currency)?.symbol ||
-                      (formData.currency === currencySettings?.primary ? currencySettings?.symbol : '') ||
-                      (formData.currency === 'USD' ? '$' : formData.currency)}
+                    {currencySettings?.currencies?.find((c) => c.code === formData.currency)
+                      ?.symbol ||
+                      (formData.currency === currencySettings?.primary
+                        ? currencySettings?.symbol
+                        : "") ||
+                      (formData.currency === "USD" ? "$" : formData.currency)}
                   </span>
                   <input
+                    id="field_price"
                     type="number"
                     value={formData.price}
-                    onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => handleInputChange("price", parseFloat(e.target.value) || 0)}
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    className={`w-full pl-8 pr-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      }`}
+                    className={`w-full pl-8 pr-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
+                      errors.price ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                    }`}
                   />
                 </div>
                 {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
@@ -355,28 +440,26 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Currency
                 </label>
                 <select
-                  value={formData.currency}
-                  onChange={(e) => handleInputChange('currency', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  id="field_currency"
+                  value={formData.currencyId || ""}
+                  onChange={(e) => {
+                    const id = parseInt(e.target.value);
+                    const selected = currencies.find((c) => c.id === id);
+                    if (selected) {
+                      setFormData((prev) => ({ ...prev, currencyId: id, currency: selected.code }));
+                    }
+                  }}
+                  disabled={currenciesLoading}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                 >
-                  {currencySettings?.currencies?.length ? (
-                    currencySettings.currencies.map((curr) => (
-                      <option key={curr.code} value={curr.code}>
+                  <option value="">Select Currency</option>
+                  {currencies
+                    .filter((c) => c.isActive)
+                    .map((curr) => (
+                      <option key={curr.id} value={curr.id}>
                         {curr.code} - {curr.name} ({curr.symbol})
                       </option>
-                    ))
-                  ) : currencySettings?.supportedCurrencies?.length ? (
-                    currencySettings.supportedCurrencies.map((code: string) => (
-                      <option key={code} value={code}>{code}</option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="USD">USD</option>
-                      <option value="INR">INR</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                    </>
-                  )}
+                    ))}
                 </select>
               </div>
 
@@ -385,22 +468,40 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Unit Type
                 </label>
                 <select
-                  value={formData.unit}
-                  onChange={(e) => handleInputChange('unit', e.target.value)}
+                  id="field_unit"
+                  value={formData.unitId || ""}
+                  onChange={(e) => {
+                    const id = parseInt(e.target.value);
+                    const selected = unitTypes.find((u) => u.id === id);
+                    if (selected) {
+                      setFormData((prev) => ({ ...prev, unitId: id, unit: selected.name }));
+                    }
+                  }}
                   disabled={unitTypesLoading}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                 >
                   <option value="">
-                    {unitTypesLoading ? 'Loading unit types...' : 'Select Unit Type'}
+                    {unitTypesLoading ? "Loading unit types..." : "Select Unit Type"}
                   </option>
-                  {unitTypes.filter(unit => unit.isActive).map((unit) => (
-                    <option key={unit.id} value={unit.name}>
-                      {unit.name.charAt(0).toUpperCase() + unit.name.slice(1)}
-                    </option>
-                  ))}
+                  {unitTypes
+                    .filter((unit) => unit.isActive)
+                    .map((unit) => (
+                      <option key={unit.id} value={unit.id}>
+                        {unit.name.charAt(0).toUpperCase() + unit.name.slice(1)}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
+            )}
+
+            {!formData.pricingEnabled && (
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Pricing is disabled for this product. Enable the toggle above to set pricing details.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Tax & Compliance */}
@@ -415,18 +516,37 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Tax Rate (%)
                 </label>
                 <select
-                  value={formData.taxRate}
-                  onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
+                  id="field_taxRate"
+                  value={formData.taxId || "0"}
+                  onChange={(e) => {
+                    const id = parseInt(e.target.value);
+                    if (id === 0) {
+                      setFormData((prev) => ({ ...prev, taxId: undefined, taxRate: 0 }));
+                    } else {
+                      const selected = taxes.find((t) => t.id === id);
+                      if (selected) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          taxId: id,
+                          taxRate: Number(selected.rate),
+                        }));
+                      }
+                    }
+                  }}
                   disabled={taxesLoading}
-                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 ${errors.taxRate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
+                  className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50 ${
+                    errors.taxRate ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+                  }`}
                 >
                   <option value="0">No Tax (0%)</option>
-                  {!taxesLoading && taxes.filter(t => t.isActive).map((tax) => (
-                    <option key={tax.id} value={Number(tax.rate)}>
-                      {tax.name} ({tax.rate}%)
-                    </option>
-                  ))}
+                  {!taxesLoading &&
+                    taxes
+                      .filter((t) => t.isActive)
+                      .map((tax) => (
+                        <option key={tax.id} value={tax.id}>
+                          {tax.name} ({tax.rate}%)
+                        </option>
+                      ))}
                   {taxesLoading && <option disabled>Loading taxes...</option>}
                 </select>
                 {errors.taxRate && <p className="text-red-500 text-sm mt-1">{errors.taxRate}</p>}
@@ -439,7 +559,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 <input
                   type="text"
                   value={formData.hsnCode}
-                  onChange={(e) => handleInputChange('hsnCode', e.target.value)}
+                  onChange={(e) => handleInputChange("hsnCode", e.target.value)}
                   placeholder="e.g., 8471"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
@@ -461,7 +581,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   </label>
                   <button
                     type="button"
-                    onClick={() => navigate('/business-settings/product-categories')}
+                    onClick={() => navigate("/business-settings/product-categories")}
                     className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded transition-colors"
                     title="Manage Product Categories"
                   >
@@ -470,19 +590,30 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   </button>
                 </div>
                 <select
-                  value={formData.category}
-                  onChange={(e) => handleInputChange('category', e.target.value)}
+                  id="field_category"
+                  value={formData.categoryId || ""}
+                  onChange={(e) => {
+                    const id = parseInt(e.target.value);
+                    const selected = categories.find((c) => c.id === id);
+                    if (selected) {
+                      setFormData((prev) => ({ ...prev, categoryId: id, category: selected.name }));
+                    } else {
+                      setFormData((prev) => ({ ...prev, categoryId: undefined, category: "" }));
+                    }
+                  }}
                   disabled={categoriesLoading}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                 >
                   <option value="">
-                    {categoriesLoading ? 'Loading categories...' : 'Select Category'}
+                    {categoriesLoading ? "Loading categories..." : "Select Category"}
                   </option>
-                  {categories.filter(cat => cat.isActive).map((category) => (
-                    <option key={category.id} value={category.name}>
-                      {category.name}
-                    </option>
-                  ))}
+                  {categories
+                    .filter((cat) => cat.isActive)
+                    .map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -491,8 +622,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                   Product Type
                 </label>
                 <select
+                  id="field_type"
                   value={formData.type}
-                  onChange={(e) => handleInputChange('type', e.target.value)}
+                  onChange={(e) => handleInputChange("type", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="product">Product</option>
@@ -507,10 +639,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
                 type="checkbox"
                 id="isActive"
                 checked={formData.isActive}
-                onChange={(e) => handleInputChange('isActive', e.target.checked)}
+                onChange={(e) => handleInputChange("isActive", e.target.checked)}
                 className="w-4 h-4 text-weconnect-red border-gray-300 rounded focus:ring-weconnect-red"
               />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="isActive"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Active (product will be available for sale)
               </label>
             </div>
@@ -570,11 +705,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ onClose, onSave, initialProdu
             disabled={isSaving}
             className="px-6 py-2 bg-weconnect-red text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Saving...' : initialProduct ? 'Update Product' : 'Create Product'}
+            {isSaving ? "Saving..." : initialProduct ? "Update Product" : "Create Product"}
           </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 };
 

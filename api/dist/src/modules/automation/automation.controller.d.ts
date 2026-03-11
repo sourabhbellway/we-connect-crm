@@ -5,14 +5,14 @@ export declare class AutomationController {
     private readonly automationService;
     constructor(automationService: AutomationService);
     create(createWorkflowDto: CreateWorkflowDto, req: any): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
         description: string | null;
         createdBy: number | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        deletedAt: Date | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
         trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
@@ -23,14 +23,14 @@ export declare class AutomationController {
             executions: number;
         };
     } & {
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
         description: string | null;
         createdBy: number | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        deletedAt: Date | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
         trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
@@ -39,8 +39,8 @@ export declare class AutomationController {
     findOne(id: string): Promise<{
         executions: {
             error: string | null;
-            id: number;
             result: import("@prisma/client/runtime/library").JsonValue | null;
+            id: number;
             status: import(".prisma/client").$Enums.WorkflowExecutionStatus;
             duration: number | null;
             completedAt: Date | null;
@@ -49,56 +49,56 @@ export declare class AutomationController {
             workflowId: number;
         }[];
     } & {
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
         description: string | null;
         createdBy: number | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        deletedAt: Date | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
         trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
     update(id: string, updateWorkflowDto: UpdateWorkflowDto): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
         description: string | null;
         createdBy: number | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        deletedAt: Date | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
         trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
     remove(id: string): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
         description: string | null;
         createdBy: number | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        deletedAt: Date | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
         trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
         actions: import("@prisma/client/runtime/library").JsonValue;
     }>;
     toggleActive(id: string, isActive: boolean): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
         description: string | null;
         createdBy: number | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
+        name: string;
+        isActive: boolean;
+        deletedAt: Date | null;
         conditions: import("@prisma/client/runtime/library").JsonValue;
         trigger: import(".prisma/client").$Enums.WorkflowTrigger;
         triggerData: import("@prisma/client/runtime/library").JsonValue | null;
@@ -181,8 +181,8 @@ export declare class AutomationController {
         };
     } & {
         error: string | null;
-        id: number;
         result: import("@prisma/client/runtime/library").JsonValue | null;
+        id: number;
         status: import(".prisma/client").$Enums.WorkflowExecutionStatus;
         duration: number | null;
         completedAt: Date | null;

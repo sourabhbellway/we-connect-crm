@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { ChevronDown, Plus, Zap } from 'lucide-react';
-import { UI_CONFIG } from '../../constants';
-import Button from './Button';
+import React, { useState } from "react";
+import { ChevronDown, Plus, Zap } from "lucide-react";
+import { UI_CONFIG } from "../../constants";
+import Button from "./Button";
 
 interface MenuItem {
   label: string;
@@ -28,16 +28,16 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({
   logo,
-  logoText = 'weconnect',
+  logoText = "weconnect",
   menuItems = [
-    { label: 'Home', active: true },
-    { label: 'Products', hasDropdown: true },
-    { label: 'Integrations', hasDropdown: true },
-    { label: 'Pricing' }
+    { label: "Home", active: true },
+    { label: "Products", hasDropdown: true },
+    { label: "Integrations", hasDropdown: true },
+    { label: "Pricing" },
   ],
   user,
   onUpgrade,
-  className = ''
+  className = "",
 }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
@@ -69,9 +69,9 @@ const Header: React.FC<HeaderProps> = ({
               <div key={index} className="relative">
                 <button
                   className={`flex items-center space-x-1 px-3 py-2 text-sm font-medium transition-colors duration-200 rounded-lg ${
-                    item.active 
-                      ? 'text-weconnect-red bg-red-50' 
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                    item.active
+                      ? "text-weconnect-red bg-red-50"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                   onClick={() => {
                     if (item.hasDropdown) {
@@ -88,7 +88,7 @@ const Header: React.FC<HeaderProps> = ({
                     </div>
                   )}
                 </button>
-                
+
                 {/* Dropdown Menu - Add actual dropdown content as needed */}
                 {item.hasDropdown && activeDropdown === item.label && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
@@ -130,9 +130,7 @@ const Header: React.FC<HeaderProps> = ({
                 />
                 <div className="hidden lg:block">
                   <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                  {user.email && (
-                    <div className="text-xs text-gray-500">{user.email}</div>
-                  )}
+                  {user.email && <div className="text-xs text-gray-500">{user.email}</div>}
                 </div>
               </div>
             )}
@@ -147,9 +145,9 @@ const Header: React.FC<HeaderProps> = ({
             <button
               key={index}
               className={`block w-full text-left px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                item.active 
-                  ? 'text-weconnect-red bg-red-50' 
-                  : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                item.active
+                  ? "text-weconnect-red bg-red-50"
+                  : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
               }`}
               onClick={item.onClick}
             >

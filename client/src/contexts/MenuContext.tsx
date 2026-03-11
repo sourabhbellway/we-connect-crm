@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface MenuContextType {
   menuOrder: string[];
@@ -9,17 +9,17 @@ interface MenuContextType {
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 const DEFAULT_MENU_ORDER = [
-  'dashboard',
-  'leads',
-  'deals',
-  'quotations',
-  'invoices',
-  'task-management',
-  'expense-management',
-  'products',
-  'automation-management',
-  'trash',
-  'business-settings'
+  "dashboard",
+  "leads",
+  "deals",
+  "quotations",
+  "invoices",
+  "task-management",
+  "expense-management",
+  "products",
+  "automation-management",
+  "trash",
+  "business-settings",
 ];
 
 // Increment this when default order changes so saved orders can be reconciled
@@ -35,8 +35,8 @@ export const MenuProvider: React.FC<MenuProviderProps> = ({ children }) => {
   // Load menu order from localStorage on component mount
   useEffect(() => {
     try {
-      const savedOrderRaw = localStorage.getItem('menuOrder');
-      const savedVersion = Number(localStorage.getItem('menuOrderVersion') || '0');
+      const savedOrderRaw = localStorage.getItem("menuOrder");
+      const savedVersion = Number(localStorage.getItem("menuOrderVersion") || "0");
       const parsedOrder = savedOrderRaw ? JSON.parse(savedOrderRaw) : [];
 
       let normalized: string[];
@@ -53,13 +53,13 @@ export const MenuProvider: React.FC<MenuProviderProps> = ({ children }) => {
 
       // If version changed or order invalid, save reconciled order
       if (savedVersion !== MENU_ORDER_VERSION) {
-        localStorage.setItem('menuOrderVersion', String(MENU_ORDER_VERSION));
-        localStorage.setItem('menuOrder', JSON.stringify(normalized));
+        localStorage.setItem("menuOrderVersion", String(MENU_ORDER_VERSION));
+        localStorage.setItem("menuOrder", JSON.stringify(normalized));
       }
 
       setMenuOrderState(normalized);
     } catch (error) {
-      console.error('Failed to parse saved menu order:', error);
+      console.error("Failed to parse saved menu order:", error);
       setMenuOrderState(DEFAULT_MENU_ORDER);
     }
   }, []);
@@ -67,14 +67,14 @@ export const MenuProvider: React.FC<MenuProviderProps> = ({ children }) => {
   // Save menu order to localStorage whenever it changes
   const setMenuOrder = (order: string[]) => {
     setMenuOrderState(order);
-    localStorage.setItem('menuOrder', JSON.stringify(order));
-    localStorage.setItem('menuOrderVersion', String(MENU_ORDER_VERSION));
+    localStorage.setItem("menuOrder", JSON.stringify(order));
+    localStorage.setItem("menuOrderVersion", String(MENU_ORDER_VERSION));
   };
 
   const resetMenuOrder = () => {
     setMenuOrderState(DEFAULT_MENU_ORDER);
-    localStorage.setItem('menuOrder', JSON.stringify(DEFAULT_MENU_ORDER));
-    localStorage.setItem('menuOrderVersion', String(MENU_ORDER_VERSION));
+    localStorage.setItem("menuOrder", JSON.stringify(DEFAULT_MENU_ORDER));
+    localStorage.setItem("menuOrderVersion", String(MENU_ORDER_VERSION));
   };
 
   return (
@@ -87,7 +87,7 @@ export const MenuProvider: React.FC<MenuProviderProps> = ({ children }) => {
 export const useMenu = () => {
   const context = useContext(MenuContext);
   if (context === undefined) {
-    throw new Error('useMenu must be used within a MenuProvider');
+    throw new Error("useMenu must be used within a MenuProvider");
   }
   return context;
 };

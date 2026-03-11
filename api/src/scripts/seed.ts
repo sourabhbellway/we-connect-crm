@@ -230,6 +230,12 @@ async function main() {
         module: 'Leads',
         description: 'Delete leads',
       },
+      {
+        name: 'Export Leads',
+        key: 'lead.export',
+        module: 'Leads',
+        description: 'Export leads',
+      },
 
       // Deals
       {
@@ -452,6 +458,202 @@ async function main() {
         module: 'Dashboard',
         description: 'View activity & engagement widget',
       },
+
+      // Notifications
+      {
+        name: 'View Notifications',
+        key: 'notifications.read',
+        module: 'Notifications',
+        description: 'View notifications',
+      },
+      {
+        name: 'Update Notifications',
+        key: 'notifications.update',
+        module: 'Notifications',
+        description: 'Update notifications',
+      },
+      {
+        name: 'Delete Notifications',
+        key: 'notifications.delete',
+        module: 'Notifications',
+        description: 'Delete notifications',
+      },
+
+      // Business Settings - Company
+      {
+        name: 'View Business Settings Company',
+        key: 'business_settings_company.read',
+        module: 'BusinessSettings',
+        description: 'View company business settings',
+      },
+      {
+        name: 'Update Business Settings Company',
+        key: 'business_settings_company.update',
+        module: 'BusinessSettings',
+        description: 'Update company business settings',
+      },
+
+      // Business Settings - Currency
+      {
+        name: 'View Business Settings Currency',
+        key: 'business_settings_currency.read',
+        module: 'BusinessSettings',
+        description: 'View currency settings',
+      },
+      {
+        name: 'Update Business Settings Currency',
+        key: 'business_settings_currency.update',
+        module: 'BusinessSettings',
+        description: 'Update currency settings',
+      },
+
+      // Business Settings - Tax
+      {
+        name: 'View Business Settings Tax',
+        key: 'business_settings_tax.read',
+        module: 'BusinessSettings',
+        description: 'View tax settings',
+      },
+      {
+        name: 'Update Business Settings Tax',
+        key: 'business_settings_tax.update',
+        module: 'BusinessSettings',
+        description: 'Update tax settings',
+      },
+
+      // Business Settings - Deal Status
+      {
+        name: 'View Business Settings Deal Status',
+        key: 'business_settings_deal_status.read',
+        module: 'BusinessSettings',
+        description: 'View deal status settings',
+      },
+      {
+        name: 'Update Business Settings Deal Status',
+        key: 'business_settings_deal_status.update',
+        module: 'BusinessSettings',
+        description: 'Update deal status settings',
+      },
+
+      // Business Settings - Lead Source
+      {
+        name: 'View Business Settings Lead Source',
+        key: 'business_settings_lead_source.read',
+        module: 'BusinessSettings',
+        description: 'View lead source settings',
+      },
+      {
+        name: 'Update Business Settings Lead Source',
+        key: 'business_settings_lead_source.update',
+        module: 'BusinessSettings',
+        description: 'Update lead source settings',
+      },
+
+      // Business Settings - Numbering
+      {
+        name: 'View Business Settings Numbering',
+        key: 'business_settings_numbering.read',
+        module: 'BusinessSettings',
+        description: 'View numbering settings',
+      },
+      {
+        name: 'Update Business Settings Numbering',
+        key: 'business_settings_numbering.update',
+        module: 'BusinessSettings',
+        description: 'Update numbering settings',
+      },
+
+      // Products
+      {
+        name: 'View Products',
+        key: 'products.read',
+        module: 'Products',
+        description: 'View products',
+      },
+      {
+        name: 'Create Products',
+        key: 'products.create',
+        module: 'Products',
+        description: 'Create products',
+      },
+      {
+        name: 'Update Products',
+        key: 'products.update',
+        module: 'Products',
+        description: 'Update products',
+      },
+      {
+        name: 'Delete Products',
+        key: 'products.delete',
+        module: 'Products',
+        description: 'Delete products',
+      },
+
+      // Notes
+      {
+        name: 'View Notes',
+        key: 'notes.read',
+        module: 'Notes',
+        description: 'View notes',
+      },
+      {
+        name: 'Create Notes',
+        key: 'notes.create',
+        module: 'Notes',
+        description: 'Create notes',
+      },
+      {
+        name: 'Update Notes',
+        key: 'notes.update',
+        module: 'Notes',
+        description: 'Update notes',
+      },
+      {
+        name: 'Delete Notes',
+        key: 'notes.delete',
+        module: 'Notes',
+        description: 'Delete notes',
+      },
+
+      // Communications
+      {
+        name: 'View Communications',
+        key: 'communications.read',
+        module: 'Communications',
+        description: 'View communications',
+      },
+      {
+        name: 'Create Communications',
+        key: 'communications.create',
+        module: 'Communications',
+        description: 'Create communications',
+      },
+
+      // Tasks
+      {
+        name: 'View Tasks',
+        key: 'tasks.read',
+        module: 'Tasks',
+        description: 'View tasks',
+      },
+      {
+        name: 'Create Tasks',
+        key: 'tasks.create',
+        module: 'Tasks',
+        description: 'Create tasks',
+      },
+      {
+        name: 'Update Tasks',
+        key: 'tasks.update',
+        module: 'Tasks',
+        description: 'Update tasks',
+      },
+      {
+        name: 'Delete Tasks',
+        key: 'tasks.delete',
+        module: 'Tasks',
+        description: 'Delete tasks',
+      },
     ];
 
     for (const perm of basePermissions) {
@@ -498,6 +700,7 @@ async function main() {
       'lead.read',
       'lead.create',
       'lead.update',
+      'lead.export',
       'deal.read',
       'deal.create',
       'deal.update',
@@ -506,6 +709,29 @@ async function main() {
       'quotation.update',
       'invoice.read',
       'activity.read',
+      // Notifications
+      'notifications.read',
+      'notifications.update',
+      // Business Settings
+      'business_settings.read',
+      'business_settings_company.read',
+      'business_settings_currency.read',
+      'business_settings_tax.read',
+      'business_settings_deal_status.read',
+      'business_settings_lead_source.read',
+      'business_settings_numbering.read',
+      // Products
+      'products.read',
+      // Notes
+      'notes.read',
+      'notes.create',
+      'notes.update',
+      // Communications
+      'communications.read',
+      // Tasks
+      'tasks.read',
+      'tasks.create',
+      'tasks.update',
     ];
 
     const mgrKeys = [

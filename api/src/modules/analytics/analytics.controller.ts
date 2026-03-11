@@ -8,7 +8,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly service: AnalyticsService) { }
+  constructor(private readonly service: AnalyticsService) {}
 
   @Get('dashboard/kpis')
   @RequirePermission('dashboard.read')
@@ -221,6 +221,8 @@ export class AnalyticsController {
   @RequirePermission('dashboard.read')
   getLeadReport(
     @Query('months') months?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Query('userId') userId?: string,
     @Query('scope') scope?: string,
     @Query('page') page?: string,
@@ -242,6 +244,34 @@ export class AnalyticsController {
       parsedPage,
       parsedLimit,
       parsedFilters,
+      startDate,
+      endDate,
+    );
+  }
+
+  @Get('reports/lead/metric-leads')
+  @RequirePermission('dashboard.read')
+  getLeadMetricDetails(
+    @Query('metricType') metricType: string,
+    @Query('metricValue') metricValue: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('userId') userId?: string,
+    @Query('scope') scope?: string,
+    @User() user?: any,
+  ) {
+    const parsedUserId =
+      userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
+    return this.service.getLeadMetricDetails(
+      {
+        metricType,
+        metricValue,
+        startDate,
+        endDate,
+        userId: parsedUserId,
+        scope: scope as any,
+      },
+      user,
     );
   }
 
@@ -249,6 +279,8 @@ export class AnalyticsController {
   @RequirePermission('dashboard.read')
   getDealReport(
     @Query('months') months?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Query('userId') userId?: string,
     @Query('scope') scope?: string,
     @Query('page') page?: string,
@@ -270,6 +302,8 @@ export class AnalyticsController {
       parsedPage,
       parsedLimit,
       parsedFilters,
+      startDate,
+      endDate,
     );
   }
 

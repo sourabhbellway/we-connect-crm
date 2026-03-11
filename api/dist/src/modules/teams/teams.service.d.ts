@@ -9,12 +9,12 @@ export declare class TeamsService {
     findOne(id: number): Promise<any>;
     update(id: number, updateTeamDto: UpdateTeamDto): Promise<any>;
     remove(id: number): Promise<{
+        description: string | null;
+        id: number;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
-        managerId: number | null;
         name: string;
-        description: string | null;
+        managerId: number | null;
         productId: number | null;
     }>;
 }

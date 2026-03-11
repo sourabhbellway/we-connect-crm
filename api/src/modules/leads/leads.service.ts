@@ -87,7 +87,7 @@ export class LeadsService {
     private readonly prisma: PrismaService,
     private readonly automationService: AutomationService,
     private readonly notificationsService: NotificationsService,
-  ) { }
+  ) {}
 
   async getStats() {
     const baseWhere = { deletedAt: null };
@@ -130,22 +130,46 @@ export class LeadsService {
       page,
       limit,
       status,
+      priority,
       search,
       email,
+      phone,
       isDeleted,
       assignedTo,
+      ownerId,
+      createdBy,
+      sourceId,
+      industry,
+      city,
+      state,
+      country,
+      startDate,
+      endDate,
       sortBy,
       sortOrder,
+      productId,
     }: {
       page: number;
       limit: number;
       status?: string;
+      priority?: string;
       search?: string;
       email?: string;
+      phone?: string;
       isDeleted?: boolean;
       assignedTo?: number;
+      ownerId?: number;
+      createdBy?: number;
+      sourceId?: number;
+      industry?: string;
+      city?: string;
+      state?: string;
+      country?: string;
+      startDate?: string;
+      endDate?: string;
       sortBy?: string;
       sortOrder?: 'asc' | 'desc';
+      productId?: number;
     },
     user?: any,
   ) {
@@ -182,14 +206,85 @@ export class LeadsService {
         where.assignedTo = assignedTo;
       }
 
+      // Owner filter
+      if (ownerId !== undefined) {
+        where.ownerId = ownerId;
+      }
+
+      // Created By filter
+      if (createdBy !== undefined) {
+        where.createdBy = createdBy;
+      }
+
+      // Source filter
+      if (sourceId !== undefined) {
+        where.sourceId = sourceId;
+      }
+
+      // Product filter - filter leads that have the specified product
+      if (productId !== undefined) {
+        where.products = {
+          some: {
+            productId: productId,
+          },
+        };
+      }
+
       // Status filter
       if (status && String(status).trim() !== '') {
         where.status = String(status).toUpperCase();
       }
 
+      // Priority filter
+      if (priority && String(priority).trim() !== '') {
+        where.priority = String(priority).toUpperCase();
+      }
+
       // Email filter
       if (email && String(email).trim() !== '') {
         where.email = { contains: String(email).trim(), mode: 'insensitive' };
+      }
+
+      // Phone filter
+      if (phone && String(phone).trim() !== '') {
+        where.phone = { contains: String(phone).trim(), mode: 'insensitive' };
+      }
+
+      // Industry filter
+      if (industry && String(industry).trim() !== '') {
+        where.industry = {
+          contains: String(industry).trim(),
+          mode: 'insensitive',
+        };
+      }
+
+      // City filter
+      if (city && String(city).trim() !== '') {
+        where.city = { contains: String(city).trim(), mode: 'insensitive' };
+      }
+
+      // State filter
+      if (state && String(state).trim() !== '') {
+        where.state = { contains: String(state).trim(), mode: 'insensitive' };
+      }
+
+      // Country filter
+      if (country && String(country).trim() !== '') {
+        where.country = {
+          contains: String(country).trim(),
+          mode: 'insensitive',
+        };
+      }
+
+      // Date Range filters
+      if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) {
+          where.createdAt.gte = new Date(startDate);
+        }
+        if (endDate) {
+          where.createdAt.lte = new Date(endDate);
+        }
       }
 
       // Search filter - must be combined with role-based filter using AND
@@ -259,6 +354,13 @@ export class LeadsService {
             source: {
               select: { id: true, name: true, description: true },
             },
+            products: {
+              include: {
+                product: {
+                  select: { id: true, name: true, sku: true },
+                },
+              },
+            },
           },
         }),
       ]);
@@ -313,12 +415,21 @@ export class LeadsService {
           tags:
             Array.isArray(rawTags) && rawTags.length > 0
               ? rawTags.map((lt: any) => ({
-                id: lt.tag?.id || lt.id,
-                name: lt.tag?.name || lt.name,
-                color: lt.tag?.color || lt.color,
-              }))
+                  id: lt.tag?.id || lt.id,
+                  name: lt.tag?.name || lt.name,
+                  color: lt.tag?.color || lt.color,
+                }))
               : [],
           source: rawSource,
+          products: Array.isArray(r.products)
+            ? r.products.map((lp: any) => ({
+                productId: lp.productId,
+                name: lp.name,
+                quantity: lp.quantity,
+                price: Number(lp.price),
+                sku: lp.product?.sku,
+              }))
+            : [],
         };
       });
 
@@ -394,7 +505,13 @@ export class LeadsService {
         products: {
           include: {
             product: {
-              select: { id: true, name: true, sku: true, price: true, currency: true },
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                price: true,
+                currency: true,
+              },
             },
           },
         },
@@ -420,21 +537,21 @@ export class LeadsService {
         : undefined,
       tags: Array.isArray(leadRow.tags)
         ? leadRow.tags.map((lt: any) => ({
-          id: lt.tag.id,
-          name: lt.tag.name,
-          color: lt.tag.color,
-        }))
+            id: lt.tag.id,
+            name: lt.tag.name,
+            color: lt.tag.color,
+          }))
         : [],
       payments,
       products: Array.isArray(leadRow.products)
         ? leadRow.products.map((lp: any) => ({
-          productId: lp.productId,
-          name: lp.name,
-          quantity: lp.quantity,
-          price: Number(lp.price),
-          sku: lp.product?.sku,
-          currency: lp.product?.currency,
-        }))
+            productId: lp.productId,
+            name: lp.name,
+            quantity: lp.quantity,
+            price: Number(lp.price),
+            sku: lp.product?.sku,
+            currency: lp.product?.currency,
+          }))
         : [],
     };
 
@@ -577,6 +694,38 @@ export class LeadsService {
   async create(dto: CreateLeadDto, userId?: number) {
     // Validate dynamic fields
     await this.validateDynamicFields(dto);
+
+    const errors: Record<string, string> = {};
+
+    // Validate email uniqueness
+    if (dto.email && dto.email.trim() !== '') {
+      const existingEmail = await this.prisma.lead.findFirst({
+        where: {
+          email: { equals: dto.email.trim(), mode: 'insensitive' },
+          deletedAt: null,
+        },
+      });
+      if (existingEmail) {
+        errors.email = 'A lead with this email already exists';
+      }
+    }
+
+    // Validate phone uniqueness
+    if (dto.phone && dto.phone.trim() !== '') {
+      const existingPhone = await this.prisma.lead.findFirst({
+        where: { phone: dto.phone.trim(), deletedAt: null },
+      });
+      if (existingPhone) {
+        errors.phone = 'A lead with this phone number already exists';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new HttpException(
+        { success: false, message: 'Validation failed', errors },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     // 1. Check if user provided a currency manually
     let currency = dto.currency;
@@ -734,29 +883,29 @@ export class LeadsService {
 
     const formattedLead = leadWithTags
       ? {
-        ...leadWithTags,
-        status: String(leadWithTags.status || '').toLowerCase(),
-        priority: leadWithTags.priority
-          ? String(leadWithTags.priority).toLowerCase()
-          : undefined,
-        tags: Array.isArray(leadWithTags.tags)
-          ? leadWithTags.tags.map((lt: any) => ({
-            id: lt.tag.id,
-            name: lt.tag.name,
-            color: lt.tag.color,
-          }))
-          : [],
-        products: Array.isArray(leadWithTags.products)
-          ? leadWithTags.products.map((lp: any) => ({
-            productId: lp.productId,
-            name: lp.name,
-            quantity: lp.quantity,
-            price: Number(lp.price),
-            sku: lp.product?.sku,
-            currency: lp.product?.currency,
-          }))
-          : [],
-      }
+          ...leadWithTags,
+          status: String(leadWithTags.status || '').toLowerCase(),
+          priority: leadWithTags.priority
+            ? String(leadWithTags.priority).toLowerCase()
+            : undefined,
+          tags: Array.isArray(leadWithTags.tags)
+            ? leadWithTags.tags.map((lt: any) => ({
+                id: lt.tag.id,
+                name: lt.tag.name,
+                color: lt.tag.color,
+              }))
+            : [],
+          products: Array.isArray(leadWithTags.products)
+            ? leadWithTags.products.map((lp: any) => ({
+                productId: lp.productId,
+                name: lp.name,
+                quantity: lp.quantity,
+                price: Number(lp.price),
+                sku: lp.product?.sku,
+                currency: lp.product?.currency,
+              }))
+            : [],
+        }
       : lead;
 
     // Trigger automation for LEAD_CREATED
@@ -811,6 +960,47 @@ export class LeadsService {
     await this.validateDynamicFields(dto, true);
 
     const { tags, products, ...rest } = dto as any;
+
+    const errors: Record<string, string> = {};
+
+    // Validate email uniqueness
+    if (
+      rest.email &&
+      rest.email.trim() !== '' &&
+      rest.email.trim() !== lead.email
+    ) {
+      const existingEmail = await this.prisma.lead.findFirst({
+        where: {
+          email: { equals: rest.email.trim(), mode: 'insensitive' },
+          deletedAt: null,
+          id: { not: id },
+        },
+      });
+      if (existingEmail) {
+        errors.email = 'A lead with this email already exists';
+      }
+    }
+
+    // Validate phone uniqueness
+    if (
+      rest.phone &&
+      rest.phone.trim() !== '' &&
+      rest.phone.trim() !== lead.phone
+    ) {
+      const existingPhone = await this.prisma.lead.findFirst({
+        where: { phone: rest.phone.trim(), deletedAt: null, id: { not: id } },
+      });
+      if (existingPhone) {
+        errors.phone = 'A lead with this phone number already exists';
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      throw new HttpException(
+        { success: false, message: 'Validation failed', errors },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const updateData: any = { ...rest, updatedAt: new Date() };
     if (rest.status) updateData.status = normalizeLeadStatus(rest.status);
     if (rest.priority)
@@ -1020,39 +1210,39 @@ export class LeadsService {
 
     const normalized = updatedWithTags
       ? {
-        ...updatedWithTags,
-        status: String(updatedWithTags.status || '').toLowerCase(),
-        priority: updatedWithTags.priority
-          ? String(updatedWithTags.priority).toLowerCase()
-          : undefined,
-        tags: Array.isArray(updatedWithTags.tags)
-          ? updatedWithTags.tags.map((lt: any) => ({
-            id: lt.tag.id,
-            name: lt.tag.name,
-            color: lt.tag.color,
-          }))
-          : [],
-        products: Array.isArray(updatedWithTags.products)
-          ? updatedWithTags.products.map((lp: any) => ({
-            productId: lp.productId,
-            name: lp.name,
-            quantity: lp.quantity,
-            price: Number(lp.price),
-            sku: lp.product?.sku,
-            currency: lp.product?.currency,
-          }))
-          : [],
-        source: updatedWithTags.source || null,
-      }
+          ...updatedWithTags,
+          status: String(updatedWithTags.status || '').toLowerCase(),
+          priority: updatedWithTags.priority
+            ? String(updatedWithTags.priority).toLowerCase()
+            : undefined,
+          tags: Array.isArray(updatedWithTags.tags)
+            ? updatedWithTags.tags.map((lt: any) => ({
+                id: lt.tag.id,
+                name: lt.tag.name,
+                color: lt.tag.color,
+              }))
+            : [],
+          products: Array.isArray(updatedWithTags.products)
+            ? updatedWithTags.products.map((lp: any) => ({
+                productId: lp.productId,
+                name: lp.name,
+                quantity: lp.quantity,
+                price: Number(lp.price),
+                sku: lp.product?.sku,
+                currency: lp.product?.currency,
+              }))
+            : [],
+          source: updatedWithTags.source || null,
+        }
       : ({
-        ...updated,
-        status: String(updated.status || '').toLowerCase(),
-        priority: updated.priority
-          ? String(updated.priority).toLowerCase()
-          : undefined,
-        tags: [],
-        source: null,
-      } as any);
+          ...updated,
+          status: String(updated.status || '').toLowerCase(),
+          priority: updated.priority
+            ? String(updated.priority).toLowerCase()
+            : undefined,
+          tags: [],
+          source: null,
+        } as any);
 
     // Trigger automation workflows based on what changed
     try {
@@ -1149,7 +1339,62 @@ export class LeadsService {
         updatedAt: new Date(),
       },
     });
-    return { success: true, message: 'Lead transferred', data: updated };
+
+    // Fetch the full lead with relations to return to the frontend
+    const fullLead = await this.prisma.lead.findUnique({
+      where: { id },
+      include: {
+        assignedUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        ownerUser: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        tags: { include: { tag: true } },
+        products: { include: { product: true } },
+        source: {
+          select: { id: true, name: true, description: true },
+        },
+      },
+    });
+
+    if (fullLead) {
+      const normalized = {
+        ...fullLead,
+        status: String(fullLead.status || '').toLowerCase(),
+        priority: fullLead.priority
+          ? String(fullLead.priority).toLowerCase()
+          : undefined,
+        tags: Array.isArray(fullLead.tags)
+          ? fullLead.tags.map((lt: any) => ({
+              id: lt.tag.id,
+              name: lt.tag.name,
+              color: lt.tag.color,
+            }))
+          : [],
+        products: Array.isArray(fullLead.products)
+          ? fullLead.products.map((lp: any) => ({
+              productId: lp.productId,
+              name: lp.name,
+              quantity: lp.quantity,
+              price: Number(lp.price),
+              sku: lp.product?.sku,
+              currency: lp.product?.currency,
+            }))
+          : [],
+      };
+      return {
+        success: true,
+        message: 'Lead transferred',
+        data: { lead: normalized },
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Lead transferred',
+      data: { lead: updated },
+    };
   }
 
   async bulkAssign(dto: BulkAssignDto) {
@@ -1400,6 +1645,7 @@ export class LeadsService {
         'tags',
         'lastContactedAt',
         'nextFollowUpAt',
+        'products',
       ];
 
       // Map headers to a normalized version (removed spaces, lowercase)
@@ -1533,6 +1779,41 @@ export class LeadsService {
             }
           }
 
+          // Handle products name lookup
+          let leadProductsData: any = undefined;
+          if (row.products) {
+            const productNames = String(row.products)
+              .split(',')
+              .map((p) => p.trim())
+              .filter(Boolean);
+
+            const productConnections = [];
+            for (const pName of productNames) {
+              const product = await this.prisma.product.findFirst({
+                where: {
+                  OR: [
+                    { name: { equals: pName, mode: 'insensitive' } },
+                    { sku: { equals: pName, mode: 'insensitive' } },
+                  ],
+                  deletedAt: null,
+                },
+              });
+              if (product) {
+                productConnections.push({
+                  productId: product.id,
+                  name: product.name,
+                  price: product.price,
+                  quantity: 1, // Default quantity
+                });
+              }
+            }
+            if (productConnections.length > 0) {
+              leadProductsData = {
+                create: productConnections,
+              };
+            }
+          }
+
           // Ensure budget and other Decimals are handled as numbers for Prisma
           if (leadData.budget !== undefined && leadData.budget !== null) {
             leadData.budget = Number(leadData.budget);
@@ -1544,9 +1825,13 @@ export class LeadsService {
             leadData.annualRevenue = Number(leadData.annualRevenue);
           }
 
+          // Remove 'products' string from leadData before create to avoid Prisma error
+          delete leadData.products;
+
           await this.prisma.lead.create({
             data: {
               ...leadData,
+              products: leadProductsData,
               customFields:
                 Object.keys(customFieldsData).length > 0
                   ? customFieldsData
@@ -1554,40 +1839,40 @@ export class LeadsService {
               source:
                 row.source || row.leadsource || row.sourceid
                   ? {
-                    connectOrCreate: {
-                      where: {
-                        name: String(
-                          row.source || row.leadsource || row.sourceid,
-                        ),
-                      },
-                      create: {
-                        name: String(
-                          row.source || row.leadsource || row.sourceid,
-                        ),
-                        color: generateColorFromString(
-                          String(
+                      connectOrCreate: {
+                        where: {
+                          name: String(
                             row.source || row.leadsource || row.sourceid,
                           ),
-                        ),
+                        },
+                        create: {
+                          name: String(
+                            row.source || row.leadsource || row.sourceid,
+                          ),
+                          color: generateColorFromString(
+                            String(
+                              row.source || row.leadsource || row.sourceid,
+                            ),
+                          ),
+                        },
                       },
-                    },
-                  }
+                    }
                   : undefined,
               tags:
                 tagsList.length > 0
                   ? {
-                    create: tagsList.map((tagName) => ({
-                      tag: {
-                        connectOrCreate: {
-                          where: { name: tagName },
-                          create: {
-                            name: tagName,
-                            color: generateColorFromString(tagName),
+                      create: tagsList.map((tagName) => ({
+                        tag: {
+                          connectOrCreate: {
+                            where: { name: tagName },
+                            create: {
+                              name: tagName,
+                              color: generateColorFromString(tagName),
+                            },
                           },
                         },
-                      },
-                    })),
-                  }
+                      })),
+                    }
                   : undefined,
             },
           });
@@ -1615,8 +1900,37 @@ export class LeadsService {
   /**
    * Export leads to CSV string. Fields are quoted to preserve commas/newlines.
    */
-  async bulkExport(opts: { status?: string; search?: string } = {}) {
+  async bulkExport(
+    opts: { status?: string; search?: string; ids?: string } = {},
+    user?: any,
+  ) {
     const where: any = { deletedAt: null };
+
+    // Role-based filtering
+    if (user && user.userId) {
+      const roleBasedWhere = await getRoleBasedWhereClause(
+        user.userId,
+        this.prisma,
+      );
+      if (Object.keys(roleBasedWhere).length > 0) {
+        if (where.AND) {
+          where.AND.push(roleBasedWhere);
+        } else {
+          where.AND = [roleBasedWhere];
+        }
+      }
+    }
+
+    if (opts.ids) {
+      const idArray = opts.ids
+        .split(',')
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id));
+      if (idArray.length > 0) {
+        where.id = { in: idArray };
+      }
+    }
+
     if (opts.status) {
       where.status = opts.status.toUpperCase();
     }
@@ -1632,7 +1946,12 @@ export class LeadsService {
 
     const leads = await this.prisma.lead.findMany({
       where,
-      include: { source: true, assignedUser: true },
+      include: {
+        source: true,
+        assignedUser: true,
+        ownerUser: true,
+        products: { include: { product: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -1646,18 +1965,20 @@ export class LeadsService {
       fieldConfigs.length > 0
         ? fieldConfigs.map((f) => f.fieldName)
         : [
-          'firstName',
-          'lastName',
-          'email',
-          'phone',
-          'company',
-          'position',
-          'status',
-          'priority',
-          'source',
-          'assignedTo',
-          'createdAt',
-        ];
+            'firstName',
+            'lastName',
+            'email',
+            'phone',
+            'company',
+            'position',
+            'status',
+            'priority',
+            'source',
+            'products',
+            'assignedTo',
+            'ownerId',
+            'createdAt',
+          ];
 
     const escape = (v: any) => {
       if (v === null || v === undefined) return '';
@@ -1672,6 +1993,23 @@ export class LeadsService {
     const rows = [headers.join(',')];
     for (const l of leads) {
       const row = headers.map((header) => {
+        // Handle special relations or mapped fields
+        if (header === 'source') return escape(l.source?.name || '');
+        if (header === 'assignedTo')
+          return escape(
+            l.assignedUser
+              ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
+              : '',
+          );
+        if (header === 'ownerId')
+          return escape(
+            l.ownerUser
+              ? `${l.ownerUser.firstName} ${l.ownerUser.lastName}`
+              : '',
+          );
+        if (header === 'products')
+          return escape(l.products?.map((lp: any) => lp.name).join(', ') || '');
+
         // Handle standard fields
         if (header in l) {
           const val = (l as any)[header];
@@ -1685,15 +2023,6 @@ export class LeadsService {
           }
           return escape(val);
         }
-
-        // Handle special relations or mapped fields
-        if (header === 'source') return escape(l.source?.name || '');
-        if (header === 'assignedTo')
-          return escape(
-            l.assignedUser
-              ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
-              : '',
-          );
 
         // Handle custom fields
         const customFields = (l.customFields as any) || {};

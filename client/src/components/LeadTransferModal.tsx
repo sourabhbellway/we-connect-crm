@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { X, Users, ArrowRight, User, AlertCircle } from 'lucide-react';
-import { userService } from '../services/userService';
-import { leadService, Lead } from '../services/leadService';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { X, Users, ArrowRight, User, AlertCircle } from "lucide-react";
+import { userService } from "../services/userService";
+import { leadService, Lead } from "../services/leadService";
+import { toast } from "react-toastify";
 
 interface LeadTransferModalProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
   onTransferComplete: (updatedLead: Lead) => void;
-  mode: 'assign' | 'transfer'; // assign = simple assignment, transfer = transfer with notes
+  mode: "assign" | "transfer"; // assign = simple assignment, transfer = transfer with notes
 }
 
 interface User {
@@ -25,21 +25,21 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
   isOpen,
   onClose,
   onTransferComplete,
-  mode = 'assign'
+  mode = "assign",
 }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [notes, setNotes] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [notes, setNotes] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       fetchUsers();
-      setNotes('');
+      setNotes("");
       setSelectedUserId(null);
-      setSearchTerm('');
+      setSearchTerm("");
     }
   }, [isOpen]);
 
@@ -48,13 +48,13 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
       setLoading(true);
       const response = await userService.getUsers({ page: 1, limit: 100 });
       // Handle different response structures
-      const items = Array.isArray(response?.data) 
-        ? response.data 
+      const items = Array.isArray(response?.data)
+        ? response.data
         : response?.data?.users || response?.data || response?.users || [];
       setUsers(items);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error('Failed to load users');
+      console.error("Error fetching users:", error);
+      toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
@@ -62,14 +62,14 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!lead) return;
 
     try {
       setSubmitting(true);
-      
+
       let response;
-      if (mode === 'transfer') {
+      if (mode === "transfer") {
         response = await leadService.transferLead(lead.id, selectedUserId, notes);
       } else {
         response = await leadService.assignLead(lead.id, selectedUserId);
@@ -77,12 +77,14 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
 
       const updatedLead = response.data?.lead || response.lead;
       onTransferComplete(updatedLead);
-      
-      const actionText = mode === 'transfer' ? 'transferred' : 'assigned';
-      const userName = selectedUserId 
-        ? users.find(u => u.id === selectedUserId)?.firstName + ' ' + users.find(u => u.id === selectedUserId)?.lastName
-        : 'Unassigned';
-      
+
+      const actionText = mode === "transfer" ? "transferred" : "assigned";
+      const userName = selectedUserId
+        ? users.find((u) => u.id === selectedUserId)?.firstName +
+          " " +
+          users.find((u) => u.id === selectedUserId)?.lastName
+        : "Unassigned";
+
       toast.success(`Lead ${actionText} to ${userName} successfully`);
       onClose();
     } catch (error: any) {
@@ -93,12 +95,13 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedUser = users.find(u => u.id === selectedUserId);
+  const selectedUser = users.find((u) => u.id === selectedUserId);
   const currentUser = lead?.assignedUser;
 
   if (!isOpen) return null;
@@ -110,7 +113,7 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10 bg-weconnect-red rounded-lg">
-              {mode === 'transfer' ? (
+              {mode === "transfer" ? (
                 <ArrowRight className="w-5 h-5 text-white" />
               ) : (
                 <Users className="w-5 h-5 text-white" />
@@ -118,10 +121,10 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {mode === 'transfer' ? 'Transfer Lead' : 'Assign Lead'}
+                {mode === "transfer" ? "Transfer Lead" : "Assign Lead"}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {lead ? `${lead.firstName} ${lead.lastName}` : ''}
+                {lead ? `${lead.firstName} ${lead.lastName}` : ""}
               </p>
             </div>
           </div>
@@ -145,16 +148,15 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                     <span className="text-white font-medium text-sm">
-                      {currentUser.firstName[0]}{currentUser.lastName[0]}
+                      {currentUser.firstName[0]}
+                      {currentUser.lastName[0]}
                     </span>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {currentUser.firstName} {currentUser.lastName}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {currentUser.email}
-                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{currentUser.email}</p>
                   </div>
                 </div>
               </div>
@@ -163,7 +165,7 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
             {/* User Search */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {mode === 'transfer' ? 'Transfer to:' : 'Assign to:'}
+                {mode === "transfer" ? "Transfer to:" : "Assign to:"}
               </label>
               <input
                 type="text"
@@ -186,8 +188,8 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
                   <div
                     className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                       selectedUserId === null
-                        ? 'border-weconnect-red bg-red-50 dark:bg-red-900/20'
-                        : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        ? "border-weconnect-red bg-red-50 dark:bg-red-900/20"
+                        : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                     }`}
                     onClick={() => setSelectedUserId(null)}
                   >
@@ -211,24 +213,23 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
                       key={user.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                         selectedUserId === user.id
-                          ? 'border-weconnect-red bg-red-50 dark:bg-red-900/20'
-                          : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ? "border-weconnect-red bg-red-50 dark:bg-red-900/20"
+                          : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                       }`}
                       onClick={() => setSelectedUserId(user.id)}
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-medium text-sm">
-                            {user.firstName[0]}{user.lastName[0]}
+                            {user.firstName[0]}
+                            {user.lastName[0]}
                           </span>
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
                             {user.firstName} {user.lastName}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {user.email}
-                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
                         </div>
                         {user.roles && user.roles.length > 0 && (
                           <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-600 rounded-full text-gray-600 dark:text-gray-300">
@@ -250,7 +251,7 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
             </div>
 
             {/* Transfer Notes (only for transfer mode) */}
-            {mode === 'transfer' && (
+            {mode === "transfer" && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Transfer Notes (Optional)
@@ -269,8 +270,13 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
             {selectedUser && (
               <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                  <strong>{lead?.firstName} {lead?.lastName}</strong> will be {mode === 'transfer' ? 'transferred' : 'assigned'} to{' '}
-                  <strong>{selectedUser.firstName} {selectedUser.lastName}</strong>
+                  <strong>
+                    {lead?.firstName} {lead?.lastName}
+                  </strong>{" "}
+                  will be {mode === "transfer" ? "transferred" : "assigned"} to{" "}
+                  <strong>
+                    {selectedUser.firstName} {selectedUser.lastName}
+                  </strong>
                 </p>
               </div>
             )}
@@ -278,7 +284,10 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
             {selectedUserId === null && (
               <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                 <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                  <strong>{lead?.firstName} {lead?.lastName}</strong> will be unassigned
+                  <strong>
+                    {lead?.firstName} {lead?.lastName}
+                  </strong>{" "}
+                  will be unassigned
                 </p>
               </div>
             )}
@@ -301,10 +310,12 @@ const LeadTransferModal: React.FC<LeadTransferModalProps> = ({
               {submitting ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>{mode === 'transfer' ? 'Transferring...' : 'Assigning...'}</span>
+                  <span>{mode === "transfer" ? "Transferring..." : "Assigning..."}</span>
                 </div>
+              ) : mode === "transfer" ? (
+                "Transfer Lead"
               ) : (
-                mode === 'transfer' ? 'Transfer Lead' : 'Assign Lead'
+                "Assign Lead"
               )}
             </button>
           </div>

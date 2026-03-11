@@ -4,49 +4,66 @@ import { PrismaService } from '../../database/prisma.service';
 export declare class TaxesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    create(createTaxDto: CreateTaxDto): import(".prisma/client").Prisma.Prisma__TaxClient<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        description: string | null;
-        rate: import("@prisma/client/runtime/library").Decimal;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        description: string | null;
-        rate: import("@prisma/client/runtime/library").Decimal;
-    }[]>;
-    findOne(id: number): import(".prisma/client").Prisma.Prisma__TaxClient<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        description: string | null;
-        rate: import("@prisma/client/runtime/library").Decimal;
-    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    update(id: number, updateTaxDto: UpdateTaxDto): import(".prisma/client").Prisma.Prisma__TaxClient<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        description: string | null;
-        rate: import("@prisma/client/runtime/library").Decimal;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
-    remove(id: number): import(".prisma/client").Prisma.Prisma__TaxClient<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        description: string | null;
-        rate: import("@prisma/client/runtime/library").Decimal;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    create(createTaxDto: CreateTaxDto): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            tax: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                rate: import("@prisma/client/runtime/library").Decimal;
+            };
+        };
+    }>;
+    findAll(): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            description: string | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            rate: import("@prisma/client/runtime/library").Decimal;
+        }[];
+    }>;
+    findOne(id: number): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            tax: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                rate: import("@prisma/client/runtime/library").Decimal;
+            };
+        };
+    }>;
+    update(id: number, updateTaxDto: UpdateTaxDto): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            tax: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                rate: import("@prisma/client/runtime/library").Decimal;
+            };
+        };
+    }>;
+    remove(id: number): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

@@ -35,15 +35,15 @@ export declare class QuotationsController {
                     company: string | null;
                 } | null;
                 deal: {
-                    id: number;
                     title: string;
+                    id: number;
                 } | null;
                 items: {
+                    description: string | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
-                    description: string | null;
                     sortOrder: number;
                     productId: number | null;
                     unit: string | null;
@@ -56,17 +56,17 @@ export declare class QuotationsController {
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
@@ -95,61 +95,22 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             quotation: {
-                companies: {
-                    email: string | null;
-                    isActive: boolean;
-                    createdAt: Date;
-                    updatedAt: Date;
-                    deletedAt: Date | null;
-                    notes: string | null;
-                    id: number;
-                    name: string;
-                    description: string | null;
-                    currency: string | null;
-                    tags: string[];
-                    assignedTo: number | null;
-                    createdBy: number | null;
-                    phone: string | null;
-                    lastContactedAt: Date | null;
-                    nextFollowUpAt: Date | null;
-                    website: string | null;
-                    companySize: import(".prisma/client").$Enums.CompanySize | null;
-                    annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
-                    leadScore: number | null;
-                    address: string | null;
-                    country: string | null;
-                    state: string | null;
-                    city: string | null;
-                    zipCode: string | null;
-                    linkedinProfile: string | null;
-                    timezone: string | null;
-                    status: import(".prisma/client").$Enums.CompanyStatus;
-                    employeeCount: string | null;
-                    domain: string | null;
-                    slug: string | null;
-                    industryId: number | null;
-                    alternatePhone: string | null;
-                    facebookPage: string | null;
-                    foundedYear: number | null;
-                    parentCompanyId: number | null;
-                    twitterHandle: string | null;
-                } | null;
                 lead: {
-                    email: string | null;
-                    firstName: string | null;
-                    lastName: string | null;
-                    isActive: boolean;
-                    createdAt: Date;
-                    updatedAt: Date;
-                    deletedAt: Date | null;
-                    notes: string | null;
-                    id: number;
-                    companyId: number | null;
                     industry: string | null;
                     currency: string | null;
                     budget: import("@prisma/client/runtime/library").Decimal | null;
+                    email: string | null;
+                    firstName: string | null;
+                    lastName: string | null;
                     assignedTo: number | null;
                     createdBy: number | null;
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    isActive: boolean;
+                    companyId: number | null;
+                    deletedAt: Date | null;
+                    notes: string | null;
                     phone: string | null;
                     company: string | null;
                     position: string | null;
@@ -175,19 +136,58 @@ export declare class QuotationsController {
                     status: string;
                     previousStatus: string | null;
                 } | null;
-                deal: {
-                    isActive: boolean;
+                companies: {
+                    currency: string | null;
+                    email: string | null;
+                    description: string | null;
+                    tags: string[];
+                    assignedTo: number | null;
+                    createdBy: number | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
+                    name: string;
+                    isActive: boolean;
                     deletedAt: Date | null;
-                    id: number;
-                    companyId: number | null;
-                    description: string | null;
+                    notes: string | null;
+                    phone: string | null;
+                    lastContactedAt: Date | null;
+                    nextFollowUpAt: Date | null;
+                    website: string | null;
+                    companySize: import(".prisma/client").$Enums.CompanySize | null;
+                    annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                    leadScore: number | null;
+                    address: string | null;
+                    country: string | null;
+                    state: string | null;
+                    city: string | null;
+                    zipCode: string | null;
+                    linkedinProfile: string | null;
+                    timezone: string | null;
+                    status: import(".prisma/client").$Enums.CompanyStatus;
+                    employeeCount: string | null;
+                    domain: string | null;
+                    slug: string | null;
+                    industryId: number | null;
+                    alternatePhone: string | null;
+                    facebookPage: string | null;
+                    foundedYear: number | null;
+                    parentCompanyId: number | null;
+                    twitterHandle: string | null;
+                } | null;
+                deal: {
                     currency: string;
                     title: string;
+                    description: string | null;
                     leadId: number | null;
                     assignedTo: number | null;
                     createdBy: number | null;
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    isActive: boolean;
+                    companyId: number | null;
+                    deletedAt: Date | null;
                     status: string;
                     value: import("@prisma/client/runtime/library").Decimal;
                     probability: number;
@@ -195,11 +195,11 @@ export declare class QuotationsController {
                     actualCloseDate: Date | null;
                 } | null;
                 items: {
+                    description: string | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
-                    description: string | null;
                     sortOrder: number;
                     productId: number | null;
                     unit: string | null;
@@ -212,17 +212,17 @@ export declare class QuotationsController {
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
@@ -245,11 +245,11 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             items: {
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
                 sortOrder: number;
                 productId: number | null;
                 unit: string | null;
@@ -262,17 +262,17 @@ export declare class QuotationsController {
                 discountRate: import("@prisma/client/runtime/library").Decimal;
             }[];
         } & {
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
-            companyId: number | null;
-            description: string | null;
             currency: string;
             title: string;
+            description: string | null;
             leadId: number | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            companyId: number | null;
+            deletedAt: Date | null;
+            notes: string | null;
             status: import(".prisma/client").$Enums.QuotationStatus;
             expiresAt: Date | null;
             dealId: number | null;
@@ -294,11 +294,11 @@ export declare class QuotationsController {
         data: {
             quotation: {
                 items: {
+                    description: string | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
-                    description: string | null;
                     sortOrder: number;
                     productId: number | null;
                     unit: string | null;
@@ -311,17 +311,17 @@ export declare class QuotationsController {
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
@@ -346,11 +346,11 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             item: {
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
                 sortOrder: number;
                 productId: number | null;
                 unit: string | null;
@@ -368,11 +368,11 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             item: {
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
                 sortOrder: number;
                 productId: number | null;
                 unit: string | null;
@@ -393,17 +393,17 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             quotation: {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
@@ -425,17 +425,17 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             quotation: {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
@@ -457,17 +457,17 @@ export declare class QuotationsController {
         success: boolean;
         data: {
             quotation: {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.QuotationStatus;
                 expiresAt: Date | null;
                 dealId: number | null;
@@ -494,11 +494,11 @@ export declare class QuotationsController {
         data: {
             invoice: {
                 items: {
+                    description: string | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
-                    description: string | null;
                     sortOrder: number;
                     productId: number | null;
                     unit: string | null;
@@ -511,17 +511,17 @@ export declare class QuotationsController {
                     discountRate: import("@prisma/client/runtime/library").Decimal;
                 }[];
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 status: import(".prisma/client").$Enums.InvoiceStatus;
                 dueDate: Date | null;
                 dealId: number | null;

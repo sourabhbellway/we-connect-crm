@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   DndContext,
   closestCenter,
@@ -7,19 +7,17 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { useMenu } from '../contexts/MenuContext';
-import { GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useMenu } from "../contexts/MenuContext";
+import { GripVertical, ChevronDown, ChevronRight } from "lucide-react";
 
 interface NavigationItem {
   id: string;
@@ -54,17 +52,12 @@ const SortableItem: React.FC<SortableItemProps> = ({
   activeHref,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  });
 
   const hasChildren = item.children && item.children.length > 0;
-  const isChildActive = hasChildren && item.children?.some(child => activeHref === child.href);
+  const isChildActive = hasChildren && item.children?.some((child) => activeHref === child.href);
 
   React.useEffect(() => {
     if (isChildActive) {
@@ -94,18 +87,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
 
   if (sidebarCollapsed) {
     return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        className="relative"
-      >
+      <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="relative">
         <div
-          className={`flex items-center justify-center h-11 md:h-10 px-3 md:px-2 rounded-lg text-sm font-medium cursor-pointer transition-colors group ${isActive || isChildActive
-            ? "bg-weconnect-red text-white shadow-md"
-            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
-            } ${isDragging ? "shadow-lg ring-2 ring-blue-400 dark:ring-blue-600" : ""}`}
+          className={`flex items-center justify-center h-11 md:h-10 px-3 md:px-2 rounded-lg text-sm font-medium cursor-pointer transition-colors group ${
+            isActive || isChildActive
+              ? "bg-weconnect-red text-white shadow-md"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+          } ${isDragging ? "shadow-lg ring-2 ring-blue-400 dark:ring-blue-600" : ""}`}
           onMouseEnter={() => onHover(item.name)}
           onMouseLeave={() => onHover(null)}
           onClick={(e) => handleClick(e)}
@@ -117,16 +105,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
   }
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="relative"
-    >
+    <div ref={setNodeRef} style={style} className="relative">
       <div
-        className={`flex items-center h-12 md:h-11 rounded-lg text-sm font-medium transition-colors group justify-between ${isActive || isChildActive
-          ? "bg-weconnect-red text-white shadow-md"
-          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
-          } ${isDragging ? "shadow-lg ring-2 ring-blue-400 dark:ring-blue-600" : ""}`}
+        className={`flex items-center h-12 md:h-11 rounded-lg text-sm font-medium transition-colors group justify-between ${
+          isActive || isChildActive
+            ? "bg-weconnect-red text-white shadow-md"
+            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+        } ${isDragging ? "shadow-lg ring-2 ring-blue-400 dark:ring-blue-600" : ""}`}
         onMouseEnter={() => onHover(item.name)}
         onMouseLeave={() => onHover(null)}
       >
@@ -176,10 +161,11 @@ const SortableItem: React.FC<SortableItemProps> = ({
             <div
               key={child.id}
               onClick={() => onNavigate(child.href)}
-              className={`flex items-center h-10 px-3 md:px-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${activeHref === child.href
-                ? "bg-weconnect-red/10 text-weconnect-red font-bold"
-                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
-                }`}
+              className={`flex items-center h-10 px-3 md:px-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                activeHref === child.href
+                  ? "bg-weconnect-red/10 text-weconnect-red font-bold"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white"
+              }`}
             >
               <span className="truncate">{child.name}</span>
             </div>
@@ -193,7 +179,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
           <div className="flex items-center gap-2">
             <span className="font-medium">{item.name}</span>
             {item.badge && item.badge !== "0" && (
-              <span className={`min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white leading-none ${item.badgeColor}`}>
+              <span
+                className={`min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center text-[11px] font-semibold rounded-full text-white leading-none ${item.badgeColor}`}
+              >
                 {item.badge}
               </span>
             )}
@@ -241,11 +229,11 @@ const DraggableNavigation: React.FC<DraggableNavigationProps> = ({
 
   // Sort navigation items based on menu order
   const sortedNavigationItems = React.useMemo(() => {
-    const itemMap = new Map(navigationItems.map(item => [item.id, item]));
+    const itemMap = new Map(navigationItems.map((item) => [item.id, item]));
     const ordered: NavigationItem[] = [];
 
     // Add items in the order specified by menuOrder
-    menuOrder.forEach(id => {
+    menuOrder.forEach((id) => {
       const item = itemMap.get(id);
       if (item) {
         ordered.push(item);
@@ -254,7 +242,7 @@ const DraggableNavigation: React.FC<DraggableNavigationProps> = ({
     });
 
     // Add any remaining items that weren't in menuOrder
-    itemMap.forEach(item => {
+    itemMap.forEach((item) => {
       ordered.push(item);
     });
 
@@ -265,10 +253,10 @@ const DraggableNavigation: React.FC<DraggableNavigationProps> = ({
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = sortedNavigationItems.findIndex(item => item.id === active.id);
-      const newIndex = sortedNavigationItems.findIndex(item => item.id === over?.id);
+      const oldIndex = sortedNavigationItems.findIndex((item) => item.id === active.id);
+      const newIndex = sortedNavigationItems.findIndex((item) => item.id === over?.id);
 
-      const newOrder = arrayMove(sortedNavigationItems, oldIndex, newIndex).map(item => item.id);
+      const newOrder = arrayMove(sortedNavigationItems, oldIndex, newIndex).map((item) => item.id);
       setMenuOrder(newOrder);
     }
   }
@@ -279,14 +267,13 @@ const DraggableNavigation: React.FC<DraggableNavigationProps> = ({
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext items={sortedNavigationItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext
+        items={sortedNavigationItems.map((item) => item.id)}
+        strategy={verticalListSortingStrategy}
+      >
         <div className="space-y-2 md:space-y-1">
-          {sortedNavigationItems.map(item => (
+          {sortedNavigationItems.map((item) => (
             <SortableItem
               key={item.id}
               id={item.id}

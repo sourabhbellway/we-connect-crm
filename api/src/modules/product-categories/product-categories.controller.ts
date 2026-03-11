@@ -23,7 +23,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 export class ProductCategoriesController {
   constructor(
     private readonly productCategoriesService: ProductCategoriesService,
-  ) { }
+  ) {}
 
   @Post()
   @RequirePermission('product_categories.create')

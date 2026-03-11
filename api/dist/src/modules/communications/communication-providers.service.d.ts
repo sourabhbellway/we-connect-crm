@@ -7,14 +7,14 @@ export declare class CommunicationProvidersService {
         success: boolean;
         data: {
             providers: {
-                isActive: boolean;
+                type: import(".prisma/client").$Enums.TemplateType;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
-                companyId: number | null;
                 name: string;
+                isActive: boolean;
+                companyId: number | null;
                 isDefault: boolean;
-                type: import(".prisma/client").$Enums.TemplateType;
                 config: import("@prisma/client/runtime/library").JsonValue;
             }[];
         };
@@ -24,14 +24,14 @@ export declare class CommunicationProvidersService {
         message: string;
         data: {
             provider: {
-                isActive: boolean;
+                type: import(".prisma/client").$Enums.TemplateType;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
-                companyId: number | null;
                 name: string;
+                isActive: boolean;
+                companyId: number | null;
                 isDefault: boolean;
-                type: import(".prisma/client").$Enums.TemplateType;
                 config: import("@prisma/client/runtime/library").JsonValue;
             };
         };
@@ -45,14 +45,14 @@ export declare class CommunicationProvidersService {
         message: string;
         data: {
             provider: {
-                isActive: boolean;
+                type: import(".prisma/client").$Enums.TemplateType;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
-                companyId: number | null;
                 name: string;
+                isActive: boolean;
+                companyId: number | null;
                 isDefault: boolean;
-                type: import(".prisma/client").$Enums.TemplateType;
                 config: import("@prisma/client/runtime/library").JsonValue;
             };
         };

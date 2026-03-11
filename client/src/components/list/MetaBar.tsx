@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings } from 'lucide-react';
+import React, { useState } from "react";
+import { Settings } from "lucide-react";
 
 interface ColumnConfigItem {
   id: string;
@@ -59,10 +59,14 @@ const MetaBar: React.FC<MetaBarProps> = ({
           className="h-9 px-3 rounded-md border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
           {[10, 20, 50, 100].map((n) => (
-            <option key={n} value={n}>{n}</option>
+            <option key={n} value={n}>
+              {n}
+            </option>
           ))}
         </select>
-        <span className="text-gray-500 dark:text-gray-400">{start} - {end} of {totalItems}</span>
+        <span className="text-gray-500 dark:text-gray-400">
+          {start} - {end} of {totalItems}
+        </span>
       </div>
       <div className="relative flex items-center gap-2">
         {rightNode}

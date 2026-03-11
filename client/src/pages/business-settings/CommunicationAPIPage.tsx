@@ -1,17 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  Plus, Edit, Trash2, Settings, Save, X, Eye, EyeOff, 
-  AlertCircle, CheckCircle, Test, Copy, MessageSquare, 
-  Mail, Smartphone, Zap, Key, Globe, Lock, Send
-} from 'lucide-react';
-import { toast } from 'react-toastify';
-import { Card, CardHeader, CardContent } from '../../components/ui';
+  Plus,
+  Edit,
+  Trash2,
+  Settings,
+  Save,
+  X,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+  Test,
+  Copy,
+  MessageSquare,
+  Mail,
+  Smartphone,
+  Zap,
+  Key,
+  Globe,
+  Lock,
+  Send,
+} from "lucide-react";
+import { toast } from "react-toastify";
+import { Card, CardHeader, CardContent } from "../../components/ui";
 
 interface CommunicationProvider {
   id?: number;
   name: string;
-  type: 'EMAIL' | 'WHATSAPP' | 'SMS';
+  type: "EMAIL" | "WHATSAPP" | "SMS";
   provider: string;
   config: {
     apiKey?: string;
@@ -36,12 +53,12 @@ interface CommunicationProvider {
 
 interface ProviderTemplate {
   name: string;
-  type: 'EMAIL' | 'WHATSAPP' | 'SMS';
+  type: "EMAIL" | "WHATSAPP" | "SMS";
   provider: string;
   fields: Array<{
     name: string;
     label: string;
-    type: 'text' | 'password' | 'number' | 'email' | 'url';
+    type: "text" | "password" | "number" | "email" | "url";
     required: boolean;
     placeholder?: string;
     description?: string;
@@ -50,87 +67,134 @@ interface ProviderTemplate {
 
 const providerTemplates: ProviderTemplate[] = [
   {
-    name: 'Twilio SMS',
-    type: 'SMS',
-    provider: 'TWILIO',
+    name: "Twilio SMS",
+    type: "SMS",
+    provider: "TWILIO",
     fields: [
-      { name: 'accountSid', label: 'Account SID', type: 'text', required: true, placeholder: 'ACxxxxxxx' },
-      { name: 'authToken', label: 'Auth Token', type: 'password', required: true },
-      { name: 'fromPhone', label: 'From Phone Number', type: 'text', required: true, placeholder: '+1234567890' }
-    ]
+      {
+        name: "accountSid",
+        label: "Account SID",
+        type: "text",
+        required: true,
+        placeholder: "ACxxxxxxx",
+      },
+      { name: "authToken", label: "Auth Token", type: "password", required: true },
+      {
+        name: "fromPhone",
+        label: "From Phone Number",
+        type: "text",
+        required: true,
+        placeholder: "+1234567890",
+      },
+    ],
   },
   {
-    name: 'TextLocal SMS',
-    type: 'SMS',
-    provider: 'TEXTLOCAL',
+    name: "TextLocal SMS",
+    type: "SMS",
+    provider: "TEXTLOCAL",
     fields: [
-      { name: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { name: 'sender', label: 'Sender Name', type: 'text', required: true, placeholder: '6 chars max' }
-    ]
+      { name: "apiKey", label: "API Key", type: "password", required: true },
+      {
+        name: "sender",
+        label: "Sender Name",
+        type: "text",
+        required: true,
+        placeholder: "6 chars max",
+      },
+    ],
   },
   {
-    name: 'MSG91 SMS',
-    type: 'SMS',
-    provider: 'MSG91',
+    name: "MSG91 SMS",
+    type: "SMS",
+    provider: "MSG91",
     fields: [
-      { name: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { name: 'senderId', label: 'Sender ID', type: 'text', required: true }
-    ]
+      { name: "apiKey", label: "API Key", type: "password", required: true },
+      { name: "senderId", label: "Sender ID", type: "text", required: true },
+    ],
   },
   {
-    name: 'WhatsApp Business API',
-    type: 'WHATSAPP',
-    provider: 'WHATSAPP_BUSINESS',
+    name: "WhatsApp Business API",
+    type: "WHATSAPP",
+    provider: "WHATSAPP_BUSINESS",
     fields: [
-      { name: 'accessToken', label: 'Access Token', type: 'password', required: true },
-      { name: 'phoneNumberId', label: 'Phone Number ID', type: 'text', required: true },
-      { name: 'webhookVerifyToken', label: 'Webhook Verify Token', type: 'password', required: true }
-    ]
+      { name: "accessToken", label: "Access Token", type: "password", required: true },
+      { name: "phoneNumberId", label: "Phone Number ID", type: "text", required: true },
+      {
+        name: "webhookVerifyToken",
+        label: "Webhook Verify Token",
+        type: "password",
+        required: true,
+      },
+    ],
   },
   {
-    name: 'Gupshup WhatsApp',
-    type: 'WHATSAPP',
-    provider: 'GUPSHUP',
+    name: "Gupshup WhatsApp",
+    type: "WHATSAPP",
+    provider: "GUPSHUP",
     fields: [
-      { name: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { name: 'appName', label: 'App Name', type: 'text', required: true },
-      { name: 'source', label: 'Source Number', type: 'text', required: true, placeholder: '91xxxxxxxxxx' }
-    ]
+      { name: "apiKey", label: "API Key", type: "password", required: true },
+      { name: "appName", label: "App Name", type: "text", required: true },
+      {
+        name: "source",
+        label: "Source Number",
+        type: "text",
+        required: true,
+        placeholder: "91xxxxxxxxxx",
+      },
+    ],
   },
   {
-    name: 'SMTP Email',
-    type: 'EMAIL',
-    provider: 'SMTP',
+    name: "SMTP Email",
+    type: "EMAIL",
+    provider: "SMTP",
     fields: [
-      { name: 'smtpHost', label: 'SMTP Host', type: 'text', required: true, placeholder: 'smtp.gmail.com' },
-      { name: 'smtpPort', label: 'SMTP Port', type: 'number', required: true, placeholder: '587' },
-      { name: 'smtpUser', label: 'SMTP Username', type: 'email', required: true },
-      { name: 'smtpPassword', label: 'SMTP Password', type: 'password', required: true },
-      { name: 'fromName', label: 'From Name', type: 'text', required: true, placeholder: 'Your Company Name' },
-      { name: 'fromEmail', label: 'From Email', type: 'email', required: true }
-    ]
+      {
+        name: "smtpHost",
+        label: "SMTP Host",
+        type: "text",
+        required: true,
+        placeholder: "smtp.gmail.com",
+      },
+      { name: "smtpPort", label: "SMTP Port", type: "number", required: true, placeholder: "587" },
+      { name: "smtpUser", label: "SMTP Username", type: "email", required: true },
+      { name: "smtpPassword", label: "SMTP Password", type: "password", required: true },
+      {
+        name: "fromName",
+        label: "From Name",
+        type: "text",
+        required: true,
+        placeholder: "Your Company Name",
+      },
+      { name: "fromEmail", label: "From Email", type: "email", required: true },
+    ],
   },
   {
-    name: 'SendGrid Email',
-    type: 'EMAIL',
-    provider: 'SENDGRID',
+    name: "SendGrid Email",
+    type: "EMAIL",
+    provider: "SENDGRID",
     fields: [
-      { name: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { name: 'fromName', label: 'From Name', type: 'text', required: true },
-      { name: 'fromEmail', label: 'From Email', type: 'email', required: true }
-    ]
+      { name: "apiKey", label: "API Key", type: "password", required: true },
+      { name: "fromName", label: "From Name", type: "text", required: true },
+      { name: "fromEmail", label: "From Email", type: "email", required: true },
+    ],
   },
   {
-    name: 'Mailgun Email',
-    type: 'EMAIL',
-    provider: 'MAILGUN',
+    name: "Mailgun Email",
+    type: "EMAIL",
+    provider: "MAILGUN",
     fields: [
-      { name: 'apiKey', label: 'API Key', type: 'password', required: true },
-      { name: 'domain', label: 'Domain', type: 'text', required: true, placeholder: 'mg.yourdomain.com' },
-      { name: 'fromName', label: 'From Name', type: 'text', required: true },
-      { name: 'fromEmail', label: 'From Email', type: 'email', required: true }
-    ]
-  }
+      { name: "apiKey", label: "API Key", type: "password", required: true },
+      {
+        name: "domain",
+        label: "Domain",
+        type: "text",
+        required: true,
+        placeholder: "mg.yourdomain.com",
+      },
+      { name: "fromName", label: "From Name", type: "text", required: true },
+      { name: "fromEmail", label: "From Email", type: "email", required: true },
+    ],
+  },
 ];
 
 const CommunicationAPIPage: React.FC = () => {
@@ -140,16 +204,16 @@ const CommunicationAPIPage: React.FC = () => {
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [editingProvider, setEditingProvider] = useState<CommunicationProvider | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ProviderTemplate | null>(null);
-  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
+  const [showPasswords, setShowPasswords] = useState<{ [key: string]: boolean }>({});
   const [testingProvider, setTestingProvider] = useState<number | null>(null);
-  
+
   const [providerForm, setProviderForm] = useState<Partial<CommunicationProvider>>({
-    name: '',
-    type: 'EMAIL',
-    provider: '',
+    name: "",
+    type: "EMAIL",
+    provider: "",
     config: {},
     isActive: true,
-    isDefault: false
+    isDefault: false,
   });
 
   useEffect(() => {
@@ -159,10 +223,10 @@ const CommunicationAPIPage: React.FC = () => {
   const fetchProviders = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch('/api/communication/providers', {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const response = await fetch("/api/communication/providers", {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
       const data = await response.json();
@@ -170,7 +234,7 @@ const CommunicationAPIPage: React.FC = () => {
         setProviders(data.data.providers || []);
       }
     } catch (error) {
-      console.error('Error fetching providers:', error);
+      console.error("Error fetching providers:", error);
       // Set mock data for now
       setProviders([]);
     } finally {
@@ -180,87 +244,89 @@ const CommunicationAPIPage: React.FC = () => {
 
   const handleSaveProvider = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const url = editingProvider 
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const url = editingProvider
         ? `/api/communication/providers/${editingProvider.id}`
-        : '/api/communication/providers';
-      
+        : "/api/communication/providers";
+
       const response = await fetch(url, {
-        method: editingProvider ? 'PUT' : 'POST',
+        method: editingProvider ? "PUT" : "POST",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(providerForm),
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success(editingProvider ? 'Provider updated successfully' : 'Provider created successfully');
+        toast.success(
+          editingProvider ? "Provider updated successfully" : "Provider created successfully"
+        );
         setShowProviderModal(false);
         setEditingProvider(null);
         setSelectedTemplate(null);
         resetForm();
         await fetchProviders();
       } else {
-        toast.error(data.message || 'Failed to save provider');
+        toast.error(data.message || "Failed to save provider");
       }
     } catch (error) {
-      console.error('Error saving provider:', error);
-      toast.error('Failed to save provider');
+      console.error("Error saving provider:", error);
+      toast.error("Failed to save provider");
     }
   };
 
   const handleDeleteProvider = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this provider?')) return;
+    if (!confirm("Are you sure you want to delete this provider?")) return;
 
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await fetch(`/api/communication/providers/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success('Provider deleted successfully');
+        toast.success("Provider deleted successfully");
         await fetchProviders();
       } else {
-        toast.error(data.message || 'Failed to delete provider');
+        toast.error(data.message || "Failed to delete provider");
       }
     } catch (error) {
-      console.error('Error deleting provider:', error);
-      toast.error('Failed to delete provider');
+      console.error("Error deleting provider:", error);
+      toast.error("Failed to delete provider");
     }
   };
 
   const handleTestProvider = async (provider: CommunicationProvider) => {
     setTestingProvider(provider.id!);
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await fetch(`/api/communication/providers/${provider.id}/test`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           testType: provider.type.toLowerCase(),
-          recipient: provider.type === 'EMAIL' ? 'test@example.com' : '+919999999999'
+          recipient: provider.type === "EMAIL" ? "test@example.com" : "+919999999999",
         }),
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success('Test message sent successfully!');
+        toast.success("Test message sent successfully!");
       } else {
-        toast.error(data.message || 'Test failed');
+        toast.error(data.message || "Test failed");
       }
     } catch (error) {
-      console.error('Error testing provider:', error);
-      toast.error('Test failed');
+      console.error("Error testing provider:", error);
+      toast.error("Test failed");
     } finally {
       setTestingProvider(null);
     }
@@ -268,12 +334,12 @@ const CommunicationAPIPage: React.FC = () => {
 
   const resetForm = () => {
     setProviderForm({
-      name: '',
-      type: 'EMAIL',
-      provider: '',
+      name: "",
+      type: "EMAIL",
+      provider: "",
       config: {},
       isActive: true,
-      isDefault: false
+      isDefault: false,
     });
   };
 
@@ -283,16 +349,16 @@ const CommunicationAPIPage: React.FC = () => {
     // Find the matching template - try by stored provider key, then by name, then by type
     const cfg: any = provider.config || {};
     const template =
-      providerTemplates.find(t => t.provider === cfg.provider) ||
-      providerTemplates.find(t => t.name === provider.name) ||
-      providerTemplates.find(t => t.type === provider.type);
+      providerTemplates.find((t) => t.provider === cfg.provider) ||
+      providerTemplates.find((t) => t.name === provider.name) ||
+      providerTemplates.find((t) => t.type === provider.type);
     setSelectedTemplate(template || null);
     setShowProviderModal(true);
   };
 
   const handleTemplateSelect = (template: ProviderTemplate) => {
     setSelectedTemplate(template);
-    setProviderForm(prev => ({
+    setProviderForm((prev) => ({
       ...prev,
       name: template.name,
       type: template.type,
@@ -303,29 +369,29 @@ const CommunicationAPIPage: React.FC = () => {
   };
 
   const handleConfigChange = (field: string, value: any) => {
-    setProviderForm(prev => ({
+    setProviderForm((prev) => ({
       ...prev,
       config: {
         ...prev.config,
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
   const togglePasswordVisibility = (field: string) => {
-    setShowPasswords(prev => ({
+    setShowPasswords((prev) => ({
       ...prev,
-      [field]: !prev[field]
+      [field]: !prev[field],
     }));
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'EMAIL':
+      case "EMAIL":
         return <Mail className="h-5 w-5 text-blue-500" />;
-      case 'WHATSAPP':
+      case "WHATSAPP":
         return <MessageSquare className="h-5 w-5 text-green-500" />;
-      case 'SMS':
+      case "SMS":
         return <Smartphone className="h-5 w-5 text-purple-500" />;
       default:
         return <Settings className="h-5 w-5 text-gray-500" />;
@@ -334,12 +400,24 @@ const CommunicationAPIPage: React.FC = () => {
 
   const getStatusBadge = (provider: CommunicationProvider) => {
     if (!provider.isActive) {
-      return <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Inactive</span>;
+      return (
+        <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          Inactive
+        </span>
+      );
     }
     if (provider.isDefault) {
-      return <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Default</span>;
+      return (
+        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          Default
+        </span>
+      );
     }
-    return <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Active</span>;
+    return (
+      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+        Active
+      </span>
+    );
   };
 
   if (loading) {
@@ -377,10 +455,10 @@ const CommunicationAPIPage: React.FC = () => {
 
       {/* Provider Categories */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {['EMAIL', 'WHATSAPP', 'SMS'].map((type) => {
-          const typeProviders = providers.filter(p => p.type === type);
-          const activeCount = typeProviders.filter(p => p.isActive).length;
-          
+        {["EMAIL", "WHATSAPP", "SMS"].map((type) => {
+          const typeProviders = providers.filter((p) => p.type === type);
+          const activeCount = typeProviders.filter((p) => p.isActive).length;
+
           return (
             <Card key={type} variant="OUTLINED">
               <CardHeader className="pb-3">
@@ -389,7 +467,7 @@ const CommunicationAPIPage: React.FC = () => {
                     {getTypeIcon(type)}
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">
-                        {type === 'EMAIL' ? 'Email' : type === 'WHATSAPP' ? 'WhatsApp' : 'SMS'}
+                        {type === "EMAIL" ? "Email" : type === "WHATSAPP" ? "WhatsApp" : "SMS"}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {activeCount} active / {typeProviders.length} total
@@ -397,7 +475,9 @@ const CommunicationAPIPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{typeProviders.length}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {typeProviders.length}
+                    </p>
                     <p className="text-xs text-gray-500">providers</p>
                   </div>
                 </div>
@@ -436,9 +516,7 @@ const CommunicationAPIPage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="flex-shrink-0">
-                      {getTypeIcon(provider.type)}
-                    </div>
+                    <div className="flex-shrink-0">{getTypeIcon(provider.type)}</div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -446,10 +524,11 @@ const CommunicationAPIPage: React.FC = () => {
                         </h3>
                         {getStatusBadge(provider)}
                       </div>
-                      
+
                       <div className="space-y-1 mb-3">
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Provider:</span> {(provider.config as any)?.provider || 'Unknown'}
+                          <span className="font-medium">Provider:</span>{" "}
+                          {(provider.config as any)?.provider || "Unknown"}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           <span className="font-medium">Type:</span> {provider.type}
@@ -460,26 +539,31 @@ const CommunicationAPIPage: React.FC = () => {
                           </p>
                         )}
                       </div>
-                      
+
                       {/* Configuration Preview */}
                       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-sm">
-                        <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Configuration:</p>
+                        <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Configuration:
+                        </p>
                         <div className="space-y-1">
-                          {Object.entries(provider.config).slice(0, 3).map(([key, value]) => (
-                            <div key={key} className="flex justify-between">
-                              <span className="text-gray-600 dark:text-gray-400 capitalize">
-                                {key.replace(/([A-Z])/g, ' $1').toLowerCase()}:
-                              </span>
-                              <span className="text-gray-900 dark:text-white">
-                                {key.toLowerCase().includes('password') || key.toLowerCase().includes('token') || key.toLowerCase().includes('key')
-                                  ? '••••••••'
-                                  : String(value).length > 20
-                                  ? String(value).substring(0, 20) + '...'
-                                  : String(value)
-                                }
-                              </span>
-                            </div>
-                          ))}
+                          {Object.entries(provider.config)
+                            .slice(0, 3)
+                            .map(([key, value]) => (
+                              <div key={key} className="flex justify-between">
+                                <span className="text-gray-600 dark:text-gray-400 capitalize">
+                                  {key.replace(/([A-Z])/g, " $1").toLowerCase()}:
+                                </span>
+                                <span className="text-gray-900 dark:text-white">
+                                  {key.toLowerCase().includes("password") ||
+                                  key.toLowerCase().includes("token") ||
+                                  key.toLowerCase().includes("key")
+                                    ? "••••••••"
+                                    : String(value).length > 20
+                                      ? String(value).substring(0, 20) + "..."
+                                      : String(value)}
+                                </span>
+                              </div>
+                            ))}
                           {Object.keys(provider.config).length > 3 && (
                             <p className="text-xs text-gray-500">
                               +{Object.keys(provider.config).length - 3} more fields
@@ -489,7 +573,7 @@ const CommunicationAPIPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleTestProvider(provider)}
@@ -532,7 +616,7 @@ const CommunicationAPIPage: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {editingProvider ? 'Edit Provider' : 'Add Communication Provider'}
+                  {editingProvider ? "Edit Provider" : "Add Communication Provider"}
                 </h3>
                 <button
                   onClick={() => setShowProviderModal(false)}
@@ -585,7 +669,9 @@ const CommunicationAPIPage: React.FC = () => {
                         <input
                           type="text"
                           value={providerForm.name}
-                          onChange={(e) => setProviderForm(prev => ({ ...prev, name: e.target.value }))}
+                          onChange={(e) =>
+                            setProviderForm((prev) => ({ ...prev, name: e.target.value }))
+                          }
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                           placeholder="My WhatsApp Provider"
                         />
@@ -596,7 +682,7 @@ const CommunicationAPIPage: React.FC = () => {
                         </label>
                         <input
                           type="text"
-                          value={`${providerForm.type} (${(providerForm.config as any)?.provider || providerForm.provider || 'Unknown'})`}
+                          value={`${providerForm.type} (${(providerForm.config as any)?.provider || providerForm.provider || "Unknown"})`}
                           disabled
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400"
                         />
@@ -612,18 +698,29 @@ const CommunicationAPIPage: React.FC = () => {
                         {selectedTemplate.fields.map((field) => (
                           <div key={field.name}>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              {field.label} {field.required && '*'}
+                              {field.label} {field.required && "*"}
                             </label>
                             <div className="relative">
                               <input
-                                type={field.type === 'password' && showPasswords[field.name] ? 'text' : field.type}
-                                value={providerForm.config?.[field.name] || ''}
-                                onChange={(e) => handleConfigChange(field.name, field.type === 'number' ? Number(e.target.value) : e.target.value)}
+                                type={
+                                  field.type === "password" && showPasswords[field.name]
+                                    ? "text"
+                                    : field.type
+                                }
+                                value={providerForm.config?.[field.name] || ""}
+                                onChange={(e) =>
+                                  handleConfigChange(
+                                    field.name,
+                                    field.type === "number"
+                                      ? Number(e.target.value)
+                                      : e.target.value
+                                  )
+                                }
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                                 placeholder={field.placeholder}
                                 required={field.required}
                               />
-                              {field.type === 'password' && (
+                              {field.type === "password" && (
                                 <button
                                   type="button"
                                   onClick={() => togglePasswordVisibility(field.name)}
@@ -652,10 +749,15 @@ const CommunicationAPIPage: React.FC = () => {
                           type="checkbox"
                           id="isActive"
                           checked={providerForm.isActive}
-                          onChange={(e) => setProviderForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                          onChange={(e) =>
+                            setProviderForm((prev) => ({ ...prev, isActive: e.target.checked }))
+                          }
                           className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
                         />
-                        <label htmlFor="isActive" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        <label
+                          htmlFor="isActive"
+                          className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                        >
                           Enable this provider
                         </label>
                       </div>
@@ -664,10 +766,15 @@ const CommunicationAPIPage: React.FC = () => {
                           type="checkbox"
                           id="isDefault"
                           checked={providerForm.isDefault}
-                          onChange={(e) => setProviderForm(prev => ({ ...prev, isDefault: e.target.checked }))}
+                          onChange={(e) =>
+                            setProviderForm((prev) => ({ ...prev, isDefault: e.target.checked }))
+                          }
                           className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
                         />
-                        <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                        <label
+                          htmlFor="isDefault"
+                          className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                        >
                           Set as default provider for this type
                         </label>
                       </div>
@@ -695,7 +802,7 @@ const CommunicationAPIPage: React.FC = () => {
                     className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    {editingProvider ? 'Update' : 'Create'} Provider
+                    {editingProvider ? "Update" : "Create"} Provider
                   </button>
                 )}
               </div>

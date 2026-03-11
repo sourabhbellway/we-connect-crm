@@ -18,7 +18,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('taxes')
 export class TaxesController {
-  constructor(private readonly taxesService: TaxesService) { }
+  constructor(private readonly taxesService: TaxesService) {}
 
   @Post()
   @RequirePermission('business_settings_tax.create')

@@ -1,5 +1,5 @@
-import React from 'react';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import React from "react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface PaginationProps {
   currentPage: number;
@@ -22,7 +22,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   onItemsPerPageChange,
   showItemsPerPage = true,
   itemsPerPageOptions = [5, 10, 25, 50],
-  className = ''
+  className = "",
 }) => {
   if (totalPages <= 1 && !showItemsPerPage) return null;
 
@@ -42,7 +42,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       pages.push(1);
 
       if (currentPage > 4) {
-        pages.push('...');
+        pages.push("...");
       }
 
       // Show pages around current page
@@ -54,7 +54,7 @@ export const Pagination: React.FC<PaginationProps> = ({
       }
 
       if (currentPage < totalPages - 3) {
-        pages.push('...');
+        pages.push("...");
       }
 
       // Always show last page
@@ -122,14 +122,14 @@ export const Pagination: React.FC<PaginationProps> = ({
             {visiblePages.map((page, index) => (
               <button
                 key={index}
-                onClick={() => typeof page === 'number' && onPageChange(page)}
-                disabled={page === '...' || page === currentPage}
+                onClick={() => typeof page === "number" && onPageChange(page)}
+                disabled={page === "..." || page === currentPage}
                 className={`px-3 py-1 rounded border text-sm transition-colors ${
                   page === currentPage
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : page === '...'
-                    ? 'border-gray-300 dark:border-gray-600 cursor-default'
-                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : page === "..."
+                      ? "border-gray-300 dark:border-gray-600 cursor-default"
+                      : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                 }`}
               >
                 {page}

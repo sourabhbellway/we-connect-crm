@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Phone, ChevronDown, Search, X } from 'lucide-react';
-import { countries, Country, getDefaultCountry } from '../data/countries';
+import React, { useState, useRef, useEffect } from "react";
+import { Phone, ChevronDown, Search, X } from "lucide-react";
+import { countries, Country, getDefaultCountry } from "../data/countries";
 
 interface PhoneInputWithCountryProps {
   value: string;
@@ -9,20 +9,22 @@ interface PhoneInputWithCountryProps {
   error?: string;
   required?: boolean;
   placeholder?: string;
+  id?: string;
 }
 
 export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   value,
   onChange,
-  label = 'Phone',
+  label = "Phone",
   error,
   required = false,
-  placeholder = 'Enter number',
+  placeholder = "Enter number",
+  id,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,7 +32,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   useEffect(() => {
     if (value) {
       // Try to extract country code from the value
-      const country = countries.find(c => value.startsWith(c.phoneCode));
+      const country = countries.find((c) => value.startsWith(c.phoneCode));
       if (country) {
         setSelectedCountry(country);
         setPhoneNumber(value.substring(country.phoneCode.length).trim());
@@ -45,12 +47,12 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setSearchQuery('');
+        setSearchQuery("");
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Focus search input when dropdown opens
@@ -61,18 +63,19 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
   }, [isOpen]);
 
   // Filter countries based on search query
-  const filteredCountries = countries.filter(country =>
-    country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    country.phoneCode.includes(searchQuery) ||
-    country.code.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCountries = countries.filter(
+    (country) =>
+      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      country.phoneCode.includes(searchQuery) ||
+      country.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
     setIsOpen(false);
-    setSearchQuery('');
+    setSearchQuery("");
     // Update the full phone value
-    const fullPhone = phoneNumber ? `${country.phoneCode} ${phoneNumber}` : '';
+    const fullPhone = phoneNumber ? `${country.phoneCode} ${phoneNumber}` : "";
     onChange(fullPhone, country.code);
   };
 
@@ -80,12 +83,12 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
     const inputValue = e.target.value;
     setPhoneNumber(inputValue);
     // Combine country code with phone number
-    const fullPhone = inputValue ? `${selectedCountry.phoneCode} ${inputValue}` : '';
+    const fullPhone = inputValue ? `${selectedCountry.phoneCode} ${inputValue}` : "";
     onChange(fullPhone, selectedCountry.code);
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" id={id}>
       {label && (
         <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           {label}
@@ -95,11 +98,11 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
 
       <div className="relative">
         {/* Phone Input Container */}
-        <div className={`flex items-stretch rounded-lg border ${error
-            ? 'border-red-300 dark:border-red-600'
-            : 'border-gray-300 dark:border-gray-600'
-          } bg-white dark:bg-gray-700 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all`}>
-
+        <div
+          className={`flex items-stretch rounded-lg border ${
+            error ? "border-red-300 dark:border-red-600" : "border-gray-300 dark:border-gray-600"
+          } bg-white dark:bg-gray-700 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all`}
+        >
           {/* Country Code Selector Button */}
           <button
             type="button"
@@ -110,7 +113,9 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
             <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {selectedCountry.phoneCode}
             </span>
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
           </button>
 
           {/* Phone Number Input */}
@@ -147,7 +152,7 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
                 {searchQuery && (
                   <button
                     type="button"
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => setSearchQuery("")}
                     className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                   >
                     <X className="h-4 w-4 text-gray-400" />
@@ -164,19 +169,16 @@ export const PhoneInputWithCountry: React.FC<PhoneInputWithCountryProps> = ({
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${selectedCountry.code === country.code
-                        ? 'bg-blue-50 dark:bg-blue-900/20'
-                        : ''
-                      }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                      selectedCountry.code === country.code ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                    }`}
                   >
                     <span className="text-2xl leading-none">{country.flag}</span>
                     <div className="flex-1 text-left">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {country.name}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {country.code}
-                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{country.code}</div>
                     </div>
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                       {country.phoneCode}

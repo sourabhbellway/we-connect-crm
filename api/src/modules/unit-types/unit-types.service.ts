@@ -21,18 +21,46 @@ export class UnitTypesService {
       throw new ConflictException('Unit type with this name already exists');
     }
 
-    return this.prisma.unitType.create({
+    const unitType = await this.prisma.unitType.create({
       data: createUnitTypeDto,
     });
+
+    return {
+      success: true,
+      message: 'Unit type created successfully',
+      data: { unitType },
+    };
   }
 
   async findAll() {
-    return this.prisma.unitType.findMany({
+    const unitTypes = await this.prisma.unitType.findMany({
       orderBy: { name: 'asc' },
     });
+
+    return {
+      success: true,
+      message: 'Unit types retrieved successfully',
+      data: unitTypes,
+    };
   }
 
   async findOne(id: number) {
+    const unitType = await this.prisma.unitType.findUnique({
+      where: { id },
+    });
+
+    if (!unitType) {
+      throw new NotFoundException('Unit type not found');
+    }
+
+    return {
+      success: true,
+      message: 'Unit type retrieved successfully',
+      data: { unitType },
+    };
+  }
+
+  private async getUnitTypeOrThrow(id: number) {
     const unitType = await this.prisma.unitType.findUnique({
       where: { id },
     });
@@ -46,7 +74,7 @@ export class UnitTypesService {
 
   async update(id: number, updateUnitTypeDto: UpdateUnitTypeDto) {
     // Check if unit type exists
-    await this.findOne(id);
+    await this.getUnitTypeOrThrow(id);
 
     // Check for duplicate name if name is being updated
     if (updateUnitTypeDto.name) {
@@ -62,15 +90,21 @@ export class UnitTypesService {
       }
     }
 
-    return this.prisma.unitType.update({
+    const updatedUnitType = await this.prisma.unitType.update({
       where: { id },
       data: updateUnitTypeDto,
     });
+
+    return {
+      success: true,
+      message: 'Unit type updated successfully',
+      data: { unitType: updatedUnitType },
+    };
   }
 
   async remove(id: number) {
     // Check if unit type exists
-    await this.findOne(id);
+    await this.getUnitTypeOrThrow(id);
 
     // Check if unit type is being used by any products
     const productsUsingUnitType = await this.prisma.product.findFirst({
@@ -83,17 +117,28 @@ export class UnitTypesService {
       );
     }
 
-    return this.prisma.unitType.delete({
+    await this.prisma.unitType.delete({
       where: { id },
     });
+
+    return {
+      success: true,
+      message: 'Unit type deleted successfully',
+    };
   }
 
   async toggleActive(id: number) {
-    const unitType = await this.findOne(id);
+    const unitType = await this.getUnitTypeOrThrow(id);
 
-    return this.prisma.unitType.update({
+    const updatedUnitType = await this.prisma.unitType.update({
       where: { id },
       data: { isActive: !unitType.isActive },
     });
+
+    return {
+      success: true,
+      message: 'Unit type status updated successfully',
+      data: { unitType: updatedUnitType },
+    };
   }
 }

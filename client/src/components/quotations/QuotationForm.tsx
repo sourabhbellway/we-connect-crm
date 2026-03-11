@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, DollarSign } from 'lucide-react';
-import { Button, Card } from '../ui';
-import { getCurrencyByCountry } from '../../utils/countryUtils';
-import apiClient from '../../services/apiClient';
-import { taxesService, Tax } from '../../services/taxesService';
+import React, { useState, useEffect } from "react";
+import { X, Plus, Trash2, DollarSign } from "lucide-react";
+import { Button, Card } from "../ui";
+import { getCurrencyByCountry } from "../../utils/countryUtils";
+import apiClient from "../../services/apiClient";
+import { taxesService, Tax } from "../../services/taxesService";
 
 interface Product {
   id: number;
@@ -47,7 +47,7 @@ interface Currency {
 }
 
 interface QuotationFormProps {
-  entityType?: 'lead' | 'deal' | 'contact';
+  entityType?: "lead" | "deal" | "contact";
   entityId?: string;
   onClose: () => void;
   onSuccess: () => void;
@@ -63,24 +63,24 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
   const [products, setProducts] = useState<Product[]>([]);
   const [availableCurrencies, setAvailableCurrencies] = useState<Currency[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [searchProduct, setSearchProduct] = useState('');
+  const [searchProduct, setSearchProduct] = useState("");
   const [showProductSearch, setShowProductSearch] = useState(false);
   const [availableTaxes, setAvailableTaxes] = useState<Tax[]>([]);
   const [taxesLoading, setTaxesLoading] = useState(true);
 
   // Form state
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [validUntil, setValidUntil] = useState('');
-  const [notes, setNotes] = useState('');
-  const [terms, setTerms] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [validUntil, setValidUntil] = useState("");
+  const [notes, setNotes] = useState("");
+  const [terms, setTerms] = useState("");
   const [items, setItems] = useState<QuotationItem[]>([
     {
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       quantity: 1,
-      unit: 'pcs',
+      unit: "pcs",
       unitPrice: 0,
       taxRate: 0,
       discountRate: 0,
@@ -101,7 +101,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
     }
   }, [customer]);
 
-  const [quotationNumber, setQuotationNumber] = useState('');
+  const [quotationNumber, setQuotationNumber] = useState("");
 
   // Fetch taxes on component mount
   useEffect(() => {
@@ -110,7 +110,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
         const data = await taxesService.getAll();
         setAvailableTaxes(data);
       } catch (error) {
-        console.error('Failed to fetch taxes:', error);
+        console.error("Failed to fetch taxes:", error);
       } finally {
         setTaxesLoading(false);
       }
@@ -122,23 +122,23 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
     try {
       setLoading(true);
       const params = entityType && entityId ? { entityType, entityId } : {};
-      console.log('Fetching quotation template with params:', params);
+      console.log("Fetching quotation template with params:", params);
 
       const [templateResponse, nextNumberResponse] = await Promise.all([
-        apiClient.get('/quotations/template', { params }),
-        apiClient.get('/quotations/next-number')
+        apiClient.get("/quotations/template", { params }),
+        apiClient.get("/quotations/next-number"),
       ]);
 
-      console.log('Quotation template response:', templateResponse.data);
+      console.log("Quotation template response:", templateResponse.data);
 
       if (templateResponse.data.success) {
         const data = templateResponse.data.data;
-        console.log('Customer data received:', data.customer);
+        console.log("Customer data received:", data.customer);
 
         setProducts(data.products || []);
         setAvailableCurrencies(data.availableCurrencies || []);
         setCustomer(data.customer);
-        setCurrency(data.suggestedCurrency || data.defaultCurrency || 'USD');
+        setCurrency(data.suggestedCurrency || data.defaultCurrency || "USD");
 
         // Pre-fill suggested products if available
         if (data.suggestedProducts && data.suggestedProducts.length > 0) {
@@ -146,7 +146,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
             data.suggestedProducts.map((p: any) => ({
               name: p.name,
               quantity: p.quantity || 1,
-              unit: 'pcs',
+              unit: "pcs",
               unitPrice: Number(p.price) || 0,
               taxRate: 0,
               discountRate: 0,
@@ -156,7 +156,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
 
         // Set default terms
         setTerms(
-          'Payment is due within 30 days from the date of this quotation.\\nThis quotation is valid for 30 days.\\nPrices are subject to change without notice.'
+          "Payment is due within 30 days from the date of this quotation.\\nThis quotation is valid for 30 days.\\nPrices are subject to change without notice."
         );
       }
 
@@ -164,7 +164,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
         setQuotationNumber(nextNumberResponse.data.data.nextNumber);
       }
     } catch (error) {
-      console.error('Error fetching template data:', error);
+      console.error("Error fetching template data:", error);
     } finally {
       setLoading(false);
     }
@@ -174,10 +174,10 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
     setItems([
       ...items,
       {
-        name: '',
-        description: '',
+        name: "",
+        description: "",
         quantity: 1,
-        unit: 'pcs',
+        unit: "pcs",
         unitPrice: 0,
         taxRate: 0,
         discountRate: 0,
@@ -196,12 +196,12 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
   };
 
   const selectProduct = (index: number, product: Product) => {
-    updateItem(index, 'productId', product.id);
-    updateItem(index, 'name', product.name);
-    updateItem(index, 'description', product.description || '');
-    updateItem(index, 'unitPrice', Number(product.price));
-    updateItem(index, 'unit', product.unit || 'pcs');
-    updateItem(index, 'taxRate', Number(product.taxRate || 0));
+    updateItem(index, "productId", product.id);
+    updateItem(index, "name", product.name);
+    updateItem(index, "description", product.description || "");
+    updateItem(index, "unitPrice", Number(product.price));
+    updateItem(index, "unit", product.unit || "pcs");
+    updateItem(index, "taxRate", Number(product.taxRate || 0));
     setShowProductSearch(false);
   };
 
@@ -239,7 +239,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
     e.preventDefault();
 
     if (!title || items.length === 0 || items.some((item) => !item.name)) {
-      alert('Please fill in all required fields');
+      alert("Please fill in all required fields");
       return;
     }
 
@@ -254,29 +254,30 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
         notes,
         terms,
         items,
-        ...(entityType === 'lead' && { leadId: parseInt(entityId!) }),
-        ...(entityType === 'deal' && { dealId: parseInt(entityId!) }),
-        ...(entityType === 'contact' && { contactId: parseInt(entityId!) }),
+        ...(entityType === "lead" && { leadId: parseInt(entityId!) }),
+        ...(entityType === "deal" && { dealId: parseInt(entityId!) }),
+        ...(entityType === "contact" && { contactId: parseInt(entityId!) }),
       };
 
-      const response = await apiClient.post('/quotations', payload);
+      const response = await apiClient.post("/quotations", payload);
 
       if (response.data.success) {
         onSuccess();
         onClose();
       }
     } catch (error) {
-      console.error('Error creating quotation:', error);
-      alert('Failed to create quotation');
+      console.error("Error creating quotation:", error);
+      alert("Failed to create quotation");
     } finally {
       setLoading(false);
     }
   };
 
   const totals = calculateTotals();
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-    p.sku?.toLowerCase().includes(searchProduct.toLowerCase())
+  const filteredProducts = products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
+      p.sku?.toLowerCase().includes(searchProduct.toLowerCase())
   );
 
   const getCurrencySymbol = (code: string): string => {
@@ -289,9 +290,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-slate-900 z-10">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Create Quotation
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Create Quotation</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -316,44 +315,54 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Name</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">
+                      Name
+                    </div>
                     <div className="font-semibold text-blue-900 dark:text-blue-100 text-base">
                       {customer.fullName}
                     </div>
                   </div>
                   {customer.company && (
                     <div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Company</div>
-                      <div className="text-blue-800 dark:text-blue-200">
-                        {customer.company}
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">
+                        Company
                       </div>
+                      <div className="text-blue-800 dark:text-blue-200">{customer.company}</div>
                     </div>
                   )}
                 </div>
                 <div className="space-y-2">
                   <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Email</div>
-                    <div className="text-blue-800 dark:text-blue-200">
-                      {customer.email}
+                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">
+                      Email
                     </div>
+                    <div className="text-blue-800 dark:text-blue-200">{customer.email}</div>
                   </div>
                   {customer.phone && (
                     <div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Phone</div>
-                      <div className="text-blue-800 dark:text-blue-200">
-                        {customer.phone}
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">
+                        Phone
                       </div>
+                      <div className="text-blue-800 dark:text-blue-200">{customer.phone}</div>
                     </div>
                   )}
                 </div>
-                {(customer.address || customer.city || customer.state || customer.zipCode || customer.country) && (
+                {(customer.address ||
+                  customer.city ||
+                  customer.state ||
+                  customer.zipCode ||
+                  customer.country) && (
                   <div>
-                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">Address</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase mb-1">
+                      Address
+                    </div>
                     <div className="text-blue-800 dark:text-blue-200 text-sm">
                       {customer.address && <div>{customer.address}</div>}
                       {(customer.city || customer.state || customer.zipCode) && (
                         <div>
-                          {customer.city}{customer.city && customer.state && ', '}{customer.state} {customer.zipCode}
+                          {customer.city}
+                          {customer.city && customer.state && ", "}
+                          {customer.state} {customer.zipCode}
                         </div>
                       )}
                       {customer.country && <div>{customer.country}</div>}
@@ -372,12 +381,14 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               </label>
               <input
                 type="text"
-                value={quotationNumber || 'Auto-generated'}
+                value={quotationNumber || "Auto-generated"}
                 readOnly
                 disabled
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Auto-generated from Business Settings</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Auto-generated from Business Settings
+              </p>
             </div>
 
             <div>
@@ -440,16 +451,14 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               value={validUntil}
               onChange={(e) => setValidUntil(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date().toISOString().split("T")[0]}
             />
           </div>
 
           {/* Line Items */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Line Items
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Line Items</h3>
               <Button
                 type="button"
                 variant="OUTLINE"
@@ -476,7 +485,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                             <input
                               type="text"
                               value={item.name}
-                              onChange={(e) => updateItem(index, 'name', e.target.value)}
+                              onChange={(e) => updateItem(index, "name", e.target.value)}
                               onFocus={() => setShowProductSearch(true)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
                               placeholder="Search or enter item name"
@@ -521,8 +530,8 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                           </label>
                           <input
                             type="text"
-                            value={item.description || ''}
-                            onChange={(e) => updateItem(index, 'description', e.target.value)}
+                            value={item.description || ""}
+                            onChange={(e) => updateItem(index, "description", e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
                             placeholder="Optional description"
                           />
@@ -535,7 +544,9 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                           <input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              updateItem(index, "quantity", parseFloat(e.target.value) || 0)
+                            }
                             min="0"
                             step="0.01"
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
@@ -549,7 +560,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                           <input
                             type="text"
                             value={item.unit}
-                            onChange={(e) => updateItem(index, 'unit', e.target.value)}
+                            onChange={(e) => updateItem(index, "unit", e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
                             placeholder="pcs"
                           />
@@ -562,7 +573,9 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                           <input
                             type="number"
                             value={item.unitPrice}
-                            onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)
+                            }
                             min="0"
                             step="0.01"
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white"
@@ -575,19 +588,21 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                           </label>
                           <select
                             value={item.taxRate}
-                            onChange={(e) => updateItem(index, 'taxRate', parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              updateItem(index, "taxRate", parseFloat(e.target.value) || 0)
+                            }
                             disabled={taxesLoading}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white appearance-none disabled:opacity-50"
                           >
                             <option value="0">No Tax</option>
-                            {!taxesLoading && availableTaxes
-                              .filter(t => t.isActive)
-                              .map(tax => (
-                                <option key={tax.id} value={Number(tax.rate)}>
-                                  {tax.name} ({tax.rate}%)
-                                </option>
-                              ))
-                            }
+                            {!taxesLoading &&
+                              availableTaxes
+                                .filter((t) => t.isActive)
+                                .map((tax) => (
+                                  <option key={tax.id} value={Number(tax.rate)}>
+                                    {tax.name} ({tax.rate}%)
+                                  </option>
+                                ))}
                             {taxesLoading && <option disabled>Loading taxes...</option>}
                           </select>
                         </div>
@@ -599,7 +614,9 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                           <input
                             type="number"
                             value={item.discountRate}
-                            onChange={(e) => updateItem(index, 'discountRate', parseFloat(e.target.value) || 0)}
+                            onChange={(e) =>
+                              updateItem(index, "discountRate", parseFloat(e.target.value) || 0)
+                            }
                             min="0"
                             max="100"
                             step="0.01"
@@ -709,7 +726,7 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Quotation'}
+              {loading ? "Creating..." : "Create Quotation"}
             </Button>
           </div>
         </form>

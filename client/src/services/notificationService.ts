@@ -1,6 +1,6 @@
-import apiClient from './apiClient';
-import { STORAGE_KEYS } from '../constants';
-import { API_BASE_URL } from '../config/config';
+import apiClient from "./apiClient";
+import { STORAGE_KEYS } from "../constants";
+import { API_BASE_URL } from "../config/config";
 
 export interface Notification {
   id: number;
@@ -52,7 +52,7 @@ export interface UpdateNotificationPreferencePayload {
   inAppEnabled?: boolean;
   emailEnabled?: boolean;
   soundEnabled?: boolean;
-  preferences?: NotificationPreference['preferences'];
+  preferences?: NotificationPreference["preferences"];
   doNotDisturbStart?: number;
   doNotDisturbEnd?: number;
 }
@@ -69,14 +69,14 @@ export const notificationService = {
     unreadCount: number;
     pagination: { page: number; limit: number; total: number; totalPages: number };
   }> {
-    const response = await apiClient.get('/notifications', { params });
+    const response = await apiClient.get("/notifications", { params });
     // Backend shape: { success, data: { notifications, unreadCount, pagination } }
     return response.data.data;
   },
 
   // Get unread count
   async getUnreadCount(): Promise<{ unreadCount: number }> {
-    const response = await apiClient.get('/notifications/unread-count');
+    const response = await apiClient.get("/notifications/unread-count");
     // Backend shape: { success, data: { unreadCount } }
     return response.data.data;
   },
@@ -89,7 +89,7 @@ export const notificationService = {
 
   // Mark all as read
   async markAllAsRead() {
-    const response = await apiClient.patch('/notifications/mark-all-read');
+    const response = await apiClient.patch("/notifications/mark-all-read");
     return response.data;
   },
 
@@ -101,7 +101,7 @@ export const notificationService = {
 
   // Get preferences
   async getPreferences(): Promise<NotificationPreference> {
-    const response = await apiClient.get('/notifications/preferences');
+    const response = await apiClient.get("/notifications/preferences");
     // Backend shape: { success, data: NotificationPreference }
     return response.data.data;
   },
@@ -119,35 +119,36 @@ export const notificationService = {
       doNotDisturbEnd: preferences.doNotDisturbEnd,
     };
 
-    const response = await apiClient.patch('/notifications/preferences', payload);
+    const response = await apiClient.patch("/notifications/preferences", payload);
     return response.data;
   },
 
   // Connect to SSE stream
-  connectToStream(onNotification: (notification: Notification) => void, onError?: (error: Event) => void) {
+  connectToStream(
+    onNotification: (notification: Notification) => void,
+    onError?: (error: Event) => void
+  ) {
     // Support both legacy and new token keys, same as apiClient
-    const token =
-      localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) ||
-      localStorage.getItem('token');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || localStorage.getItem("token");
 
     if (!token) {
-      console.error('No token found for SSE connection');
+      console.error("No token found for SSE connection");
       return null;
     }
 
     // Build SSE URL from the same base the rest of the API uses.
     // In dev, API_BASE_URL defaults to "/api" which becomes
     // window.location.origin + "/api" in the browser.
-    const base = API_BASE_URL || '/api';
+    const base = API_BASE_URL || "/api";
 
     let streamUrl: string;
-    if (base.startsWith('http')) {
+    if (base.startsWith("http")) {
       // e.g. https://crm.example.com/api -> https://crm.example.com/api/notifications/stream
-      const apiBase = base.replace(/\/$/, '');
+      const apiBase = base.replace(/\/$/, "");
       streamUrl = `${apiBase}/notifications/stream?token=${encodeURIComponent(token)}`;
     } else {
       // e.g. "/api" -> same origin + /api/notifications/stream
-      const apiBase = window.location.origin + base.replace(/\/$/, '');
+      const apiBase = window.location.origin + base.replace(/\/$/, "");
       streamUrl = `${apiBase}/notifications/stream?token=${encodeURIComponent(token)}`;
     }
 
@@ -161,19 +162,18 @@ export const notificationService = {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
-        if (data.type === 'connected') {
-          
-        } else if (data.type === 'notification') {
+
+        if (data.type === "connected") {
+        } else if (data.type === "notification") {
           onNotification(data.notification);
         }
       } catch (error) {
-        console.error('Error parsing notification:', error);
+        console.error("Error parsing notification:", error);
       }
     };
 
     eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
+      console.error("SSE connection error:", error);
       if (onError) {
         onError(error);
       }
@@ -185,13 +185,13 @@ export const notificationService = {
   // Play notification sound
   playNotificationSound() {
     try {
-      const audio = new Audio('/notification-sound.mp3');
+      const audio = new Audio("/notification-sound.mp3");
       audio.volume = 0.5;
       audio.play().catch((error) => {
-        console.error('Failed to play notification sound:', error);
+        console.error("Failed to play notification sound:", error);
       });
     } catch (error) {
-      console.error('Error creating audio:', error);
+      console.error("Error creating audio:", error);
     }
   },
 };

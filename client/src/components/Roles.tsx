@@ -58,24 +58,21 @@ const Roles: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [expandedPermissions, setExpandedPermissions] = useState<
-    Record<number, boolean>
-  >({});
+  const [expandedPermissions, setExpandedPermissions] = useState<Record<number, boolean>>({});
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [backendSearchSupported, setBackendSearchSupported] = useState(true);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'card'>('card');
+  const [viewMode, setViewMode] = useState<"list" | "card">("card");
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    'name',
-    'description',
-    'status',
-    'usersCount',
-    'permissionsCount',
+    "name",
+    "description",
+    "status",
+    "usersCount",
+    "permissionsCount",
   ]);
 
   // Debounced search with 500ms delay for better UX
-  const { searchValue, debouncedSearchValue, setSearch, isSearching } =
-    useDebouncedSearch("", 500);
+  const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch("", 500);
 
   useEffect(() => {
     fetchRoles();
@@ -84,10 +81,10 @@ const Roles: React.FC = () => {
   // Load column visibility preferences
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('roles_visible_columns');
+      const stored = localStorage.getItem("roles_visible_columns");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.every((c) => typeof c === 'string')) {
+        if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
           setVisibleColumns(parsed);
         }
       }
@@ -98,7 +95,7 @@ const Roles: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('roles_visible_columns', JSON.stringify(visibleColumns));
+      localStorage.setItem("roles_visible_columns", JSON.stringify(visibleColumns));
     } catch {
       // ignore
     }
@@ -132,9 +129,7 @@ const Roles: React.FC = () => {
       // If backend search fails, fall back to frontend search
       if (debouncedSearchValue) {
         setBackendSearchSupported(false);
-        setSearchError(
-          "Backend search not available, using frontend filtering"
-        );
+        setSearchError("Backend search not available, using frontend filtering");
 
         // Fetch all roles for frontend filtering
         try {
@@ -166,13 +161,14 @@ const Roles: React.FC = () => {
   // Empty state helpers similar to Users/Leads
   const isSearchActive = !!debouncedSearchValue;
   const isStatusFilterActive = !!statusFilter;
-  const noResultsDescription = isSearchActive && isStatusFilterActive
-    ? "No roles match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all roles."
-    : isSearchActive
-    ? "No roles found for your search. Try adjusting your search terms. You can also clear all filters to see all roles."
-    : isStatusFilterActive
-    ? "No roles found for the selected filters. Try adjusting your filters or clear all filters to see all roles."
-    : "No roles found.";
+  const noResultsDescription =
+    isSearchActive && isStatusFilterActive
+      ? "No roles match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all roles."
+      : isSearchActive
+        ? "No roles found for your search. Try adjusting your search terms. You can also clear all filters to see all roles."
+        : isStatusFilterActive
+          ? "No roles found for the selected filters. Try adjusting your filters or clear all filters to see all roles."
+          : "No roles found.";
 
   const clearFilters = () => {
     setStatusFilter("");
@@ -195,8 +191,7 @@ const Roles: React.FC = () => {
     } catch (error: any) {
       console.error("Error deleting role:", error);
       const errorMessage =
-        error.response?.data?.message ||
-        "An error occurred while deleting the role";
+        error.response?.data?.message || "An error occurred while deleting the role";
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
@@ -214,13 +209,9 @@ const Roles: React.FC = () => {
     : roles.filter(
         // Frontend search fallback - filter locally by search
         (role) =>
-          role.name
-            .toLowerCase()
-            .includes(debouncedSearchValue.toLowerCase()) ||
+          role.name.toLowerCase().includes(debouncedSearchValue.toLowerCase()) ||
           (role.description &&
-            role.description
-              .toLowerCase()
-              .includes(debouncedSearchValue.toLowerCase()))
+            role.description.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
       );
 
   // Always apply status filter on the frontend as a safety net
@@ -248,9 +239,7 @@ const Roles: React.FC = () => {
             {/* Search */}
             <div className="w-full sm:w-48">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <div className="flex items-center gap-2">
-                  {t("common.search")}
-                </div>
+                <div className="flex items-center gap-2">{t("common.search")}</div>
               </label>
               <SearchInput
                 value={searchValue}
@@ -289,15 +278,15 @@ const Roles: React.FC = () => {
         {/* View toggle - Right aligned */}
         <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 ml-auto">
           <button
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-            onClick={() => setViewMode('list')}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            onClick={() => setViewMode("list")}
             title="List view"
           >
             <LayoutList className="w-4 h-4" />
           </button>
           <button
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'card' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-            onClick={() => setViewMode('card')}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "card" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            onClick={() => setViewMode("card")}
             title="Card view"
           >
             <LayoutGrid className="w-4 h-4" />
@@ -305,9 +294,8 @@ const Roles: React.FC = () => {
         </div>
       </div>
 
-
       {/* Roles List/Card View */}
-      {viewMode === 'card' ? (
+      {viewMode === "card" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading || isFiltering ? (
             <div className="col-span-full">
@@ -322,11 +310,11 @@ const Roles: React.FC = () => {
             </div>
           ) : filteredRoles.length === 0 ? (
             <div className="col-span-full text-center py-20">
-                <NoResults
-                  title={searchError ? "Network or server error" : "No roles found"}
-                  description={searchError || noResultsDescription}
-                  icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                  showClearButton={!searchError && (isSearchActive || isStatusFilterActive)}
+              <NoResults
+                title={searchError ? "Network or server error" : "No roles found"}
+                description={searchError || noResultsDescription}
+                icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                showClearButton={!searchError && (isSearchActive || isStatusFilterActive)}
                 onClear={!searchError ? clearFilters : undefined}
                 isError={!!searchError}
               />
@@ -355,12 +343,10 @@ const Roles: React.FC = () => {
                             ? "All permissions"
                             : `${role.permissionsCount ?? role.permissions.length} permissions`}
                         </p>
-
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 ">
-
                       {hasPermission("role.update") && (
                         <button
                           onClick={() =>
@@ -406,9 +392,7 @@ const Roles: React.FC = () => {
                         }`}
                       >
                         <CheckCircle
-                          className={`h-3 w-3 mr-1 ${
-                            !role.isActive ? "opacity-50" : ""
-                          }`}
+                          className={`h-3 w-3 mr-1 ${!role.isActive ? "opacity-50" : ""}`}
                         />
                         {role.isActive ? "Active" : "Inactive"}
                       </span>
@@ -497,11 +481,11 @@ const Roles: React.FC = () => {
                 onItemsPerPageChange={() => {}}
                 columnConfig={{
                   columns: [
-                    { id: 'name', label: 'Name' },
-                    { id: 'description', label: 'Description' },
-                    { id: 'status', label: 'Status' },
-                    { id: 'usersCount', label: 'Users' },
-                    { id: 'permissionsCount', label: 'Permissions' },
+                    { id: "name", label: "Name" },
+                    { id: "description", label: "Description" },
+                    { id: "status", label: "Status" },
+                    { id: "usersCount", label: "Users" },
+                    { id: "permissionsCount", label: "Permissions" },
                   ],
                   visibleColumns,
                   onChange: setVisibleColumns,
@@ -514,19 +498,29 @@ const Roles: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('name') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("name") ? "hidden" : ""}`}
+                      >
                         Name
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('description') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("description") ? "hidden" : ""}`}
+                      >
                         Description
                       </th>
-                      <th className={`px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("status") ? "hidden" : ""}`}
+                      >
                         Status
                       </th>
-                      <th className={`px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('usersCount') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("usersCount") ? "hidden" : ""}`}
+                      >
                         Users
                       </th>
-                      <th className={`px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('permissionsCount') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("permissionsCount") ? "hidden" : ""}`}
+                      >
                         Permissions
                       </th>
                       <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -543,95 +537,108 @@ const Roles: React.FC = () => {
                       </tr>
                     </tbody>
                   ) : (
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {filteredRoles.length === 0 ? (
-                      <tr>
-                        <td colSpan={visibleColumns.length + 1} className="px-6 py-12 text-center">
-                          <NoResults
-                            title={searchError ? "Network or server error" : "No roles found"}
-                            description={searchError || noResultsDescription}
-                            icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                            showClearButton={!searchError && (isSearchActive || isStatusFilterActive)}
-                            onClear={!searchError ? clearFilters : undefined}
-                            isError={!!searchError}
-                          />
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredRoles.map((role) => (
-                        <tr
-                          key={role.id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('name') ? 'hidden' : ''}`}>
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-900 rounded-lg shadow-2xl">
-                                <Shield className="h-4 w-4 text-white" />
-                              </div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                {role.name}
-                              </div>
-                            </div>
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('description') ? 'hidden' : ''}`}>
-                            <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
-                              {role.description || '-'}
-                            </div>
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap text-center ${!isColumnVisible('status') ? 'hidden' : ''}`}>
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                role.isActive
-                                  ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-                                  : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
-                              }`}
-                            >
-                              <CheckCircle
-                                className={`h-3 w-3 mr-1 ${
-                                  !role.isActive ? "opacity-50" : ""
-                                }`}
-                              />
-                              {role.isActive ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('usersCount') ? 'hidden' : ''}`}>
-                            {role.usersCount ?? role.users?.length ?? 0}
-                          </td>
-                          <td className={`px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('permissionsCount') ? 'hidden' : ''}`}>
-                            {role.name === "Admin"
-                              ? "All"
-                              : (role.permissionsCount ?? role.permissions.length)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                            <div className="flex items-center justify-end gap-2">
-                              {hasPermission("role.update") && (
-                                <button
-                                  onClick={() =>
-                                    navigate(`/roles/${role.id}/edit`, {
-                                      state: { role },
-                                    })
-                                  }
-                                  className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                  title="Edit Role"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </button>
-                              )}
-                              {hasPermission("role.delete") && (
-                                <button
-                                  onClick={() => openDeleteModal(role)}
-                                  className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                  title="Delete Role"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              )}
-                            </div>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {filteredRoles.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={visibleColumns.length + 1}
+                            className="px-6 py-12 text-center"
+                          >
+                            <NoResults
+                              title={searchError ? "Network or server error" : "No roles found"}
+                              description={searchError || noResultsDescription}
+                              icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                              showClearButton={
+                                !searchError && (isSearchActive || isStatusFilterActive)
+                              }
+                              onClear={!searchError ? clearFilters : undefined}
+                              isError={!!searchError}
+                            />
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
+                      ) : (
+                        filteredRoles.map((role) => (
+                          <tr
+                            key={role.id}
+                            className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("name") ? "hidden" : ""}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-900 rounded-lg shadow-2xl">
+                                  <Shield className="h-4 w-4 text-white" />
+                                </div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {role.name}
+                                </div>
+                              </div>
+                            </td>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("description") ? "hidden" : ""}`}
+                            >
+                              <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                                {role.description || "-"}
+                              </div>
+                            </td>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap text-center ${!isColumnVisible("status") ? "hidden" : ""}`}
+                            >
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  role.isActive
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                                    : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
+                                }`}
+                              >
+                                <CheckCircle
+                                  className={`h-3 w-3 mr-1 ${!role.isActive ? "opacity-50" : ""}`}
+                                />
+                                {role.isActive ? "Active" : "Inactive"}
+                              </span>
+                            </td>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible("usersCount") ? "hidden" : ""}`}
+                            >
+                              {role.usersCount ?? role.users?.length ?? 0}
+                            </td>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible("permissionsCount") ? "hidden" : ""}`}
+                            >
+                              {role.name === "Admin"
+                                ? "All"
+                                : (role.permissionsCount ?? role.permissions.length)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                              <div className="flex items-center justify-end gap-2">
+                                {hasPermission("role.update") && (
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/roles/${role.id}/edit`, {
+                                        state: { role },
+                                      })
+                                    }
+                                    className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                    title="Edit Role"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </button>
+                                )}
+                                {hasPermission("role.delete") && (
+                                  <button
+                                    onClick={() => openDeleteModal(role)}
+                                    className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                    title="Delete Role"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
                   )}
                 </table>
               </div>
@@ -660,9 +667,8 @@ const Roles: React.FC = () => {
               </div>
             </div>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              You are about to delete the role{" "}
-              <strong>"{selectedRole?.name}"</strong>. This will permanently
-              remove the role and all its associated permissions.
+              You are about to delete the role <strong>"{selectedRole?.name}"</strong>. This will
+              permanently remove the role and all its associated permissions.
             </p>
           </div>
         }

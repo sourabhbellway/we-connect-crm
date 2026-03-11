@@ -17,31 +17,58 @@ let TaxesService = class TaxesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    create(createTaxDto) {
-        return this.prisma.tax.create({
+    async create(createTaxDto) {
+        const tax = await this.prisma.tax.create({
             data: createTaxDto,
         });
+        return {
+            success: true,
+            message: 'Tax created successfully',
+            data: { tax },
+        };
     }
-    findAll() {
-        return this.prisma.tax.findMany({
+    async findAll() {
+        const taxes = await this.prisma.tax.findMany({
             orderBy: { createdAt: 'desc' },
         });
+        return {
+            success: true,
+            message: 'Taxes retrieved successfully',
+            data: taxes,
+        };
     }
-    findOne(id) {
-        return this.prisma.tax.findUnique({
+    async findOne(id) {
+        const tax = await this.prisma.tax.findUnique({
             where: { id },
         });
+        if (!tax) {
+            throw new common_1.NotFoundException('Tax not found');
+        }
+        return {
+            success: true,
+            message: 'Tax retrieved successfully',
+            data: { tax },
+        };
     }
-    update(id, updateTaxDto) {
-        return this.prisma.tax.update({
+    async update(id, updateTaxDto) {
+        const tax = await this.prisma.tax.update({
             where: { id },
             data: updateTaxDto,
         });
+        return {
+            success: true,
+            message: 'Tax updated successfully',
+            data: { tax },
+        };
     }
-    remove(id) {
-        return this.prisma.tax.delete({
+    async remove(id) {
+        await this.prisma.tax.delete({
             where: { id },
         });
+        return {
+            success: true,
+            message: 'Tax deleted successfully',
+        };
     }
 };
 exports.TaxesService = TaxesService;

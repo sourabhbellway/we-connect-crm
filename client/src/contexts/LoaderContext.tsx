@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface LoaderContextValue {
   isGlobalLoading: boolean;
@@ -62,7 +55,7 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       showLoader,
       hideLoader,
     }),
-    [activeRequests, showLoader, hideLoader],
+    [activeRequests, showLoader, hideLoader]
   );
 
   return <LoaderContext.Provider value={value}>{children}</LoaderContext.Provider>;
@@ -71,9 +64,8 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 export const useLoader = () => {
   const context = useContext(LoaderContext);
   if (!context) {
-    throw new Error('useLoader must be used within a LoaderProvider');
+    throw new Error("useLoader must be used within a LoaderProvider");
   }
 
   return context;
 };
-

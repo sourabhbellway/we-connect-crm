@@ -17,7 +17,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('lead-sources')
 export class LeadSourcesController {
-  constructor(private readonly service: LeadSourcesService) { }
+  constructor(private readonly service: LeadSourcesService) {}
 
   @Get()
   @RequirePermission('business_settings_lead_source.read')

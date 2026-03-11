@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Phone, Search, X } from 'lucide-react';
-import { countries, Country, getDefaultCountry, findCountryByPhoneCode } from '../data/countries';
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown, Phone, Search, X } from "lucide-react";
+import { countries, Country, getDefaultCountry, findCountryByPhoneCode } from "../data/countries";
 
 interface PhoneInputFieldProps {
   label?: string;
@@ -15,19 +15,19 @@ interface PhoneInputFieldProps {
 
 export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   label,
-  value = '',
+  value = "",
   onChange,
   error,
   required,
   placeholder = "Enter  number",
   disabled,
-  className
+  className,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<Country>(getDefaultCountry());
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [inputColor, setInputColor] = useState<string>('#111827');
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [inputColor, setInputColor] = useState<string>("#111827");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -36,24 +36,27 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   // Track theme to ensure text is visible in both light and dark modes
   useEffect(() => {
     const update = () => {
-      const isDark = document.documentElement.classList.contains('dark');
-      setInputColor(isDark ? '#ffffff' : '#111827');
+      const isDark = document.documentElement.classList.contains("dark");
+      setInputColor(isDark ? "#ffffff" : "#111827");
     };
     update();
     const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
 
   // Parse initial value to extract country code and phone number
   useEffect(() => {
-    if (value && value.startsWith('+')) {
+    if (value && value.startsWith("+")) {
       // Find the longest matching country code
       let matchedCountry: Country | undefined;
-      let matchedPhoneCode = '';
+      let matchedPhoneCode = "";
 
       for (const country of countries) {
-        if (value.startsWith(country.phoneCode) && country.phoneCode.length > matchedPhoneCode.length) {
+        if (
+          value.startsWith(country.phoneCode) &&
+          country.phoneCode.length > matchedPhoneCode.length
+        ) {
           matchedCountry = country;
           matchedPhoneCode = country.phoneCode;
         }
@@ -72,26 +75,27 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
       // Keep default country (usually US +1)
     } else {
       // If no value, clear the phone number but keep country
-      setPhoneNumber('');
+      setPhoneNumber("");
     }
   }, [value]);
 
-  const filteredCountries = countries.filter(country =>
-    country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    country.phoneCode.includes(searchTerm) ||
-    country.code.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCountries = countries.filter(
+    (country) =>
+      country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      country.phoneCode.includes(searchTerm) ||
+      country.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setSearchTerm('');
+        setSearchTerm("");
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -103,7 +107,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   const handleCountrySelect = (country: Country) => {
     setSelectedCountry(country);
     setIsOpen(false);
-    setSearchTerm('');
+    setSearchTerm("");
 
     // Update the full phone number
     const fullNumber = country.phoneCode + phoneNumber;
@@ -118,13 +122,13 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputVal = e.target.value;
     // Allow only digits, spaces, parentheses, plus and hyphen
-    const sanitized = inputVal.replace(/[^\d\s()+-]/g, '');
+    const sanitized = inputVal.replace(/[^\d\s()+-]/g, "");
 
     // If user pasted/typed a full international number starting with +, honor it
-    if (sanitized.startsWith('+')) {
+    if (sanitized.startsWith("+")) {
       // Find best matching country for the given code
       let matched: Country | undefined;
-      let matchedCode = '';
+      let matchedCode = "";
       for (const c of countries) {
         if (sanitized.startsWith(c.phoneCode) && c.phoneCode.length > matchedCode.length) {
           matched = c;
@@ -137,23 +141,23 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
         setPhoneNumber(localPart);
       } else {
         // Unknown code, keep current country and store as local part without +
-        setPhoneNumber(sanitized.replace(/^\+/, ''));
+        setPhoneNumber(sanitized.replace(/^\+/, ""));
       }
       onChange(sanitized);
       return;
     }
 
     // Otherwise treat as local/national part; remove country code if user included it
-    let local = sanitized.replace(/\+/g, '');
-    if (local.startsWith(selectedCountry.phoneCode.replace('+', ''))) {
-      local = local.slice(selectedCountry.phoneCode.replace('+', '').length);
+    let local = sanitized.replace(/\+/g, "");
+    if (local.startsWith(selectedCountry.phoneCode.replace("+", ""))) {
+      local = local.slice(selectedCountry.phoneCode.replace("+", "").length);
     }
     setPhoneNumber(local);
     onChange(selectedCountry.phoneCode + local);
   };
 
   const handleClearPhone = () => {
-    setPhoneNumber('');
+    setPhoneNumber("");
     onChange(selectedCountry.phoneCode);
     phoneInputRef.current?.focus();
   };
@@ -166,7 +170,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
   const displayValue = selectedCountry.phoneCode + phoneNumber;
 
   return (
-    <div className={`relative ${className || ''}`}>
+    <div className={`relative ${className || ""}`}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
@@ -184,22 +188,26 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
             className={`
               relative flex items-center space-x-2 px-3 h-12 rounded-l-lg border border-r-0 transition-all duration-200
               bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-              ${error
-                ? 'border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              ${
+                error
+                  ? "border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500"
+                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
               }
-              ${isOpen
-                ? 'ring-2 ring-blue-500 border-blue-500'
-                : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              ${
+                isOpen
+                  ? "ring-2 ring-blue-500 border-blue-500"
+                  : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               }
-              ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : 'cursor-pointer'}
+              ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800" : "cursor-pointer"}
             `}
           >
             <span className="text-lg">{selectedCountry.flag}</span>
             <span className="text-sm font-medium min-w-[3rem]">{selectedCountry.phoneCode}</span>
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
-              isOpen ? 'transform rotate-180' : ''
-            }`} />
+            <ChevronDown
+              className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+                isOpen ? "transform rotate-180" : ""
+              }`}
+            />
           </button>
 
           {/* Country Dropdown */}
@@ -235,9 +243,10 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
                       className={`
                         w-full text-left px-4 py-3 text-sm transition-colors duration-150
                         flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-600
-                        ${country.code === selectedCountry.code
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                          : 'text-gray-900 dark:text-gray-100'
+                        ${
+                          country.code === selectedCountry.code
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                            : "text-gray-900 dark:text-gray-100"
                         }
                       `}
                     >
@@ -281,11 +290,12 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
               block w-full h-12 pl-10 pr-10 rounded-r-lg border text-sm md:text-base transition-all duration-200
               bg-white dark:bg-gray-700 text-gray-900 dark:text-white
               placeholder:text-gray-500 dark:placeholder:text-gray-400
-              ${error
-                ? 'border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              ${
+                error
+                  ? "border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               }
-              ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : ''}
+              ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800" : ""}
             `}
             style={{ color: inputColor, WebkitTextFillColor: inputColor, caretColor: inputColor }}
           />
@@ -303,9 +313,7 @@ export const PhoneInputField: React.FC<PhoneInputFieldProps> = ({
         </div>
       </div>
 
-      {error && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 };

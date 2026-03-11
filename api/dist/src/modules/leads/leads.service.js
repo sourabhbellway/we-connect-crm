@@ -116,7 +116,7 @@ let LeadsService = class LeadsService {
             },
         };
     }
-    async list({ page, limit, status, search, email, isDeleted, assignedTo, sortBy, sortOrder, }, user) {
+    async list({ page, limit, status, priority, search, email, phone, isDeleted, assignedTo, ownerId, createdBy, sourceId, industry, city, state, country, startDate, endDate, sortBy, sortOrder, productId, }, user) {
         try {
             const pageNum = Math.max(1, Number(page) || 1);
             const pageSize = Math.max(1, Math.min(100, Number(limit) || 10));
@@ -141,11 +141,60 @@ let LeadsService = class LeadsService {
             if (assignedTo !== undefined) {
                 where.assignedTo = assignedTo;
             }
+            if (ownerId !== undefined) {
+                where.ownerId = ownerId;
+            }
+            if (createdBy !== undefined) {
+                where.createdBy = createdBy;
+            }
+            if (sourceId !== undefined) {
+                where.sourceId = sourceId;
+            }
+            if (productId !== undefined) {
+                where.products = {
+                    some: {
+                        productId: productId,
+                    },
+                };
+            }
             if (status && String(status).trim() !== '') {
                 where.status = String(status).toUpperCase();
             }
+            if (priority && String(priority).trim() !== '') {
+                where.priority = String(priority).toUpperCase();
+            }
             if (email && String(email).trim() !== '') {
                 where.email = { contains: String(email).trim(), mode: 'insensitive' };
+            }
+            if (phone && String(phone).trim() !== '') {
+                where.phone = { contains: String(phone).trim(), mode: 'insensitive' };
+            }
+            if (industry && String(industry).trim() !== '') {
+                where.industry = {
+                    contains: String(industry).trim(),
+                    mode: 'insensitive',
+                };
+            }
+            if (city && String(city).trim() !== '') {
+                where.city = { contains: String(city).trim(), mode: 'insensitive' };
+            }
+            if (state && String(state).trim() !== '') {
+                where.state = { contains: String(state).trim(), mode: 'insensitive' };
+            }
+            if (country && String(country).trim() !== '') {
+                where.country = {
+                    contains: String(country).trim(),
+                    mode: 'insensitive',
+                };
+            }
+            if (startDate || endDate) {
+                where.createdAt = {};
+                if (startDate) {
+                    where.createdAt.gte = new Date(startDate);
+                }
+                if (endDate) {
+                    where.createdAt.lte = new Date(endDate);
+                }
             }
             if (search && String(search).trim() !== '') {
                 const q = String(search).trim();
@@ -210,6 +259,13 @@ let LeadsService = class LeadsService {
                         source: {
                             select: { id: true, name: true, description: true },
                         },
+                        products: {
+                            include: {
+                                product: {
+                                    select: { id: true, name: true, sku: true },
+                                },
+                            },
+                        },
                     },
                 }),
             ]);
@@ -265,6 +321,15 @@ let LeadsService = class LeadsService {
                         }))
                         : [],
                     source: rawSource,
+                    products: Array.isArray(r.products)
+                        ? r.products.map((lp) => ({
+                            productId: lp.productId,
+                            name: lp.name,
+                            quantity: lp.quantity,
+                            price: Number(lp.price),
+                            sku: lp.product?.sku,
+                        }))
+                        : [],
                 };
             });
             const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -330,7 +395,13 @@ let LeadsService = class LeadsService {
                 products: {
                     include: {
                         product: {
-                            select: { id: true, name: true, sku: true, price: true, currency: true },
+                            select: {
+                                id: true,
+                                name: true,
+                                sku: true,
+                                price: true,
+                                currency: true,
+                            },
                         },
                     },
                 },
@@ -471,6 +542,29 @@ let LeadsService = class LeadsService {
     }
     async create(dto, userId) {
         await this.validateDynamicFields(dto);
+        const errors = {};
+        if (dto.email && dto.email.trim() !== '') {
+            const existingEmail = await this.prisma.lead.findFirst({
+                where: {
+                    email: { equals: dto.email.trim(), mode: 'insensitive' },
+                    deletedAt: null,
+                },
+            });
+            if (existingEmail) {
+                errors.email = 'A lead with this email already exists';
+            }
+        }
+        if (dto.phone && dto.phone.trim() !== '') {
+            const existingPhone = await this.prisma.lead.findFirst({
+                where: { phone: dto.phone.trim(), deletedAt: null },
+            });
+            if (existingPhone) {
+                errors.phone = 'A lead with this phone number already exists';
+            }
+        }
+        if (Object.keys(errors).length > 0) {
+            throw new common_1.HttpException({ success: false, message: 'Validation failed', errors }, common_1.HttpStatus.BAD_REQUEST);
+        }
         let currency = dto.currency;
         if (!currency && dto.country) {
             const defaultCurrency = getCurrencyByCountry(dto.country);
@@ -668,6 +762,34 @@ let LeadsService = class LeadsService {
             return { success: false, message: 'Lead not found' };
         await this.validateDynamicFields(dto, true);
         const { tags, products, ...rest } = dto;
+        const errors = {};
+        if (rest.email &&
+            rest.email.trim() !== '' &&
+            rest.email.trim() !== lead.email) {
+            const existingEmail = await this.prisma.lead.findFirst({
+                where: {
+                    email: { equals: rest.email.trim(), mode: 'insensitive' },
+                    deletedAt: null,
+                    id: { not: id },
+                },
+            });
+            if (existingEmail) {
+                errors.email = 'A lead with this email already exists';
+            }
+        }
+        if (rest.phone &&
+            rest.phone.trim() !== '' &&
+            rest.phone.trim() !== lead.phone) {
+            const existingPhone = await this.prisma.lead.findFirst({
+                where: { phone: rest.phone.trim(), deletedAt: null, id: { not: id } },
+            });
+            if (existingPhone) {
+                errors.phone = 'A lead with this phone number already exists';
+            }
+        }
+        if (Object.keys(errors).length > 0) {
+            throw new common_1.HttpException({ success: false, message: 'Validation failed', errors }, common_1.HttpStatus.BAD_REQUEST);
+        }
         const updateData = { ...rest, updatedAt: new Date() };
         if (rest.status)
             updateData.status = normalizeLeadStatus(rest.status);
@@ -929,7 +1051,58 @@ let LeadsService = class LeadsService {
                 updatedAt: new Date(),
             },
         });
-        return { success: true, message: 'Lead transferred', data: updated };
+        const fullLead = await this.prisma.lead.findUnique({
+            where: { id },
+            include: {
+                assignedUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
+                ownerUser: {
+                    select: { id: true, firstName: true, lastName: true, email: true },
+                },
+                tags: { include: { tag: true } },
+                products: { include: { product: true } },
+                source: {
+                    select: { id: true, name: true, description: true },
+                },
+            },
+        });
+        if (fullLead) {
+            const normalized = {
+                ...fullLead,
+                status: String(fullLead.status || '').toLowerCase(),
+                priority: fullLead.priority
+                    ? String(fullLead.priority).toLowerCase()
+                    : undefined,
+                tags: Array.isArray(fullLead.tags)
+                    ? fullLead.tags.map((lt) => ({
+                        id: lt.tag.id,
+                        name: lt.tag.name,
+                        color: lt.tag.color,
+                    }))
+                    : [],
+                products: Array.isArray(fullLead.products)
+                    ? fullLead.products.map((lp) => ({
+                        productId: lp.productId,
+                        name: lp.name,
+                        quantity: lp.quantity,
+                        price: Number(lp.price),
+                        sku: lp.product?.sku,
+                        currency: lp.product?.currency,
+                    }))
+                    : [],
+            };
+            return {
+                success: true,
+                message: 'Lead transferred',
+                data: { lead: normalized },
+            };
+        }
+        return {
+            success: true,
+            message: 'Lead transferred',
+            data: { lead: updated },
+        };
     }
     async bulkAssign(dto) {
         await this.prisma.lead.updateMany({
@@ -1147,6 +1320,7 @@ let LeadsService = class LeadsService {
                 'tags',
                 'lastContactedAt',
                 'nextFollowUpAt',
+                'products',
             ];
             const normalizedHeaders = headers.map((h) => h.replace(/\s+/g, '').replace(/[^a-z0-9]/g, ''));
             for (let i = 1; i < lines.length; i++) {
@@ -1262,6 +1436,38 @@ let LeadsService = class LeadsService {
                             leadData.assignedTo = null;
                         }
                     }
+                    let leadProductsData = undefined;
+                    if (row.products) {
+                        const productNames = String(row.products)
+                            .split(',')
+                            .map((p) => p.trim())
+                            .filter(Boolean);
+                        const productConnections = [];
+                        for (const pName of productNames) {
+                            const product = await this.prisma.product.findFirst({
+                                where: {
+                                    OR: [
+                                        { name: { equals: pName, mode: 'insensitive' } },
+                                        { sku: { equals: pName, mode: 'insensitive' } },
+                                    ],
+                                    deletedAt: null,
+                                },
+                            });
+                            if (product) {
+                                productConnections.push({
+                                    productId: product.id,
+                                    name: product.name,
+                                    price: product.price,
+                                    quantity: 1,
+                                });
+                            }
+                        }
+                        if (productConnections.length > 0) {
+                            leadProductsData = {
+                                create: productConnections,
+                            };
+                        }
+                    }
                     if (leadData.budget !== undefined && leadData.budget !== null) {
                         leadData.budget = Number(leadData.budget);
                     }
@@ -1269,9 +1475,11 @@ let LeadsService = class LeadsService {
                         leadData.annualRevenue !== null) {
                         leadData.annualRevenue = Number(leadData.annualRevenue);
                     }
+                    delete leadData.products;
                     await this.prisma.lead.create({
                         data: {
                             ...leadData,
+                            products: leadProductsData,
                             customFields: Object.keys(customFieldsData).length > 0
                                 ? customFieldsData
                                 : undefined,
@@ -1325,8 +1533,28 @@ let LeadsService = class LeadsService {
             };
         }
     }
-    async bulkExport(opts = {}) {
+    async bulkExport(opts = {}, user) {
         const where = { deletedAt: null };
+        if (user && user.userId) {
+            const roleBasedWhere = await (0, permission_util_1.getRoleBasedWhereClause)(user.userId, this.prisma);
+            if (Object.keys(roleBasedWhere).length > 0) {
+                if (where.AND) {
+                    where.AND.push(roleBasedWhere);
+                }
+                else {
+                    where.AND = [roleBasedWhere];
+                }
+            }
+        }
+        if (opts.ids) {
+            const idArray = opts.ids
+                .split(',')
+                .map((id) => parseInt(id))
+                .filter((id) => !isNaN(id));
+            if (idArray.length > 0) {
+                where.id = { in: idArray };
+            }
+        }
         if (opts.status) {
             where.status = opts.status.toUpperCase();
         }
@@ -1341,7 +1569,12 @@ let LeadsService = class LeadsService {
         }
         const leads = await this.prisma.lead.findMany({
             where,
-            include: { source: true, assignedUser: true },
+            include: {
+                source: true,
+                assignedUser: true,
+                ownerUser: true,
+                products: { include: { product: true } },
+            },
             orderBy: { createdAt: 'desc' },
         });
         const fieldConfigs = await this.prisma.fieldConfig.findMany({
@@ -1360,7 +1593,9 @@ let LeadsService = class LeadsService {
                 'status',
                 'priority',
                 'source',
+                'products',
                 'assignedTo',
+                'ownerId',
                 'createdAt',
             ];
         const escape = (v) => {
@@ -1375,6 +1610,18 @@ let LeadsService = class LeadsService {
         const rows = [headers.join(',')];
         for (const l of leads) {
             const row = headers.map((header) => {
+                if (header === 'source')
+                    return escape(l.source?.name || '');
+                if (header === 'assignedTo')
+                    return escape(l.assignedUser
+                        ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
+                        : '');
+                if (header === 'ownerId')
+                    return escape(l.ownerUser
+                        ? `${l.ownerUser.firstName} ${l.ownerUser.lastName}`
+                        : '');
+                if (header === 'products')
+                    return escape(l.products?.map((lp) => lp.name).join(', ') || '');
                 if (header in l) {
                     const val = l[header];
                     if (header === 'createdAt' ||
@@ -1385,12 +1632,6 @@ let LeadsService = class LeadsService {
                     }
                     return escape(val);
                 }
-                if (header === 'source')
-                    return escape(l.source?.name || '');
-                if (header === 'assignedTo')
-                    return escape(l.assignedUser
-                        ? `${l.assignedUser.firstName} ${l.assignedUser.lastName}`
-                        : '');
                 const customFields = l.customFields || {};
                 if (header in customFields) {
                     return escape(customFields[header]);

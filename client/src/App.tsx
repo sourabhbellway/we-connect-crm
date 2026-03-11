@@ -10,7 +10,7 @@ import { LoaderProvider } from "./contexts/LoaderContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { MainLayout } from "./layouts";
 import { BusinessSettingsPage } from "./pages";
-import TeamsPage from './pages/business-settings/TeamsPage';
+import TeamsPage from "./pages/business-settings/TeamsPage";
 import CompanySettingsPage from "./pages/business-settings/CompanySettingsPage";
 import CurrencyTaxSettingsPage from "./pages/business-settings/CurrencyTaxSettingsPage";
 import LeadSourcesPage from "./pages/business-settings/LeadSourcesPage";
@@ -22,13 +22,14 @@ import DealStagesPage from "./pages/business-settings/DealStagesPage";
 import CommunicationPage from "./pages/business-settings/CommunicationPage";
 import CommunicationAPIPage from "./pages/business-settings/CommunicationAPIPage";
 import QuotationTemplatesPage from "./pages/business-settings/QuotationTemplatesPage";
-import InvoiceTemplatesPage from './pages/business-settings/InvoiceTemplatesPage';
+import InvoiceTemplatesPage from "./pages/business-settings/InvoiceTemplatesPage";
 import NumberingSettingsPage from "./pages/business-settings/NumberingSettingsPage";
 import TermsAndConditionsPage from "./pages/business-settings/TermsAndConditionsPage";
 import { NotificationPreferencesPage } from "./pages/business-settings/NotificationPreferencesPage";
 import DashboardSettingsPage from "./pages/business-settings/DashboardSettingsPage";
 import UnitTypesPage from "./pages/business-settings/UnitTypesPage";
 import ProductCategoriesPage from "./pages/business-settings/ProductCategoriesPage";
+import LeadStatusManagementPage from "./pages/business-settings/LeadStatusManagementPage";
 import QuotationsPage from "./pages/quotations/QuotationsPage";
 import CreateQuotationPage from "./pages/quotations/CreateQuotationPage";
 import QuotationDetailPage from "./pages/quotations/QuotationDetailPage";
@@ -97,10 +98,10 @@ function AppContent() {
       setShowExpiryModal(true);
     };
 
-    window.addEventListener('tokenExpired', handleTokenExpiry);
+    window.addEventListener("tokenExpired", handleTokenExpiry);
 
     return () => {
-      window.removeEventListener('tokenExpired', handleTokenExpiry);
+      window.removeEventListener("tokenExpired", handleTokenExpiry);
     };
   }, []);
   const handleLoginAgain = () => {
@@ -562,6 +563,16 @@ function AppContent() {
               <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.LEAD_STATUS.READ}>
                 <MainLayout>
                   <LeadStatusesPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/business-settings/lead-status-management"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.BUSINESS_SETTINGS.LEAD_STATUS.READ}>
+                <MainLayout>
+                  <LeadStatusManagementPage />
                 </MainLayout>
               </ProtectedRoute>
             }

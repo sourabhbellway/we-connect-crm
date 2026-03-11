@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, Button } from '../../components/ui';
-import { FileText, ArrowLeft, Plus, Edit3, Trash2, Star, Check } from 'lucide-react';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent, Button } from "../../components/ui";
+import { FileText, ArrowLeft, Plus, Edit3, Trash2, Star, Check } from "lucide-react";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 interface QuotationTemplate {
   id: number;
@@ -28,17 +28,17 @@ const QuotationTemplatesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<QuotationTemplate | null>(null);
-  
+
   const [formData, setFormData] = useState<Partial<QuotationTemplate>>({
-    name: '',
-    description: '',
-    headerContent: '',
-    footerContent: '',
-    termsAndConditions: '',
+    name: "",
+    description: "",
+    headerContent: "",
+    footerContent: "",
+    termsAndConditions: "",
     validityDays: 30,
     showTax: true,
     showDiscount: true,
-    logoPosition: 'left',
+    logoPosition: "left",
     isDefault: false,
     isActive: true,
   });
@@ -50,13 +50,13 @@ const QuotationTemplatesPage: React.FC = () => {
   const fetchTemplates = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('/api/business-settings/quotation-templates');
+      const response = await axios.get("/api/business-settings/quotation-templates");
       if (response.data.success) {
         setTemplates(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch quotation templates:', error);
-      toast.error('Failed to load quotation templates');
+      console.error("Failed to fetch quotation templates:", error);
+      toast.error("Failed to load quotation templates");
     } finally {
       setIsLoading(false);
     }
@@ -64,34 +64,37 @@ const QuotationTemplatesPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name?.trim()) {
-      toast.error('Template name is required');
+      toast.error("Template name is required");
       return;
     }
 
     try {
       if (editingTemplate) {
-        const response = await axios.put(`/api/business-settings/quotation-templates/${editingTemplate.id}`, formData);
+        const response = await axios.put(
+          `/api/business-settings/quotation-templates/${editingTemplate.id}`,
+          formData
+        );
         if (response.data.success) {
-          toast.success('Template updated successfully');
+          toast.success("Template updated successfully");
           setShowForm(false);
           setEditingTemplate(null);
           resetForm();
           fetchTemplates();
         }
       } else {
-        const response = await axios.post('/api/business-settings/quotation-templates', formData);
+        const response = await axios.post("/api/business-settings/quotation-templates", formData);
         if (response.data.success) {
-          toast.success('Template created successfully');
+          toast.success("Template created successfully");
           setShowForm(false);
           resetForm();
           fetchTemplates();
         }
       }
     } catch (error: any) {
-      console.error('Failed to save template:', error);
-      toast.error(error.response?.data?.message || 'Failed to save template');
+      console.error("Failed to save template:", error);
+      toast.error(error.response?.data?.message || "Failed to save template");
     }
   };
 
@@ -103,50 +106,54 @@ const QuotationTemplatesPage: React.FC = () => {
 
   const handleSetDefault = async (id: number) => {
     try {
-      const response = await axios.put(`/api/business-settings/quotation-templates/${id}/set-default`);
+      const response = await axios.put(
+        `/api/business-settings/quotation-templates/${id}/set-default`
+      );
       if (response.data.success) {
-        toast.success('Default template updated successfully');
+        toast.success("Default template updated successfully");
         fetchTemplates();
       }
     } catch (error) {
-      console.error('Failed to set default template:', error);
-      toast.error('Failed to set default template');
+      console.error("Failed to set default template:", error);
+      toast.error("Failed to set default template");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+    if (
+      window.confirm("Are you sure you want to delete this template? This action cannot be undone.")
+    ) {
       try {
         const response = await axios.delete(`/api/business-settings/quotation-templates/${id}`);
         if (response.data.success) {
-          toast.success('Template deleted successfully');
+          toast.success("Template deleted successfully");
           fetchTemplates();
         }
       } catch (error) {
-        console.error('Failed to delete template:', error);
-        toast.error('Failed to delete template');
+        console.error("Failed to delete template:", error);
+        toast.error("Failed to delete template");
       }
     }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
-      headerContent: '',
-      footerContent: '',
-      termsAndConditions: '',
+      name: "",
+      description: "",
+      headerContent: "",
+      footerContent: "",
+      termsAndConditions: "",
       validityDays: 30,
       showTax: true,
       showDiscount: true,
-      logoPosition: 'left',
+      logoPosition: "left",
       isDefault: false,
       isActive: true,
     });
   };
 
   const handleChange = (field: keyof QuotationTemplate, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   if (isLoading) {
@@ -177,7 +184,7 @@ const QuotationTemplatesPage: React.FC = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {editingTemplate ? 'Edit Template' : 'Create Template'}
+                {editingTemplate ? "Edit Template" : "Create Template"}
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Configure quotation template settings
@@ -203,8 +210,8 @@ const QuotationTemplatesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.name || ''}
-                    onChange={(e) => handleChange('name', e.target.value)}
+                    value={formData.name || ""}
+                    onChange={(e) => handleChange("name", e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="e.g., Standard Quotation"
                     required
@@ -218,7 +225,7 @@ const QuotationTemplatesPage: React.FC = () => {
                   <input
                     type="number"
                     value={formData.validityDays || 30}
-                    onChange={(e) => handleChange('validityDays', parseInt(e.target.value))}
+                    onChange={(e) => handleChange("validityDays", parseInt(e.target.value))}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     min="1"
                   />
@@ -230,8 +237,8 @@ const QuotationTemplatesPage: React.FC = () => {
                   Description
                 </label>
                 <textarea
-                  value={formData.description || ''}
-                  onChange={(e) => handleChange('description', e.target.value)}
+                  value={formData.description || ""}
+                  onChange={(e) => handleChange("description", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Brief description of this template"
                   rows={2}
@@ -244,8 +251,8 @@ const QuotationTemplatesPage: React.FC = () => {
                   Header Content
                 </label>
                 <textarea
-                  value={formData.headerContent || ''}
-                  onChange={(e) => handleChange('headerContent', e.target.value)}
+                  value={formData.headerContent || ""}
+                  onChange={(e) => handleChange("headerContent", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Header text or HTML (will appear at top of quotation)"
                   rows={3}
@@ -258,8 +265,8 @@ const QuotationTemplatesPage: React.FC = () => {
                   Footer Content
                 </label>
                 <textarea
-                  value={formData.footerContent || ''}
-                  onChange={(e) => handleChange('footerContent', e.target.value)}
+                  value={formData.footerContent || ""}
+                  onChange={(e) => handleChange("footerContent", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Footer text or HTML (will appear at bottom of quotation)"
                   rows={3}
@@ -272,8 +279,8 @@ const QuotationTemplatesPage: React.FC = () => {
                   Terms and Conditions
                 </label>
                 <textarea
-                  value={formData.termsAndConditions || ''}
-                  onChange={(e) => handleChange('termsAndConditions', e.target.value)}
+                  value={formData.termsAndConditions || ""}
+                  onChange={(e) => handleChange("termsAndConditions", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Enter terms and conditions for this quotation"
                   rows={5}
@@ -287,8 +294,8 @@ const QuotationTemplatesPage: React.FC = () => {
                     Logo Position
                   </label>
                   <select
-                    value={formData.logoPosition || 'left'}
-                    onChange={(e) => handleChange('logoPosition', e.target.value)}
+                    value={formData.logoPosition || "left"}
+                    onChange={(e) => handleChange("logoPosition", e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   >
                     <option value="left">Left</option>
@@ -303,10 +310,13 @@ const QuotationTemplatesPage: React.FC = () => {
                       type="checkbox"
                       id="showTax"
                       checked={formData.showTax || false}
-                      onChange={(e) => handleChange('showTax', e.target.checked)}
+                      onChange={(e) => handleChange("showTax", e.target.checked)}
                       className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
                     />
-                    <label htmlFor="showTax" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor="showTax"
+                      className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
                       Show Tax
                     </label>
                   </div>
@@ -318,10 +328,13 @@ const QuotationTemplatesPage: React.FC = () => {
                       type="checkbox"
                       id="showDiscount"
                       checked={formData.showDiscount || false}
-                      onChange={(e) => handleChange('showDiscount', e.target.checked)}
+                      onChange={(e) => handleChange("showDiscount", e.target.checked)}
                       className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
                     />
-                    <label htmlFor="showDiscount" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor="showDiscount"
+                      className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
                       Show Discount
                     </label>
                   </div>
@@ -335,10 +348,13 @@ const QuotationTemplatesPage: React.FC = () => {
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive || false}
-                    onChange={(e) => handleChange('isActive', e.target.checked)}
+                    onChange={(e) => handleChange("isActive", e.target.checked)}
                     className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
                   />
-                  <label htmlFor="isActive" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="isActive"
+                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  >
                     Active (make this template available for use)
                   </label>
                 </div>
@@ -348,10 +364,13 @@ const QuotationTemplatesPage: React.FC = () => {
                     type="checkbox"
                     id="isDefault"
                     checked={formData.isDefault || false}
-                    onChange={(e) => handleChange('isDefault', e.target.checked)}
+                    onChange={(e) => handleChange("isDefault", e.target.checked)}
                     className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
                   />
-                  <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="isDefault"
+                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  >
                     Set as default template
                   </label>
                 </div>
@@ -361,7 +380,7 @@ const QuotationTemplatesPage: React.FC = () => {
               <div className="flex items-center gap-3 pt-4">
                 <Button type="submit" className="flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  {editingTemplate ? 'Update Template' : 'Create Template'}
+                  {editingTemplate ? "Update Template" : "Create Template"}
                 </Button>
                 <Button
                   type="button"
@@ -390,7 +409,7 @@ const QuotationTemplatesPage: React.FC = () => {
           <Button
             variant="GHOST"
             size="sm"
-            onClick={() => navigate('/business-settings')}
+            onClick={() => navigate("/business-settings")}
             className="p-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -433,10 +452,7 @@ const QuotationTemplatesPage: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Create your first quotation template to get started
             </p>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 mx-auto"
-            >
+            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2 mx-auto">
               <Plus className="w-4 h-4" />
               Create Template
             </Button>
@@ -445,10 +461,7 @@ const QuotationTemplatesPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => (
-            <Card
-              key={template.id}
-              className="group hover:shadow-xl transition-all duration-300"
-            >
+            <Card key={template.id} className="group hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -464,7 +477,7 @@ const QuotationTemplatesPage: React.FC = () => {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {template.description || 'No description'}
+                      {template.description || "No description"}
                     </p>
                   </div>
                 </div>
@@ -479,16 +492,16 @@ const QuotationTemplatesPage: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Show Tax:</span>
-                    <span className="font-medium">{template.showTax ? 'Yes' : 'No'}</span>
+                    <span className="font-medium">{template.showTax ? "Yes" : "No"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Show Discount:</span>
-                    <span className="font-medium">{template.showDiscount ? 'Yes' : 'No'}</span>
+                    <span className="font-medium">{template.showDiscount ? "Yes" : "No"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Status:</span>
-                    <span className={template.isActive ? 'text-green-600' : 'text-red-600'}>
-                      {template.isActive ? 'Active' : 'Inactive'}
+                    <span className={template.isActive ? "text-green-600" : "text-red-600"}>
+                      {template.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
                 </div>
@@ -531,8 +544,7 @@ const QuotationTemplatesPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          ))
-}
+          ))}
         </div>
       )}
 
@@ -548,9 +560,10 @@ const QuotationTemplatesPage: React.FC = () => {
                 About Quotation Templates
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Quotation templates define the design and structure of quotations generated in deal management. 
-                When you create a quotation from a deal, it will use the default template's settings for header, footer, 
-                terms, and display options. Products and services will be automatically fetched from the deal.
+                Quotation templates define the design and structure of quotations generated in deal
+                management. When you create a quotation from a deal, it will use the default
+                template's settings for header, footer, terms, and display options. Products and
+                services will be automatically fetched from the deal.
               </p>
             </div>
           </div>

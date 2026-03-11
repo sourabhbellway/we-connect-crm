@@ -19,6 +19,7 @@ class CreateProductDto {
     type;
     category;
     price;
+    pricingEnabled;
     cost;
     currency;
     unit;
@@ -28,6 +29,10 @@ class CreateProductDto {
     minStockLevel;
     maxStockLevel;
     image;
+    categoryId;
+    currencyId;
+    taxId;
+    unitId;
     isActive;
 }
 exports.CreateProductDto = CreateProductDto;
@@ -57,11 +62,16 @@ __decorate([
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "category", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
     (0, class_validator_1.IsNumber)({}, { message: 'Price must be a valid number' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Price is required' }),
     __metadata("design:type", Number)
 ], CreateProductDto.prototype, "price", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)({ message: 'pricingEnabled must be a boolean' }),
+    __metadata("design:type", Boolean)
+], CreateProductDto.prototype, "pricingEnabled", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_transformer_1.Type)(() => Number),
@@ -112,6 +122,30 @@ __decorate([
     (0, class_validator_1.IsString)({ message: 'Image path must be a string' }),
     __metadata("design:type", String)
 ], CreateProductDto.prototype, "image", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)({}, { message: 'Category ID must be a number' }),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "categoryId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)({}, { message: 'Currency ID must be a number' }),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "currencyId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)({}, { message: 'Tax ID must be a number' }),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "taxId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)({}, { message: 'Unit ID must be a number' }),
+    __metadata("design:type", Number)
+], CreateProductDto.prototype, "unitId", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)({ message: 'isActive must be a boolean' }),

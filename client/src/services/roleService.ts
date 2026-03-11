@@ -1,11 +1,7 @@
 import apiClient from "./apiClient";
 
 // Helper function for exponential backoff retry
-const retryWithBackoff = async (
-  fn: () => Promise<any>,
-  maxRetries = 3,
-  baseDelay = 1000
-) => {
+const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1000) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();

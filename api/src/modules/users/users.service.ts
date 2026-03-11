@@ -695,6 +695,14 @@ export class UsersService {
     try {
       const updated = await this.prisma.user.update({ where: { id }, data });
 
+      // If password was updated, revoke all active sessions to force re-login
+      if (dto.password) {
+        await this.prisma.loginSession.updateMany({
+          where: { userId: id, isActive: true },
+          data: { isActive: false },
+        });
+      }
+
       // Send welcome email **if the email changed** (as per requirement: welcome email on email update)
       // Same welcome email template as user creation, with new temp password and email
       // GUARANTEE: Email will be sent using fallback template if database template fails
@@ -707,6 +715,12 @@ export class UsersService {
         await this.prisma.user.update({
           where: { id },
           data: { password: hashedTempPassword, mustChangePassword: true },
+        });
+
+        // Revoke all existing sessions for the updated user
+        await this.prisma.loginSession.updateMany({
+          where: { userId: id, isActive: true },
+          data: { isActive: false },
         });
 
         let emailSent = false;
@@ -937,6 +951,12 @@ export class UsersService {
       },
     });
 
+    // Revoke all active login sessions for the user (force re-login after password change)
+    await this.prisma.loginSession.updateMany({
+      where: { userId: userId, isActive: true },
+      data: { isActive: false },
+    });
+
     return { success: true, data: { user: updated } };
   }
 
@@ -999,6 +1019,12 @@ export class UsersService {
         mustChangePassword: false,
         failedLoginAttempts: 0,
       },
+    });
+
+    // Revoke all active login sessions for the user (force re-login after password change)
+    await this.prisma.loginSession.updateMany({
+      where: { userId: userId, isActive: true },
+      data: { isActive: false },
     });
 
     return { success: true, data: { user: updated } };

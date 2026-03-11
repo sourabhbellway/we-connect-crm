@@ -10,7 +10,7 @@ interface RoleFormData {
   name: string;
   description: string;
   permissionIds: number[];
-  accessScope: 'OWN' | 'GLOBAL';
+  accessScope: "OWN" | "GLOBAL";
   isActive?: boolean;
 }
 
@@ -21,9 +21,9 @@ const RoleCreate: React.FC = () => {
 
   const handleSubmit = async (data: RoleFormData) => {
     setSubmitting(true);
-  
+
     const response = await roleService.createRole(data);
-  
+
     // Show backend message based on success
     if (response.success) {
       toast.success(response.message);
@@ -32,17 +32,15 @@ const RoleCreate: React.FC = () => {
     } else {
       toast.error(response.message);
     }
-  
+
     setSubmitting(false);
   };
-  
+
   return (
     <div className="p-4 md:p-6">
       <div className="mb-6 flex  items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Create Role
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create Role</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Fill in the details below to create a new role
           </p>

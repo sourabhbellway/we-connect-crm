@@ -35,5 +35,3 @@ const TableLoader: React.FC<TableLoaderProps> = ({ rows = 5, columns = 6 }) => {
 };
 
 export default TableLoader;
-
-

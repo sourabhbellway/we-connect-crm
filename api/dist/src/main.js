@@ -78,8 +78,19 @@ async function bootstrap() {
             'http://31.97.233.21:8081',
             'http://31.97.233.21:7001',
             'http://31.97.233.21:3001',
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'http://127.0.0.1:5173',
+            'http://127.0.0.1:3000',
         ]
-        : true;
+        : [
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'http://127.0.0.1:5173',
+            'http://127.0.0.1:3000',
+            'http://localhost:3001',
+            'http://127.0.0.1:3001',
+        ];
     app.enableCors({
         origin: corsOrigins,
         credentials: true,

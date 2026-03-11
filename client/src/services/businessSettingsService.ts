@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 export interface DashboardSettings {
   salesPipelineFlow: string;
@@ -9,12 +9,14 @@ export interface DashboardSettings {
 
 class BusinessSettingsService {
   async getDashboardSettings(): Promise<{ success: boolean; data: DashboardSettings }> {
-    const response = await apiClient.get('/business-settings/dashboard');
+    const response = await apiClient.get("/business-settings/dashboard");
     return response.data;
   }
 
-  async updateDashboardSettings(settings: Partial<DashboardSettings>): Promise<{ success: boolean; data: DashboardSettings }> {
-    const response = await apiClient.put('/business-settings/dashboard', settings);
+  async updateDashboardSettings(
+    settings: Partial<DashboardSettings>
+  ): Promise<{ success: boolean; data: DashboardSettings }> {
+    const response = await apiClient.put("/business-settings/dashboard", settings);
     return response.data;
   }
 }

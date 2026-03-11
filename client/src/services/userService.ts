@@ -1,11 +1,7 @@
 import apiClient from "./apiClient";
 
 // Helper function for exponential backoff retry
-const retryWithBackoff = async (
-  fn: () => Promise<any>,
-  maxRetries = 3,
-  baseDelay = 1000
-) => {
+const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1000) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
@@ -66,11 +62,7 @@ export const userService = {
   },
 
   // New Profile Management APIs
-  updateProfile: async (profileData: {
-    firstName: string;
-    lastName: string;
-    email?: string;
-  }) => {
+  updateProfile: async (profileData: { firstName: string; lastName: string; email?: string }) => {
     return retryWithBackoff(async () => {
       const response = await apiClient.put("/users/profile", profileData);
       return response.data;
@@ -79,9 +71,9 @@ export const userService = {
 
   uploadProfilePicture: async (file: File) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     const response = await apiClient.post("/users/profile/avatar", formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
   },

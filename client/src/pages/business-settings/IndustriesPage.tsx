@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, Button, PageLoader } from '../../components/ui';
-import { Building2, ArrowLeft, Save, Plus, Edit3, Trash2, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { industryService, Industry } from '../../services/industryService';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent, Button, PageLoader } from "../../components/ui";
+import { Building2, ArrowLeft, Save, Plus, Edit3, Trash2, Eye, EyeOff } from "lucide-react";
+import { toast } from "react-toastify";
+import { industryService, Industry } from "../../services/industryService";
 
 interface IndustryFormData {
   name: string;
@@ -17,7 +17,7 @@ const IndustriesPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<IndustryFormData>({
-    name: '',
+    name: "",
     isActive: true,
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -32,8 +32,8 @@ const IndustriesPage: React.FC = () => {
       const data = await industryService.getIndustries();
       setIndustries(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Failed to fetch industries:', error);
-      toast.error('Failed to load industries');
+      console.error("Failed to fetch industries:", error);
+      toast.error("Failed to load industries");
       setIndustries([]);
     } finally {
       setIsLoading(false);
@@ -42,7 +42,7 @@ const IndustriesPage: React.FC = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      name: "",
       isActive: true,
     });
     setIsEditing(false);
@@ -60,55 +60,58 @@ const IndustriesPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form
     if (!formData.name || !formData.name.trim()) {
-      toast.error('Industry name is required');
+      toast.error("Industry name is required");
       return;
     }
-    
+
     setIsSaving(true);
-    
+
     try {
       // Only send fields that the backend accepts
       const payload = {
         name: formData.name.trim(),
         isActive: formData.isActive,
       };
-      
+
       if (editingId) {
         const result = await industryService.updateIndustry(editingId, payload);
         if (result) {
-          toast.success('Industry updated successfully');
+          toast.success("Industry updated successfully");
         }
       } else {
         const result = await industryService.createIndustry(payload);
         if (result) {
-          toast.success('Industry added successfully');
+          toast.success("Industry added successfully");
         }
       }
       resetForm();
       fetchIndustries();
     } catch (error: any) {
-      console.error('Failed to save industry:', error);
-      const errorMessage = error?.response?.data?.message?.message || 
-                          error?.response?.data?.message || 
-                          'Failed to save industry';
-      toast.error(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      console.error("Failed to save industry:", error);
+      const errorMessage =
+        error?.response?.data?.message?.message ||
+        error?.response?.data?.message ||
+        "Failed to save industry";
+      toast.error(Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this industry? This action cannot be undone.')) {
+    if (
+      window.confirm("Are you sure you want to delete this industry? This action cannot be undone.")
+    ) {
       try {
         await industryService.deleteIndustry(id);
-        toast.success('Industry deleted successfully');
+        toast.success("Industry deleted successfully");
         fetchIndustries();
       } catch (error) {
-        console.error('Failed to delete industry:', error);
-        toast.error('Failed to delete industry');
+        console.error("Failed to delete industry:", error);
+        toast.error("Failed to delete industry");
       }
     }
   };
@@ -116,11 +119,11 @@ const IndustriesPage: React.FC = () => {
   const handleToggleActive = async (id: number, isActive: boolean) => {
     try {
       await industryService.updateIndustry(id, { isActive: !isActive });
-      toast.success('Industry updated successfully');
+      toast.success("Industry updated successfully");
       fetchIndustries();
     } catch (error) {
-      console.error('Failed to update industry:', error);
-      toast.error('Failed to update industry');
+      console.error("Failed to update industry:", error);
+      toast.error("Failed to update industry");
     }
   };
 
@@ -135,7 +138,7 @@ const IndustriesPage: React.FC = () => {
         <Button
           variant="GHOST"
           size="sm"
-          onClick={() => navigate('/business-settings')}
+          onClick={() => navigate("/business-settings")}
           className="p-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -161,7 +164,7 @@ const IndustriesPage: React.FC = () => {
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {isEditing ? 'Edit Industry' : 'Add New Industry'}
+                {isEditing ? "Edit Industry" : "Add New Industry"}
               </h3>
             </CardHeader>
             <CardContent>
@@ -173,7 +176,7 @@ const IndustriesPage: React.FC = () => {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="e.g., Technology, Healthcare, Finance"
                     required
@@ -185,7 +188,9 @@ const IndustriesPage: React.FC = () => {
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, isActive: e.target.checked }))
+                    }
                     className="rounded border-gray-300 dark:border-gray-600"
                   />
                   <label htmlFor="isActive" className="text-sm text-gray-700 dark:text-gray-300">
@@ -201,14 +206,10 @@ const IndustriesPage: React.FC = () => {
                     className="flex items-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    {isSaving ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+                    {isSaving ? "Saving..." : isEditing ? "Update" : "Add"}
                   </Button>
                   {isEditing && (
-                    <Button
-                      type="button"
-                      variant="OUTLINE"
-                      onClick={resetForm}
-                    >
+                    <Button type="button" variant="OUTLINE" onClick={resetForm}>
                       Cancel
                     </Button>
                   )}
@@ -276,7 +277,8 @@ const IndustriesPage: React.FC = () => {
                             )}
                             {industry.fields && industry.fields.length > 0 && (
                               <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                {industry.fields.length} custom field{industry.fields.length !== 1 ? 's' : ''}
+                                {industry.fields.length} custom field
+                                {industry.fields.length !== 1 ? "s" : ""}
                               </p>
                             )}
                           </div>
@@ -286,9 +288,11 @@ const IndustriesPage: React.FC = () => {
                           <Button
                             variant="GHOST"
                             size="sm"
-                            onClick={() => handleToggleActive(industry.id, industry.isActive !== false)}
+                            onClick={() =>
+                              handleToggleActive(industry.id, industry.isActive !== false)
+                            }
                             className="p-1"
-                            title={industry.isActive !== false ? 'Deactivate' : 'Activate'}
+                            title={industry.isActive !== false ? "Deactivate" : "Activate"}
                           >
                             {industry.isActive !== false ? (
                               <Eye className="w-4 h-4 text-green-500" />
@@ -296,7 +300,7 @@ const IndustriesPage: React.FC = () => {
                               <EyeOff className="w-4 h-4 text-gray-400" />
                             )}
                           </Button>
-                          
+
                           <Button
                             variant="GHOST"
                             size="sm"
@@ -306,7 +310,7 @@ const IndustriesPage: React.FC = () => {
                           >
                             <Edit3 className="w-4 h-4 text-blue-500" />
                           </Button>
-                          
+
                           <Button
                             variant="GHOST"
                             size="sm"
@@ -338,14 +342,14 @@ const IndustriesPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {industries.filter(i => i.isActive !== false).length}
+                  {industries.filter((i) => i.isActive !== false).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Industries</p>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                  {industries.filter(i => i.isActive === false).length}
+                  {industries.filter((i) => i.isActive === false).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Inactive Industries</p>
               </div>
@@ -358,4 +362,3 @@ const IndustriesPage: React.FC = () => {
 };
 
 export default IndustriesPage;
-

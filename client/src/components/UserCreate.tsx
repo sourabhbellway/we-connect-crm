@@ -68,12 +68,8 @@ const UserCreate: React.FC = () => {
     <div className="p-4 md:p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Create User
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Fill in the details below
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create User</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Fill in the details below</p>
         </div>
         <div className="flex items-center gap-4 mb-4">
           <BackButton to="/users" />

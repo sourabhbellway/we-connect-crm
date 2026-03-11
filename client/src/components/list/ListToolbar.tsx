@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Button } from '../ui';
-import { Plus } from 'lucide-react';
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "../ui";
+import { Plus } from "lucide-react";
 
 export interface ToolbarAction {
   label: string;
@@ -19,7 +19,14 @@ interface ListToolbarProps {
   actions?: ToolbarAction[];
 }
 
-const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = 'Add', onAdd, bulkActions = [], actions = [] }) => {
+const ListToolbar: React.FC<ListToolbarProps> = ({
+  title,
+  subtitle,
+  addLabel = "Add",
+  onAdd,
+  bulkActions = [],
+  actions = [],
+}) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,8 +37,8 @@ const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = '
         setOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
   return (
@@ -73,7 +80,10 @@ const ListToolbar: React.FC<ListToolbarProps> = ({ title, subtitle, addLabel = '
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
                       >
-                        <span className="inline-flex items-center gap-2">{ba.icon}{ba.label}</span>
+                        <span className="inline-flex items-center gap-2">
+                          {ba.icon}
+                          {ba.label}
+                        </span>
                       </button>
                     ))}
                   </div>

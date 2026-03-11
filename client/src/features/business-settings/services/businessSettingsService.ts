@@ -1,4 +1,4 @@
-import { apiRequest } from '../../../services/apiClient';
+import { apiRequest } from "../../../services/apiClient";
 import {
   BusinessSettings,
   BusinessSettingsResponse,
@@ -17,25 +17,27 @@ import {
   AutomationRule,
   IntegrationSettings,
   PaymentGatewaySettings,
-} from '../types';
+} from "../types";
 
 class BusinessSettingsService {
-  private readonly baseUrl = '/business-settings';
+  private readonly baseUrl = "/business-settings";
 
   // Company Settings
   async getCompanySettings(): Promise<BusinessSettingsResponse<CompanySettings>> {
     return apiRequest.get(`${this.baseUrl}/company`);
   }
 
-  async updateCompanySettings(data: Partial<CompanySettings>): Promise<BusinessSettingsResponse<CompanySettings>> {
+  async updateCompanySettings(
+    data: Partial<CompanySettings>
+  ): Promise<BusinessSettingsResponse<CompanySettings>> {
     return apiRequest.put(`${this.baseUrl}/company`, data);
   }
 
   async uploadCompanyLogo(file: File): Promise<BusinessSettingsResponse<{ logoUrl: string }>> {
     const formData = new FormData();
-    formData.append('logo', file);
+    formData.append("logo", file);
     return apiRequest.post(`${this.baseUrl}/company/logo`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { "Content-Type": "multipart/form-data" },
     });
   }
 
@@ -44,7 +46,9 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/currency`);
   }
 
-  async updateCurrencySettings(data: Partial<CurrencySettings>): Promise<BusinessSettingsResponse<CurrencySettings>> {
+  async updateCurrencySettings(
+    data: Partial<CurrencySettings>
+  ): Promise<BusinessSettingsResponse<CurrencySettings>> {
     return apiRequest.put(`${this.baseUrl}/currency`, data);
   }
 
@@ -52,7 +56,9 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/tax`);
   }
 
-  async updateTaxSettings(data: Partial<TaxSettings>): Promise<BusinessSettingsResponse<TaxSettings>> {
+  async updateTaxSettings(
+    data: Partial<TaxSettings>
+  ): Promise<BusinessSettingsResponse<TaxSettings>> {
     return apiRequest.put(`${this.baseUrl}/tax`, data);
   }
 
@@ -73,7 +79,10 @@ class BusinessSettingsService {
     return apiRequest.post(`/lead-sources`, data);
   }
 
-  async updateLeadSource(id: string, data: Partial<LeadSource>): Promise<BusinessSettingsResponse<LeadSource>> {
+  async updateLeadSource(
+    id: string,
+    data: Partial<LeadSource>
+  ): Promise<BusinessSettingsResponse<LeadSource>> {
     return apiRequest.put(`/lead-sources/${id}`, data);
   }
 
@@ -95,7 +104,10 @@ class BusinessSettingsService {
     return apiRequest.post(`${this.baseUrl}/lead-statuses`, data);
   }
 
-  async updateLeadStatus(id: string, data: Partial<LeadStatus>): Promise<BusinessSettingsResponse<LeadStatus>> {
+  async updateLeadStatus(
+    id: string,
+    data: Partial<LeadStatus>
+  ): Promise<BusinessSettingsResponse<LeadStatus>> {
     return apiRequest.put(`${this.baseUrl}/lead-statuses/${id}`, data);
   }
 
@@ -112,7 +124,10 @@ class BusinessSettingsService {
     return apiRequest.post(`${this.baseUrl}/deal-statuses`, data);
   }
 
-  async updateDealStatus(id: string, data: Partial<DealStatus>): Promise<BusinessSettingsResponse<DealStatus>> {
+  async updateDealStatus(
+    id: string,
+    data: Partial<DealStatus>
+  ): Promise<BusinessSettingsResponse<DealStatus>> {
     return apiRequest.put(`${this.baseUrl}/deal-statuses/${id}`, data);
   }
 
@@ -125,11 +140,16 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/product-categories`);
   }
 
-  async createProductCategory(data: Omit<ProductCategory, 'id'>): Promise<BusinessSettingsResponse<ProductCategory>> {
+  async createProductCategory(
+    data: Omit<ProductCategory, "id">
+  ): Promise<BusinessSettingsResponse<ProductCategory>> {
     return apiRequest.post(`${this.baseUrl}/product-categories`, data);
   }
 
-  async updateProductCategory(id: string, data: Partial<ProductCategory>): Promise<BusinessSettingsResponse<ProductCategory>> {
+  async updateProductCategory(
+    id: string,
+    data: Partial<ProductCategory>
+  ): Promise<BusinessSettingsResponse<ProductCategory>> {
     return apiRequest.put(`${this.baseUrl}/product-categories/${id}`, data);
   }
 
@@ -142,11 +162,14 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/price-lists`);
   }
 
-  async createPriceList(data: Omit<PriceList, 'id'>): Promise<BusinessSettingsResponse<PriceList>> {
+  async createPriceList(data: Omit<PriceList, "id">): Promise<BusinessSettingsResponse<PriceList>> {
     return apiRequest.post(`${this.baseUrl}/price-lists`, data);
   }
 
-  async updatePriceList(id: string, data: Partial<PriceList>): Promise<BusinessSettingsResponse<PriceList>> {
+  async updatePriceList(
+    id: string,
+    data: Partial<PriceList>
+  ): Promise<BusinessSettingsResponse<PriceList>> {
     return apiRequest.put(`${this.baseUrl}/price-lists/${id}`, data);
   }
 
@@ -163,11 +186,16 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/email-templates/${id}`);
   }
 
-  async createEmailTemplate(data: Omit<EmailTemplate, 'id'>): Promise<BusinessSettingsResponse<EmailTemplate>> {
+  async createEmailTemplate(
+    data: Omit<EmailTemplate, "id">
+  ): Promise<BusinessSettingsResponse<EmailTemplate>> {
     return apiRequest.post(`${this.baseUrl}/email-templates`, data);
   }
 
-  async updateEmailTemplate(id: string, data: Partial<EmailTemplate>): Promise<BusinessSettingsResponse<EmailTemplate>> {
+  async updateEmailTemplate(
+    id: string,
+    data: Partial<EmailTemplate>
+  ): Promise<BusinessSettingsResponse<EmailTemplate>> {
     return apiRequest.put(`${this.baseUrl}/email-templates/${id}`, data);
   }
 
@@ -179,7 +207,10 @@ class BusinessSettingsService {
     return apiRequest.post(`${this.baseUrl}/email-templates/${id}/duplicate`);
   }
 
-  async previewEmailTemplate(id: string, data: Record<string, any>): Promise<BusinessSettingsResponse<{ preview: string }>> {
+  async previewEmailTemplate(
+    id: string,
+    data: Record<string, any>
+  ): Promise<BusinessSettingsResponse<{ preview: string }>> {
     return apiRequest.post(`${this.baseUrl}/email-templates/${id}/preview`, data);
   }
 
@@ -188,11 +219,16 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/quotation-templates`);
   }
 
-  async createQuotationTemplate(data: Omit<QuotationTemplate, 'id'>): Promise<BusinessSettingsResponse<QuotationTemplate>> {
+  async createQuotationTemplate(
+    data: Omit<QuotationTemplate, "id">
+  ): Promise<BusinessSettingsResponse<QuotationTemplate>> {
     return apiRequest.post(`${this.baseUrl}/quotation-templates`, data);
   }
 
-  async updateQuotationTemplate(id: string, data: Partial<QuotationTemplate>): Promise<BusinessSettingsResponse<QuotationTemplate>> {
+  async updateQuotationTemplate(
+    id: string,
+    data: Partial<QuotationTemplate>
+  ): Promise<BusinessSettingsResponse<QuotationTemplate>> {
     return apiRequest.put(`${this.baseUrl}/quotation-templates/${id}`, data);
   }
 
@@ -200,7 +236,9 @@ class BusinessSettingsService {
     return apiRequest.delete(`${this.baseUrl}/quotation-templates/${id}`);
   }
 
-  async setDefaultQuotationTemplate(id: string): Promise<BusinessSettingsResponse<QuotationTemplate>> {
+  async setDefaultQuotationTemplate(
+    id: string
+  ): Promise<BusinessSettingsResponse<QuotationTemplate>> {
     return apiRequest.put(`${this.baseUrl}/quotation-templates/${id}/set-default`);
   }
 
@@ -209,11 +247,16 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/invoice-templates`);
   }
 
-  async createInvoiceTemplate(data: Omit<InvoiceTemplate, 'id'>): Promise<BusinessSettingsResponse<InvoiceTemplate>> {
+  async createInvoiceTemplate(
+    data: Omit<InvoiceTemplate, "id">
+  ): Promise<BusinessSettingsResponse<InvoiceTemplate>> {
     return apiRequest.post(`${this.baseUrl}/invoice-templates`, data);
   }
 
-  async updateInvoiceTemplate(id: string, data: Partial<InvoiceTemplate>): Promise<BusinessSettingsResponse<InvoiceTemplate>> {
+  async updateInvoiceTemplate(
+    id: string,
+    data: Partial<InvoiceTemplate>
+  ): Promise<BusinessSettingsResponse<InvoiceTemplate>> {
     return apiRequest.put(`${this.baseUrl}/invoice-templates/${id}`, data);
   }
 
@@ -230,11 +273,16 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/notifications`);
   }
 
-  async updateNotificationSettings(data: Partial<NotificationSettings>): Promise<BusinessSettingsResponse<NotificationSettings>> {
+  async updateNotificationSettings(
+    data: Partial<NotificationSettings>
+  ): Promise<BusinessSettingsResponse<NotificationSettings>> {
     return apiRequest.put(`${this.baseUrl}/notifications`, data);
   }
 
-  async testNotification(channel: string, recipient: string): Promise<BusinessSettingsResponse<{ success: boolean }>> {
+  async testNotification(
+    channel: string,
+    recipient: string
+  ): Promise<BusinessSettingsResponse<{ success: boolean }>> {
     return apiRequest.post(`${this.baseUrl}/notifications/test`, { channel, recipient });
   }
 
@@ -247,11 +295,16 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/automation-rules/${id}`);
   }
 
-  async createAutomationRule(data: Omit<AutomationRule, 'id'>): Promise<BusinessSettingsResponse<AutomationRule>> {
+  async createAutomationRule(
+    data: Omit<AutomationRule, "id">
+  ): Promise<BusinessSettingsResponse<AutomationRule>> {
     return apiRequest.post(`${this.baseUrl}/automation-rules`, data);
   }
 
-  async updateAutomationRule(id: string, data: Partial<AutomationRule>): Promise<BusinessSettingsResponse<AutomationRule>> {
+  async updateAutomationRule(
+    id: string,
+    data: Partial<AutomationRule>
+  ): Promise<BusinessSettingsResponse<AutomationRule>> {
     return apiRequest.put(`${this.baseUrl}/automation-rules/${id}`, data);
   }
 
@@ -263,7 +316,10 @@ class BusinessSettingsService {
     return apiRequest.put(`${this.baseUrl}/automation-rules/${id}/toggle`);
   }
 
-  async testAutomationRule(id: string, testData: any): Promise<BusinessSettingsResponse<{ result: any }>> {
+  async testAutomationRule(
+    id: string,
+    testData: any
+  ): Promise<BusinessSettingsResponse<{ result: any }>> {
     return apiRequest.post(`${this.baseUrl}/automation-rules/${id}/test`, testData);
   }
 
@@ -272,15 +328,21 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/integrations`);
   }
 
-  async updateIntegrationSettings(data: Partial<IntegrationSettings>): Promise<BusinessSettingsResponse<IntegrationSettings>> {
+  async updateIntegrationSettings(
+    data: Partial<IntegrationSettings>
+  ): Promise<BusinessSettingsResponse<IntegrationSettings>> {
     return apiRequest.put(`${this.baseUrl}/integrations`, data);
   }
 
-  async testIntegration(type: string): Promise<BusinessSettingsResponse<{ success: boolean; message: string }>> {
+  async testIntegration(
+    type: string
+  ): Promise<BusinessSettingsResponse<{ success: boolean; message: string }>> {
     return apiRequest.post(`${this.baseUrl}/integrations/${type}/test`);
   }
 
-  async syncIntegrationData(type: string): Promise<BusinessSettingsResponse<{ synced: number; errors: any[] }>> {
+  async syncIntegrationData(
+    type: string
+  ): Promise<BusinessSettingsResponse<{ synced: number; errors: any[] }>> {
     return apiRequest.post(`${this.baseUrl}/integrations/${type}/sync`);
   }
 
@@ -289,36 +351,48 @@ class BusinessSettingsService {
     return apiRequest.get(`${this.baseUrl}/payment-gateways`);
   }
 
-  async updatePaymentGatewaySettings(data: Partial<PaymentGatewaySettings>): Promise<BusinessSettingsResponse<PaymentGatewaySettings>> {
+  async updatePaymentGatewaySettings(
+    data: Partial<PaymentGatewaySettings>
+  ): Promise<BusinessSettingsResponse<PaymentGatewaySettings>> {
     return apiRequest.put(`${this.baseUrl}/payment-gateways`, data);
   }
 
-  async testPaymentGateway(gateway: string): Promise<BusinessSettingsResponse<{ success: boolean; message: string }>> {
+  async testPaymentGateway(
+    gateway: string
+  ): Promise<BusinessSettingsResponse<{ success: boolean; message: string }>> {
     return apiRequest.post(`${this.baseUrl}/payment-gateways/${gateway}/test`);
   }
 
   // Bulk Operations
-  async exportSettings(categories: string[]): Promise<BusinessSettingsResponse<{ exportUrl: string }>> {
+  async exportSettings(
+    categories: string[]
+  ): Promise<BusinessSettingsResponse<{ exportUrl: string }>> {
     return apiRequest.post(`${this.baseUrl}/export`, { categories });
   }
 
-  async importSettings(file: File): Promise<BusinessSettingsResponse<{ imported: number; errors: any[] }>> {
+  async importSettings(
+    file: File
+  ): Promise<BusinessSettingsResponse<{ imported: number; errors: any[] }>> {
     const formData = new FormData();
-    formData.append('settings', file);
+    formData.append("settings", file);
     return apiRequest.post(`${this.baseUrl}/import`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { "Content-Type": "multipart/form-data" },
     });
   }
 
-  async resetSettings(categories: string[]): Promise<BusinessSettingsResponse<{ reset: string[] }>> {
+  async resetSettings(
+    categories: string[]
+  ): Promise<BusinessSettingsResponse<{ reset: string[] }>> {
     return apiRequest.post(`${this.baseUrl}/reset`, { categories });
   }
 
   // Health & Status
-  async getSettingsHealth(): Promise<BusinessSettingsResponse<{
-    status: 'healthy' | 'warning' | 'error';
-    checks: Array<{ name: string; status: string; message?: string }>;
-  }>> {
+  async getSettingsHealth(): Promise<
+    BusinessSettingsResponse<{
+      status: "healthy" | "warning" | "error";
+      checks: Array<{ name: string; status: string; message?: string }>;
+    }>
+  > {
     return apiRequest.get(`${this.baseUrl}/health`);
   }
 
@@ -330,6 +404,18 @@ class BusinessSettingsService {
   // Field Configurations
   async getFieldConfigs(entityType: string): Promise<BusinessSettingsResponse<any[]>> {
     return apiRequest.get(`${this.baseUrl}/field-configs/${entityType}`);
+  }
+
+  async createFieldConfig(data: any): Promise<BusinessSettingsResponse<any>> {
+    return apiRequest.post(`${this.baseUrl}/field-configs`, data);
+  }
+
+  async updateFieldConfig(id: number, data: any): Promise<BusinessSettingsResponse<any>> {
+    return apiRequest.put(`${this.baseUrl}/field-configs/${id}`, data);
+  }
+
+  async deleteFieldConfig(id: number): Promise<BusinessSettingsResponse<void>> {
+    return apiRequest.delete(`${this.baseUrl}/field-configs/${id}`);
   }
 }
 

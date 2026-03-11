@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { userService } from '../services/userService';
-import { teamsService, Team } from '../services/teamsService';
-import { X, Plus, Trash2, GripVertical } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { userService } from "../services/userService";
+import { teamsService, Team } from "../services/teamsService";
+import { X, Plus, Trash2, GripVertical } from "lucide-react";
 import {
   WorkflowTrigger,
   ConditionOperator,
@@ -13,7 +13,7 @@ import {
   getFieldsForTrigger,
   getDefaultCondition,
   FieldOption,
-} from '../services/automationService';
+} from "../services/automationService";
 
 interface WorkflowBuilderProps {
   onClose: () => void;
@@ -22,57 +22,60 @@ interface WorkflowBuilderProps {
 }
 
 const TRIGGER_OPTIONS = [
-  { value: WorkflowTrigger.LEAD_CREATED, label: 'Lead Created' },
-  { value: WorkflowTrigger.LEAD_UPDATED, label: 'Lead Updated' },
-  { value: WorkflowTrigger.LEAD_STATUS_CHANGED, label: 'Lead Status Changed' },
-  { value: WorkflowTrigger.LEAD_ASSIGNED, label: 'Lead Assigned' },
-  { value: WorkflowTrigger.DEAL_CREATED, label: 'Deal Created' },
-  { value: WorkflowTrigger.DEAL_UPDATED, label: 'Deal Updated' },
-  { value: WorkflowTrigger.DEAL_STAGE_CHANGED, label: 'Deal Stage Changed' },
-  { value: WorkflowTrigger.TASK_CREATED, label: 'Task Created' },
-  { value: WorkflowTrigger.TASK_COMPLETED, label: 'Task Completed' },
+  { value: WorkflowTrigger.LEAD_CREATED, label: "Lead Created" },
+  { value: WorkflowTrigger.LEAD_UPDATED, label: "Lead Updated" },
+  { value: WorkflowTrigger.LEAD_STATUS_CHANGED, label: "Lead Status Changed" },
+  { value: WorkflowTrigger.LEAD_ASSIGNED, label: "Lead Assigned" },
+  { value: WorkflowTrigger.DEAL_CREATED, label: "Deal Created" },
+  { value: WorkflowTrigger.DEAL_UPDATED, label: "Deal Updated" },
+  { value: WorkflowTrigger.DEAL_STAGE_CHANGED, label: "Deal Stage Changed" },
+  { value: WorkflowTrigger.TASK_CREATED, label: "Task Created" },
+  { value: WorkflowTrigger.TASK_COMPLETED, label: "Task Completed" },
 ];
 
 const OPERATOR_OPTIONS = [
-  { value: ConditionOperator.EQUALS, label: 'Equals' },
-  { value: ConditionOperator.NOT_EQUALS, label: 'Not Equals' },
-  { value: ConditionOperator.CONTAINS, label: 'Contains' },
-  { value: ConditionOperator.NOT_CONTAINS, label: 'Does Not Contain' },
-  { value: ConditionOperator.GREATER_THAN, label: 'Greater Than' },
-  { value: ConditionOperator.LESS_THAN, label: 'Less Than' },
-  { value: ConditionOperator.GREATER_THAN_OR_EQUAL, label: 'Greater Than or Equal' },
-  { value: ConditionOperator.LESS_THAN_OR_EQUAL, label: 'Less Than or Equal' },
-  { value: ConditionOperator.IS_EMPTY, label: 'Is Empty' },
-  { value: ConditionOperator.IS_NOT_EMPTY, label: 'Is Not Empty' },
+  { value: ConditionOperator.EQUALS, label: "Equals" },
+  { value: ConditionOperator.NOT_EQUALS, label: "Not Equals" },
+  { value: ConditionOperator.CONTAINS, label: "Contains" },
+  { value: ConditionOperator.NOT_CONTAINS, label: "Does Not Contain" },
+  { value: ConditionOperator.GREATER_THAN, label: "Greater Than" },
+  { value: ConditionOperator.LESS_THAN, label: "Less Than" },
+  { value: ConditionOperator.GREATER_THAN_OR_EQUAL, label: "Greater Than or Equal" },
+  { value: ConditionOperator.LESS_THAN_OR_EQUAL, label: "Less Than or Equal" },
+  { value: ConditionOperator.IS_EMPTY, label: "Is Empty" },
+  { value: ConditionOperator.IS_NOT_EMPTY, label: "Is Not Empty" },
 ];
 
 const ACTION_OPTIONS = [
-  { value: ActionType.ASSIGN_TO_USER, label: 'Assign to User' },
-  { value: ActionType.ASSIGN_TO_TEAM, label: 'Assign to Team' },
-  { value: ActionType.CHANGE_STATUS, label: 'Change Status' },
-  { value: ActionType.SEND_EMAIL, label: 'Send Email' },
-  { value: ActionType.SEND_WHATSAPP, label: 'Send WhatsApp' },
-  { value: ActionType.CREATE_TASK, label: 'Create Task' },
-  { value: ActionType.ADD_TAG, label: 'Add Tag' },
-  { value: ActionType.REMOVE_TAG, label: 'Remove Tag' },
-  { value: ActionType.UPDATE_FIELD, label: 'Update Field' },
-  { value: ActionType.SEND_WEBHOOK, label: 'Send Webhook' },
+  { value: ActionType.ASSIGN_TO_USER, label: "Assign to User" },
+  { value: ActionType.ASSIGN_TO_TEAM, label: "Assign to Team" },
+  { value: ActionType.CHANGE_STATUS, label: "Change Status" },
+  { value: ActionType.SEND_EMAIL, label: "Send Email" },
+  { value: ActionType.SEND_WHATSAPP, label: "Send WhatsApp" },
+  { value: ActionType.CREATE_TASK, label: "Create Task" },
+  { value: ActionType.ADD_TAG, label: "Add Tag" },
+  { value: ActionType.REMOVE_TAG, label: "Remove Tag" },
+  { value: ActionType.UPDATE_FIELD, label: "Update Field" },
+  { value: ActionType.SEND_WEBHOOK, label: "Send Webhook" },
 ];
 
 // Utility function to group fields by category (local helper for UI display)
 const groupFieldsByCategory = (fields: any[]) => {
-  return fields.reduce((acc, field) => {
-    if (!acc[field.category]) {
-      acc[field.category] = [];
-    }
-    acc[field.category].push(field);
-    return acc;
-  }, {} as Record<string, any[]>);
+  return fields.reduce(
+    (acc, field) => {
+      if (!acc[field.category]) {
+        acc[field.category] = [];
+      }
+      acc[field.category].push(field);
+      return acc;
+    },
+    {} as Record<string, any[]>
+  );
 };
 
 const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, initialWorkflow }) => {
-  const [name, setName] = useState(initialWorkflow?.name || '');
-  const [description, setDescription] = useState(initialWorkflow?.description || '');
+  const [name, setName] = useState(initialWorkflow?.name || "");
+  const [description, setDescription] = useState(initialWorkflow?.description || "");
   const [isActive, setIsActive] = useState(initialWorkflow?.isActive ?? true);
   const [trigger, setTrigger] = useState<WorkflowTrigger>(
     initialWorkflow?.trigger || WorkflowTrigger.LEAD_CREATED
@@ -81,9 +84,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
     initialWorkflow?.conditions?.logic || ConditionLogic.AND
   );
   const [conditions, setConditions] = useState<WorkflowCondition[]>(
-    initialWorkflow?.conditions?.conditions || [
-      getDefaultCondition(trigger),
-    ]
+    initialWorkflow?.conditions?.conditions || [getDefaultCondition(trigger)]
   );
   const [actions, setActions] = useState<WorkflowAction[]>(
     initialWorkflow?.actions || [{ type: ActionType.ASSIGN_TO_USER, config: {} }]
@@ -103,7 +104,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
         const list = (Array.isArray(response?.data) ? response.data : response?.data?.users) ?? [];
         setUsers(list);
       } catch (err) {
-        console.error('Failed to load users for workflow builder', err);
+        console.error("Failed to load users for workflow builder", err);
       }
     };
     fetchUsers();
@@ -113,7 +114,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
         const list = await teamsService.getAll();
         setTeams(list || []);
       } catch (err) {
-        console.error('Failed to load teams for workflow builder', err);
+        console.error("Failed to load teams for workflow builder", err);
       }
     };
     fetchTeams();
@@ -204,7 +205,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
 
   const handleSave = async () => {
     if (!name.trim()) {
-      alert('Please enter a workflow name');
+      alert("Please enter a workflow name");
       return;
     }
 
@@ -222,8 +223,8 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
         actions,
       });
     } catch (error) {
-      console.error('Failed to save workflow:', error);
-      alert('Failed to save workflow. Please try again.');
+      console.error("Failed to save workflow:", error);
+      alert("Failed to save workflow. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -234,11 +235,13 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
       case ActionType.ASSIGN_TO_USER:
         return (
           <select
-            value={action.config.userId || ''}
-            onChange={(e) => updateActionConfig(index, 'userId', parseInt(e.target.value) || '')}
+            value={action.config.userId || ""}
+            onChange={(e) => updateActionConfig(index, "userId", parseInt(e.target.value) || "")}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
           >
-            <option value="" disabled>Select User</option>
+            <option value="" disabled>
+              Select User
+            </option>
             {users.map((user) => (
               <option key={user.id} value={user.id}>
                 {user.fullName}
@@ -249,11 +252,13 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
       case ActionType.ASSIGN_TO_TEAM:
         return (
           <select
-            value={action.config.teamId || ''}
-            onChange={(e) => updateActionConfig(index, 'teamId', parseInt(e.target.value) || '')}
+            value={action.config.teamId || ""}
+            onChange={(e) => updateActionConfig(index, "teamId", parseInt(e.target.value) || "")}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
           >
-            <option value="" disabled>Select Team</option>
+            <option value="" disabled>
+              Select Team
+            </option>
             {teams.map((team) => (
               <option key={team.id} value={team.id}>
                 {team.name}
@@ -266,8 +271,8 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
           <input
             type="text"
             placeholder="New Status"
-            value={action.config.status || ''}
-            onChange={(e) => updateActionConfig(index, 'status', e.target.value)}
+            value={action.config.status || ""}
+            onChange={(e) => updateActionConfig(index, "status", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
           />
         );
@@ -277,21 +282,21 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
             <input
               type="email"
               placeholder="To Email"
-              value={action.config.to || ''}
-              onChange={(e) => updateActionConfig(index, 'to', e.target.value)}
+              value={action.config.to || ""}
+              onChange={(e) => updateActionConfig(index, "to", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
             <input
               type="text"
               placeholder="Subject"
-              value={action.config.subject || ''}
-              onChange={(e) => updateActionConfig(index, 'subject', e.target.value)}
+              value={action.config.subject || ""}
+              onChange={(e) => updateActionConfig(index, "subject", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
             <textarea
               placeholder="Message"
-              value={action.config.body || ''}
-              onChange={(e) => updateActionConfig(index, 'body', e.target.value)}
+              value={action.config.body || ""}
+              onChange={(e) => updateActionConfig(index, "body", e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
@@ -303,14 +308,14 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
             <input
               type="text"
               placeholder="Task Title"
-              value={action.config.title || ''}
-              onChange={(e) => updateActionConfig(index, 'title', e.target.value)}
+              value={action.config.title || ""}
+              onChange={(e) => updateActionConfig(index, "title", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
             <textarea
               placeholder="Task Description"
-              value={action.config.description || ''}
-              onChange={(e) => updateActionConfig(index, 'description', e.target.value)}
+              value={action.config.description || ""}
+              onChange={(e) => updateActionConfig(index, "description", e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
@@ -322,8 +327,8 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
           <input
             type="text"
             placeholder="Tag Name"
-            value={action.config.tag || ''}
-            onChange={(e) => updateActionConfig(index, 'tag', e.target.value)}
+            value={action.config.tag || ""}
+            onChange={(e) => updateActionConfig(index, "tag", e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
           />
         );
@@ -333,15 +338,15 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
             <input
               type="text"
               placeholder="Field Name"
-              value={action.config.field || ''}
-              onChange={(e) => updateActionConfig(index, 'field', e.target.value)}
+              value={action.config.field || ""}
+              onChange={(e) => updateActionConfig(index, "field", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
             <input
               type="text"
               placeholder="New Value"
-              value={action.config.value || ''}
-              onChange={(e) => updateActionConfig(index, 'value', e.target.value)}
+              value={action.config.value || ""}
+              onChange={(e) => updateActionConfig(index, "value", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
             />
           </div>
@@ -357,7 +362,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {initialWorkflow ? 'Edit Workflow' : 'Create New Workflow'}
+            {initialWorkflow ? "Edit Workflow" : "Create New Workflow"}
           </h2>
           <button
             onClick={onClose}
@@ -405,7 +410,10 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
                 onChange={(e) => setIsActive(e.target.checked)}
                 className="w-4 h-4 text-weconnect-red border-gray-300 rounded focus:ring-weconnect-red"
               />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="isActive"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Active (workflow will run automatically)
               </label>
             </div>
@@ -454,22 +462,24 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
                   <GripVertical className="h-4 w-4 text-gray-400" />
                   <select
                     value={condition.field}
-                    onChange={(e) => updateCondition(index, 'field', e.target.value)}
+                    onChange={(e) => updateCondition(index, "field", e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                   >
-                    {Object.entries(groupFieldsByCategory(getFieldsForTrigger(trigger))).map(([category, fields]) => (
-                      <optgroup key={category} label={category}>
-                        {(fields as FieldOption[]).map((field) => (
-                          <option key={field.value} value={field.value}>
-                            {field.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
+                    {Object.entries(groupFieldsByCategory(getFieldsForTrigger(trigger))).map(
+                      ([category, fields]) => (
+                        <optgroup key={category} label={category}>
+                          {(fields as FieldOption[]).map((field) => (
+                            <option key={field.value} value={field.value}>
+                              {field.label}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )
+                    )}
                   </select>
                   <select
                     value={condition.operator}
-                    onChange={(e) => updateCondition(index, 'operator', e.target.value)}
+                    onChange={(e) => updateCondition(index, "operator", e.target.value)}
                     className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                   >
                     {OPERATOR_OPTIONS.map((op) => (
@@ -482,8 +492,8 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
                     condition.operator !== ConditionOperator.IS_NOT_EMPTY && (
                       <input
                         type="text"
-                        value={condition.value || ''}
-                        onChange={(e) => updateCondition(index, 'value', e.target.value)}
+                        value={condition.value || ""}
+                        onChange={(e) => updateCondition(index, "value", e.target.value)}
                         placeholder="Value"
                         className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                       />
@@ -574,7 +584,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ onClose, onSave, init
             disabled={isSaving}
             className="px-6 py-2 bg-weconnect-red text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Saving...' : 'Save Workflow'}
+            {isSaving ? "Saving..." : "Save Workflow"}
           </button>
         </div>
       </div>

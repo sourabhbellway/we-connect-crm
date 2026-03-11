@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, Button, PageLoader } from '../../components/ui';
-import { Tag, ArrowLeft, Save, Plus, Edit3, Trash2, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { tagService, Tag as TagType } from '../../services/tagService';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent, Button, PageLoader } from "../../components/ui";
+import { Tag, ArrowLeft, Save, Plus, Edit3, Trash2, Eye, EyeOff } from "lucide-react";
+import { toast } from "react-toastify";
+import { tagService, Tag as TagType } from "../../services/tagService";
 
 interface TagFormData {
   name: string;
@@ -14,15 +14,27 @@ interface TagFormData {
 
 // Predefined color palette for tags
 const predefinedColors = [
-  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6',
-  '#EC4899', '#14B8A6', '#F97316', '#84CC16', '#6366F1',
-  '#64748B', '#374151', '#7C2D12', '#B91C1C', '#365314'
+  "#EF4444",
+  "#F59E0B",
+  "#10B981",
+  "#3B82F6",
+  "#8B5CF6",
+  "#EC4899",
+  "#14B8A6",
+  "#F97316",
+  "#84CC16",
+  "#6366F1",
+  "#64748B",
+  "#374151",
+  "#7C2D12",
+  "#B91C1C",
+  "#365314",
 ];
 
 // Get a random color from the palette, avoiding any colors in "excludeColors".
 // If all colors are excluded, it falls back to the full palette.
 const getRandomColor = (excludeColors: string[] = []) => {
-  const availableColors = predefinedColors.filter(color => !excludeColors.includes(color));
+  const availableColors = predefinedColors.filter((color) => !excludeColors.includes(color));
   const pool = availableColors.length > 0 ? availableColors : predefinedColors;
   return pool[Math.floor(Math.random() * pool.length)];
 };
@@ -34,9 +46,9 @@ const TagsPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<TagFormData>(() => ({
-    name: '',
+    name: "",
     color: getRandomColor(),
-    description: '',
+    description: "",
     isActive: true,
   }));
   const [isSaving, setIsSaving] = useState(false);
@@ -52,8 +64,8 @@ const TagsPage: React.FC = () => {
       const data = await tagService.getTags();
       setTags(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error('Failed to fetch tags:', error);
-      toast.error('Failed to load tags');
+      console.error("Failed to fetch tags:", error);
+      toast.error("Failed to load tags");
       setTags([]);
     } finally {
       setIsLoading(false);
@@ -61,14 +73,12 @@ const TagsPage: React.FC = () => {
   };
 
   const resetForm = () => {
-    const usedColors = tags
-      .map(t => t.color)
-      .filter((c): c is string => Boolean(c));
+    const usedColors = tags.map((t) => t.color).filter((c): c is string => Boolean(c));
 
     setFormData({
-      name: '',
+      name: "",
       color: getRandomColor(usedColors),
-      description: '',
+      description: "",
       isActive: true,
     });
     setIsEditing(false);
@@ -79,7 +89,7 @@ const TagsPage: React.FC = () => {
     setFormData({
       name: tag.name,
       color: tag.color || getRandomColor(),
-      description: tag.description || '',
+      description: tag.description || "",
       isActive: tag.isActive !== undefined ? tag.isActive : true,
     });
     setEditingId(tag.id);
@@ -88,14 +98,14 @@ const TagsPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate form similar to Lead form (inline errors instead of browser popup)
     const validationErrors: { name?: string } = {};
-    const trimmedName = (formData.name || '').trim();
+    const trimmedName = (formData.name || "").trim();
     if (!trimmedName) {
-      validationErrors.name = 'Tag name is required';
+      validationErrors.name = "Tag name is required";
     } else if (trimmedName.length > 50) {
-      validationErrors.name = 'Tag name must be at most 50 characters';
+      validationErrors.name = "Tag name must be at most 50 characters";
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -105,49 +115,50 @@ const TagsPage: React.FC = () => {
 
     setErrors({});
     setIsSaving(true);
-    
+
     try {
       // Only send fields that the backend accepts
       const payload = {
         name: trimmedName,
-        color: formData.color || '#3B82F6',
+        color: formData.color || "#3B82F6",
         description: formData.description || undefined,
         isActive: formData.isActive,
       };
-      
+
       if (editingId) {
         const result = await tagService.updateTag(editingId, payload);
         if (result) {
-          toast.success('Tag updated successfully');
+          toast.success("Tag updated successfully");
         }
       } else {
         const result = await tagService.createTag(payload);
         if (result) {
-          toast.success('Tag added successfully');
+          toast.success("Tag added successfully");
         }
       }
       resetForm();
       fetchTags();
     } catch (error: any) {
-      console.error('Failed to save tag:', error);
-      const errorMessage = error?.response?.data?.message?.message || 
-                          error?.response?.data?.message || 
-                          'Failed to save tag';
-      toast.error(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      console.error("Failed to save tag:", error);
+      const errorMessage =
+        error?.response?.data?.message?.message ||
+        error?.response?.data?.message ||
+        "Failed to save tag";
+      toast.error(Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this tag? This action cannot be undone.')) {
+    if (window.confirm("Are you sure you want to delete this tag? This action cannot be undone.")) {
       try {
         await tagService.deleteTag(id);
-        toast.success('Tag deleted successfully');
+        toast.success("Tag deleted successfully");
         fetchTags();
       } catch (error) {
-        console.error('Failed to delete tag:', error);
-        toast.error('Failed to delete tag');
+        console.error("Failed to delete tag:", error);
+        toast.error("Failed to delete tag");
       }
     }
   };
@@ -155,11 +166,11 @@ const TagsPage: React.FC = () => {
   const handleToggleActive = async (id: number, isActive: boolean) => {
     try {
       await tagService.updateTag(id, { isActive: !isActive });
-      toast.success('Tag updated successfully');
+      toast.success("Tag updated successfully");
       fetchTags();
     } catch (error) {
-      console.error('Failed to update tag:', error);
-      toast.error('Failed to update tag');
+      console.error("Failed to update tag:", error);
+      toast.error("Failed to update tag");
     }
   };
 
@@ -174,7 +185,7 @@ const TagsPage: React.FC = () => {
         <Button
           variant="GHOST"
           size="sm"
-          onClick={() => navigate('/business-settings')}
+          onClick={() => navigate("/business-settings")}
           className="p-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -184,9 +195,7 @@ const TagsPage: React.FC = () => {
             <Tag className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Tags Management
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tags Management</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Configure and manage tags for organizing leads and deals
             </p>
@@ -200,7 +209,7 @@ const TagsPage: React.FC = () => {
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {isEditing ? 'Edit Tag' : 'Add New Tag'}
+                {isEditing ? "Edit Tag" : "Add New Tag"}
               </h3>
             </CardHeader>
             <CardContent>
@@ -214,21 +223,24 @@ const TagsPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => {
                       const value = e.target.value;
-                      setFormData(prev => ({ ...prev, name: value }));
+                      setFormData((prev) => ({ ...prev, name: value }));
                       // simple on-change validation for better UX
                       const trimmed = value.trim();
                       if (!trimmed) {
-                        setErrors(prev => ({ ...prev, name: 'Tag name is required' }));
+                        setErrors((prev) => ({ ...prev, name: "Tag name is required" }));
                       } else if (trimmed.length > 50) {
-                        setErrors(prev => ({ ...prev, name: 'Tag name must be at most 50 characters' }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          name: "Tag name must be at most 50 characters",
+                        }));
                       } else {
-                        setErrors(prev => ({ ...prev, name: undefined }));
+                        setErrors((prev) => ({ ...prev, name: undefined }));
                       }
                     }}
                     className={`w-full p-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                       errors.name
-                        ? 'border-red-300 dark:border-red-600'
-                        : 'border-gray-300 dark:border-gray-600'
+                        ? "border-red-300 dark:border-red-600"
+                        : "border-gray-300 dark:border-gray-600"
                     }`}
                     placeholder="e.g., Hot Lead, VIP, Follow-up"
                   />
@@ -243,7 +255,9 @@ const TagsPage: React.FC = () => {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     rows={3}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Brief description of this tag"
@@ -258,23 +272,23 @@ const TagsPage: React.FC = () => {
                     <input
                       type="color"
                       value={formData.color}
-                      onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
                       className="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
                     />
                     <input
                       type="text"
                       value={formData.color}
-                      onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
                       className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-5 gap-2">
-                    {predefinedColors.map(color => (
+                    {predefinedColors.map((color) => (
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, color }))}
-                        className={`w-8 h-8 rounded border-2 ${formData.color === color ? 'border-gray-800 dark:border-white' : 'border-gray-300 dark:border-gray-600'}`}
+                        onClick={() => setFormData((prev) => ({ ...prev, color }))}
+                        className={`w-8 h-8 rounded border-2 ${formData.color === color ? "border-gray-800 dark:border-white" : "border-gray-300 dark:border-gray-600"}`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -286,7 +300,9 @@ const TagsPage: React.FC = () => {
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, isActive: e.target.checked }))
+                    }
                     className="rounded border-gray-300 dark:border-gray-600"
                   />
                   <label htmlFor="isActive" className="text-sm text-gray-700 dark:text-gray-300">
@@ -302,14 +318,10 @@ const TagsPage: React.FC = () => {
                     className="flex items-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    {isSaving ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+                    {isSaving ? "Saving..." : isEditing ? "Update" : "Add"}
                   </Button>
                   {isEditing && (
-                    <Button
-                      type="button"
-                      variant="OUTLINE"
-                      onClick={resetForm}
-                    >
+                    <Button type="button" variant="OUTLINE" onClick={resetForm}>
                       Cancel
                     </Button>
                   )}
@@ -359,9 +371,9 @@ const TagsPage: React.FC = () => {
                       <div className="flex items-center gap-4 flex-1">
                         <div
                           className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600"
-                          style={{ backgroundColor: tag.color || '#6B7280' }}
+                          style={{ backgroundColor: tag.color || "#6B7280" }}
                         />
-                        
+
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-medium text-gray-900 dark:text-white">
@@ -387,7 +399,7 @@ const TagsPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleToggleActive(tag.id, tag.isActive !== false)}
                           className="p-1"
-                          title={tag.isActive !== false ? 'Deactivate' : 'Activate'}
+                          title={tag.isActive !== false ? "Deactivate" : "Activate"}
                         >
                           {tag.isActive !== false ? (
                             <Eye className="w-4 h-4 text-green-500" />
@@ -395,7 +407,7 @@ const TagsPage: React.FC = () => {
                             <EyeOff className="w-4 h-4 text-gray-400" />
                           )}
                         </Button>
-                        
+
                         <Button
                           variant="GHOST"
                           size="sm"
@@ -405,7 +417,7 @@ const TagsPage: React.FC = () => {
                         >
                           <Edit3 className="w-4 h-4 text-blue-500" />
                         </Button>
-                        
+
                         <Button
                           variant="GHOST"
                           size="sm"
@@ -429,22 +441,20 @@ const TagsPage: React.FC = () => {
       {tags.length > 0 && (
         <Card>
           <CardHeader>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Tags Analytics
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Tags Analytics</h3>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {tags.filter(t => t.isActive !== false).length}
+                  {tags.filter((t) => t.isActive !== false).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Tags</p>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                  {tags.filter(t => t.isActive === false).length}
+                  {tags.filter((t) => t.isActive === false).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Inactive Tags</p>
               </div>
@@ -457,4 +467,3 @@ const TagsPage: React.FC = () => {
 };
 
 export default TagsPage;
-

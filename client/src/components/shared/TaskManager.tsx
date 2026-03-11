@@ -1,22 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  CheckCircle, Circle, Clock, User, Calendar, Filter, Search,
-  AlertCircle, Flag, CalendarDays,
-  Target, TrendingUp, MoreVertical, Eye, Edit, Trash2
-} from 'lucide-react';
-import ReactDOM from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import { Button, Card } from '../ui';
-import { useAuth } from '../../contexts/AuthContext';
-import { toast } from 'react-toastify';
-import { tasksService } from '../../services/tasksService';
+  CheckCircle,
+  Circle,
+  Clock,
+  User,
+  Calendar,
+  Filter,
+  Search,
+  AlertCircle,
+  Flag,
+  CalendarDays,
+  Target,
+  TrendingUp,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import ReactDOM from "react-dom";
+import { useNavigate } from "react-router-dom";
+import { Button, Card } from "../ui";
+import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "react-toastify";
+import { tasksService } from "../../services/tasksService";
 
 interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: string;
   completedAt?: string;
   assignedTo?: {
@@ -34,17 +47,16 @@ interface Task {
 }
 
 interface TaskManagerProps {
-  entityType: 'lead' | 'deal' | 'contact' | 'company';
+  entityType: "lead" | "deal" | "contact" | "company";
   entityId: string;
   tasks: Task[];
 }
-
 
 const TaskActionMenu = ({
   task,
   onView,
   onEdit,
-  onDelete
+  onDelete,
 }: {
   task: any;
   onView: (task: any) => void;
@@ -59,21 +71,21 @@ const TaskActionMenu = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         const target = event.target as Element;
-        if (!target.closest('.action-menu-dropdown')) {
+        if (!target.closest(".action-menu-dropdown")) {
           setIsOpen(false);
         }
       }
     };
 
     if (isOpen) {
-      window.addEventListener('mousedown', handleClickOutside);
-      window.addEventListener('scroll', () => setIsOpen(false), true);
-      window.addEventListener('resize', () => setIsOpen(false));
+      window.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", () => setIsOpen(false), true);
+      window.addEventListener("resize", () => setIsOpen(false));
     }
     return () => {
-      window.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', () => setIsOpen(false), true);
-      window.removeEventListener('resize', () => setIsOpen(false));
+      window.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", () => setIsOpen(false), true);
+      window.removeEventListener("resize", () => setIsOpen(false));
     };
   }, [isOpen]);
 
@@ -92,11 +104,11 @@ const TaskActionMenu = ({
       }
 
       setMenuStyle({
-        position: 'fixed',
+        position: "fixed",
         top: `${top}px`,
         left: `${left}px`,
         zIndex: 9999,
-        width: `${menuWidth}px`
+        width: `${menuWidth}px`,
       });
     }
     setIsOpen(!isOpen);
@@ -112,63 +124,69 @@ const TaskActionMenu = ({
         <MoreVertical className="h-4 w-4" />
       </button>
 
-      {isOpen && ReactDOM.createPortal(
-        <div
-          className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
-          style={menuStyle}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => { onView(task); setIsOpen(false); }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div
+            className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+            style={menuStyle}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Eye className="h-4 w-4 text-gray-400" />
-            View
-          </button>
+            <button
+              onClick={() => {
+                onView(task);
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4 text-gray-400" />
+              View
+            </button>
 
-          <button
-            onClick={() => { onEdit(task); setIsOpen(false); }}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
-          >
-            <Edit className="h-4 w-4 text-blue-500" />
-            Edit
-          </button>
+            <button
+              onClick={() => {
+                onEdit(task);
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4 text-blue-500" />
+              Edit
+            </button>
 
-          <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+            <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
 
-          <button
-            onClick={() => { onDelete(task); setIsOpen(false); }}
-            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-            Delete
-          </button>
-        </div>,
-        document.body
-      )}
+            <button
+              onClick={() => {
+                onDelete(task);
+                setIsOpen(false);
+              }}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+              Delete
+            </button>
+          </div>,
+          document.body
+        )}
     </>
   );
 };
 
-const TaskManager: React.FC<TaskManagerProps> = ({
-  entityType,
-  entityId,
-  tasks: initialTasks
-}) => {
+const TaskManager: React.FC<TaskManagerProps> = ({ entityType, entityId, tasks: initialTasks }) => {
   const navigate = useNavigate();
   const { user, hasPermission } = useAuth();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [isLoading, setIsLoading] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState({
-    title: '',
-    description: '',
-    priority: 'MEDIUM',
-    dueDate: '', // ISO yyyy-mm-dd
+    title: "",
+    description: "",
+    priority: "MEDIUM",
+    dueDate: "", // ISO yyyy-mm-dd
   });
 
   useEffect(() => {
@@ -179,13 +197,29 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const refresh = async () => {
     try {
       setIsLoading(true);
-      const res = await tasksService.list({ entityType: entityType as any, entityId, status: 'PENDING,IN_PROGRESS,COMPLETED' });
+      const res = await tasksService.list({
+        entityType: entityType as any,
+        entityId,
+        status: "PENDING,IN_PROGRESS,COMPLETED",
+      });
       const list = res?.data?.tasks || res?.data?.items || res?.tasks || res?.items || [];
       const mapped = list.map((t: any) => ({
         ...t,
         id: String(t.id),
-        assignedTo: t.assignedUser ? { id: String(t.assignedUser.id), firstName: t.assignedUser.firstName, lastName: t.assignedUser.lastName } : undefined,
-        createdBy: t.createdByUser ? { id: String(t.createdByUser.id), firstName: t.createdByUser.firstName, lastName: t.createdByUser.lastName } : undefined,
+        assignedTo: t.assignedUser
+          ? {
+              id: String(t.assignedUser.id),
+              firstName: t.assignedUser.firstName,
+              lastName: t.assignedUser.lastName,
+            }
+          : undefined,
+        createdBy: t.createdByUser
+          ? {
+              id: String(t.createdByUser.id),
+              firstName: t.createdByUser.firstName,
+              lastName: t.createdByUser.lastName,
+            }
+          : undefined,
       }));
       setTasks(mapped);
     } catch (e) {
@@ -199,49 +233,49 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const handleCreate = async () => {
     try {
       if (!form.title.trim()) {
-        toast.error('Please enter a task title');
+        toast.error("Please enter a task title");
         return;
       }
       const creatorId = Number((user as any)?.id || (user as any)?.userId);
       if (!creatorId) {
-        toast.error('Unable to determine current user');
+        toast.error("Unable to determine current user");
         return;
       }
       setIsCreating(true);
       const link: any = {};
-      if (entityType === 'deal') link.dealId = Number(entityId);
-      if (entityType === 'lead') link.leadId = Number(entityId);
-      if (entityType === 'contact') link.contactId = Number(entityId);
+      if (entityType === "deal") link.dealId = Number(entityId);
+      if (entityType === "lead") link.leadId = Number(entityId);
+      if (entityType === "contact") link.contactId = Number(entityId);
 
       await tasksService.create({
         title: form.title.trim(),
         description: form.description?.trim() || undefined,
         priority: form.priority as any,
-        status: 'PENDING',
+        status: "PENDING",
         dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : undefined,
         createdBy: creatorId,
         // Link directly using relation IDs only (leadId/dealId/contactId)
         ...link,
       });
-      toast.success('Task created');
+      toast.success("Task created");
       setShowCreate(false);
-      setForm({ title: '', description: '', priority: 'MEDIUM', dueDate: '' });
+      setForm({ title: "", description: "", priority: "MEDIUM", dueDate: "" });
       await refresh();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Failed to create task');
+      toast.error(e?.response?.data?.message || "Failed to create task");
     } finally {
       setIsCreating(false);
     }
   };
 
   const handleDeleteTask = async (task: Task) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
     try {
       await tasksService.remove(Number(task.id));
-      toast.success('Task deleted');
+      toast.success("Task deleted");
       refresh();
     } catch (e) {
-      toast.error('Failed to delete task');
+      toast.error("Failed to delete task");
     }
   };
 
@@ -250,10 +284,11 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
   // Filter and sort tasks
   const filteredTasks = tasks
-    .filter(task => {
-      const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
-      const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
-      const matchesSearch = searchTerm === '' ||
+    .filter((task) => {
+      const matchesStatus = filterStatus === "all" || task.status === filterStatus;
+      const matchesPriority = filterPriority === "all" || task.priority === filterPriority;
+      const matchesSearch =
+        searchTerm === "" ||
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesStatus && matchesPriority && matchesSearch;
@@ -278,31 +313,31 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
   const getPriorityColor = (priority: string) => {
     const colors = {
-      LOW: 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300',
-      MEDIUM: 'text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300',
-      HIGH: 'text-orange-600 bg-orange-100 dark:bg-orange-900 dark:text-orange-300',
-      URGENT: 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300'
+      LOW: "text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300",
+      MEDIUM: "text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300",
+      HIGH: "text-orange-600 bg-orange-100 dark:bg-orange-900 dark:text-orange-300",
+      URGENT: "text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300",
     };
     return colors[priority as keyof typeof colors] || colors.MEDIUM;
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      PENDING: 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300',
-      IN_PROGRESS: 'text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300',
-      COMPLETED: 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300',
-      CANCELLED: 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300'
+      PENDING: "text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300",
+      IN_PROGRESS: "text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300",
+      COMPLETED: "text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300",
+      CANCELLED: "text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300",
     };
     return colors[status as keyof typeof colors] || colors.PENDING;
   };
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'URGENT':
+      case "URGENT":
         return <AlertCircle size={16} className="text-red-600" />;
-      case 'HIGH':
+      case "HIGH":
         return <Flag size={16} className="text-orange-600" />;
-      case 'MEDIUM':
+      case "MEDIUM":
         return <TrendingUp size={16} className="text-blue-600" />;
       default:
         return <Target size={16} className="text-gray-600" />;
@@ -311,11 +346,11 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case "COMPLETED":
         return <CheckCircle size={20} className="text-green-600" />;
-      case 'IN_PROGRESS':
+      case "IN_PROGRESS":
         return <Clock size={20} className="text-blue-600" />;
-      case 'CANCELLED':
+      case "CANCELLED":
         return <Circle size={20} className="text-red-600" />;
       default:
         return <Circle size={20} className="text-gray-400" />;
@@ -331,9 +366,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     if (diffDays < 0) {
       return `Overdue by ${Math.abs(diffDays)} days`;
     } else if (diffDays === 0) {
-      return 'Due today';
+      return "Due today";
     } else if (diffDays === 1) {
-      return 'Due tomorrow';
+      return "Due tomorrow";
     } else if (diffDays <= 7) {
       return `Due in ${diffDays} days`;
     } else {
@@ -347,51 +382,65 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
   const handleToggleStatus = async (taskId: string, currentStatus: string) => {
     try {
-      if (currentStatus === 'COMPLETED') {
+      if (currentStatus === "COMPLETED") {
         // Reopen task
-        await tasksService.update(Number(taskId), { status: 'PENDING' });
-        setTasks(prev => (prev as any[]).map(t => (t.id === taskId ? { ...t, status: 'PENDING', completedAt: undefined } : t)));
-        toast.success('Task reopened');
+        await tasksService.update(Number(taskId), { status: "PENDING" });
+        setTasks((prev) =>
+          (prev as any[]).map((t) =>
+            t.id === taskId ? { ...t, status: "PENDING", completedAt: undefined } : t
+          )
+        );
+        toast.success("Task reopened");
       } else {
         await tasksService.complete(Number(taskId));
-        setTasks(prev => (prev as any[]).map(t => (t.id === taskId ? { ...t, status: 'COMPLETED', completedAt: new Date().toISOString() } : t)));
-        toast.success('Task marked as completed');
+        setTasks((prev) =>
+          (prev as any[]).map((t) =>
+            t.id === taskId
+              ? { ...t, status: "COMPLETED", completedAt: new Date().toISOString() }
+              : t
+          )
+        );
+        toast.success("Task marked as completed");
       }
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Failed to update task');
+      toast.error(e?.response?.data?.message || "Failed to update task");
     }
   };
 
   // Group tasks by status for better visualization
   const groupedTasks = {
-    pending: filteredTasks.filter(task => task.status === 'PENDING'),
-    inProgress: filteredTasks.filter(task => task.status === 'IN_PROGRESS'),
-    completed: filteredTasks.filter(task => task.status === 'COMPLETED'),
-    cancelled: filteredTasks.filter(task => task.status === 'CANCELLED')
+    pending: filteredTasks.filter((task) => task.status === "PENDING"),
+    inProgress: filteredTasks.filter((task) => task.status === "IN_PROGRESS"),
+    completed: filteredTasks.filter((task) => task.status === "COMPLETED"),
+    cancelled: filteredTasks.filter((task) => task.status === "CANCELLED"),
   };
 
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.status === 'COMPLETED').length;
-  const overdueTasks = tasks.filter(task => task.dueDate && isOverdue(task.dueDate) && task.status !== 'COMPLETED').length;
+  const completedTasks = tasks.filter((task) => task.status === "COMPLETED").length;
+  const overdueTasks = tasks.filter(
+    (task) => task.dueDate && isOverdue(task.dueDate) && task.status !== "COMPLETED"
+  ).length;
 
   return (
     <div className="space-y-6">
       {/* Header with Stats */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Task Management
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Task Management</h2>
           <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mt-1">
             <span>{totalTasks} total</span>
             <span>{completedTasks} completed</span>
             {overdueTasks > 0 && (
-              <span className="text-red-600 dark:text-red-400 font-medium">{overdueTasks} overdue</span>
+              <span className="text-red-600 dark:text-red-400 font-medium">
+                {overdueTasks} overdue
+              </span>
             )}
           </div>
         </div>
-        {hasPermission('task.create') && (
-          <Button onClick={() => setShowCreate(v => !v)}>{showCreate ? 'Cancel' : 'New Task'}</Button>
+        {hasPermission("task.create") && (
+          <Button onClick={() => setShowCreate((v) => !v)}>
+            {showCreate ? "Cancel" : "New Task"}
+          </Button>
         )}
       </div>
 
@@ -410,7 +459,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Due Date</label>
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Due Date
+              </label>
               <input
                 type="date"
                 value={form.dueDate}
@@ -419,7 +470,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Priority</label>
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Priority
+              </label>
               <select
                 value={form.priority}
                 onChange={(e) => setForm({ ...form, priority: e.target.value })}
@@ -432,7 +485,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">Description</label>
+              <label className="block text-sm text-gray-600 dark:text-gray-300 mb-1">
+                Description
+              </label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -443,10 +498,16 @@ const TaskManager: React.FC<TaskManagerProps> = ({
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2">
-            <Button onClick={handleCreate} disabled={isCreating} className="bg-weconnect-red hover:bg-red-600">
-              {isCreating ? 'Creating...' : 'Create Task'}
+            <Button
+              onClick={handleCreate}
+              disabled={isCreating}
+              className="bg-weconnect-red hover:bg-red-600"
+            >
+              {isCreating ? "Creating..." : "Create Task"}
             </Button>
-            <Button variant="OUTLINE" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="OUTLINE" onClick={() => setShowCreate(false)}>
+              Cancel
+            </Button>
           </div>
         </Card>
       )}
@@ -455,7 +516,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
       <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={16}
+            />
             <input
               type="text"
               placeholder="Search tasks..."
@@ -521,10 +585,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               No Tasks Found
             </h3>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              {searchTerm || filterStatus !== 'all' || filterPriority !== 'all'
-                ? 'Try adjusting your search or filter criteria.'
-                : 'Create your first task to start organizing your work.'
-              }
+              {searchTerm || filterStatus !== "all" || filterPriority !== "all"
+                ? "Try adjusting your search or filter criteria."
+                : "Create your first task to start organizing your work."}
             </p>
           </Card>
         ) : (
@@ -543,18 +606,25 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                   {/* Task Content */}
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className={`text-lg font-semibold ${task.status === 'COMPLETED'
-                        ? 'line-through text-gray-500 dark:text-gray-400'
-                        : 'text-gray-900 dark:text-white'
-                        }`}>
+                      <h3
+                        className={`text-lg font-semibold ${
+                          task.status === "COMPLETED"
+                            ? "line-through text-gray-500 dark:text-gray-400"
+                            : "text-gray-900 dark:text-white"
+                        }`}
+                      >
                         {task.title}
                       </h3>
 
                       <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}>
-                          {task.status.replace('_', ' ')}
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(task.status)}`}
+                        >
+                          {task.status.replace("_", " ")}
                         </span>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(task.priority)}`}
+                        >
                           {getPriorityIcon(task.priority)}
                           <span className="ml-1">{task.priority}</span>
                         </span>
@@ -562,17 +632,18 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                     </div>
 
                     {task.description && (
-                      <p className="text-gray-600 dark:text-gray-400 mb-3">
-                        {task.description}
-                      </p>
+                      <p className="text-gray-600 dark:text-gray-400 mb-3">{task.description}</p>
                     )}
 
                     <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                       {task.dueDate && (
-                        <div className={`flex items-center ${isOverdue(task.dueDate) && task.status !== 'COMPLETED'
-                          ? 'text-red-600 dark:text-red-400 font-medium'
-                          : ''
-                          }`}>
+                        <div
+                          className={`flex items-center ${
+                            isOverdue(task.dueDate) && task.status !== "COMPLETED"
+                              ? "text-red-600 dark:text-red-400 font-medium"
+                              : ""
+                          }`}
+                        >
                           <CalendarDays size={14} className="mr-1" />
                           {formatDueDate(task.dueDate)}
                         </div>
@@ -622,7 +693,8 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               Overall Progress
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {completedTasks} of {totalTasks} completed ({Math.round((completedTasks / totalTasks) * 100)}%)
+              {completedTasks} of {totalTasks} completed (
+              {Math.round((completedTasks / totalTasks) * 100)}%)
             </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">

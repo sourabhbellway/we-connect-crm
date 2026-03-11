@@ -54,9 +54,7 @@ export const notesService = {
   // Get all notes for a lead
   getNotesByLeadId: async (leadId: number) => {
     try {
-      const response = await createAuthInstance().get(
-        `/notes?leadId=${leadId}`
-      );
+      const response = await createAuthInstance().get(`/notes?leadId=${leadId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching notes:", error);
@@ -108,4 +106,3 @@ export const notesService = {
     }
   },
 };
-

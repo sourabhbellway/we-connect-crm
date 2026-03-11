@@ -21,7 +21,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('business-settings/unit-types')
 export class UnitTypesController {
-  constructor(private readonly unitTypesService: UnitTypesService) { }
+  constructor(private readonly unitTypesService: UnitTypesService) {}
 
   @Post()
   @RequirePermission('unit_types.create')

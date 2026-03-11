@@ -37,7 +37,7 @@ export class NotificationsController {
   // Store active SSE connections per user
   private userStreams = new Map<number, Subject<MessageEvent>>();
 
-  constructor(private readonly notificationsService: NotificationsService) { }
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   // Get all notifications for current user
   @Get()

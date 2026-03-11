@@ -41,7 +41,6 @@ const saveFields = (fields: UserFieldDef[]) => {
   } catch {}
 };
 
-
 const SectionHeader: React.FC<{
   icon: React.ReactNode;
   title: string;
@@ -50,9 +49,7 @@ const SectionHeader: React.FC<{
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center space-x-2">
       {icon}
-      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-        {title}
-      </h3>
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
     </div>
     {action}
   </div>
@@ -60,7 +57,10 @@ const SectionHeader: React.FC<{
 
 const UserSettings: React.FC = () => {
   const [userFields, setUserFields] = useState<UserFieldDef[]>([]);
-  const [fieldModal, setFieldModal] = useState<{ open: boolean; editing: UserFieldDef | null }>({ open: false, editing: null });
+  const [fieldModal, setFieldModal] = useState<{ open: boolean; editing: UserFieldDef | null }>({
+    open: false,
+    editing: null,
+  });
   const [modalType, setModalType] = useState<FieldType>("TEXT");
 
   const openNewField = () => setFieldModal({ open: true, editing: null });
@@ -69,18 +69,146 @@ const UserSettings: React.FC = () => {
   const seedDefaults = () => {
     const now = Date.now();
     const defaults: UserFieldDef[] = [
-      { id: now - 1300, name: "First Name", key: "first_name", type: "TEXT", canBeTurnedOff: false, required: true, description: "User's first name", isActive: true, isDefault: true },
-      { id: now - 1200, name: "Last Name", key: "last_name", type: "TEXT", canBeTurnedOff: false, required: true, description: "User's last name", isActive: true, isDefault: true },
-      { id: now - 1100, name: "Email", key: "email", type: "EMAIL", canBeTurnedOff: false, required: true, description: "Work email", isActive: true, isDefault: true },
-      { id: now - 1000, name: "Phone Number", key: "phone", type: "PHONE", canBeTurnedOff: true, required: false, description: "Work or mobile number", isActive: true, isDefault: true },
-      { id: now - 900, name: "Role", key: "role_id", type: "DROPDOWN", canBeTurnedOff: true, required: true, description: "User's role", isActive: true, isDefault: true, optionsSource: "roles" },
-      { id: now - 800, name: "Department", key: "department_id", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "Department", isActive: true, isDefault: true, options: [], optionsSource: "manual" },
-      { id: now - 700, name: "Manager", key: "manager_id", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "Reporting manager", isActive: true, isDefault: true, optionsSource: "users" },
-      { id: now - 600, name: "Status", key: "status", type: "DROPDOWN", canBeTurnedOff: true, required: true, description: "Active / Inactive", isActive: true, isDefault: true, options: ["Active", "Inactive"], optionsSource: "manual" },
-      { id: now - 500, name: "Created Date", key: "created_at", type: "DATE", canBeTurnedOff: false, required: true, description: "Account creation date", isActive: true, isDefault: true },
-      { id: now - 400, name: "Last Login", key: "last_login_at", type: "DATE", canBeTurnedOff: true, required: false, description: "Timestamp of last login", isActive: true, isDefault: true },
-      { id: now - 300, name: "Location / Time Zone", key: "time_zone", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "For routing and availability", isActive: true, isDefault: true, options: [], optionsSource: "manual" },
-      { id: now - 200, name: "Profile Picture", key: "profile_picture", type: "IMAGE", canBeTurnedOff: true, required: false, description: "Avatar or profile image", isActive: true, isDefault: true },
+      {
+        id: now - 1300,
+        name: "First Name",
+        key: "first_name",
+        type: "TEXT",
+        canBeTurnedOff: false,
+        required: true,
+        description: "User's first name",
+        isActive: true,
+        isDefault: true,
+      },
+      {
+        id: now - 1200,
+        name: "Last Name",
+        key: "last_name",
+        type: "TEXT",
+        canBeTurnedOff: false,
+        required: true,
+        description: "User's last name",
+        isActive: true,
+        isDefault: true,
+      },
+      {
+        id: now - 1100,
+        name: "Email",
+        key: "email",
+        type: "EMAIL",
+        canBeTurnedOff: false,
+        required: true,
+        description: "Work email",
+        isActive: true,
+        isDefault: true,
+      },
+      {
+        id: now - 1000,
+        name: "Phone Number",
+        key: "phone",
+        type: "PHONE",
+        canBeTurnedOff: true,
+        required: false,
+        description: "Work or mobile number",
+        isActive: true,
+        isDefault: true,
+      },
+      {
+        id: now - 900,
+        name: "Role",
+        key: "role_id",
+        type: "DROPDOWN",
+        canBeTurnedOff: true,
+        required: true,
+        description: "User's role",
+        isActive: true,
+        isDefault: true,
+        optionsSource: "roles",
+      },
+      {
+        id: now - 800,
+        name: "Department",
+        key: "department_id",
+        type: "DROPDOWN",
+        canBeTurnedOff: true,
+        required: false,
+        description: "Department",
+        isActive: true,
+        isDefault: true,
+        options: [],
+        optionsSource: "manual",
+      },
+      {
+        id: now - 700,
+        name: "Manager",
+        key: "manager_id",
+        type: "DROPDOWN",
+        canBeTurnedOff: true,
+        required: false,
+        description: "Reporting manager",
+        isActive: true,
+        isDefault: true,
+        optionsSource: "users",
+      },
+      {
+        id: now - 600,
+        name: "Status",
+        key: "status",
+        type: "DROPDOWN",
+        canBeTurnedOff: true,
+        required: true,
+        description: "Active / Inactive",
+        isActive: true,
+        isDefault: true,
+        options: ["Active", "Inactive"],
+        optionsSource: "manual",
+      },
+      {
+        id: now - 500,
+        name: "Created Date",
+        key: "created_at",
+        type: "DATE",
+        canBeTurnedOff: false,
+        required: true,
+        description: "Account creation date",
+        isActive: true,
+        isDefault: true,
+      },
+      {
+        id: now - 400,
+        name: "Last Login",
+        key: "last_login_at",
+        type: "DATE",
+        canBeTurnedOff: true,
+        required: false,
+        description: "Timestamp of last login",
+        isActive: true,
+        isDefault: true,
+      },
+      {
+        id: now - 300,
+        name: "Location / Time Zone",
+        key: "time_zone",
+        type: "DROPDOWN",
+        canBeTurnedOff: true,
+        required: false,
+        description: "For routing and availability",
+        isActive: true,
+        isDefault: true,
+        options: [],
+        optionsSource: "manual",
+      },
+      {
+        id: now - 200,
+        name: "Profile Picture",
+        key: "profile_picture",
+        type: "IMAGE",
+        canBeTurnedOff: true,
+        required: false,
+        description: "Avatar or profile image",
+        isActive: true,
+        isDefault: true,
+      },
     ];
     saveFields(defaults);
     setUserFields(defaults);
@@ -114,7 +242,10 @@ const UserSettings: React.FC = () => {
       options: (() => {
         const raw = String(fd.get("options") || "").trim();
         if (!raw) return undefined;
-        return raw.split(/\n|,/).map((s) => s.trim()).filter((s) => s.length > 0);
+        return raw
+          .split(/\n|,/)
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
       })(),
       optionsSource: ((): "manual" | "roles" | "users" | undefined => {
         const src = String(fd.get("optionsSource") || "manual");
@@ -137,7 +268,14 @@ const UserSettings: React.FC = () => {
       if (payload.id) {
         next = prev.map((x) =>
           x.id === payload.id
-            ? ({ ...(x as any), ...payload, options: payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT" ? payload.options ?? x.options : undefined } as UserFieldDef)
+            ? ({
+                ...(x as any),
+                ...payload,
+                options:
+                  payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT"
+                    ? (payload.options ?? x.options)
+                    : undefined,
+              } as UserFieldDef)
             : x
         );
       } else {
@@ -149,8 +287,14 @@ const UserSettings: React.FC = () => {
           canBeTurnedOff: Boolean(payload.canBeTurnedOff),
           required: Boolean(payload.required),
           description: payload.description,
-          options: payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT" ? payload.options : undefined,
-          optionsSource: payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT" ? payload.optionsSource || "manual" : undefined,
+          options:
+            payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT"
+              ? payload.options
+              : undefined,
+          optionsSource:
+            payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT"
+              ? payload.optionsSource || "manual"
+              : undefined,
           isActive: payload.isActive ?? true,
           isDefault: Boolean(payload.isDefault),
         };
@@ -204,17 +348,13 @@ const UserSettings: React.FC = () => {
           {/* Page header */}
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                User Settings
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">User Settings</h2>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Configure the user form fields for your team
               </p>
             </div>
             <BackButton to="/settings" />
           </div>
-
-      
 
           {/* User Form Configuration */}
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/60 dark:border-gray-700/60 p-5 my-6">
@@ -251,7 +391,9 @@ const UserSettings: React.FC = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Field Name</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Field Name
+                  </label>
                   <input
                     name="name"
                     defaultValue={fieldModal.editing?.name || ""}
@@ -260,7 +402,9 @@ const UserSettings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Key</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Key
+                  </label>
                   <input
                     name="key"
                     defaultValue={fieldModal.editing?.key || ""}
@@ -269,7 +413,9 @@ const UserSettings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Type
+                  </label>
                   <select
                     name="type"
                     defaultValue={fieldModal.editing?.type || "TEXT"}
@@ -289,7 +435,9 @@ const UserSettings: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Description
+                  </label>
                   <input
                     name="description"
                     defaultValue={fieldModal.editing?.description || ""}
@@ -300,15 +448,30 @@ const UserSettings: React.FC = () => {
 
               <div className="flex flex-wrap gap-4 text-xs">
                 <label className="flex items-center text-gray-700 dark:text-gray-300">
-                  <input type="checkbox" name="required" defaultChecked={fieldModal.editing?.required ?? false} className="mr-2" />
+                  <input
+                    type="checkbox"
+                    name="required"
+                    defaultChecked={fieldModal.editing?.required ?? false}
+                    className="mr-2"
+                  />
                   Required
                 </label>
                 <label className="flex items-center text-gray-700 dark:text-gray-300">
-                  <input type="checkbox" name="canBeTurnedOff" defaultChecked={fieldModal.editing?.canBeTurnedOff ?? true} className="mr-2" />
+                  <input
+                    type="checkbox"
+                    name="canBeTurnedOff"
+                    defaultChecked={fieldModal.editing?.canBeTurnedOff ?? true}
+                    className="mr-2"
+                  />
                   Can be turned off
                 </label>
                 <label className="flex items-center text-gray-700 dark:text-gray-300">
-                  <input type="checkbox" name="isActive" defaultChecked={fieldModal.editing?.isActive ?? true} className="mr-2" />
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    defaultChecked={fieldModal.editing?.isActive ?? true}
+                    className="mr-2"
+                  />
                   Active
                 </label>
               </div>
@@ -316,7 +479,9 @@ const UserSettings: React.FC = () => {
               {(modalType === "DROPDOWN" || modalType === "MULTI_SELECT") && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Options Source</label>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Options Source
+                    </label>
                     <select
                       name="optionsSource"
                       defaultValue={fieldModal.editing?.optionsSource || "manual"}
@@ -328,7 +493,9 @@ const UserSettings: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Options (comma or newline separated)</label>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Options (comma or newline separated)
+                    </label>
                     <textarea
                       name="options"
                       defaultValue={(fieldModal.editing?.options || []).join("\n")}
@@ -348,5 +515,3 @@ const UserSettings: React.FC = () => {
 };
 
 export default UserSettings;
-
-

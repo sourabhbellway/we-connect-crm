@@ -5,58 +5,73 @@ export declare class CurrenciesController {
     private readonly currenciesService;
     constructor(currenciesService: CurrenciesService);
     create(createCurrencyDto: CreateCurrencyDto): Promise<{
-        symbol: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        isDefault: boolean;
-        code: string;
-        exchangeRate: import("@prisma/client/runtime/library").Decimal;
+        success: boolean;
+        message: string;
+        data: {
+            currency: {
+                symbol: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                isDefault: boolean;
+                code: string;
+                exchangeRate: import("@prisma/client/runtime/library").Decimal;
+            };
+        };
     }>;
-    findAll(): import(".prisma/client").Prisma.PrismaPromise<{
-        symbol: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        isDefault: boolean;
-        code: string;
-        exchangeRate: import("@prisma/client/runtime/library").Decimal;
-    }[]>;
-    findOne(id: string): import(".prisma/client").Prisma.Prisma__CurrencyClient<{
-        symbol: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        isDefault: boolean;
-        code: string;
-        exchangeRate: import("@prisma/client/runtime/library").Decimal;
-    } | null, null, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    findAll(): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            symbol: string;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            isDefault: boolean;
+            code: string;
+            exchangeRate: import("@prisma/client/runtime/library").Decimal;
+        }[];
+    }>;
+    findOne(id: string): Promise<{
+        success: boolean;
+        message: string;
+        data: {
+            currency: {
+                symbol: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                isDefault: boolean;
+                code: string;
+                exchangeRate: import("@prisma/client/runtime/library").Decimal;
+            };
+        };
+    }>;
     update(id: string, updateCurrencyDto: UpdateCurrencyDto): Promise<{
-        symbol: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        isDefault: boolean;
-        code: string;
-        exchangeRate: import("@prisma/client/runtime/library").Decimal;
+        success: boolean;
+        message: string;
+        data: {
+            currency: {
+                symbol: string;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                isDefault: boolean;
+                code: string;
+                exchangeRate: import("@prisma/client/runtime/library").Decimal;
+            };
+        };
     }>;
-    remove(id: string): import(".prisma/client").Prisma.Prisma__CurrencyClient<{
-        symbol: string;
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        name: string;
-        isDefault: boolean;
-        code: string;
-        exchangeRate: import("@prisma/client/runtime/library").Decimal;
-    }, never, import("@prisma/client/runtime/library").DefaultArgs, import(".prisma/client").Prisma.PrismaClientOptions>;
+    remove(id: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

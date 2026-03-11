@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Bell, X, Check, Trash2 } from 'lucide-react';
-import { notificationService, Notification } from '../services/notificationService';
-import { useNavigate } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect, useRef } from "react";
+import { Bell, X, Check, Trash2 } from "lucide-react";
+import { notificationService, Notification } from "../services/notificationService";
+import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { toast } from "react-toastify";
 
 export const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -26,11 +26,11 @@ export const NotificationBell: React.FC = () => {
     const eventSource = notificationService.connectToStream(
       (notification) => {
         // New notification received
-        setNotifications(prev => [notification, ...prev]);
-        setUnreadCount(prev => prev + 1);
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
 
         // Toast popup for new notification
-        toast.info(notification.title || 'New notification', {
+        toast.info(notification.title || "New notification", {
           body: notification.message,
           toastId: `notification_${notification.id}`,
         } as any);
@@ -41,7 +41,7 @@ export const NotificationBell: React.FC = () => {
         }
       },
       (error) => {
-        console.error('Notification stream error:', error);
+        console.error("Notification stream error:", error);
       }
     );
 
@@ -58,7 +58,7 @@ export const NotificationBell: React.FC = () => {
       const { notifications } = await notificationService.getNotifications({ limit: 20 });
       setNotifications(notifications);
     } catch (error) {
-      console.error('Failed to load notifications:', error);
+      console.error("Failed to load notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export const NotificationBell: React.FC = () => {
       const { unreadCount } = await notificationService.getUnreadCount();
       setUnreadCount(unreadCount);
     } catch (error) {
-      console.error('Failed to load unread count:', error);
+      console.error("Failed to load unread count:", error);
     }
   };
 
@@ -78,43 +78,41 @@ export const NotificationBell: React.FC = () => {
       const prefs = await notificationService.getPreferences();
       setPreferences(prefs);
     } catch (error) {
-      console.error('Failed to load preferences:', error);
+      console.error("Failed to load preferences:", error);
     }
   };
 
   const handleMarkAsRead = async (id: number) => {
     try {
       await notificationService.markAsRead(id);
-      setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: true } : n))
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      console.error("Failed to mark as read:", error);
     }
   };
 
   const handleMarkAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      console.error("Failed to mark all as read:", error);
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await notificationService.deleteNotification(id);
-      setNotifications(prev => prev.filter(n => n.id !== id));
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
       // Update unread count if the deleted notification was unread
-      const deletedNotification = notifications.find(n => n.id === id);
+      const deletedNotification = notifications.find((n) => n.id === id);
       if (deletedNotification && !deletedNotification.read) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+        setUnreadCount((prev) => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error('Failed to delete notification:', error);
+      console.error("Failed to delete notification:", error);
     }
   };
 
@@ -157,7 +155,7 @@ export const NotificationBell: React.FC = () => {
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[20px] h-5 px-1.5 bg-weconnect-red text-white text-[10px] rounded-full flex items-center justify-center font-semibold leading-none">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
@@ -165,16 +163,11 @@ export const NotificationBell: React.FC = () => {
       {/* Dropdown */}
       {isOpen && (
         <>
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
           <div className="absolute right-0 top-full mt-2 w-96 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 z-20 overflow-hidden max-h-[600px] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Notifications
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <button
@@ -209,7 +202,7 @@ export const NotificationBell: React.FC = () => {
                   <div
                     key={notification.id}
                     className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-left border-b border-gray-100 dark:border-slate-800 last:border-0 cursor-pointer ${
-                      !notification.read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
+                      !notification.read ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
@@ -266,7 +259,7 @@ export const NotificationBell: React.FC = () => {
             <div className="px-4 py-3 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 text-center">
               <button
                 onClick={() => {
-                  navigate('/business-settings/notifications');
+                  navigate("/business-settings/notifications");
                   setIsOpen(false);
                 }}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200"

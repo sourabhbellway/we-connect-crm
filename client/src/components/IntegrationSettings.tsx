@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { RefreshCw, CheckCircle, XCircle, Settings, Eye, EyeOff } from 'lucide-react';
-import { STORAGE_KEYS } from '../constants';
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { RefreshCw, CheckCircle, XCircle, Settings, Eye, EyeOff } from "lucide-react";
+import { STORAGE_KEYS } from "../constants";
 
 interface Integration {
   name: string;
@@ -49,60 +49,59 @@ const IntegrationSettings: React.FC = () => {
   const fetchIntegrationsAndStatus = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch available integrations
-      const integrationsResponse = await fetch('/api/business-settings/integrations/available', {
+      const integrationsResponse = await fetch("/api/business-settings/integrations/available", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
         },
       });
-      
+
       if (integrationsResponse.ok) {
         const integrationsData = await integrationsResponse.json();
         setIntegrations(integrationsData.data.integrations);
       }
 
       // Fetch integration status
-      const statusResponse = await fetch('/api/business-settings/integrations/status', {
+      const statusResponse = await fetch("/api/business-settings/integrations/status", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
         },
       });
-      
+
       if (statusResponse.ok) {
         const statusData = await statusResponse.json();
         setIntegrationStatus(statusData.data.integrations);
       }
 
       // Fetch current settings
-      const settingsResponse = await fetch('/api/business-settings/settings', {
+      const settingsResponse = await fetch("/api/business-settings/settings", {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
         },
       });
-      
+
       if (settingsResponse.ok) {
         const settingsData = await settingsResponse.json();
         setSettings(settingsData.data.settings);
       }
-      
     } catch (error) {
-      console.error('Error fetching integrations:', error);
-      toast.error('Failed to load integration settings');
+      console.error("Error fetching integrations:", error);
+      toast.error("Failed to load integration settings");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSettingChange = (field: string, value: any) => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
   const toggleShowSecret = (integrationName: string) => {
-    setShowSecrets(prev => ({
+    setShowSecrets((prev) => ({
       ...prev,
       [integrationName]: !prev[integrationName],
     }));
@@ -111,12 +110,12 @@ const IntegrationSettings: React.FC = () => {
   const saveSettings = async () => {
     try {
       setSaving(true);
-      
-      const response = await fetch('/api/business-settings/settings', {
-        method: 'PUT',
+
+      const response = await fetch("/api/business-settings/settings", {
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(settings),
       });
@@ -124,13 +123,13 @@ const IntegrationSettings: React.FC = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to save settings');
+        throw new Error(result.message || "Failed to save settings");
       }
 
-      toast.success('Integration settings saved successfully');
+      toast.success("Integration settings saved successfully");
       await fetchIntegrationsAndStatus(); // Refresh status
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save settings');
+      toast.error(error.message || "Failed to save settings");
     } finally {
       setSaving(false);
     }
@@ -139,18 +138,18 @@ const IntegrationSettings: React.FC = () => {
   const testIntegration = async (integrationName: string) => {
     try {
       setTesting(integrationName);
-      
+
       const response = await fetch(`/api/business-settings/integrations/${integrationName}/test`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
         },
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Connection test failed');
+        throw new Error(result.message || "Connection test failed");
       }
 
       toast.success(`${integrationName} connection test successful`);
@@ -164,18 +163,18 @@ const IntegrationSettings: React.FC = () => {
   const syncIntegration = async (integrationName: string) => {
     try {
       setSyncing(integrationName);
-      
+
       const response = await fetch(`/api/business-settings/integrations/${integrationName}/sync`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
+          Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
         },
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Lead sync failed');
+        throw new Error(result.message || "Lead sync failed");
       }
 
       toast.success(result.message || `${integrationName} leads synced successfully`);
@@ -209,7 +208,10 @@ const IntegrationSettings: React.FC = () => {
       </div>
 
       {integrations.map((integration) => (
-        <div key={integration.name} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+        <div
+          key={integration.name}
+          className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6"
+        >
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
@@ -225,7 +227,7 @@ const IntegrationSettings: React.FC = () => {
                   {integration.description}
                 </p>
                 <div className="flex items-center space-x-2">
-                  {integrationStatus[integration.name.replace('-', '')]?.configured ? (
+                  {integrationStatus[integration.name.replace("-", "")]?.configured ? (
                     <div className="flex items-center text-green-600 dark:text-green-400">
                       <CheckCircle className="h-4 w-4 mr-1" />
                       <span className="text-sm">Configured</span>
@@ -236,7 +238,7 @@ const IntegrationSettings: React.FC = () => {
                       <span className="text-sm">Not configured</span>
                     </div>
                   )}
-                  {integrationStatus[integration.name.replace('-', '')]?.enabled && (
+                  {integrationStatus[integration.name.replace("-", "")]?.enabled && (
                     <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                       Enabled
                     </span>
@@ -245,7 +247,7 @@ const IntegrationSettings: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {integrationStatus[integration.name.replace('-', '')]?.configured && (
+              {integrationStatus[integration.name.replace("-", "")]?.configured && (
                 <>
                   <button
                     onClick={() => testIntegration(integration.name)}
@@ -255,7 +257,7 @@ const IntegrationSettings: React.FC = () => {
                     {testing === integration.name ? (
                       <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
                     ) : (
-                      'Test'
+                      "Test"
                     )}
                   </button>
                   <button
@@ -266,7 +268,7 @@ const IntegrationSettings: React.FC = () => {
                     {syncing === integration.name ? (
                       <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
                     ) : (
-                      'Sync Now'
+                      "Sync Now"
                     )}
                   </button>
                 </>
@@ -277,7 +279,7 @@ const IntegrationSettings: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <h4 className="font-medium text-gray-900 dark:text-white">Configuration</h4>
-              
+
               {/* Enable/Disable toggle */}
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -285,27 +287,37 @@ const IntegrationSettings: React.FC = () => {
                 </label>
                 <input
                   type="checkbox"
-                  checked={settings[`${integration.name.replace('-', '')}Enabled` as keyof BusinessSettings] as boolean || false}
-                  onChange={(e) => handleSettingChange(`${integration.name.replace('-', '')}Enabled`, e.target.checked)}
+                  checked={
+                    (settings[
+                      `${integration.name.replace("-", "")}Enabled` as keyof BusinessSettings
+                    ] as boolean) || false
+                  }
+                  onChange={(e) =>
+                    handleSettingChange(
+                      `${integration.name.replace("-", "")}Enabled`,
+                      e.target.checked
+                    )
+                  }
                   className="rounded text-blue-600 focus:ring-blue-500"
                 />
               </div>
 
               {/* API Fields */}
               {integration.fields.map((field) => {
-                const fieldKey = `${integration.name.replace('-', '')}${field.name === 'apiKey' ? 'ApiKey' : 'ApiSecret'}` as keyof BusinessSettings;
-                const isSecret = field.type === 'password';
+                const fieldKey =
+                  `${integration.name.replace("-", "")}${field.name === "apiKey" ? "ApiKey" : "ApiSecret"}` as keyof BusinessSettings;
+                const isSecret = field.type === "password";
                 const showSecret = showSecrets[`${integration.name}-${field.name}`];
-                
+
                 return (
                   <div key={field.name}>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {field.label} {field.required && '*'}
+                      {field.label} {field.required && "*"}
                     </label>
                     <div className="relative">
                       <input
-                        type={isSecret && !showSecret ? 'password' : 'text'}
-                        value={settings[fieldKey] as string || ''}
+                        type={isSecret && !showSecret ? "password" : "text"}
+                        value={(settings[fieldKey] as string) || ""}
                         onChange={(e) => handleSettingChange(fieldKey, e.target.value)}
                         placeholder={`Enter ${field.label.toLowerCase()}`}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white pr-10"
@@ -359,7 +371,7 @@ const IntegrationSettings: React.FC = () => {
               Saving...
             </>
           ) : (
-            'Save Settings'
+            "Save Settings"
           )}
         </button>
       </div>

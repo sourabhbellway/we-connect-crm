@@ -1,41 +1,54 @@
-import React from 'react';
+import React from "react";
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
-  variant?: 'spinner' | 'dots' | 'pulse';
+  variant?: "spinner" | "dots" | "pulse";
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
-  className = '',
-  variant = 'spinner'
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = "md",
+  className = "",
+  variant = "spinner",
 }) => {
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-8 w-8',
-    xl: 'h-12 w-12'
+    sm: "h-4 w-4",
+    md: "h-6 w-6",
+    lg: "h-8 w-8",
+    xl: "h-12 w-12",
   };
 
-  if (variant === 'dots') {
+  if (variant === "dots") {
     return (
       <div className={`flex space-x-2 ${className}`}>
-        <div className="w-2 h-2 bg-weconnect-red rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-2 h-2 bg-weconnect-red rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-2 h-2 bg-weconnect-red rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        <div
+          className="w-2 h-2 bg-weconnect-red rounded-full animate-bounce"
+          style={{ animationDelay: "0ms" }}
+        ></div>
+        <div
+          className="w-2 h-2 bg-weconnect-red rounded-full animate-bounce"
+          style={{ animationDelay: "150ms" }}
+        ></div>
+        <div
+          className="w-2 h-2 bg-weconnect-red rounded-full animate-bounce"
+          style={{ animationDelay: "300ms" }}
+        ></div>
       </div>
     );
   }
 
-  if (variant === 'pulse') {
+  if (variant === "pulse") {
     return (
-      <div className={`rounded-full bg-weconnect-red animate-pulse ${sizeClasses[size]} ${className}`} />
+      <div
+        className={`rounded-full bg-weconnect-red animate-pulse ${sizeClasses[size]} ${className}`}
+      />
     );
   }
 
   return (
-    <div className={`animate-spin rounded-full border-2 border-gray-300 dark:border-gray-600 border-t-weconnect-red ${sizeClasses[size]} ${className}`} />
+    <div
+      className={`animate-spin rounded-full border-2 border-gray-300 dark:border-gray-600 border-t-weconnect-red ${sizeClasses[size]} ${className}`}
+    />
   );
 };
 
@@ -44,7 +57,7 @@ interface PageLoaderProps {
   message?: string;
 }
 
-export const PageLoader: React.FC<PageLoaderProps> = ({ message = 'Loading...' }) => {
+export const PageLoader: React.FC<PageLoaderProps> = ({ message = "Loading..." }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-950">
       <LoadingSpinner size="xl" className="mb-4" />
@@ -54,7 +67,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({ message = 'Loading...' }
 };
 
 // Card Loader - For loading cards/sections
-export const CardLoader: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => {
+export const CardLoader: React.FC<{ message?: string }> = ({ message = "Loading..." }) => {
   return (
     <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-900 rounded-lg">
       <LoadingSpinner size="lg" className="mb-3" />
@@ -74,7 +87,7 @@ interface SkeletonProps {
   count?: number;
 }
 
-export const Skeleton: React.FC<SkeletonProps> = ({ className = '', count = 1 }) => {
+export const Skeleton: React.FC<SkeletonProps> = ({ className = "", count = 1 }) => {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
@@ -88,9 +101,9 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '', count = 1 })
 };
 
 // Table Skeleton - For loading tables
-export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({ 
-  rows = 5, 
-  columns = 4 
+export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
+  rows = 5,
+  columns = 4,
 }) => {
   return (
     <div className="space-y-3">

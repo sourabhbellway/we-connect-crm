@@ -57,9 +57,11 @@ let ProductsService = class ProductsService {
             if (!dto.name || !dto.name.trim()) {
                 return { success: false, message: 'Product name is required' };
             }
-            if (dto.price === undefined ||
-                dto.price === null ||
-                isNaN(Number(dto.price))) {
+            const pricingEnabled = dto.pricingEnabled !== false;
+            if (pricingEnabled &&
+                (dto.price === undefined ||
+                    dto.price === null ||
+                    isNaN(Number(dto.price)))) {
                 return { success: false, message: 'Valid price is required' };
             }
             if (dto.sku && dto.sku.trim()) {
@@ -93,7 +95,7 @@ let ProductsService = class ProductsService {
                     category: dto.category && String(dto.category).trim() !== ''
                         ? dto.category.trim()
                         : null,
-                    price: Number(dto.price),
+                    price: (pricingEnabled ? Number(dto.price) : 0),
                     cost: dto.cost !== undefined && dto.cost !== null
                         ? Number(dto.cost)
                         : null,
@@ -111,6 +113,11 @@ let ProductsService = class ProductsService {
                     image: dto.image && String(dto.image).trim() !== ''
                         ? dto.image.trim()
                         : null,
+                    categoryId: dto.categoryId || null,
+                    currencyId: dto.currencyId || null,
+                    taxId: dto.taxId || null,
+                    unitId: dto.unitId || null,
+                    pricingEnabled: pricingEnabled,
                     isActive: dto.isActive ?? true,
                 },
             });
@@ -151,7 +158,11 @@ let ProductsService = class ProductsService {
             if (!existingProduct) {
                 return { success: false, message: 'Product not found' };
             }
-            if (dto.price !== undefined &&
+            const pricingEnabled = dto.pricingEnabled !== undefined
+                ? dto.pricingEnabled
+                : existingProduct.pricingEnabled;
+            if (pricingEnabled &&
+                dto.price !== undefined &&
                 (dto.price === null || isNaN(Number(dto.price)))) {
                 return { success: false, message: 'Valid price is required' };
             }
@@ -197,6 +208,12 @@ let ProductsService = class ProductsService {
             }
             if (dto.price !== undefined)
                 updateData.price = Number(dto.price);
+            if (dto.pricingEnabled !== undefined) {
+                updateData.pricingEnabled = dto.pricingEnabled;
+                if (!dto.pricingEnabled) {
+                    updateData.price = 0;
+                }
+            }
             if (dto.cost !== undefined) {
                 updateData.cost = dto.cost !== null ? Number(dto.cost) : null;
             }
@@ -226,6 +243,14 @@ let ProductsService = class ProductsService {
                         ? dto.image.trim()
                         : null;
             }
+            if (dto.categoryId !== undefined)
+                updateData.categoryId = dto.categoryId;
+            if (dto.currencyId !== undefined)
+                updateData.currencyId = dto.currencyId;
+            if (dto.taxId !== undefined)
+                updateData.taxId = dto.taxId;
+            if (dto.unitId !== undefined)
+                updateData.unitId = dto.unitId;
             if (dto.isActive !== undefined)
                 updateData.isActive = dto.isActive;
             updateData.updatedAt = new Date();

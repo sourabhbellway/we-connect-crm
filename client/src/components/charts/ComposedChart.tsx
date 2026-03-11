@@ -1,11 +1,21 @@
-import React from 'react';
-import { ComposedChart as RechartsComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React from "react";
+import {
+  ComposedChart as RechartsComposedChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface DataKey {
   key: string;
   color: string;
   name: string;
-  type: 'line' | 'bar';
+  type: "line" | "bar";
 }
 
 interface ComposedChartProps {
@@ -29,12 +39,13 @@ const ComposedChart: React.FC<ComposedChartProps> = ({
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-            {label}
-          </p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm text-gray-600 dark:text-gray-300">
-              {entry.name}: <span className="font-semibold" style={{ color: entry.color }}>{entry.value}</span>
+              {entry.name}:{" "}
+              <span className="font-semibold" style={{ color: entry.color }}>
+                {entry.value}
+              </span>
             </p>
           ))}
         </div>
@@ -46,18 +57,12 @@ const ComposedChart: React.FC<ComposedChartProps> = ({
   return (
     <div className="w-full">
       {title && (
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {title}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{title}</h3>
       )}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsComposedChart data={data} margin={{ top: 20, right: 30, bottom: 5, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-          <XAxis
-            dataKey="name"
-            className="text-gray-600 dark:text-gray-400"
-            fontSize={12}
-          />
+          <XAxis dataKey="name" className="text-gray-600 dark:text-gray-400" fontSize={12} />
           <YAxis
             yAxisId="left"
             orientation="left"
@@ -73,7 +78,7 @@ const ComposedChart: React.FC<ComposedChartProps> = ({
           {showTooltip && <Tooltip content={<CustomTooltip />} />}
           {showLegend && (
             <Legend
-              wrapperStyle={{ paddingTop: '20px' }}
+              wrapperStyle={{ paddingTop: "20px" }}
               formatter={(value, entry: any) => (
                 <span style={{ color: entry.color }} className="text-sm">
                   {value}
@@ -82,7 +87,7 @@ const ComposedChart: React.FC<ComposedChartProps> = ({
             />
           )}
           {dataKeys.map((dataKey, index) => {
-            if (dataKey.type === 'line') {
+            if (dataKey.type === "line") {
               return (
                 <Line
                   key={index}
@@ -96,7 +101,7 @@ const ComposedChart: React.FC<ComposedChartProps> = ({
                   activeDot={{ r: 6 }}
                 />
               );
-            } else if (dataKey.type === 'bar') {
+            } else if (dataKey.type === "bar") {
               return (
                 <Bar
                   key={index}

@@ -20,7 +20,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('notes')
 export class NotesController {
-  constructor(private readonly service: NotesService) { }
+  constructor(private readonly service: NotesService) {}
 
   @Get()
   @RequirePermission('notes.read')

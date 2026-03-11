@@ -29,9 +29,31 @@ export class NotificationCronService {
       await Promise.all([
         this.handleDueTasks(windowStart, now),
         this.handleDueFollowUps(windowStart, now),
+        this.cleanupExpiredSessions(),
       ]);
     } catch (error) {
       this.logger.error('Error running due reminders cron:', error);
+    }
+  }
+
+  // Run cleanup once every day at midnight
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async cleanupExpiredSessions() {
+    this.logger.log(
+      'Running background cleanup for expired/inactive login sessions',
+    );
+    const now = new Date();
+    try {
+      const result = await this.prisma.loginSession.deleteMany({
+        where: {
+          OR: [{ expiresAt: { lt: now } }, { isActive: false }],
+        },
+      });
+      this.logger.log(
+        `Cleanup complete: Deleted ${result.count} session records`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to cleanup expired sessions:', error);
     }
   }
 

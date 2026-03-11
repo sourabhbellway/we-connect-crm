@@ -9,12 +9,7 @@ interface BackButtonProps {
   children?: React.ReactNode;
 }
 
-const BackButton: React.FC<BackButtonProps> = ({
-  to,
-  onClick,
-  className = "",
-  children,
-}) => {
+const BackButton: React.FC<BackButtonProps> = ({ to, onClick, className = "", children }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {

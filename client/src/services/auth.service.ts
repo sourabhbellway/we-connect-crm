@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from "axios";
 import {
   LoginRequest,
   LoginResponse,
@@ -11,18 +11,18 @@ import {
   RefreshTokenResponse,
   User,
   PasswordRequirements,
-} from '../types/auth';
-import { STORAGE_KEYS } from '../constants';
-import { API_BASE_URL as API_ROOT } from '../config/config';
+} from "../types/auth";
+import { STORAGE_KEYS } from "../constants";
+import { API_BASE_URL as API_ROOT } from "../config/config";
 
 const API_BASE_URL = `${API_ROOT}/auth`;
 
 class AuthService {
-  constructor() { }
+  constructor() {}
 
   private getAuthHeaders() {
     return {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
   }
 
@@ -30,7 +30,7 @@ class AuthService {
     const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     return {
       ...this.getAuthHeaders(),
-      Authorization: token ? `Bearer ${token}` : '',
+      Authorization: token ? `Bearer ${token}` : "",
     };
   }
 
@@ -51,16 +51,16 @@ class AuthService {
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
         localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-        localStorage.setItem('tokenExpiry', tokenExpiry);
-        localStorage.setItem('userId', user.id.toString()); // Store userId for token validation
+        localStorage.setItem("tokenExpiry", tokenExpiry);
+        localStorage.setItem("userId", user.id.toString()); // Store userId for token validation
 
         // Set default authorization header for subsequent requests
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
       }
 
       return response.data;
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       throw this.handleAuthError(error);
     }
   }
@@ -76,7 +76,7 @@ class AuthService {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
       throw this.handleAuthError(error);
     }
   }
@@ -92,7 +92,7 @@ class AuthService {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Forgot password error:', error);
+      console.error("Forgot password error:", error);
       throw this.handleAuthError(error);
     }
   }
@@ -108,7 +108,7 @@ class AuthService {
       );
       return response.data;
     } catch (error: any) {
-      console.error('Reset password error:', error);
+      console.error("Reset password error:", error);
       throw this.handleAuthError(error);
     }
   }
@@ -117,7 +117,7 @@ class AuthService {
     try {
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       if (!refreshToken) {
-        throw new Error('No refresh token available');
+        throw new Error("No refresh token available");
       }
 
       const response: AxiosResponse<RefreshTokenResponse> = await axios.post(
@@ -132,13 +132,13 @@ class AuthService {
         const { accessToken, refreshToken: newRefreshToken, tokenExpiry } = response.data.data;
         localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
-        localStorage.setItem('tokenExpiry', tokenExpiry);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        localStorage.setItem("tokenExpiry", tokenExpiry);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
       }
 
       return response.data;
     } catch (error: any) {
-      console.error('Token refresh error:', error);
+      console.error("Token refresh error:", error);
       // If refresh fails, clear all tokens
       this.clearTokens();
       throw this.handleAuthError(error);
@@ -155,13 +155,13 @@ class AuthService {
         }
       );
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       this.clearTokens();
-      delete axios.defaults.headers.common['Authorization'];
+      delete axios.defaults.headers.common["Authorization"];
     }
 
-    return { success: true, message: 'Logged out successfully' };
+    return { success: true, message: "Logged out successfully" };
   }
 
   async getProfile(): Promise<{ success: boolean; data: { user: User } }> {
@@ -171,7 +171,7 @@ class AuthService {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Get profile error:', error);
+      console.error("Get profile error:", error);
       throw this.handleAuthError(error);
     }
   }
@@ -183,28 +183,28 @@ class AuthService {
       });
       return response.data;
     } catch (error: any) {
-      console.error('Email verification error:', error);
+      console.error("Email verification error:", error);
       throw this.handleAuthError(error);
     }
   }
 
   async getPermissionsForRole(roleId: string): Promise<any> {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/roles/${roleId}/permissions`,
-        {
-          headers: this.getAuthHeadersWithToken(),
-        }
-      );
+      const response = await axios.get(`${API_BASE_URL}/roles/${roleId}/permissions`, {
+        headers: this.getAuthHeadersWithToken(),
+      });
       return response.data.data.permissions;
     } catch (error: any) {
-      console.error('Get permissions error:', error);
+      console.error("Get permissions error:", error);
       throw this.handleAuthError(error);
     }
   }
 
   // Password validation utilities
-  validatePassword(password: string, requirements?: PasswordRequirements): { isValid: boolean; errors: string[] } {
+  validatePassword(
+    password: string,
+    requirements?: PasswordRequirements
+  ): { isValid: boolean; errors: string[] } {
     const reqs = requirements || {
       minLength: 8,
       requireUppercase: true,
@@ -220,19 +220,19 @@ class AuthService {
     }
 
     if (reqs.requireUppercase && !/[A-Z]/.test(password)) {
-      errors.push('Password must contain at least one uppercase letter');
+      errors.push("Password must contain at least one uppercase letter");
     }
 
     if (reqs.requireLowercase && !/[a-z]/.test(password)) {
-      errors.push('Password must contain at least one lowercase letter');
+      errors.push("Password must contain at least one lowercase letter");
     }
 
     if (reqs.requireNumbers && !/\d/.test(password)) {
-      errors.push('Password must contain at least one number');
+      errors.push("Password must contain at least one number");
     }
 
     if (reqs.requireSymbols && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push('Password must contain at least one special character');
+      errors.push("Password must contain at least one special character");
     }
 
     return {
@@ -257,19 +257,19 @@ class AuthService {
     });
 
     if (score <= 2) {
-      return { score, message: 'Weak', color: 'red' };
+      return { score, message: "Weak", color: "red" };
     } else if (score <= 4) {
-      return { score, message: 'Fair', color: 'orange' };
+      return { score, message: "Fair", color: "orange" };
     } else if (score <= 5) {
-      return { score, message: 'Good', color: 'yellow' };
+      return { score, message: "Good", color: "yellow" };
     } else {
-      return { score, message: 'Strong', color: 'green' };
+      return { score, message: "Strong", color: "green" };
     }
   }
 
   // Token management utilities
   isTokenExpired(): boolean {
-    const expiry = localStorage.getItem('tokenExpiry');
+    const expiry = localStorage.getItem("tokenExpiry");
     if (!expiry) return true;
     return new Date(expiry) <= new Date();
   }
@@ -294,8 +294,8 @@ class AuthService {
     localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-    localStorage.removeItem('tokenExpiry');
-    localStorage.removeItem('userId');
+    localStorage.removeItem("tokenExpiry");
+    localStorage.removeItem("userId");
   }
 
   getCurrentUser(): User | null {
@@ -305,7 +305,7 @@ class AuthService {
     try {
       return JSON.parse(userData);
     } catch (error) {
-      console.error('Error parsing user data:', error);
+      console.error("Error parsing user data:", error);
       return null;
     }
   }
@@ -318,7 +318,7 @@ class AuthService {
 
   private handleAuthError(error: any): Error {
     const data = error.response?.data;
-    const message = data?.message || 'Authentication error occurred';
+    const message = data?.message || "Authentication error occurred";
     const status = error.response?.status;
     const validationErrors = data?.errors;
 
@@ -328,16 +328,16 @@ class AuthService {
 
     // Map 403 Forbidden to a clear blocked/deactivated message for login attempts
     if (status === 403) {
-      authError.message = message || 'Your login is blocked please contact your administrator';
+      authError.message = message || "Your login is blocked please contact your administrator";
       return authError;
     }
 
     if (status === 423) {
-      authError.message = 'Account is temporarily locked. Please try again later.';
+      authError.message = "Account is temporarily locked. Please try again later.";
     } else if (status === 429) {
-      authError.message = 'Too many attempts. Please wait before trying again.';
+      authError.message = "Too many attempts. Please wait before trying again.";
     } else if (status === 401 && data?.requiresEmailVerification) {
-      authError.message = 'Please verify your email address before logging in.';
+      authError.message = "Please verify your email address before logging in.";
     }
 
     return authError;
@@ -354,11 +354,12 @@ class AuthService {
         if (!refreshSuccess) return false;
       }
 
-      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`;
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`;
       await this.getProfile();
       return true;
     } catch (error) {
-      console.error('Auto-login failed:', error);
+      console.error("Auto-login failed:", error);
       this.clearTokens();
       return false;
     }

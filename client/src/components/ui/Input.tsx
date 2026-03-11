@@ -1,6 +1,6 @@
-import React from 'react';
-import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { UI_CONFIG } from '../../constants';
+import React from "react";
+import { Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react";
+import { UI_CONFIG } from "../../constants";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -11,14 +11,14 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   rightIcon?: React.ReactNode;
   showPasswordToggle?: boolean;
   fullWidth?: boolean;
-  variant?: 'default' | 'outlined' | 'filled';
+  variant?: "default" | "outlined" | "filled";
   divided?: boolean; // For divided icon style from mockboard
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
-      className = '',
+      className = "",
       label,
       error,
       success,
@@ -27,9 +27,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       rightIcon,
       showPasswordToggle = false,
       fullWidth = true,
-      variant = 'outlined',
+      variant = "outlined",
       divided = false,
-      type = 'text',
+      type = "text",
       disabled,
       ...props
     },
@@ -41,61 +41,62 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const [isHovered, setIsHovered] = React.useState(false);
 
     React.useEffect(() => {
-      if (showPasswordToggle && type === 'password') {
-        setInputType(showPassword ? 'text' : 'password');
+      if (showPasswordToggle && type === "password") {
+        setInputType(showPassword ? "text" : "password");
       }
     }, [showPassword, showPasswordToggle, type]);
 
     // Base styles following WeConnect design system
-    const baseStyles = 'transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-medium';
+    const baseStyles =
+      "transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed font-medium";
 
     // Variant styles based on mockboard
     const variantStyles = {
-      default: 'border-0 border-b-2 bg-transparent rounded-none px-0 py-3',
-      outlined: 'border-2 rounded-xl px-4 py-3 bg-white dark:bg-gray-800',
-      filled: 'border-0 rounded-xl px-4 py-3 bg-gray-50 dark:bg-gray-700',
+      default: "border-0 border-b-2 bg-transparent rounded-none px-0 py-3",
+      outlined: "border-2 rounded-xl px-4 py-3 bg-white dark:bg-gray-800",
+      filled: "border-0 rounded-xl px-4 py-3 bg-gray-50 dark:bg-gray-700",
     };
 
     // State-based styles using WeConnect colors
     const getStateStyles = () => {
       if (error) {
-        return 'border-weconnect-red focus:border-weconnect-red text-weconnect-red';
+        return "border-weconnect-red focus:border-weconnect-red text-weconnect-red";
       }
       if (success) {
-        return 'border-brand-green focus:border-brand-green text-brand-green';
+        return "border-brand-green focus:border-brand-green text-brand-green";
       }
       if (disabled) {
-        return 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed';
+        return "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed";
       }
       if (isFocused) {
-        return 'border-brand-blue shadow-sm';
+        return "border-brand-blue shadow-sm";
       }
       if (isHovered) {
-        return 'border-gray-400';
+        return "border-gray-400";
       }
-      return 'border-gray-300';
+      return "border-gray-300";
     };
 
     const combinedStyles = [
       baseStyles,
       variantStyles[variant],
       getStateStyles(),
-      fullWidth && 'w-full',
-      leftIcon && !divided && 'pl-12',
-      leftIcon && divided && 'pl-16',
-      (rightIcon || showPasswordToggle || error || success) && 'pr-12',
-      'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400',
+      fullWidth && "w-full",
+      leftIcon && !divided && "pl-12",
+      leftIcon && divided && "pl-16",
+      (rightIcon || showPasswordToggle || error || success) && "pr-12",
+      "text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400",
       className,
     ]
       .filter(Boolean)
-      .join(' ');
+      .join(" ");
 
     const togglePassword = () => {
       setShowPassword(!showPassword);
     };
 
     const getRightIcon = () => {
-      if (showPasswordToggle && type === 'password') {
+      if (showPasswordToggle && type === "password") {
         return (
           <button
             type="button"
@@ -119,28 +120,28 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const rightIconElement = getRightIcon();
 
     return (
-      <div className={fullWidth ? 'w-full' : ''}>
+      <div className={fullWidth ? "w-full" : ""}>
         {label && (
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             {label}
           </label>
         )}
-        
-        <div 
+
+        <div
           className="relative"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           {leftIcon && (
-            <div className={`absolute inset-y-0 left-0 flex items-center pointer-events-none ${
-              divided 
-                ? 'pl-4 border-r border-gray-300 w-12 justify-center'
-                : 'pl-4'
-            }`}>
+            <div
+              className={`absolute inset-y-0 left-0 flex items-center pointer-events-none ${
+                divided ? "pl-4 border-r border-gray-300 w-12 justify-center" : "pl-4"
+              }`}
+            >
               <div className="text-gray-400">{leftIcon}</div>
             </div>
           )}
-          
+
           <input
             ref={ref}
             type={inputType}
@@ -150,7 +151,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             onBlur={() => setIsFocused(false)}
             {...props}
           />
-          
+
           {rightIconElement && (
             <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
               {rightIconElement}
@@ -182,6 +183,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+Input.displayName = "Input";
 
 export default Input;

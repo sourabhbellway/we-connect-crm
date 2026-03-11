@@ -6,11 +6,11 @@ export declare class FilesController {
         success: boolean;
         data: {
             files: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
+                deletedAt: Date | null;
                 entityType: string;
                 entityId: number;
                 uploadedBy: number;
@@ -20,11 +20,11 @@ export declare class FilesController {
                 mimeType: string;
             }[];
             items: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
+                deletedAt: Date | null;
                 entityType: string;
                 entityId: number;
                 uploadedBy: number;
@@ -39,11 +39,11 @@ export declare class FilesController {
         success: boolean;
         data: {
             file: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
+                deletedAt: Date | null;
                 entityType: string;
                 entityId: number;
                 uploadedBy: number;

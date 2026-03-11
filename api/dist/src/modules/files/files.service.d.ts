@@ -9,11 +9,11 @@ export declare class FilesService {
         success: boolean;
         data: {
             files: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
+                deletedAt: Date | null;
                 entityType: string;
                 entityId: number;
                 uploadedBy: number;
@@ -23,11 +23,11 @@ export declare class FilesService {
                 mimeType: string;
             }[];
             items: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
+                deletedAt: Date | null;
                 entityType: string;
                 entityId: number;
                 uploadedBy: number;
@@ -39,11 +39,11 @@ export declare class FilesService {
         };
     }>;
     getById(id: number, user?: any): Promise<{
+        id: number;
         createdAt: Date;
         updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
         name: string;
+        deletedAt: Date | null;
         entityType: string;
         entityId: number;
         uploadedBy: number;
@@ -62,11 +62,11 @@ export declare class FilesService {
         success: boolean;
         data: {
             file: {
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
+                deletedAt: Date | null;
                 entityType: string;
                 entityId: number;
                 uploadedBy: number;

@@ -41,10 +41,7 @@ export const industryService = {
     return (response.data?.data?.industry ?? response.data) as Industry;
   },
 
-  async updateIndustry(
-    id: number,
-    payload: Partial<Industry>
-  ): Promise<Industry> {
+  async updateIndustry(id: number, payload: Partial<Industry>): Promise<Industry> {
     const response = await apiClient.put(`/industries/${id}`, payload);
     return (response.data?.data?.industry ?? response.data) as Industry;
   },
@@ -53,25 +50,13 @@ export const industryService = {
     await apiClient.delete(`/industries/${id}`);
   },
 
-  async addField(
-    industryId: number,
-    payload: Partial<IndustryField>
-  ): Promise<IndustryField> {
-    const response = await apiClient.post(
-      `/industries/${industryId}/fields`,
-      payload
-    );
+  async addField(industryId: number, payload: Partial<IndustryField>): Promise<IndustryField> {
+    const response = await apiClient.post(`/industries/${industryId}/fields`, payload);
     return (response.data?.data?.field ?? response.data) as IndustryField;
   },
 
-  async updateField(
-    fieldId: number,
-    payload: Partial<IndustryField>
-  ): Promise<IndustryField> {
-    const response = await apiClient.put(
-      `/industries/fields/${fieldId}`,
-      payload
-    );
+  async updateField(fieldId: number, payload: Partial<IndustryField>): Promise<IndustryField> {
+    const response = await apiClient.put(`/industries/fields/${fieldId}`, payload);
     return (response.data?.data?.field ?? response.data) as IndustryField;
   },
 

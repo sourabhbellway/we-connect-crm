@@ -4,7 +4,8 @@ export declare class CreateProductDto {
     sku?: string;
     type?: string;
     category?: string;
-    price: number;
+    price?: number;
+    pricingEnabled?: boolean;
     cost?: number;
     currency?: string;
     unit?: string;
@@ -14,5 +15,9 @@ export declare class CreateProductDto {
     minStockLevel?: number;
     maxStockLevel?: number;
     image?: string;
+    categoryId?: number;
+    currencyId?: number;
+    taxId?: number;
+    unitId?: number;
     isActive?: boolean;
 }

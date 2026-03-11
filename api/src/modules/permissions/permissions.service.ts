@@ -3,7 +3,7 @@ import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class PermissionsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async list() {
     const defs: Record<string, string[]> = {
@@ -21,12 +21,31 @@ export class PermissionsService {
       business_settings_lead_source: ['create', 'read', 'update', 'delete'],
       business_settings_field_config: ['create', 'read', 'update', 'delete'],
       business_settings_dashboard: ['read', 'update'],
-      business_settings_quotation_template: ['create', 'read', 'update', 'delete'],
-      business_settings_terms_conditions: ['create', 'read', 'update', 'delete'],
+      business_settings_quotation_template: [
+        'create',
+        'read',
+        'update',
+        'delete',
+      ],
+      business_settings_terms_conditions: [
+        'create',
+        'read',
+        'update',
+        'delete',
+      ],
       business_settings_email_template: ['create', 'read', 'update', 'delete'],
       business_settings_integrations: ['read', 'update', 'sync'],
 
-      lead: ['create', 'read', 'update', 'delete', 'transfer', 'convert', 'export', 'import'],
+      lead: [
+        'create',
+        'read',
+        'update',
+        'delete',
+        'transfer',
+        'convert',
+        'export',
+        'import',
+      ],
       // contact: ['create', 'read', 'update', 'delete'],
       deal: ['create', 'read', 'update', 'delete'],
       activity: ['read'],
@@ -79,7 +98,9 @@ export class PermissionsService {
 
     if (admin) {
       const allPerms = await this.prisma.permission.findMany();
-      const existingIds = new Set(admin.permissions.map((rp) => rp.permissionId));
+      const existingIds = new Set(
+        admin.permissions.map((rp) => rp.permissionId),
+      );
 
       for (const p of allPerms) {
         if (!existingIds.has(p.id)) {

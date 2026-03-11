@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, Button, PageLoader } from '../../components/ui';
-import { Ruler, ArrowLeft, Save, Plus, Edit3, Trash2, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { unitTypesService } from '../../services/unitTypesService';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent, Button, PageLoader } from "../../components/ui";
+import { Ruler, ArrowLeft, Save, Plus, Edit3, Trash2, Eye, EyeOff } from "lucide-react";
+import { toast } from "react-toastify";
+import { unitTypesService } from "../../services/unitTypesService";
 
 interface UnitType {
   id: number;
@@ -27,8 +27,8 @@ const UnitTypesPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<UnitTypeFormData>({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     isActive: true,
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -44,8 +44,8 @@ const UnitTypesPage: React.FC = () => {
       const data = await unitTypesService.getAll();
       setUnitTypes(data);
     } catch (error) {
-      console.error('Failed to fetch unit types:', error);
-      toast.error('Failed to load unit types');
+      console.error("Failed to fetch unit types:", error);
+      toast.error("Failed to load unit types");
       setUnitTypes([]);
     } finally {
       setIsLoading(false);
@@ -54,8 +54,8 @@ const UnitTypesPage: React.FC = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       isActive: true,
     });
     setIsEditing(false);
@@ -65,7 +65,7 @@ const UnitTypesPage: React.FC = () => {
   const handleEdit = (unitType: UnitType) => {
     setFormData({
       name: unitType.name,
-      description: unitType.description || '',
+      description: unitType.description || "",
       isActive: unitType.isActive,
     });
     setEditingId(unitType.id);
@@ -76,11 +76,11 @@ const UnitTypesPage: React.FC = () => {
     e.preventDefault();
 
     const validationErrors: { name?: string } = {};
-    const trimmedName = (formData.name || '').trim();
+    const trimmedName = (formData.name || "").trim();
     if (!trimmedName) {
-      validationErrors.name = 'Unit type name is required';
+      validationErrors.name = "Unit type name is required";
     } else if (trimmedName.length > 50) {
-      validationErrors.name = 'Unit type name must be at most 50 characters';
+      validationErrors.name = "Unit type name must be at most 50 characters";
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -100,33 +100,38 @@ const UnitTypesPage: React.FC = () => {
 
       if (editingId) {
         await unitTypesService.update(editingId, payload);
-        toast.success('Unit type updated successfully');
+        toast.success("Unit type updated successfully");
       } else {
         await unitTypesService.create(payload);
-        toast.success('Unit type added successfully');
+        toast.success("Unit type added successfully");
       }
       resetForm();
       fetchUnitTypes();
     } catch (error: any) {
-      console.error('Failed to save unit type:', error);
-      const errorMessage = error?.response?.data?.message?.message ||
-                          error?.response?.data?.message ||
-                          'Failed to save unit type';
-      toast.error(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      console.error("Failed to save unit type:", error);
+      const errorMessage =
+        error?.response?.data?.message?.message ||
+        error?.response?.data?.message ||
+        "Failed to save unit type";
+      toast.error(Array.isArray(errorMessage) ? errorMessage.join(", ") : errorMessage);
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this unit type? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this unit type? This action cannot be undone."
+      )
+    ) {
       try {
         await unitTypesService.delete(id);
-        toast.success('Unit type deleted successfully');
+        toast.success("Unit type deleted successfully");
         fetchUnitTypes();
       } catch (error) {
-        console.error('Failed to delete unit type:', error);
-        toast.error('Failed to delete unit type');
+        console.error("Failed to delete unit type:", error);
+        toast.error("Failed to delete unit type");
       }
     }
   };
@@ -134,11 +139,11 @@ const UnitTypesPage: React.FC = () => {
   const handleToggleActive = async (id: number, isActive: boolean) => {
     try {
       await unitTypesService.toggle(id);
-      toast.success('Unit type updated successfully');
+      toast.success("Unit type updated successfully");
       fetchUnitTypes();
     } catch (error) {
-      console.error('Failed to update unit type:', error);
-      toast.error('Failed to update unit type');
+      console.error("Failed to update unit type:", error);
+      toast.error("Failed to update unit type");
     }
   };
 
@@ -153,7 +158,7 @@ const UnitTypesPage: React.FC = () => {
         <Button
           variant="GHOST"
           size="SM"
-          onClick={() => navigate('/business-settings')}
+          onClick={() => navigate("/business-settings")}
           className="p-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -163,9 +168,7 @@ const UnitTypesPage: React.FC = () => {
             <Ruler className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Unit Types
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Unit Types</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Manage measurement units for your products
             </p>
@@ -179,7 +182,7 @@ const UnitTypesPage: React.FC = () => {
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {isEditing ? 'Edit Unit Type' : 'Add New Unit Type'}
+                {isEditing ? "Edit Unit Type" : "Add New Unit Type"}
               </h3>
             </CardHeader>
             <CardContent>
@@ -193,19 +196,22 @@ const UnitTypesPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => {
                       const value = e.target.value;
-                      setFormData(prev => ({ ...prev, name: value }));
+                      setFormData((prev) => ({ ...prev, name: value }));
                       if (!value.trim()) {
-                        setErrors(prev => ({ ...prev, name: 'Unit type name is required' }));
+                        setErrors((prev) => ({ ...prev, name: "Unit type name is required" }));
                       } else if (value.length > 50) {
-                        setErrors(prev => ({ ...prev, name: 'Unit type name must be at most 50 characters' }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          name: "Unit type name must be at most 50 characters",
+                        }));
                       } else {
-                        setErrors(prev => ({ ...prev, name: undefined }));
+                        setErrors((prev) => ({ ...prev, name: undefined }));
                       }
                     }}
                     className={`w-full p-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                       errors.name
-                        ? 'border-red-300 dark:border-red-600'
-                        : 'border-gray-300 dark:border-gray-600'
+                        ? "border-red-300 dark:border-red-600"
+                        : "border-gray-300 dark:border-gray-600"
                     }`}
                     placeholder="e.g., piece, kg, liter, meter"
                   />
@@ -220,7 +226,9 @@ const UnitTypesPage: React.FC = () => {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     rows={3}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Brief description of this unit type"
@@ -232,7 +240,9 @@ const UnitTypesPage: React.FC = () => {
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, isActive: e.target.checked }))
+                    }
                     className="rounded border-gray-300 dark:border-gray-600"
                   />
                   <label htmlFor="isActive" className="text-sm text-gray-700 dark:text-gray-300">
@@ -248,14 +258,10 @@ const UnitTypesPage: React.FC = () => {
                     className="flex items-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    {isSaving ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+                    {isSaving ? "Saving..." : isEditing ? "Update" : "Add"}
                   </Button>
                   {isEditing && (
-                    <Button
-                      type="button"
-                      variant="OUTLINE"
-                      onClick={resetForm}
-                    >
+                    <Button type="button" variant="OUTLINE" onClick={resetForm}>
                       Cancel
                     </Button>
                   )}
@@ -326,7 +332,7 @@ const UnitTypesPage: React.FC = () => {
                           size="SM"
                           onClick={() => handleToggleActive(unitType.id, unitType.isActive)}
                           className="p-1"
-                          title={unitType.isActive ? 'Deactivate' : 'Activate'}
+                          title={unitType.isActive ? "Deactivate" : "Activate"}
                         >
                           {unitType.isActive ? (
                             <Eye className="w-4 h-4 text-green-500" />
@@ -376,14 +382,14 @@ const UnitTypesPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {unitTypes.filter(c => c.isActive).length}
+                  {unitTypes.filter((c) => c.isActive).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Unit Types</p>
               </div>
 
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                  {unitTypes.filter(c => !c.isActive).length}
+                  {unitTypes.filter((c) => !c.isActive).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Inactive Unit Types</p>
               </div>

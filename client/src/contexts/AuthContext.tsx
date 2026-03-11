@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useReducer,
-  useEffect,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from "react";
 import {
   User,
   AuthState,
@@ -13,7 +7,7 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   PasswordRequirements,
-  ValidationError
+  ValidationError,
 } from "../types/auth";
 import { authService } from "../services/auth.service";
 
@@ -29,14 +23,21 @@ interface AuthContextType extends AuthState {
   hasPermission: (permission: string) => boolean;
   hasRole: (role: string) => boolean;
   validatePassword: (password: string) => { isValid: boolean; errors: string[] };
-  calculatePasswordStrength: (password: string) => { score: number; message: string; color: string };
+  calculatePasswordStrength: (password: string) => {
+    score: number;
+    message: string;
+    color: string;
+  };
   autoLogin: () => Promise<boolean>;
   clearError: () => void;
 }
 
 type AuthAction =
   | { type: "LOGIN_START" }
-  | { type: "LOGIN_SUCCESS"; payload: { user: User; accessToken: string; refreshToken: string; tokenExpiry: string } }
+  | {
+      type: "LOGIN_SUCCESS";
+      payload: { user: User; accessToken: string; refreshToken: string; tokenExpiry: string };
+    }
   | { type: "LOGIN_FAILURE"; payload: { message: string; validationErrors?: ValidationError[] } }
   | { type: "REGISTER_START" }
   | { type: "REGISTER_SUCCESS" }
@@ -183,7 +184,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -205,13 +206,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const profileResponse = await authService.getProfile();
           dispatch({
             type: "CHECK_AUTH_SUCCESS",
-            payload: profileResponse.data.user
+            payload: profileResponse.data.user,
           });
         } else {
           dispatch({ type: "CHECK_AUTH_FAILURE" });
         }
       } catch (error) {
-        console.error('Auto-login failed:', error);
+        console.error("Auto-login failed:", error);
         dispatch({ type: "CHECK_AUTH_FAILURE" });
       }
     };
@@ -223,29 +224,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleAccountDeactivated = (event: Event) => {
       const custom = event as CustomEvent<{ message?: string }>;
-      const message = custom?.detail?.message || 'Your account has been deactivated.';
+      const message = custom?.detail?.message || "Your account has been deactivated.";
       // Inform the user and force logout
       try {
         // Use toast to notify (toast imported lazily to avoid circular deps)
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { toast } = require('react-toastify');
-        toast.info(message, { toastId: 'account_deactivated' });
+
+        const { toast } = require("react-toastify");
+        toast.info(message, { toastId: "account_deactivated" });
       } catch (e) {
-        console.error('Failed to show deactivation toast', e);
+        console.error("Failed to show deactivation toast", e);
       }
-      dispatch({ type: 'LOGOUT' });
+      dispatch({ type: "LOGOUT" });
     };
 
-    window.addEventListener('accountDeactivated', handleAccountDeactivated as EventListener);
+    window.addEventListener("accountDeactivated", handleAccountDeactivated as EventListener);
     return () => {
-      window.removeEventListener('accountDeactivated', handleAccountDeactivated as EventListener);
+      window.removeEventListener("accountDeactivated", handleAccountDeactivated as EventListener);
     };
   }, []);
 
   // Listen for role deactivation events - auto logout affected users
   useEffect(() => {
     const handleRoleDeactivated = (event: Event) => {
-      const custom = event as CustomEvent<{ userIds: number[]; roleName: string; timestamp: string }>;
+      const custom = event as CustomEvent<{
+        userIds: number[];
+        roleName: string;
+        timestamp: string;
+      }>;
       const { userIds, roleName } = custom?.detail || {};
       const currentUserId = state.user?.id;
 
@@ -253,24 +258,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (userIds && currentUserId && userIds.includes(currentUserId)) {
         try {
           // Use toast to notify
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const { toast } = require('react-toastify');
+
+          const { toast } = require("react-toastify");
           toast.error(
             `Your role "${roleName}" has been deactivated. You are being logged out for security.`,
-            { toastId: 'role_deactivated', autoClose: 5000 }
+            { toastId: "role_deactivated", autoClose: 5000 }
           );
         } catch (e) {
-          console.error('Failed to show role deactivation toast', e);
+          console.error("Failed to show role deactivation toast", e);
         }
 
         // Force logout
-        dispatch({ type: 'LOGOUT' });
+        dispatch({ type: "LOGOUT" });
       }
     };
 
-    window.addEventListener('roleDeactivated', handleRoleDeactivated as EventListener);
+    window.addEventListener("roleDeactivated", handleRoleDeactivated as EventListener);
     return () => {
-      window.removeEventListener('roleDeactivated', handleRoleDeactivated as EventListener);
+      window.removeEventListener("roleDeactivated", handleRoleDeactivated as EventListener);
     };
   }, [state.user?.id]);
 
@@ -281,10 +286,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Check if response is successful
       if (!response.success) {
-        const errorMessage = response.message || 'Invalid credentials';
+        const errorMessage = response.message || "Invalid credentials";
         dispatch({
           type: "LOGIN_FAILURE",
-          payload: { message: errorMessage }
+          payload: { message: errorMessage },
         });
         throw new Error(errorMessage);
       }
@@ -292,10 +297,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store tokens in localStorage
       if (response.data) {
         const { accessToken, refreshToken, tokenExpiry, user } = response.data;
-        localStorage.setItem('token', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        localStorage.setItem('tokenExpiry', tokenExpiry);
-        localStorage.setItem('userId', user.id.toString());
+        localStorage.setItem("token", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("tokenExpiry", tokenExpiry);
+        localStorage.setItem("userId", user.id.toString());
         dispatch({
           type: "LOGIN_SUCCESS",
           payload: { user, accessToken, refreshToken, tokenExpiry },
@@ -307,10 +312,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       const message = error.message || "Login failed";
       const validationErrors = error.validationErrors;
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       dispatch({
         type: "LOGIN_FAILURE",
-        payload: { message, validationErrors }
+        payload: { message, validationErrors },
       });
       throw error;
     }
@@ -327,7 +332,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const validationErrors = error.validationErrors;
       dispatch({
         type: "REGISTER_FAILURE",
-        payload: { message, validationErrors }
+        payload: { message, validationErrors },
       });
       throw error;
     }
@@ -337,7 +342,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       dispatch({ type: "LOGOUT" });
     }
@@ -372,7 +377,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const profileResponse = await authService.getProfile();
       dispatch({
         type: "CHECK_AUTH_SUCCESS",
-        payload: profileResponse.data.user
+        payload: profileResponse.data.user,
       });
     } catch (error) {
       dispatch({ type: "CHECK_AUTH_FAILURE" });
@@ -387,8 +392,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!state.user || !state.user.roles) return false;
     // Admin override: any Admin or Super Admin role grants access to all modules
     const isAdmin = state.user.roles.some((role) => {
-      const name = (role.name || '').toLowerCase();
-      return name === 'admin' || name === 'super_admin' || name === 'super admin';
+      const name = (role.name || "").toLowerCase();
+      return name === "admin" || name === "super_admin" || name === "super admin";
     });
     if (isAdmin) return true;
 
@@ -422,7 +427,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     if (!state.isAuthenticated || !state.accessToken) return;
 
-    const tokenExpiry = localStorage.getItem('tokenExpiry');
+    const tokenExpiry = localStorage.getItem("tokenExpiry");
     if (!tokenExpiry) return;
 
     const expiryTime = new Date(tokenExpiry);
@@ -439,10 +444,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const refreshResponse = await authService.refreshToken();
           dispatch({
             type: "TOKEN_REFRESHED",
-            payload: refreshResponse.data.accessToken
+            payload: refreshResponse.data.accessToken,
           });
         } catch (error) {
-          console.error('Token refresh failed:', error);
+          console.error("Token refresh failed:", error);
           dispatch({ type: "TOKEN_EXPIRED" });
         }
       }, refreshTime);
@@ -451,22 +456,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     if (warningTime > 0) {
       const w = window.setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('tokenExpired', {
-          detail: {
-            title: 'Session expiring soon',
-            message: 'Your session will expire in about 2 minutes. Please save your work.',
-          },
-        }));
+        window.dispatchEvent(
+          new CustomEvent("tokenExpired", {
+            detail: {
+              title: "Session expiring soon",
+              message: "Your session will expire in about 2 minutes. Please save your work.",
+            },
+          })
+        );
       }, warningTime);
       timers.push(w);
     } else if (timeUntilExpiry > 0 && timeUntilExpiry <= 2 * 60 * 1000) {
       // If less than 2 minutes remain, show warning immediately
-      window.dispatchEvent(new CustomEvent('tokenExpired', {
-        detail: {
-          title: 'Session expiring soon',
-          message: 'Your session will expire in about 2 minutes. Please save your work.',
-        },
-      }));
+      window.dispatchEvent(
+        new CustomEvent("tokenExpired", {
+          detail: {
+            title: "Session expiring soon",
+            message: "Your session will expire in about 2 minutes. Please save your work.",
+          },
+        })
+      );
     } else if (timeUntilExpiry <= 0) {
       // Token already expired
       dispatch({ type: "TOKEN_EXPIRED" });

@@ -1,10 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Edit, Trash2, Database } from "lucide-react";
-import {
-  industryService,
-  Industry,
-  IndustryField,
-} from "../services/industryService";
+import { industryService, Industry, IndustryField } from "../services/industryService";
 import { useAuth } from "../contexts/AuthContext";
 import FormModal from "./FormModal";
 import InputField, { TextAreaField } from "./InputField";
@@ -19,9 +15,7 @@ const SectionHeader: React.FC<{
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center">
       <span className="mr-2">{icon}</span>
-      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">
-        {title}
-      </h3>
+      <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">{title}</h3>
     </div>
     {action}
   </div>
@@ -110,13 +104,8 @@ const IndustrySettings: React.FC = () => {
     try {
       setLoading(true);
       if (industryModal.editing) {
-        const updated = await industryService.updateIndustry(
-          industryModal.editing.id,
-          data
-        );
-        setIndustries((prev) =>
-          prev.map((i) => (i.id === updated.id ? updated : i))
-        );
+        const updated = await industryService.updateIndustry(industryModal.editing.id, data);
+        setIndustries((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
         toast.success("Industry updated");
       } else {
         const created = await industryService.createIndustry(data);
@@ -136,29 +125,19 @@ const IndustrySettings: React.FC = () => {
     try {
       setLoading(true);
       if (fieldModal.editing) {
-        const updated = await industryService.updateField(
-          fieldModal.editing.id,
-          data
-        );
+        const updated = await industryService.updateField(fieldModal.editing.id, data);
         setIndustries((prev) =>
           prev.map((ind) => ({
             ...ind,
-            fields: ind.fields.map((f) =>
-              f.id === updated.id ? (updated as any) : f
-            ),
+            fields: ind.fields.map((f) => (f.id === updated.id ? (updated as any) : f)),
           }))
         );
         toast.success("Field updated");
       } else {
-        const created = await industryService.addField(
-          fieldModal.industryId,
-          data
-        );
+        const created = await industryService.addField(fieldModal.industryId, data);
         setIndustries((prev) =>
           prev.map((ind) =>
-            ind.id === fieldModal.industryId
-              ? { ...ind, fields: [created, ...ind.fields] }
-              : ind
+            ind.id === fieldModal.industryId ? { ...ind, fields: [created, ...ind.fields] } : ind
           )
         );
         toast.success("Field added");
@@ -175,9 +154,7 @@ const IndustrySettings: React.FC = () => {
     <div className="p-4 md:p-6">
       <div className="mb-6 flex  items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Industry Settings
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Industry Settings</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Manage industries and their fields
           </p>
@@ -187,17 +164,11 @@ const IndustrySettings: React.FC = () => {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-3 text-sm text-red-600 dark:text-red-400">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
         <SectionHeader
-          icon={
-            <Database className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-          }
+          icon={<Database className="h-4 w-4 text-gray-600 dark:text-gray-300" />}
           title="Industries"
           action={
             canManage.admin ? (
@@ -212,11 +183,7 @@ const IndustrySettings: React.FC = () => {
           }
         />
 
-        {loading && (
-          <div className="py-6 text-sm text-gray-500 dark:text-gray-400">
-            Loading...
-          </div>
-        )}
+        {loading && <div className="py-6 text-sm text-gray-500 dark:text-gray-400">Loading...</div>}
 
         {!loading && industries.length === 0 && (
           <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
@@ -238,9 +205,7 @@ const IndustrySettings: React.FC = () => {
                     </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${
-                        ind.isActive
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-200 text-gray-700"
+                        ind.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
                       }`}
                     >
                       {ind.isActive ? "Active" : "Inactive"}
@@ -287,9 +252,7 @@ const IndustrySettings: React.FC = () => {
                     className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-md px-2 py-1.5"
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-800 dark:text-gray-100">
-                        {f.name}
-                      </span>
+                      <span className="text-sm text-gray-800 dark:text-gray-100">{f.name}</span>
                       {(f as any).type && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                           {(f as any).type}
@@ -300,9 +263,7 @@ const IndustrySettings: React.FC = () => {
                       </span>
                       <span
                         className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          f.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-200 text-gray-700"
+                          f.isActive ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700"
                         }`}
                       >
                         {f.isActive ? "Active" : "Inactive"}
@@ -327,9 +288,7 @@ const IndustrySettings: React.FC = () => {
                   </div>
                 ))}
                 {ind.fields.length === 0 && (
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    No fields yet
-                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">No fields yet</div>
                 )}
               </div>
             </div>
@@ -348,8 +307,7 @@ const IndustrySettings: React.FC = () => {
           const fd = new FormData(form);
           const payload = {
             name: String(fd.get("name") || "").trim(),
-            description:
-              String(fd.get("description") || "").trim() || undefined,
+            description: String(fd.get("description") || "").trim() || undefined,
             isActive: !!fd.get("isActive"),
           };
           submitIndustry(payload);
@@ -384,9 +342,7 @@ const IndustrySettings: React.FC = () => {
       {/* Field modal */}
       <FormModal
         open={fieldModal.open}
-        onClose={() =>
-          setFieldModal({ open: false, industryId: null, editing: null })
-        }
+        onClose={() => setFieldModal({ open: false, industryId: null, editing: null })}
         title={fieldModal.editing ? "Edit Field" : "Add Field"}
         onSubmit={(e) => {
           e.preventDefault();

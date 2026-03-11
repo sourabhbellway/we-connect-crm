@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../../components/ui';
-import { expenseService, ExpensePayload, ExpenseType, ExpenseStatus } from '../../services/expenseService';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { Button } from "../../components/ui";
+import {
+  expenseService,
+  ExpensePayload,
+  ExpenseType,
+  ExpenseStatus,
+} from "../../services/expenseService";
 import {
   Calendar,
   User,
@@ -19,19 +24,19 @@ import {
   FileText,
   CreditCard as DollarSign,
   MoreVertical,
-} from 'lucide-react';
-import ReactDOM from 'react-dom';
-import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
-import SearchInput from '../../components/SearchInput';
-import NoResults from '../../components/NoResults';
-import DropdownFilter from '../../components/DropdownFilter';
-import Pagination from '../../components/Pagination';
-import { useDebouncedSearch } from '../../hooks/useDebounce';
-import { toast } from 'react-toastify';
-import MetaBar from '../../components/list/MetaBar';
-import ListToolbar from '../../components/list/ListToolbar';
-import TableSortHeader from '../../components/list/TableSortHeader';
-import { exportToCsv, exportTableToPrintPdf } from '../../utils/exportUtils';
+} from "lucide-react";
+import ReactDOM from "react-dom";
+import { useBusinessSettings } from "../../contexts/BusinessSettingsContext";
+import SearchInput from "../../components/SearchInput";
+import NoResults from "../../components/NoResults";
+import DropdownFilter from "../../components/DropdownFilter";
+import Pagination from "../../components/Pagination";
+import { useDebouncedSearch } from "../../hooks/useDebounce";
+import { toast } from "react-toastify";
+import MetaBar from "../../components/list/MetaBar";
+import ListToolbar from "../../components/list/ListToolbar";
+import TableSortHeader from "../../components/list/TableSortHeader";
+import { exportToCsv, exportTableToPrintPdf } from "../../utils/exportUtils";
 
 interface Expense {
   id: number;
@@ -86,7 +91,7 @@ const ExpenseActionMenu = ({
   onEdit,
   onDelete,
   onApprove,
-  onReject
+  onReject,
 }: {
   expense: Expense;
   hasPermission: (p: string) => boolean;
@@ -105,21 +110,21 @@ const ExpenseActionMenu = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (isOpen && buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         const target = event.target as Element;
-        if (!target.closest('.action-menu-dropdown')) {
+        if (!target.closest(".action-menu-dropdown")) {
           setIsOpen(false);
         }
       }
     };
 
     if (isOpen) {
-      window.addEventListener('mousedown', handleClickOutside);
-      window.addEventListener('scroll', () => setIsOpen(false), true);
-      window.addEventListener('resize', () => setIsOpen(false));
+      window.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", () => setIsOpen(false), true);
+      window.addEventListener("resize", () => setIsOpen(false));
     }
     return () => {
-      window.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', () => setIsOpen(false), true);
-      window.removeEventListener('resize', () => setIsOpen(false));
+      window.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", () => setIsOpen(false), true);
+      window.removeEventListener("resize", () => setIsOpen(false));
     };
   }, [isOpen]);
 
@@ -138,11 +143,11 @@ const ExpenseActionMenu = ({
       }
 
       setMenuStyle({
-        position: 'fixed',
+        position: "fixed",
         top: `${top}px`,
         left: `${left}px`,
         zIndex: 9999,
-        width: `${menuWidth}px`
+        width: `${menuWidth}px`,
       });
     }
     setIsOpen(!isOpen);
@@ -158,75 +163,96 @@ const ExpenseActionMenu = ({
         <MoreVertical className="h-4 w-4" />
       </button>
 
-      {isOpen && ReactDOM.createPortal(
-        <div
-          className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
-          style={menuStyle}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {(hasPermission('expense.read') || hasRole('Admin')) && (
-            <button
-              onClick={() => { onView(expense); setIsOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4 text-gray-400" />
-              View
-            </button>
-          )}
-
-          {expense.receiptUrl && (
-            <button
-              onClick={() => { window.open(expense.receiptUrl, '_blank'); setIsOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
-            >
-              <Receipt className="h-4 w-4 text-emerald-500" />
-              Receipt
-            </button>
-          )}
-
-          {(hasPermission('expense.approve') || hasRole('Admin')) && expense.status === 'PENDING' && (
-            <>
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div
+            className="bg-white dark:bg-gray-800 rounded-md shadow-xl border border-gray-200 dark:border-gray-700 py-1 action-menu-dropdown"
+            style={menuStyle}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(hasPermission("expense.read") || hasRole("Admin")) && (
               <button
-                onClick={() => { onApprove(expense); setIsOpen(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2"
+                onClick={() => {
+                  onView(expense);
+                  setIsOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
               >
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                Approve
+                <Eye className="h-4 w-4 text-gray-400" />
+                View
               </button>
+            )}
+
+            {expense.receiptUrl && (
               <button
-                onClick={() => { onReject(expense); setIsOpen(false); }}
+                onClick={() => {
+                  window.open(expense.receiptUrl, "_blank");
+                  setIsOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
+              >
+                <Receipt className="h-4 w-4 text-emerald-500" />
+                Receipt
+              </button>
+            )}
+
+            {(hasPermission("expense.approve") || hasRole("Admin")) &&
+              expense.status === "PENDING" && (
+                <>
+                  <button
+                    onClick={() => {
+                      onApprove(expense);
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 flex items-center gap-2"
+                  >
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => {
+                      onReject(expense);
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                  >
+                    <XCircle className="h-4 w-4 text-red-500" />
+                    Reject
+                  </button>
+                </>
+              )}
+
+            {(hasPermission("expense.update") || hasRole("Admin")) &&
+              expense.status === "PENDING" && (
+                <button
+                  onClick={() => {
+                    onEdit(expense);
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2"
+                >
+                  <Edit className="h-4 w-4 text-blue-500" />
+                  Edit
+                </button>
+              )}
+
+            <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
+
+            {(hasPermission("expense.delete") || hasRole("Admin")) && (
+              <button
+                onClick={() => {
+                  onDelete(expense);
+                  setIsOpen(false);
+                }}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
               >
-                <XCircle className="h-4 w-4 text-red-500" />
-                Reject
+                <Trash2 className="h-4 w-4 text-red-500" />
+                Delete
               </button>
-            </>
-          )}
-
-          {(hasPermission('expense.update') || hasRole('Admin')) && expense.status === 'PENDING' && (
-            <button
-              onClick={() => { onEdit(expense); setIsOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4 text-blue-500" />
-              Edit
-            </button>
-          )}
-
-          <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
-
-          {(hasPermission('expense.delete') || hasRole('Admin')) && (
-            <button
-              onClick={() => { onDelete(expense); setIsOpen(false); }}
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-              Delete
-            </button>
-          )}
-        </div>,
-        document.body
-      )}
+            )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };
@@ -238,58 +264,58 @@ const ExpensesPage: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [selected, setSelected] = useState<Expense | null>(null);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<ExpensePayload>>({});
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<Partial<ExpensePayload>>({
-    expenseDate: new Date().toISOString().split('T')[0],
+    expenseDate: new Date().toISOString().split("T")[0],
     amount: 0,
-    type: 'TRAVEL',
-    description: '',
-    remarks: '',
-    receiptUrl: '',
+    type: "TRAVEL",
+    description: "",
+    remarks: "",
+    receiptUrl: "",
     submittedBy: 0,
-    currency: currencySettings?.primary || 'USD',
+    currency: currencySettings?.primary || "USD",
   });
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   // Debounced search and local sort/filter/pagination
-  const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch('', 500);
-  type SortBy = 'createdAt' | 'expenseDate' | 'amount' | 'type' | 'status' | 'submittedBy';
-  type SortOrder = 'asc' | 'desc';
-  const [sortBy, setSortBy] = useState<SortBy>('createdAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [typeFilter, setTypeFilter] = useState<string>('ALL');
-  const [currencyFilter, setCurrencyFilter] = useState<string>('ALL');
+  const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch("", 500);
+  type SortBy = "createdAt" | "expenseDate" | "amount" | "type" | "status" | "submittedBy";
+  type SortOrder = "asc" | "desc";
+  const [sortBy, setSortBy] = useState<SortBy>("createdAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [currencyFilter, setCurrencyFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    'type',
-    'amount',
-    'expenseDate',
-    'submittedBy',
-    'status',
-    'createdAt',
+    "type",
+    "amount",
+    "expenseDate",
+    "submittedBy",
+    "status",
+    "createdAt",
   ]);
 
   const expenseTypes: ExpenseType[] = [
-    'TRAVEL',
-    'MEALS',
-    'ACCOMMODATION',
-    'OFFICE_SUPPLIES',
-    'UTILITIES',
-    'MARKETING',
-    'ENTERTAINMENT',
-    'TRAINING',
-    'EQUIPMENT',
-    'SOFTWARE',
-    'CONSULTING',
-    'MISCELLANEOUS',
-    'OTHER',
+    "TRAVEL",
+    "MEALS",
+    "ACCOMMODATION",
+    "OFFICE_SUPPLIES",
+    "UTILITIES",
+    "MARKETING",
+    "ENTERTAINMENT",
+    "TRAINING",
+    "EQUIPMENT",
+    "SOFTWARE",
+    "CONSULTING",
+    "MISCELLANEOUS",
+    "OTHER",
   ];
 
   useEffect(() => {
@@ -299,9 +325,9 @@ const ExpensesPage: React.FC = () => {
   // Update default currency when settings load
   useEffect(() => {
     if (currencySettings?.primary) {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        currency: prev.currency === 'USD' ? currencySettings.primary : prev.currency
+        currency: prev.currency === "USD" ? currencySettings.primary : prev.currency,
       }));
     }
   }, [currencySettings]);
@@ -309,10 +335,10 @@ const ExpensesPage: React.FC = () => {
   // Load column visibility preferences
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('expenses_visible_columns');
+      const stored = localStorage.getItem("expenses_visible_columns");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.every((c) => typeof c === 'string')) {
+        if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
           setVisibleColumns(parsed);
         }
       }
@@ -323,7 +349,7 @@ const ExpensesPage: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('expenses_visible_columns', JSON.stringify(visibleColumns));
+      localStorage.setItem("expenses_visible_columns", JSON.stringify(visibleColumns));
     } catch {
       // ignore
     }
@@ -331,7 +357,15 @@ const ExpensesPage: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchValue, sortBy, sortOrder, statusFilter, typeFilter, currencyFilter, itemsPerPage]);
+  }, [
+    debouncedSearchValue,
+    sortBy,
+    sortOrder,
+    statusFilter,
+    typeFilter,
+    currencyFilter,
+    itemsPerPage,
+  ]);
 
   const fetchExpenses = async () => {
     try {
@@ -341,19 +375,19 @@ const ExpensesPage: React.FC = () => {
         page: 1,
         limit: 100,
         search: debouncedSearchValue || undefined,
-        status: statusFilter !== 'ALL' ? statusFilter : undefined,
-        type: typeFilter !== 'ALL' ? typeFilter : undefined,
-        currency: currencyFilter !== 'ALL' ? currencyFilter : undefined,
+        status: statusFilter !== "ALL" ? statusFilter : undefined,
+        type: typeFilter !== "ALL" ? typeFilter : undefined,
+        currency: currencyFilter !== "ALL" ? currencyFilter : undefined,
       });
 
       if (response.success) {
         const data = response.data || {};
-        const items = Array.isArray(data) ? data : (data.items || data.expenses || []);
+        const items = Array.isArray(data) ? data : data.items || data.expenses || [];
         setExpenses(items);
       }
     } catch (err: any) {
-      console.error('Error fetching expenses:', err);
-      setError(err.response?.data?.message || 'Failed to fetch expenses');
+      console.error("Error fetching expenses:", err);
+      setError(err.response?.data?.message || "Failed to fetch expenses");
       setExpenses([]);
     } finally {
       setLoading(false);
@@ -363,51 +397,52 @@ const ExpensesPage: React.FC = () => {
   // Filter
   const filtered = expenses.filter((expense) => {
     const term = debouncedSearchValue.toLowerCase();
-    const matchesSearch = !term ||
+    const matchesSearch =
+      !term ||
       expense.type.toLowerCase().includes(term) ||
       (expense.description?.toLowerCase().includes(term) ?? false) ||
       (expense.submittedByUser?.firstName.toLowerCase().includes(term) ?? false) ||
       (expense.submittedByUser?.lastName.toLowerCase().includes(term) ?? false);
 
-    const matchesStatus = statusFilter === 'ALL' || expense.status === statusFilter;
-    const matchesType = typeFilter === 'ALL' || expense.type === typeFilter;
-    const matchesCurrency = currencyFilter === 'ALL' || expense.currency === currencyFilter;
+    const matchesStatus = statusFilter === "ALL" || expense.status === statusFilter;
+    const matchesType = typeFilter === "ALL" || expense.type === typeFilter;
+    const matchesCurrency = currencyFilter === "ALL" || expense.currency === currencyFilter;
 
     return matchesSearch && matchesStatus && matchesType && matchesCurrency;
   });
 
   // Sort
   const sorted = [...filtered].sort((a, b) => {
-    const dir = sortOrder === 'asc' ? 1 : -1;
+    const dir = sortOrder === "asc" ? 1 : -1;
     const getVal = (e: Expense) => {
       switch (sortBy) {
-        case 'expenseDate':
-          return e.expenseDate || '';
-        case 'amount':
+        case "expenseDate":
+          return e.expenseDate || "";
+        case "amount":
           return e.amount || 0;
-        case 'type':
-          return e.type || '';
-        case 'status':
-          return e.status || '';
-        case 'submittedBy': {
+        case "type":
+          return e.type || "";
+        case "status":
+          return e.status || "";
+        case "submittedBy": {
           const name = e.submittedByUser
             ? `${e.submittedByUser.firstName} ${e.submittedByUser.lastName}`
-            : '';
+            : "";
           return name.toLowerCase();
         }
-        case 'createdAt':
+        case "createdAt":
         default:
-          return e.createdAt || '';
+          return e.createdAt || "";
       }
     };
     const va = getVal(a);
     const vb = getVal(b);
 
     // Numeric sort for amount
-    if (sortBy === 'amount') return ((va as number) - (vb as number)) * dir;
+    if (sortBy === "amount") return ((va as number) - (vb as number)) * dir;
 
     // Date sorts
-    if (sortBy === 'createdAt' || sortBy === 'expenseDate') {
+    if (sortBy === "createdAt" || sortBy === "expenseDate") {
       return (new Date(va as string).getTime() - new Date(vb as string).getTime()) * dir;
     }
 
@@ -418,10 +453,10 @@ const ExpensesPage: React.FC = () => {
   const onHeaderSort = (col: SortBy) => {
     setSortBy((prev) => {
       if (prev === col) {
-        setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+        setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
         return prev;
       }
-      setSortOrder('asc');
+      setSortOrder("asc");
       return col;
     });
   };
@@ -437,21 +472,21 @@ const ExpensesPage: React.FC = () => {
 
   const getStatusColor = (status: ExpenseStatus) => {
     const colors = {
-      PENDING: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
-      APPROVED: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
-      REJECTED: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
-      REIMBURSED: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+      PENDING: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300",
+      APPROVED: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300",
+      REJECTED: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300",
+      REIMBURSED: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
     };
     return colors[status] || colors.PENDING;
   };
 
   const getStatusIcon = (status: ExpenseStatus) => {
     switch (status) {
-      case 'APPROVED':
+      case "APPROVED":
         return <CheckCircle className="text-green-600 dark:text-green-400" size={14} />;
-      case 'REJECTED':
+      case "REJECTED":
         return <XCircle className="text-red-600 dark:text-red-400" size={14} />;
-      case 'REIMBURSED':
+      case "REIMBURSED":
         return <CheckCircle className="text-blue-600 dark:text-blue-400" size={14} />;
       default:
         return <Clock className="text-yellow-600 dark:text-yellow-400" size={14} />;
@@ -460,43 +495,43 @@ const ExpensesPage: React.FC = () => {
 
   const getTypeIcon = (type: ExpenseType) => {
     const icons: Record<string, string> = {
-      TRAVEL: '✈️',
-      MEALS: '🍽️',
-      ACCOMMODATION: '🏨',
-      OFFICE_SUPPLIES: '📦',
-      UTILITIES: '⚡',
-      MARKETING: '📢',
-      ENTERTAINMENT: '🎬',
-      TRAINING: '📚',
-      EQUIPMENT: '🖥️',
-      SOFTWARE: '💻',
-      CONSULTING: '💼',
-      MISCELLANEOUS: '📋',
-      OTHER: '📄',
+      TRAVEL: "✈️",
+      MEALS: "🍽️",
+      ACCOMMODATION: "🏨",
+      OFFICE_SUPPLIES: "📦",
+      UTILITIES: "⚡",
+      MARKETING: "📢",
+      ENTERTAINMENT: "🎬",
+      TRAINING: "📚",
+      EQUIPMENT: "🖥️",
+      SOFTWARE: "💻",
+      CONSULTING: "💼",
+      MISCELLANEOUS: "📋",
+      OTHER: "📄",
     };
-    return icons[type] || '📄';
+    return icons[type] || "📄";
   };
 
   // formatCurrency is now taken from BusinessSettingsContext
 
   const createExpense = async () => {
     if (!form.expenseDate) {
-      toast.error('Expense date is required');
+      toast.error("Expense date is required");
       return;
     }
     if (!form.amount || form.amount <= 0) {
-      toast.error('Amount must be greater than 0');
+      toast.error("Amount must be greater than 0");
       return;
     }
     if (!user?.id) {
-      toast.error('User information not available');
+      toast.error("User information not available");
       return;
     }
 
     try {
       let expenseDateStr = form.expenseDate;
-      if (expenseDateStr && !expenseDateStr.includes('T')) {
-        expenseDateStr = new Date(expenseDateStr + 'T00:00:00').toISOString();
+      if (expenseDateStr && !expenseDateStr.includes("T")) {
+        expenseDateStr = new Date(expenseDateStr + "T00:00:00").toISOString();
       } else if (expenseDateStr) {
         expenseDateStr = new Date(expenseDateStr).toISOString();
       }
@@ -508,7 +543,7 @@ const ExpensesPage: React.FC = () => {
         description: form.description || undefined,
         remarks: form.remarks || undefined,
         submittedBy: user.id,
-        currency: form.currency || 'USD',
+        currency: form.currency || "USD",
       };
 
       const created = await expenseService.create(payload);
@@ -516,33 +551,44 @@ const ExpensesPage: React.FC = () => {
 
       if (receiptFile && createdExpense?.id) {
         try {
-          const up = await expenseService.uploadReceipt(createdExpense.id, receiptFile, `receipt-${createdExpense.id}`);
+          const up = await expenseService.uploadReceipt(
+            createdExpense.id,
+            receiptFile,
+            `receipt-${createdExpense.id}`
+          );
           const file = up?.data?.file || up?.file;
-          const downloadUrl = file?.id ? `/files/${file.id}/download?disposition=inline` : file?.filePath;
-          if (downloadUrl) await expenseService.update(createdExpense.id, { receiptUrl: downloadUrl });
+          const downloadUrl = file?.id
+            ? `/files/${file.id}/download?disposition=inline`
+            : file?.filePath;
+          if (downloadUrl)
+            await expenseService.update(createdExpense.id, { receiptUrl: downloadUrl });
         } catch (err) {
-          console.error('Receipt upload failed:', err);
-          toast.warn('Expense created, but receipt upload failed');
+          console.error("Receipt upload failed:", err);
+          toast.warn("Expense created, but receipt upload failed");
         }
       }
 
-      toast.success('Expense created successfully');
+      toast.success("Expense created successfully");
       setShowNew(false);
       setReceiptFile(null);
       setForm({
-        expenseDate: new Date().toISOString().split('T')[0],
+        expenseDate: new Date().toISOString().split("T")[0],
         amount: 0,
-        type: 'TRAVEL',
-        description: '',
-        remarks: '',
-        receiptUrl: '',
+        type: "TRAVEL",
+        description: "",
+        remarks: "",
+        receiptUrl: "",
         submittedBy: user.id,
-        currency: currencySettings?.primary || 'USD',
+        currency: currencySettings?.primary || "USD",
       });
       fetchExpenses();
     } catch (e: any) {
-      console.error('Error creating expense:', e);
-      const errorMessage = e?.response?.data?.message || e?.response?.data?.error || e?.message || 'Failed to create expense';
+      console.error("Error creating expense:", e);
+      const errorMessage =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Failed to create expense";
       toast.error(errorMessage);
     }
   };
@@ -551,7 +597,7 @@ const ExpensesPage: React.FC = () => {
     setSelected(expense);
     setEditing(false);
     setEditForm({
-      expenseDate: new Date(expense.expenseDate).toISOString().split('T')[0],
+      expenseDate: new Date(expense.expenseDate).toISOString().split("T")[0],
       amount: expense.amount,
       type: expense.type,
       description: expense.description,
@@ -568,26 +614,28 @@ const ExpensesPage: React.FC = () => {
     try {
       await expenseService.update(selected.id, {
         ...editForm,
-        expenseDate: editForm.expenseDate ? new Date(editForm.expenseDate).toISOString() : undefined,
+        expenseDate: editForm.expenseDate
+          ? new Date(editForm.expenseDate).toISOString()
+          : undefined,
       });
-      toast.success('Expense updated');
+      toast.success("Expense updated");
       setEditing(false);
       fetchExpenses();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Failed to update expense');
+      toast.error(e?.response?.data?.message || "Failed to update expense");
     }
   };
 
   const deleteExpense = async () => {
     if (!selected) return;
-    if (!confirm('Are you sure you want to delete this expense?')) return;
+    if (!confirm("Are you sure you want to delete this expense?")) return;
     try {
       await expenseService.remove(selected.id);
-      toast.success('Expense deleted');
+      toast.success("Expense deleted");
       setSelected(null);
       fetchExpenses();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Failed to delete expense');
+      toast.error(e?.response?.data?.message || "Failed to delete expense");
     }
   };
 
@@ -607,96 +655,98 @@ const ExpensesPage: React.FC = () => {
           title="Expenses"
           subtitle="Track and manage your expenses"
           addLabel="Add Expense"
-          onAdd={(hasPermission('expense.create') || hasRole('Admin')) ? () => setShowNew(true) : undefined}
+          onAdd={
+            hasPermission("expense.create") || hasRole("Admin") ? () => setShowNew(true) : undefined
+          }
           bulkActions={[
             {
-              label: 'Export Expenses (Excel)',
+              label: "Export Expenses (Excel)",
               icon: <FileDown className="w-4 h-4" />,
               onClick: () => {
                 const cols = [
                   {
-                    id: 'type',
-                    label: 'Type',
-                    value: (e: Expense) => e.type.replace('_', ' '),
+                    id: "type",
+                    label: "Type",
+                    value: (e: Expense) => e.type.replace("_", " "),
                   },
                   {
-                    id: 'amount',
-                    label: 'Amount',
+                    id: "amount",
+                    label: "Amount",
                     value: (e: Expense) => formatCurrency(e.amount, e.currency),
                   },
                   {
-                    id: 'expenseDate',
-                    label: 'Expense Date',
+                    id: "expenseDate",
+                    label: "Expense Date",
                     value: (e: Expense) => new Date(e.expenseDate).toLocaleDateString(),
                   },
                   {
-                    id: 'submittedBy',
-                    label: 'Submitted By',
+                    id: "submittedBy",
+                    label: "Submitted By",
                     value: (e: Expense) =>
                       e.submittedByUser
                         ? `${e.submittedByUser.firstName} ${e.submittedByUser.lastName}`
-                        : '',
+                        : "",
                   },
                   {
-                    id: 'status',
-                    label: 'Status',
+                    id: "status",
+                    label: "Status",
                     value: (e: Expense) => e.status,
                   },
                   {
-                    id: 'createdAt',
-                    label: 'Created',
+                    id: "createdAt",
+                    label: "Created",
                     value: (e: Expense) => new Date(e.createdAt).toLocaleDateString(),
                   },
                 ];
                 const activeCols = cols.filter((c) => visibleColumns.includes(c.id));
                 const headers = activeCols.map((c) => c.label);
                 const rows = sorted.map((e) => activeCols.map((c) => c.value(e)));
-                exportToCsv('expenses_export.csv', headers, rows);
+                exportToCsv("expenses_export.csv", headers, rows);
               },
             },
             {
-              label: 'Export Expenses (PDF)',
+              label: "Export Expenses (PDF)",
               icon: <FileText className="w-4 h-4" />,
               onClick: () => {
                 const cols = [
                   {
-                    id: 'type',
-                    label: 'Type',
-                    value: (e: Expense) => e.type.replace('_', ' '),
+                    id: "type",
+                    label: "Type",
+                    value: (e: Expense) => e.type.replace("_", " "),
                   },
                   {
-                    id: 'amount',
-                    label: 'Amount',
+                    id: "amount",
+                    label: "Amount",
                     value: (e: Expense) => formatCurrency(e.amount, e.currency),
                   },
                   {
-                    id: 'expenseDate',
-                    label: 'Expense Date',
+                    id: "expenseDate",
+                    label: "Expense Date",
                     value: (e: Expense) => new Date(e.expenseDate).toLocaleDateString(),
                   },
                   {
-                    id: 'submittedBy',
-                    label: 'Submitted By',
+                    id: "submittedBy",
+                    label: "Submitted By",
                     value: (e: Expense) =>
                       e.submittedByUser
                         ? `${e.submittedByUser.firstName} ${e.submittedByUser.lastName}`
-                        : '',
+                        : "",
                   },
                   {
-                    id: 'status',
-                    label: 'Status',
+                    id: "status",
+                    label: "Status",
                     value: (e: Expense) => e.status,
                   },
                   {
-                    id: 'createdAt',
-                    label: 'Created',
+                    id: "createdAt",
+                    label: "Created",
                     value: (e: Expense) => new Date(e.createdAt).toLocaleDateString(),
                   },
                 ];
                 const activeCols = cols.filter((c) => visibleColumns.includes(c.id));
                 const headers = activeCols.map((c) => c.label);
                 const rows = sorted.map((e) => activeCols.map((c) => c.value(e)));
-                exportTableToPrintPdf('Expenses', headers, rows);
+                exportTableToPrintPdf("Expenses", headers, rows);
               },
             },
           ]}
@@ -708,7 +758,9 @@ const ExpensesPage: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Create New Expense</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                Create New Expense
+              </h3>
               <button
                 onClick={() => setShowNew(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -719,7 +771,9 @@ const ExpensesPage: React.FC = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expense Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Expense Date *
+                  </label>
                   <input
                     type="date"
                     value={form.expenseDate}
@@ -729,26 +783,35 @@ const ExpensesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Amount *
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-gray-500 font-medium text-xs">
-                      {currencySettings?.currencies?.find(c => c.code === form.currency)?.symbol ||
-                        (form.currency === currencySettings?.primary ? currencySettings?.symbol : '') ||
-                        (form.currency === 'USD' ? '$' : form.currency)}
+                      {currencySettings?.currencies?.find((c) => c.code === form.currency)
+                        ?.symbol ||
+                        (form.currency === currencySettings?.primary
+                          ? currencySettings?.symbol
+                          : "") ||
+                        (form.currency === "USD" ? "$" : form.currency)}
                     </span>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={form.amount}
-                      onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setForm({ ...form, amount: parseFloat(e.target.value) || 0 })
+                      }
                       className="w-full pl-8 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
                       required
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Type *
+                  </label>
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value as ExpenseType })}
@@ -757,21 +820,25 @@ const ExpensesPage: React.FC = () => {
                   >
                     {expenseTypes.map((type) => (
                       <option key={type} value={type}>
-                        {getTypeIcon(type)} {type.replace('_', ' ')}
+                        {getTypeIcon(type)} {type.replace("_", " ")}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Currency
+                  </label>
                   <select
                     value={form.currency}
                     onChange={(e) => setForm({ ...form, currency: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
                   >
                     {currencySettings?.supportedCurrencies?.length ? (
-                      currencySettings.supportedCurrencies.map(code => (
-                        <option key={code} value={code}>{code}</option>
+                      currencySettings.supportedCurrencies.map((code) => (
+                        <option key={code} value={code}>
+                          {code}
+                        </option>
                       ))
                     ) : (
                       <>
@@ -784,7 +851,9 @@ const ExpensesPage: React.FC = () => {
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Receipt</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Upload Receipt
+                  </label>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
@@ -793,7 +862,9 @@ const ExpensesPage: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Description
+                  </label>
                   <textarea
                     value={form.description}
                     onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -802,7 +873,9 @@ const ExpensesPage: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Remarks</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Remarks
+                  </label>
                   <textarea
                     value={form.remarks}
                     onChange={(e) => setForm({ ...form, remarks: e.target.value })}
@@ -812,7 +885,9 @@ const ExpensesPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex justify-end gap-3 mt-6">
-                <Button variant="OUTLINE" onClick={() => setShowNew(false)}>Cancel</Button>
+                <Button variant="OUTLINE" onClick={() => setShowNew(false)}>
+                  Cancel
+                </Button>
                 <Button onClick={createExpense}>Create Expense</Button>
               </div>
             </div>
@@ -848,13 +923,13 @@ const ExpensesPage: React.FC = () => {
             <DropdownFilter
               label="Status"
               value={statusFilter}
-              onChange={(v) => setStatusFilter((v as string))}
+              onChange={(v) => setStatusFilter(v as string)}
               options={[
-                { value: 'ALL', label: 'All statuses' },
-                { value: 'PENDING', label: 'Pending' },
-                { value: 'APPROVED', label: 'Approved' },
-                { value: 'REJECTED', label: 'Rejected' },
-                { value: 'REIMBURSED', label: 'Reimbursed' },
+                { value: "ALL", label: "All statuses" },
+                { value: "PENDING", label: "Pending" },
+                { value: "APPROVED", label: "Approved" },
+                { value: "REJECTED", label: "Rejected" },
+                { value: "REIMBURSED", label: "Reimbursed" },
               ]}
             />
           </div>
@@ -864,12 +939,12 @@ const ExpensesPage: React.FC = () => {
             <DropdownFilter
               label="Type"
               value={typeFilter}
-              onChange={(v) => setTypeFilter((v as string))}
+              onChange={(v) => setTypeFilter(v as string)}
               options={[
-                { value: 'ALL', label: 'All types' },
+                { value: "ALL", label: "All types" },
                 ...expenseTypes.map((type) => ({
                   value: type,
-                  label: `${getTypeIcon(type)} ${type.replace('_', ' ')}`,
+                  label: `${getTypeIcon(type)} ${type.replace("_", " ")}`,
                 })),
               ]}
             />
@@ -880,13 +955,15 @@ const ExpensesPage: React.FC = () => {
             <DropdownFilter
               label="Currency"
               value={currencyFilter}
-              onChange={(v) => setCurrencyFilter((v as string))}
+              onChange={(v) => setCurrencyFilter(v as string)}
               options={[
-                { value: 'ALL', label: 'All currencies' },
-                ...(currencySettings?.supportedCurrencies || ['USD', 'EUR', 'GBP', 'INR']).map(code => ({
-                  value: code,
-                  label: code
-                }))
+                { value: "ALL", label: "All currencies" },
+                ...(currencySettings?.supportedCurrencies || ["USD", "EUR", "GBP", "INR"]).map(
+                  (code) => ({
+                    value: code,
+                    label: code,
+                  })
+                ),
               ]}
             />
           </div>
@@ -896,14 +973,14 @@ const ExpensesPage: React.FC = () => {
             <DropdownFilter
               label="Sort by"
               value={sortBy}
-              onChange={(v) => setSortBy((v as string) as any)}
+              onChange={(v) => setSortBy(v as string as any)}
               options={[
-                { value: 'createdAt', label: 'Created date' },
-                { value: 'expenseDate', label: 'Expense date' },
-                { value: 'amount', label: 'Amount' },
-                { value: 'type', label: 'Type' },
-                { value: 'status', label: 'Status' },
-                { value: 'submittedBy', label: 'Submitted By' },
+                { value: "createdAt", label: "Created date" },
+                { value: "expenseDate", label: "Expense date" },
+                { value: "amount", label: "Amount" },
+                { value: "type", label: "Type" },
+                { value: "status", label: "Status" },
+                { value: "submittedBy", label: "Submitted By" },
               ]}
             />
           </div>
@@ -913,10 +990,10 @@ const ExpensesPage: React.FC = () => {
             <DropdownFilter
               label="Order"
               value={sortOrder}
-              onChange={(v) => setSortOrder((v as string) as any)}
+              onChange={(v) => setSortOrder(v as string as any)}
               options={[
-                { value: 'asc', label: 'Ascending' },
-                { value: 'desc', label: 'Descending' },
+                { value: "asc", label: "Ascending" },
+                { value: "desc", label: "Descending" },
               ]}
             />
           </div>
@@ -928,10 +1005,10 @@ const ExpensesPage: React.FC = () => {
               value={String(itemsPerPage)}
               onChange={(v) => setItemsPerPage(Number(v))}
               options={[
-                { value: '5', label: '5' },
-                { value: '10', label: '10' },
-                { value: '20', label: '20' },
-                { value: '50', label: '50' },
+                { value: "5", label: "5" },
+                { value: "10", label: "10" },
+                { value: "20", label: "20" },
+                { value: "50", label: "50" },
               ]}
             />
           </div>
@@ -940,15 +1017,15 @@ const ExpensesPage: React.FC = () => {
         {/* View toggle - Right aligned */}
         <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 ml-auto">
           <button
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-            onClick={() => setViewMode('list')}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            onClick={() => setViewMode("list")}
             title="List view"
           >
             <LayoutList className="w-4 h-4" />
           </button>
           <button
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-            onClick={() => setViewMode('grid')}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "grid" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            onClick={() => setViewMode("grid")}
             title="Grid view"
           >
             <LayoutGrid className="w-4 h-4" />
@@ -964,15 +1041,19 @@ const ExpensesPage: React.FC = () => {
       )}
 
       {/* List or Grid */}
-      {viewMode === 'grid' ? (
+      {viewMode === "grid" ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 transition-all duration-300 p-6">
           {pageItems.length === 0 ? (
             <NoResults
               title="No expenses found"
-              description={searchValue ? 'No expenses match your search criteria.' : 'Get started by creating your first expense.'}
+              description={
+                searchValue
+                  ? "No expenses match your search criteria."
+                  : "Get started by creating your first expense."
+              }
               icon={<DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
               showClearButton={!!searchValue}
-              onClear={() => setSearch('')}
+              onClear={() => setSearch("")}
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -981,11 +1062,13 @@ const ExpensesPage: React.FC = () => {
                   <div
                     key={expense.id}
                     className="rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 flex flex-col bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                    style={{ minHeight: '280px' }}
+                    style={{ minHeight: "280px" }}
                   >
                     {/* Partition 1: Status Badge */}
                     <div className="px-4 pt-4 pb-2">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(expense.status)}`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium ${getStatusColor(expense.status)}`}
+                      >
                         {getStatusIcon(expense.status)}
                         {expense.status}
                       </span>
@@ -997,7 +1080,7 @@ const ExpensesPage: React.FC = () => {
                         className="text-sm font-semibold text-gray-900 dark:text-white mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         onClick={() => openView(expense)}
                       >
-                        {getTypeIcon(expense.type)} {expense.type.replace('_', ' ')}
+                        {getTypeIcon(expense.type)} {expense.type.replace("_", " ")}
                       </h3>
                       {expense.description && (
                         <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
@@ -1016,18 +1099,24 @@ const ExpensesPage: React.FC = () => {
                       <div className="space-y-1.5">
                         <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                           <Calendar className="h-3 w-3 mr-1.5 flex-shrink-0" />
-                          <span className="truncate">{new Date(expense.expenseDate).toLocaleDateString()}</span>
+                          <span className="truncate">
+                            {new Date(expense.expenseDate).toLocaleDateString()}
+                          </span>
                         </div>
                         {expense.submittedByUser && (
                           <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center">
                             <User className="h-3 w-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">{expense.submittedByUser.firstName} {expense.submittedByUser.lastName}</span>
+                            <span className="truncate">
+                              {expense.submittedByUser.firstName} {expense.submittedByUser.lastName}
+                            </span>
                           </div>
                         )}
                         {expense.approvedByUser && (
                           <div className="text-xs text-green-600 dark:text-green-400 flex items-center">
                             <CheckCircle className="h-3 w-3 mr-1.5 flex-shrink-0" />
-                            <span className="truncate">Approved by {expense.approvedByUser.firstName}</span>
+                            <span className="truncate">
+                              Approved by {expense.approvedByUser.firstName}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -1042,35 +1131,46 @@ const ExpensesPage: React.FC = () => {
                           hasPermission={hasPermission}
                           hasRole={hasRole}
                           onView={openView}
-                          onEdit={(e) => { openView(e); setEditing(true); }}
+                          onEdit={(e) => {
+                            openView(e);
+                            setEditing(true);
+                          }}
                           onDelete={async (e) => {
-                            if (!confirm('Delete this expense?')) return;
+                            if (!confirm("Delete this expense?")) return;
                             try {
                               await expenseService.remove(e.id);
-                              setExpenses(prev => prev.filter(item => item.id !== e.id));
-                              toast.success('Expense deleted');
+                              setExpenses((prev) => prev.filter((item) => item.id !== e.id));
+                              toast.success("Expense deleted");
                             } catch (err) {
-                              toast.error('Failed to delete');
+                              toast.error("Failed to delete");
                             }
                           }}
                           onApprove={async (e) => {
-                            const remarks = prompt('Approval remarks');
+                            const remarks = prompt("Approval remarks");
                             try {
-                              await expenseService.approve(e.id, { status: 'APPROVED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                              toast.success('Expense approved');
+                              await expenseService.approve(e.id, {
+                                status: "APPROVED",
+                                reviewedBy: user!.id,
+                                approvalRemarks: remarks || undefined,
+                              });
+                              toast.success("Expense approved");
                               fetchExpenses();
                             } catch (err: any) {
-                              toast.error(err?.response?.data?.message || 'Approval failed');
+                              toast.error(err?.response?.data?.message || "Approval failed");
                             }
                           }}
                           onReject={async (e) => {
-                            const remarks = prompt('Rejection remarks');
+                            const remarks = prompt("Rejection remarks");
                             try {
-                              await expenseService.approve(e.id, { status: 'REJECTED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                              toast.success('Expense rejected');
+                              await expenseService.approve(e.id, {
+                                status: "REJECTED",
+                                reviewedBy: user!.id,
+                                approvalRemarks: remarks || undefined,
+                              });
+                              toast.success("Expense rejected");
                               fetchExpenses();
                             } catch (err: any) {
-                              toast.error(err?.response?.data?.message || 'Rejection failed');
+                              toast.error(err?.response?.data?.message || "Rejection failed");
                             }
                           }}
                         />
@@ -1106,12 +1206,12 @@ const ExpensesPage: React.FC = () => {
                 onItemsPerPageChange={(n) => setItemsPerPage(n)}
                 columnConfig={{
                   columns: [
-                    { id: 'type', label: 'Type' },
-                    { id: 'amount', label: 'Amount' },
-                    { id: 'expenseDate', label: 'Date' },
-                    { id: 'submittedBy', label: 'Submitted By' },
-                    { id: 'status', label: 'Status' },
-                    { id: 'createdAt', label: 'Created' },
+                    { id: "type", label: "Type" },
+                    { id: "amount", label: "Amount" },
+                    { id: "expenseDate", label: "Date" },
+                    { id: "submittedBy", label: "Submitted By" },
+                    { id: "status", label: "Status" },
+                    { id: "createdAt", label: "Created" },
                   ],
                   visibleColumns,
                   onChange: setVisibleColumns,
@@ -1128,123 +1228,226 @@ const ExpensesPage: React.FC = () => {
                       <th className="px-4 py-3">
                         <input
                           type="checkbox"
-                          checked={pageItems.length > 0 && pageItems.every(e => selectedIds.includes(e.id))}
+                          checked={
+                            pageItems.length > 0 &&
+                            pageItems.every((e) => selectedIds.includes(e.id))
+                          }
                           onChange={(e) => {
-                            const allIds = pageItems.map(e => e.id);
-                            setSelectedIds(e.target.checked ? Array.from(new Set([...selectedIds, ...allIds])) : selectedIds.filter(id => !allIds.includes(id)));
+                            const allIds = pageItems.map((e) => e.id);
+                            setSelectedIds(
+                              e.target.checked
+                                ? Array.from(new Set([...selectedIds, ...allIds]))
+                                : selectedIds.filter((id) => !allIds.includes(id))
+                            );
                           }}
                         />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('type') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Type" column={'type'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("type") ? "hidden" : ""}`}
+                      >
+                        <TableSortHeader
+                          label="Type"
+                          column={"type"}
+                          sortBy={sortBy as any}
+                          sortOrder={sortOrder as any}
+                          onChange={(c: any) => onHeaderSort(c)}
+                        />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('amount') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Amount" column={'amount'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("amount") ? "hidden" : ""}`}
+                      >
+                        <TableSortHeader
+                          label="Amount"
+                          column={"amount"}
+                          sortBy={sortBy as any}
+                          sortOrder={sortOrder as any}
+                          onChange={(c: any) => onHeaderSort(c)}
+                        />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('expenseDate') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Date" column={'expenseDate'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("expenseDate") ? "hidden" : ""}`}
+                      >
+                        <TableSortHeader
+                          label="Date"
+                          column={"expenseDate"}
+                          sortBy={sortBy as any}
+                          sortOrder={sortOrder as any}
+                          onChange={(c: any) => onHeaderSort(c)}
+                        />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('submittedBy') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Submitted By" column={'submittedBy'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("submittedBy") ? "hidden" : ""}`}
+                      >
+                        <TableSortHeader
+                          label="Submitted By"
+                          column={"submittedBy"}
+                          sortBy={sortBy as any}
+                          sortOrder={sortOrder as any}
+                          onChange={(c: any) => onHeaderSort(c)}
+                        />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Status" column={'status'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("status") ? "hidden" : ""}`}
+                      >
+                        <TableSortHeader
+                          label="Status"
+                          column={"status"}
+                          sortBy={sortBy as any}
+                          sortOrder={sortOrder as any}
+                          onChange={(c: any) => onHeaderSort(c)}
+                        />
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('createdAt') ? 'hidden' : ''}`}>
-                        <TableSortHeader label="Created" column={'createdAt'} sortBy={sortBy as any} sortOrder={sortOrder as any} onChange={(c: any) => onHeaderSort(c)} />
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("createdAt") ? "hidden" : ""}`}
+                      >
+                        <TableSortHeader
+                          label="Created"
+                          column={"createdAt"}
+                          sortBy={sortBy as any}
+                          sortOrder={sortOrder as any}
+                          onChange={(c: any) => onHeaderSort(c)}
+                        />
                       </th>
-                      <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                      <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {pageItems.map((expense) => (
-                      <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <tr
+                        key={expense.id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
                         <td className="px-4 py-4" data-label="Select">
                           <input
                             type="checkbox"
                             checked={selectedIds.includes(expense.id)}
                             onChange={(e) => {
-                              setSelectedIds(prev => e.target.checked ? [...prev, expense.id] : prev.filter(id => id !== expense.id));
+                              setSelectedIds((prev) =>
+                                e.target.checked
+                                  ? [...prev, expense.id]
+                                  : prev.filter((id) => id !== expense.id)
+                              );
                             }}
                           />
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('type') ? 'hidden' : ''}`} data-label="Type">
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("type") ? "hidden" : ""}`}
+                          data-label="Type"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="text-xl">{getTypeIcon(expense.type)}</div>
                             <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">{expense.type.replace('_', ' ')}</div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {expense.type.replace("_", " ")}
+                              </div>
                               {expense.description && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">{expense.description}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                                  {expense.description}
+                                </div>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('amount') ? 'hidden' : ''}`} data-label="Amount">
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("amount") ? "hidden" : ""}`}
+                          data-label="Amount"
+                        >
                           <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
-
                             {formatCurrency(expense.amount, expense.currency)}
                           </div>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('expenseDate') ? 'hidden' : ''}`} data-label="Date">
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("expenseDate") ? "hidden" : ""}`}
+                          data-label="Date"
+                        >
                           <div className="text-sm text-gray-900 dark:text-white flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(expense.expenseDate).toLocaleDateString()}
                           </div>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('submittedBy') ? 'hidden' : ''}`} data-label="Submitted By">
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("submittedBy") ? "hidden" : ""}`}
+                          data-label="Submitted By"
+                        >
                           <div className="text-sm text-gray-900 dark:text-white flex items-center">
                             <User className="h-3 w-3 mr-1" />
-                            {expense.submittedByUser ? `${expense.submittedByUser.firstName} ${expense.submittedByUser.lastName}` : '-'}
+                            {expense.submittedByUser
+                              ? `${expense.submittedByUser.firstName} ${expense.submittedByUser.lastName}`
+                              : "-"}
                           </div>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('status') ? 'hidden' : ''}`} data-label="Status">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(expense.status)}`}>
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("status") ? "hidden" : ""}`}
+                          data-label="Status"
+                        >
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(expense.status)}`}
+                          >
                             {getStatusIcon(expense.status)}
                             {expense.status}
                           </span>
                         </td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('createdAt') ? 'hidden' : ''}`} data-label="Created">
+                        <td
+                          className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible("createdAt") ? "hidden" : ""}`}
+                          data-label="Created"
+                        >
                           <div className="flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
                             {new Date(expense.createdAt).toLocaleDateString()}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium" data-label="Actions">
+                        <td
+                          className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium"
+                          data-label="Actions"
+                        >
                           <div className="flex items-center justify-end">
                             <ExpenseActionMenu
                               expense={expense}
                               hasPermission={hasPermission}
                               hasRole={hasRole}
                               onView={openView}
-                              onEdit={(e) => { openView(e); setEditing(true); }}
+                              onEdit={(e) => {
+                                openView(e);
+                                setEditing(true);
+                              }}
                               onDelete={async (e) => {
-                                if (!confirm('Delete this expense?')) return;
+                                if (!confirm("Delete this expense?")) return;
                                 try {
                                   await expenseService.remove(e.id);
-                                  setExpenses(prev => prev.filter(item => item.id !== e.id));
-                                  toast.success('Expense deleted');
+                                  setExpenses((prev) => prev.filter((item) => item.id !== e.id));
+                                  toast.success("Expense deleted");
                                 } catch (err) {
-                                  toast.error('Failed to delete');
+                                  toast.error("Failed to delete");
                                 }
                               }}
                               onApprove={async (e) => {
-                                const remarks = prompt('Approval remarks');
+                                const remarks = prompt("Approval remarks");
                                 try {
-                                  await expenseService.approve(e.id, { status: 'APPROVED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                                  toast.success('Expense approved');
+                                  await expenseService.approve(e.id, {
+                                    status: "APPROVED",
+                                    reviewedBy: user!.id,
+                                    approvalRemarks: remarks || undefined,
+                                  });
+                                  toast.success("Expense approved");
                                   fetchExpenses();
                                 } catch (err: any) {
-                                  toast.error(err?.response?.data?.message || 'Approval failed');
+                                  toast.error(err?.response?.data?.message || "Approval failed");
                                 }
                               }}
                               onReject={async (e) => {
-                                const remarks = prompt('Rejection remarks');
+                                const remarks = prompt("Rejection remarks");
                                 try {
-                                  await expenseService.approve(e.id, { status: 'REJECTED', reviewedBy: user!.id, approvalRemarks: remarks || undefined });
-                                  toast.success('Expense rejected');
+                                  await expenseService.approve(e.id, {
+                                    status: "REJECTED",
+                                    reviewedBy: user!.id,
+                                    approvalRemarks: remarks || undefined,
+                                  });
+                                  toast.success("Expense rejected");
                                   fetchExpenses();
                                 } catch (err: any) {
-                                  toast.error(err?.response?.data?.message || 'Rejection failed');
+                                  toast.error(err?.response?.data?.message || "Rejection failed");
                                 }
                               }}
                             />
@@ -1269,252 +1472,297 @@ const ExpensesPage: React.FC = () => {
             )}
           </div>
         </div>
-      )
-      }
+      )}
 
       {/* Empty state */}
-      {
-        totalItems === 0 && !loading && (
-          <NoResults
-            title="No expenses found"
-            description={searchValue ? 'No expenses match your search criteria.' : 'Get started by creating your first expense.'}
-            icon={<DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-            showClearButton={!!searchValue}
-            onClear={() => setSearch('')}
-          />
-        )
-      }
+      {totalItems === 0 && !loading && (
+        <NoResults
+          title="No expenses found"
+          description={
+            searchValue
+              ? "No expenses match your search criteria."
+              : "Get started by creating your first expense."
+          }
+          icon={<DollarSign className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+          showClearButton={!!searchValue}
+          onClear={() => setSearch("")}
+        />
+      )}
 
       {/* View/Edit Modal */}
-      {
-        selected && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Receipt className="text-emerald-500" size={24} />
-                  Expense #{selected.id}
-                </h3>
-                <div className="flex gap-2">
-                  {(hasPermission('expense.update') || hasRole('Admin')) && selected.status === 'PENDING' && (
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Receipt className="text-emerald-500" size={24} />
+                Expense #{selected.id}
+              </h3>
+              <div className="flex gap-2">
+                {(hasPermission("expense.update") || hasRole("Admin")) &&
+                  selected.status === "PENDING" && (
                     <Button variant="OUTLINE" size="SM" onClick={() => setEditing((v) => !v)}>
                       <Edit size={16} className="mr-2" />
-                      {editing ? 'Cancel' : 'Edit'}
+                      {editing ? "Cancel" : "Edit"}
                     </Button>
                   )}
-                  {(hasPermission('expense.delete') || hasRole('Admin')) && (
-                    <Button variant="OUTLINE" size="SM" onClick={deleteExpense}>
-                      <Trash2 size={16} className="mr-2" />
-                      Delete
-                    </Button>
-                  )}
-                  <Button variant="OUTLINE" size="SM" onClick={() => setSelected(null)}>
-                    ✕
+                {(hasPermission("expense.delete") || hasRole("Admin")) && (
+                  <Button variant="OUTLINE" size="SM" onClick={deleteExpense}>
+                    <Trash2 size={16} className="mr-2" />
+                    Delete
                   </Button>
-                </div>
-              </div>
-
-              <div className="p-6">
-                {!editing ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="text-4xl">{getTypeIcon(selected.type)}</div>
-                        <div className="flex-1">
-                          <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            {selected.type.replace('_', ' ')}
-                          </h4>
-                          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selected.status)}`}>
-                            {getStatusIcon(selected.status)}
-                            {selected.status}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                            {formatCurrency(selected.amount, selected.currency)}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{selected.currency}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Expense Date</p>
-                      <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                        <Calendar size={18} className="text-emerald-500" />
-                        {new Date(selected.expenseDate).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created At</p>
-                      <p className="text-lg text-gray-900 dark:text-white">
-                        {new Date(selected.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created By</p>
-                      <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                        <User size={18} className="text-emerald-500" />
-                        {selected.submittedByUser
-                          ? `${selected.submittedByUser.firstName} ${selected.submittedByUser.lastName}`
-                          : selected.createdByUser
-                            ? `${selected.createdByUser.firstName} ${selected.createdByUser.lastName}`
-                            : '-'}
-                      </p>
-                    </div>
-
-                    {selected.approvedByUser && (
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved By</p>
-                        <p className="text-lg text-green-600 dark:text-green-400 flex items-center gap-2">
-                          <CheckCircle size={18} />
-                          {selected.approvedByUser.firstName} {selected.approvedByUser.lastName}
-                        </p>
-                      </div>
-                    )}
-
-                    {selected.approvedAt && (
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Approved At</p>
-                        <p className="text-lg text-gray-900 dark:text-white">
-                          {new Date(selected.approvedAt).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-
-                    {selected.rejectedByUser && (
-                      <div className="space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Rejected By</p>
-                        <p className="text-lg text-red-600 dark:text-red-400 flex items-center gap-2">
-                          <XCircle size={18} />
-                          {selected.rejectedByUser.firstName} {selected.rejectedByUser.lastName}
-                        </p>
-                      </div>
-                    )}
-
-                    {selected.description && (
-                      <div className="md:col-span-2 space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Description</p>
-                        <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
-                          {selected.description}
-                        </p>
-                      </div>
-                    )}
-
-                    {selected.remarks && (
-                      <div className="md:col-span-2 space-y-1">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Remarks</p>
-                        <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
-                          {selected.remarks}
-                        </p>
-                      </div>
-                    )}
-
-                    {selected.receiptUrl && (
-                      <div className="md:col-span-2">
-                        <Button variant="OUTLINE" onClick={() => window.open(selected.receiptUrl, '_blank')}>
-                          <Download size={16} className="mr-2" />
-                          View Receipt
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date</label>
-                      <input
-                        type="date"
-                        value={editForm.expenseDate as string}
-                        onChange={(e) => setEditForm({ ...editForm, expenseDate: e.target.value })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Amount</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-3 text-gray-500 font-medium">
-                          {currencySettings?.symbol || '$'}
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={editForm.amount ?? 0}
-                          onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })}
-                          className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Type</label>
-                      <select
-                        value={editForm.type as string}
-                        onChange={(e) => setEditForm({ ...editForm, type: e.target.value as ExpenseType })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                      >
-                        {expenseTypes.map((t) => (
-                          <option key={t} value={t}>{getTypeIcon(t)} {t.replace('_', ' ')}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Currency</label>
-                      <select
-                        value={editForm.currency || 'USD'}
-                        onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                      >
-                        {currencySettings?.supportedCurrencies?.length ? (
-                          currencySettings.supportedCurrencies.map(code => (
-                            <option key={code} value={code}>{code}</option>
-                          ))
-                        ) : (
-                          <>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="GBP">GBP</option>
-                            <option value="INR">INR</option>
-                          </>
-                        )}
-                      </select>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                      <textarea
-                        value={editForm.description || ''}
-                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Remarks</label>
-                      <textarea
-                        value={editForm.remarks || ''}
-                        onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
-                        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="md:col-span-2 flex justify-end gap-3">
-                      <Button variant="OUTLINE" onClick={() => setEditing(false)}>Cancel</Button>
-                      <Button onClick={saveEdit}>Save Changes</Button>
-                    </div>
-                  </div>
                 )}
+                <Button variant="OUTLINE" size="SM" onClick={() => setSelected(null)}>
+                  ✕
+                </Button>
               </div>
             </div>
+
+            <div className="p-6">
+              {!editing ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="text-4xl">{getTypeIcon(selected.type)}</div>
+                      <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                          {selected.type.replace("_", " ")}
+                        </h4>
+                        <span
+                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(selected.status)}`}
+                        >
+                          {getStatusIcon(selected.status)}
+                          {selected.status}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                          {formatCurrency(selected.amount, selected.currency)}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {selected.currency}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Expense Date
+                    </p>
+                    <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                      <Calendar size={18} className="text-emerald-500" />
+                      {new Date(selected.expenseDate).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Created At
+                    </p>
+                    <p className="text-lg text-gray-900 dark:text-white">
+                      {new Date(selected.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      Created By
+                    </p>
+                    <p className="text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                      <User size={18} className="text-emerald-500" />
+                      {selected.submittedByUser
+                        ? `${selected.submittedByUser.firstName} ${selected.submittedByUser.lastName}`
+                        : selected.createdByUser
+                          ? `${selected.createdByUser.firstName} ${selected.createdByUser.lastName}`
+                          : "-"}
+                    </p>
+                  </div>
+
+                  {selected.approvedByUser && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Approved By
+                      </p>
+                      <p className="text-lg text-green-600 dark:text-green-400 flex items-center gap-2">
+                        <CheckCircle size={18} />
+                        {selected.approvedByUser.firstName} {selected.approvedByUser.lastName}
+                      </p>
+                    </div>
+                  )}
+
+                  {selected.approvedAt && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Approved At
+                      </p>
+                      <p className="text-lg text-gray-900 dark:text-white">
+                        {new Date(selected.approvedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+
+                  {selected.rejectedByUser && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Rejected By
+                      </p>
+                      <p className="text-lg text-red-600 dark:text-red-400 flex items-center gap-2">
+                        <XCircle size={18} />
+                        {selected.rejectedByUser.firstName} {selected.rejectedByUser.lastName}
+                      </p>
+                    </div>
+                  )}
+
+                  {selected.description && (
+                    <div className="md:col-span-2 space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Description
+                      </p>
+                      <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
+                        {selected.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {selected.remarks && (
+                    <div className="md:col-span-2 space-y-1">
+                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Remarks
+                      </p>
+                      <p className="text-base text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-xl">
+                        {selected.remarks}
+                      </p>
+                    </div>
+                  )}
+
+                  {selected.receiptUrl && (
+                    <div className="md:col-span-2">
+                      <Button
+                        variant="OUTLINE"
+                        onClick={() => window.open(selected.receiptUrl, "_blank")}
+                      >
+                        <Download size={16} className="mr-2" />
+                        View Receipt
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editForm.expenseDate as string}
+                      onChange={(e) => setEditForm({ ...editForm, expenseDate: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Amount
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-3 text-gray-500 font-medium">
+                        {currencySettings?.symbol || "$"}
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editForm.amount ?? 0}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })
+                        }
+                        className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Type
+                    </label>
+                    <select
+                      value={editForm.type as string}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, type: e.target.value as ExpenseType })
+                      }
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                    >
+                      {expenseTypes.map((t) => (
+                        <option key={t} value={t}>
+                          {getTypeIcon(t)} {t.replace("_", " ")}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Currency
+                    </label>
+                    <select
+                      value={editForm.currency || "USD"}
+                      onChange={(e) => setEditForm({ ...editForm, currency: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                    >
+                      {currencySettings?.supportedCurrencies?.length ? (
+                        currencySettings.supportedCurrencies.map((code) => (
+                          <option key={code} value={code}>
+                            {code}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="USD">USD</option>
+                          <option value="EUR">EUR</option>
+                          <option value="GBP">GBP</option>
+                          <option value="INR">INR</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={editForm.description || ""}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Remarks
+                    </label>
+                    <textarea
+                      value={editForm.remarks || ""}
+                      onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 dark:bg-gray-800 dark:text-white"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex justify-end gap-3">
+                    <Button variant="OUTLINE" onClick={() => setEditing(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={saveEdit}>Save Changes</Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        )
-      }
+        </div>
+      )}
     </div>
   );
 };

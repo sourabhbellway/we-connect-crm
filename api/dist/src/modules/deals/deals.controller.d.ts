@@ -31,18 +31,18 @@ export declare class DealsController {
         message: string;
         data: {
             deal: {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
                 status: string;
                 value: import("@prisma/client/runtime/library").Decimal;
                 probability: number;
@@ -56,18 +56,18 @@ export declare class DealsController {
         message: string;
         data: {
             deal: {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                companyId: number | null;
-                description: string | null;
                 currency: string;
                 title: string;
+                description: string | null;
                 leadId: number | null;
                 assignedTo: number | null;
                 createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
                 status: string;
                 value: import("@prisma/client/runtime/library").Decimal;
                 probability: number;

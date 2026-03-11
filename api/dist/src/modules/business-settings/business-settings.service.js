@@ -263,7 +263,7 @@ let BusinessSettingsService = class BusinessSettingsService {
                 'PROSPECT',
                 'NOT INTERESTED',
                 'BAD TIMING',
-                'DELAYED'
+                'DELAYED',
             ];
             for (let i = 0; i < defaultLeadStatuses.length; i++) {
                 await this.prisma.leadStatusOption.upsert({
@@ -314,6 +314,11 @@ let BusinessSettingsService = class BusinessSettingsService {
             createdAt: new Date(),
             updatedAt: new Date(),
         };
+        const fieldConfigs = await this.prisma.fieldConfig.findMany({
+            where: { entityType: 'lead' },
+        });
+        const statusField = fieldConfigs.find((f) => f.fieldName === 'status');
+        const leadStatusOptions = statusField?.options || [];
         return {
             success: true,
             data: {
@@ -322,6 +327,7 @@ let BusinessSettingsService = class BusinessSettingsService {
                 tax,
                 leadSources,
                 leadStatuses,
+                leadStatusOptions,
                 dealStatuses,
                 numbering,
             },
@@ -1233,6 +1239,15 @@ let BusinessSettingsService = class BusinessSettingsService {
                 section: 'lead_management',
                 displayOrder: 19,
                 validation: { type: 'select' },
+                options: [
+                    { id: 'new', name: 'New', color: '#3B82F6' },
+                    { id: 'contacted', name: 'Contacted', color: '#F59E0B' },
+                    { id: 'qualified', name: 'Qualified', color: '#10B981' },
+                    { id: 'negotiation', name: 'Negotiation', color: '#F97316' },
+                    { id: 'closed', name: 'Closed', color: '#10B981' },
+                    { id: 'lost', name: 'Lost', color: '#EF4444' },
+                    { id: 'converted', name: 'Converted', color: '#6366F1' },
+                ],
             },
             {
                 entityType: 'lead',
@@ -1492,7 +1507,13 @@ let BusinessSettingsService = class BusinessSettingsService {
     async deleteLeadSection(id) {
         const section = await this.prisma.leadSection.findUnique({ where: { id } });
         if (section) {
-            const protectedKeys = ['personal', 'company', 'location', 'lead_management', 'notes'];
+            const protectedKeys = [
+                'personal',
+                'company',
+                'location',
+                'lead_management',
+                'notes',
+            ];
             if (protectedKeys.includes(section.key)) {
                 throw new common_1.BadRequestException('Cannot delete core system sections');
             }
@@ -1502,11 +1523,41 @@ let BusinessSettingsService = class BusinessSettingsService {
     }
     async initializeDefaultLeadSections() {
         const defaultSections = [
-            { key: 'personal', label: 'Personal Information', icon: 'User', color: 'blue', sortOrder: 1 },
-            { key: 'company', label: 'Company Information', icon: 'Building', color: 'green', sortOrder: 2 },
-            { key: 'location', label: 'Location & Contact', icon: 'MapPin', color: 'purple', sortOrder: 3 },
-            { key: 'lead_management', label: 'Lead Management', icon: 'Award', color: 'orange', sortOrder: 4 },
-            { key: 'notes', label: 'Notes & Tags', icon: 'MessageSquare', color: 'indigo', sortOrder: 5 },
+            {
+                key: 'personal',
+                label: 'Personal Information',
+                icon: 'User',
+                color: 'blue',
+                sortOrder: 1,
+            },
+            {
+                key: 'company',
+                label: 'Company Information',
+                icon: 'Building',
+                color: 'green',
+                sortOrder: 2,
+            },
+            {
+                key: 'location',
+                label: 'Location & Contact',
+                icon: 'MapPin',
+                color: 'purple',
+                sortOrder: 3,
+            },
+            {
+                key: 'lead_management',
+                label: 'Lead Management',
+                icon: 'Award',
+                color: 'orange',
+                sortOrder: 4,
+            },
+            {
+                key: 'notes',
+                label: 'Notes & Tags',
+                icon: 'MessageSquare',
+                color: 'indigo',
+                sortOrder: 5,
+            },
         ];
         for (const section of defaultSections) {
             const existing = await this.prisma.leadSection.findUnique({

@@ -14,9 +14,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // Prefer the unified auth token key used across the app
-    const token =
-      localStorage.getItem("token") ||
-      localStorage.getItem("authToken");
+    const token = localStorage.getItem("token") || localStorage.getItem("authToken");
 
     const userid = localStorage.getItem("userId");
 
@@ -33,7 +31,9 @@ apiClient.interceptors.request.use(
           userid !== null &&
           payload.userId !== Number(userid)
         ) {
-          console.warn('[AuthService] Detected token/userId mismatch in localStorage; clearing stale auth state');
+          console.warn(
+            "[AuthService] Detected token/userId mismatch in localStorage; clearing stale auth state"
+          );
           localStorage.removeItem("token");
           localStorage.removeItem("authToken");
           localStorage.removeItem("tokenExpiry");
@@ -41,13 +41,13 @@ apiClient.interceptors.request.use(
 
           // Do NOT dispatch a blocking global modal here; simply reject so the
           // next navigation or login can restore a consistent state.
-          return Promise.reject(new Error('Token user mismatch - cleared stale auth'));
+          return Promise.reject(new Error("Token user mismatch - cleared stale auth"));
         }
 
         // Attach Authorization header for valid token
         config.headers.Authorization = `Bearer ${token}`;
       } catch (err) {
-        console.error('[AuthService] Failed to parse JWT, clearing token', err);
+        console.error("[AuthService] Failed to parse JWT, clearing token", err);
         localStorage.removeItem("token");
         localStorage.removeItem("authToken");
         localStorage.removeItem("tokenExpiry");
@@ -74,11 +74,11 @@ apiClient.interceptors.response.use(
       // Clear token and trigger token expiry modal
       localStorage.removeItem("token");
       localStorage.removeItem("tokenExpiry");
-      
+
       // Check if it's a token expiry error
-      if (error.response?.data?.tokenExpired || error.response?.data?.code === 'TOKEN_EXPIRED') {
+      if (error.response?.data?.tokenExpired || error.response?.data?.code === "TOKEN_EXPIRED") {
         // Dispatch custom event for token expiry
-        window.dispatchEvent(new CustomEvent('tokenExpired'));
+        window.dispatchEvent(new CustomEvent("tokenExpired"));
       }
     }
     return Promise.reject(error);
@@ -90,29 +90,27 @@ export const authService = {
     try {
       const response = await apiClient.post("/auth/login", credentials);
       console.log("Login Response:", response.data);
-      
+
       // Check if login was successful
       if (!response.data.success) {
-        throw new Error(response.data.message || 'Invalid credentials');
+        throw new Error(response.data.message || "Invalid credentials");
       }
-      
+
       return response.data;
     } catch (error: any) {
       console.error("Login Error:", error);
-      
+
       // Handle axios error response
       if (error.response?.data) {
-        const errorMessage = error.response.data.message || error.response.data.error || 'Login failed';
+        const errorMessage =
+          error.response.data.message || error.response.data.error || "Login failed";
         throw new Error(errorMessage);
       }
-      
+
       // Handle network or other errors
-      throw new Error(error.message || 'Login failed. Please check your connection.');
+      throw new Error(error.message || "Login failed. Please check your connection.");
     }
   },
-
-  
-  
 
   getProfile: async () => {
     const response = await apiClient.get("/auth/profile");
@@ -124,8 +122,6 @@ export const authService = {
     const response = await apiClient.get(`/roles/${roleId}/permissions`);
     return response.data.data.permissions;
   },
-
-
 
   register: async (userData: any) => {
     const response = await apiClient.post("/auth/register", userData);

@@ -25,10 +25,10 @@ export interface CurrencySettings {
   id?: string;
   primary: string;
   symbol: string;
-  position: 'before' | 'after'; // $100 or 100$
+  position: "before" | "after"; // $100 or 100$
   decimalPlaces: number;
-  thousandSeparator: ',' | '.';
-  decimalSeparator: '.' | ',';
+  thousandSeparator: "," | ".";
+  decimalSeparator: "." | ",";
   supportedCurrencies: string[];
   currencies?: Currency[];
   exchangeRates?: Record<string, number>;
@@ -40,7 +40,7 @@ export interface CurrencySettings {
 export interface TaxSettings {
   id?: string;
   defaultRate: number;
-  type: 'GST' | 'VAT' | 'SALES_TAX' | 'CUSTOM';
+  type: "GST" | "VAT" | "SALES_TAX" | "CUSTOM";
   inclusive: boolean; // Tax included in price or added on top
   customRates: TaxRate[];
   registrationNumber?: string;
@@ -110,7 +110,7 @@ export interface PriceList {
   isActive: boolean;
   validFrom?: string;
   validTo?: string;
-  discountType: 'percentage' | 'fixed';
+  discountType: "percentage" | "fixed";
   discountValue: number;
   applicableRoles: string[];
   createdAt?: string;
@@ -122,7 +122,7 @@ export interface EmailTemplate {
   name: string;
   subject: string;
   body: string;
-  type: 'welcome' | 'followup' | 'proposal' | 'invoice' | 'reminder' | 'custom';
+  type: "welcome" | "followup" | "proposal" | "invoice" | "reminder" | "custom";
   variables: string[];
   isActive: boolean;
   createdAt?: string;
@@ -138,7 +138,7 @@ export interface QuotationTemplate {
   validityDays: number;
   showTax: boolean;
   showDiscount: boolean;
-  logoPosition: 'left' | 'right' | 'center';
+  logoPosition: "left" | "right" | "center";
   isDefault: boolean;
   isActive: boolean;
   createdAt?: string;
@@ -155,7 +155,7 @@ export interface InvoiceTemplate {
   dueDays: number;
   showTax: boolean;
   showDiscount: boolean;
-  logoPosition: 'left' | 'right' | 'center';
+  logoPosition: "left" | "right" | "center";
   isDefault: boolean;
   isActive: boolean;
   createdAt?: string;
@@ -183,7 +183,7 @@ export interface NotificationPreference {
   assignment: boolean;
   reminder: boolean;
   overdue: boolean;
-  channels: ('email' | 'sms' | 'whatsapp' | 'push' | 'in_app')[];
+  channels: ("email" | "sms" | "whatsapp" | "push" | "in_app")[];
 }
 
 export interface AutomationRule {
@@ -201,20 +201,34 @@ export interface AutomationRule {
 }
 
 export interface AutomationTrigger {
-  type: 'lead_created' | 'deal_stage_changed' | 'task_overdue' | 'payment_received' | 'custom';
+  type: "lead_created" | "deal_stage_changed" | "task_overdue" | "payment_received" | "custom";
   event: string;
   delay?: number; // in minutes
 }
 
 export interface AutomationCondition {
   field: string;
-  operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than' | 'is_empty' | 'is_not_empty';
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "greater_than"
+    | "less_than"
+    | "is_empty"
+    | "is_not_empty";
   value: any;
-  logicalOperator?: 'AND' | 'OR';
+  logicalOperator?: "AND" | "OR";
 }
 
 export interface AutomationAction {
-  type: 'send_email' | 'send_sms' | 'create_task' | 'assign_user' | 'change_status' | 'webhook' | 'custom';
+  type:
+    | "send_email"
+    | "send_sms"
+    | "create_task"
+    | "assign_user"
+    | "change_status"
+    | "webhook"
+    | "custom";
   parameters: Record<string, any>;
 }
 
@@ -243,12 +257,12 @@ export interface WhatsAppTemplate {
   name: string;
   content: string;
   category: string;
-  status: 'approved' | 'pending' | 'rejected';
+  status: "approved" | "pending" | "rejected";
 }
 
 export interface SMSIntegration {
   enabled: boolean;
-  provider: 'twilio' | 'aws_sns' | 'custom';
+  provider: "twilio" | "aws_sns" | "custom";
   apiKey?: string;
   apiSecret?: string;
   fromNumber?: string;
@@ -259,12 +273,12 @@ export interface SMSTemplate {
   id: string;
   name: string;
   content: string;
-  type: 'welcome' | 'otp' | 'reminder' | 'marketing';
+  type: "welcome" | "otp" | "reminder" | "marketing";
 }
 
 export interface EmailIntegration {
   enabled: boolean;
-  provider: 'smtp' | 'sendgrid' | 'aws_ses' | 'mailgun';
+  provider: "smtp" | "sendgrid" | "aws_ses" | "mailgun";
   host?: string;
   port?: number;
   username?: string;
@@ -285,7 +299,7 @@ export interface WebhookIntegration {
   id?: string;
   name: string;
   url: string;
-  method: 'POST' | 'PUT' | 'GET';
+  method: "POST" | "PUT" | "GET";
   headers: Record<string, string>;
   events: string[];
   isActive: boolean;
@@ -309,14 +323,14 @@ export interface StripeSettings {
   secretKey?: string;
   webhookSecret?: string;
   currency: string;
-  captureMethod: 'automatic' | 'manual';
+  captureMethod: "automatic" | "manual";
 }
 
 export interface PayPalSettings {
   enabled: boolean;
   clientId?: string;
   clientSecret?: string;
-  mode: 'sandbox' | 'live';
+  mode: "sandbox" | "live";
   currency: string;
 }
 
@@ -392,7 +406,16 @@ export interface SettingsSection {
 export interface SettingsField {
   id: string;
   name: string;
-  type: 'text' | 'email' | 'number' | 'select' | 'multiselect' | 'boolean' | 'textarea' | 'file' | 'color';
+  type:
+    | "text"
+    | "email"
+    | "number"
+    | "select"
+    | "multiselect"
+    | "boolean"
+    | "textarea"
+    | "file"
+    | "color";
   label: string;
   placeholder?: string;
   required: boolean;

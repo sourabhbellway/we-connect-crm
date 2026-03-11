@@ -310,8 +310,9 @@ let AnalyticsService = class AnalyticsService {
             select: { name: true },
         });
         const statusMap = {};
-        options.forEach(opt => {
-            statusMap[opt.name] = opt.name.charAt(0) + opt.name.slice(1).toLowerCase();
+        options.forEach((opt) => {
+            statusMap[opt.name] =
+                opt.name.charAt(0) + opt.name.slice(1).toLowerCase();
         });
         const data = statusCounts.map((item) => ({
             name: statusMap[item.status] || item.status,
@@ -837,18 +838,171 @@ let AnalyticsService = class AnalyticsService {
             },
         };
     }
-    async getLeadReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
+    async getLeadMetricDetails(params, currentUser) {
+        const { metricType, metricValue, startDate, endDate, userId, scope } = params;
+        const leadWhereBase = { deletedAt: null };
+        if (startDate || endDate) {
+            leadWhereBase.createdAt = {};
+            if (startDate)
+                leadWhereBase.createdAt.gte = new Date(startDate);
+            if (endDate)
+                leadWhereBase.createdAt.lte = new Date(endDate);
+        }
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - months);
-        const prevEndDate = new Date(startDate);
-        const prevStartDate = new Date(startDate);
+        if (authorizedUserIds !== null) {
+            leadWhereBase.assignedTo = { in: authorizedUserIds };
+        }
+        let leadIds = [];
+        if (metricType === 'call-analytics') {
+            const callLogWhere = {};
+            if (startDate || endDate) {
+                callLogWhere.createdAt = {};
+                if (startDate)
+                    callLogWhere.createdAt.gte = new Date(startDate);
+                if (endDate)
+                    callLogWhere.createdAt.lte = new Date(endDate);
+            }
+            if (authorizedUserIds !== null) {
+                callLogWhere.userId = { in: authorizedUserIds };
+            }
+            const callLogs = await this.prisma.callLog.findMany({
+                where: callLogWhere,
+                select: {
+                    leadId: true,
+                    isAnswered: true,
+                    callStatus: true,
+                    outcome: true,
+                },
+            });
+            const filteredLeadIds = new Set();
+            callLogs.forEach((call) => {
+                const isConnected = call.isAnswered === true || call.callStatus === 'COMPLETED';
+                const outcome = call.outcome
+                    ? call.outcome.toString().toUpperCase().trim()
+                    : '';
+                const isInterested = outcome === 'INTERESTED' ||
+                    outcome === 'YES' ||
+                    outcome === 'POSITIVE';
+                const isNotInterested = outcome === 'NOT_INTERESTED' ||
+                    outcome === 'NO' ||
+                    outcome === 'NEGATIVE' ||
+                    outcome === 'LOST';
+                let include = false;
+                if (metricValue === 'attempted')
+                    include = true;
+                else if (metricValue === 'connected' && isConnected)
+                    include = true;
+                else if (metricValue === 'notConnected' && !isConnected)
+                    include = true;
+                else if (metricValue === 'interested' && isInterested)
+                    include = true;
+                else if (metricValue === 'notInterested' && isNotInterested)
+                    include = true;
+                if (include)
+                    filteredLeadIds.add(call.leadId);
+            });
+            leadIds = Array.from(filteredLeadIds);
+        }
+        else if (metricType === 'lead-sources') {
+            const sourceId = parseInt(metricValue);
+            const leads = await this.prisma.lead.findMany({
+                where: { ...leadWhereBase, sourceId },
+                select: { id: true },
+            });
+            leadIds = leads.map((l) => l.id);
+        }
+        else if (metricType === 'conversion-funnel') {
+            const status = metricValue.toUpperCase();
+            const leads = await this.prisma.lead.findMany({
+                where: { ...leadWhereBase, status },
+                select: { id: true },
+            });
+            leadIds = leads.map((l) => l.id);
+        }
+        const finalUserId = userId;
+        const leadDetails = await this.prisma.lead.findMany({
+            where: { id: { in: leadIds }, deletedAt: null },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                status: true,
+                company: true,
+                assignedUser: { select: { firstName: true, lastName: true } },
+                source: { select: { name: true } },
+                callLogs: {
+                    where: {
+                        ...(startDate || endDate
+                            ? {
+                                createdAt: {
+                                    ...(startDate ? { gte: new Date(startDate) } : {}),
+                                    ...(endDate ? { lte: new Date(endDate) } : {}),
+                                },
+                            }
+                            : {}),
+                        ...(finalUserId ? { userId: Number(finalUserId) } : {}),
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10,
+                    select: {
+                        id: true,
+                        createdAt: true,
+                        callStatus: true,
+                        outcome: true,
+                        duration: true,
+                        isAnswered: true,
+                    },
+                },
+                leadNotes: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 3,
+                    select: {
+                        id: true,
+                        content: true,
+                        createdAt: true,
+                        user: { select: { firstName: true, lastName: true } },
+                    },
+                },
+                followUps: {
+                    where: { isCompleted: false },
+                    orderBy: { scheduledAt: 'asc' },
+                    take: 2,
+                    select: {
+                        id: true,
+                        subject: true,
+                        scheduledAt: true,
+                        type: true,
+                    },
+                },
+                createdAt: true,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        return { success: true, data: leadDetails };
+    }
+    async getLeadReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters, startDate, endDate) {
+        const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
+        let start;
+        let end;
+        if (startDate && endDate) {
+            start = new Date(startDate);
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+        }
+        else {
+            end = new Date();
+            start = new Date();
+            start.setMonth(start.getMonth() - months);
+        }
+        const prevEndDate = new Date(start);
+        const prevStartDate = new Date(start);
         prevStartDate.setMonth(prevStartDate.getMonth() - months);
         const leadWhereBase = {
             deletedAt: null,
             isActive: true,
-            createdAt: { gte: startDate, lte: endDate },
+            createdAt: { gte: start, lte: end },
         };
         const prevLeadWhereBase = {
             deletedAt: null,
@@ -908,9 +1062,9 @@ let AnalyticsService = class AnalyticsService {
         }
         const leadStatusOptions = await this.prisma.leadStatusOption.findMany({
             orderBy: { sortOrder: 'asc' },
-            select: { name: true }
+            select: { name: true },
         });
-        const stages = leadStatusOptions.map(opt => opt.name);
+        const stages = leadStatusOptions.map((opt) => opt.name);
         const funnelCounts = await Promise.all(stages.map((status) => this.prisma.lead.count({
             where: { ...leadWhereBase, status: status },
         })));
@@ -942,8 +1096,12 @@ let AnalyticsService = class AnalyticsService {
             return { name, total, converted, rate: `${rate}%` };
         }));
         const monthlyData = {};
-        for (let i = 0; i < months; i++) {
-            const d = new Date(endDate);
+        const rangeMonths = startDate && endDate
+            ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) /
+                (1000 * 60 * 60 * 24 * 30)) + 1
+            : months;
+        for (let i = 0; i < rangeMonths; i++) {
+            const d = new Date(end);
             d.setMonth(d.getMonth() - i);
             const key = d.toISOString().slice(0, 7);
             monthlyData[key] = { leads: 0, converted: 0 };
@@ -972,8 +1130,12 @@ let AnalyticsService = class AnalyticsService {
             .sort((a, b) => a.monthKey.localeCompare(b.monthKey));
         const callsInRange = await this.prisma.callLog.findMany({
             where: {
-                createdAt: { gte: startDate, lte: endDate },
-                ...(authorizedUserIds !== null ? { userId: { in: authorizedUserIds } } : {}),
+                createdAt: { gte: start, lte: end },
+                ...(userId || (filters && filters.assignedTo)
+                    ? { userId: Number(userId || filters.assignedTo) }
+                    : authorizedUserIds !== null
+                        ? { userId: { in: authorizedUserIds } }
+                        : {}),
             },
             include: {
                 user: { select: { id: true, firstName: true, lastName: true } },
@@ -981,22 +1143,30 @@ let AnalyticsService = class AnalyticsService {
         });
         const userMetrics = {};
         const dateMetrics = {};
-        for (let i = 0; i < months; i++) {
-            const d = new Date(endDate);
+        const totalMonths = startDate && endDate
+            ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) /
+                (1000 * 60 * 60 * 24 * 30)) + 1
+            : months;
+        for (let i = 0; i < totalMonths; i++) {
+            const d = new Date(end);
             d.setMonth(d.getMonth() - i);
             const key = d.toISOString().slice(0, 7);
             dateMetrics[key] = {
-                month: new Date(key + '-01').toLocaleDateString('en-US', { month: 'short' }),
+                month: new Date(key + '-01').toLocaleDateString('en-US', {
+                    month: 'short',
+                }),
                 attempted: 0,
                 connected: 0,
                 notConnected: 0,
                 interested: 0,
-                notInterested: 0
+                notInterested: 0,
             };
         }
-        callsInRange.forEach(call => {
+        callsInRange.forEach((call) => {
             const userId = call.userId;
-            const userName = call.user ? `${call.user.firstName} ${call.user.lastName}` : 'Unknown';
+            const userName = call.user
+                ? `${call.user.firstName} ${call.user.lastName}`
+                : 'Unknown';
             const month = call.createdAt.toISOString().slice(0, 7);
             if (!userMetrics[userId]) {
                 userMetrics[userId] = {
@@ -1005,36 +1175,50 @@ let AnalyticsService = class AnalyticsService {
                     connected: 0,
                     notConnected: 0,
                     interested: 0,
-                    notInterested: 0
+                    notInterested: 0,
                 };
             }
-            const isConnected = call.isAnswered || call.callStatus === 'COMPLETED';
-            const isInterested = call.outcome?.toUpperCase() === 'INTERESTED';
-            const isNotInterested = call.outcome?.toUpperCase() === 'NOT_INTERESTED';
+            const isConnected = call.isAnswered === true || call.callStatus === 'COMPLETED';
+            const outcome = call.outcome
+                ? call.outcome.toString().toUpperCase().trim()
+                : '';
+            const isInterested = outcome === 'INTERESTED' || outcome === 'YES' || outcome === 'POSITIVE';
+            const isNotInterested = outcome === 'NOT_INTERESTED' ||
+                outcome === 'NO' ||
+                outcome === 'NEGATIVE' ||
+                outcome === 'LOST';
             userMetrics[userId].attempted++;
-            if (isConnected)
+            if (isConnected) {
                 userMetrics[userId].connected++;
-            else
+            }
+            else {
                 userMetrics[userId].notConnected++;
-            if (isInterested)
+            }
+            if (isInterested) {
                 userMetrics[userId].interested++;
-            if (isNotInterested)
+            }
+            if (isNotInterested) {
                 userMetrics[userId].notInterested++;
+            }
             if (dateMetrics[month]) {
                 dateMetrics[month].attempted++;
-                if (isConnected)
+                if (isConnected) {
                     dateMetrics[month].connected++;
-                else
+                }
+                else {
                     dateMetrics[month].notConnected++;
-                if (isInterested)
+                }
+                if (isInterested) {
                     dateMetrics[month].interested++;
-                if (isNotInterested)
+                }
+                if (isNotInterested) {
                     dateMetrics[month].notInterested++;
+                }
             }
         });
         const callAnalytics = {
             userWise: Object.values(userMetrics),
-            dateWise: Object.values(dateMetrics).sort((a, b) => a.month.localeCompare(b.month))
+            dateWise: Object.values(dateMetrics).sort((a, b) => a.month.localeCompare(b.month)),
         };
         return {
             success: true,
@@ -1062,15 +1246,24 @@ let AnalyticsService = class AnalyticsService {
             },
         };
     }
-    async getDealReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters) {
+    async getDealReport(months = 6, userId, scope = 'all', currentUser, page = 1, limit = 10, filters, startDate, endDate) {
         const authorizedUserIds = await this.getAuthorizedUserIds(userId, currentUser);
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - months);
+        let start;
+        let end;
+        if (startDate && endDate) {
+            start = new Date(startDate);
+            end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+        }
+        else {
+            end = new Date();
+            start = new Date();
+            start.setMonth(start.getMonth() - months);
+        }
         const dealWhereBase = {
             deletedAt: null,
             isActive: true,
-            createdAt: { gte: startDate, lte: endDate },
+            createdAt: { gte: start, lte: end },
         };
         if (authorizedUserIds !== null) {
             dealWhereBase.assignedTo = { in: authorizedUserIds };

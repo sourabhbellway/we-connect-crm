@@ -15,16 +15,28 @@ export declare class LeadsService {
         success: boolean;
         data: any;
     }>;
-    list({ page, limit, status, search, email, isDeleted, assignedTo, sortBy, sortOrder, }: {
+    list({ page, limit, status, priority, search, email, phone, isDeleted, assignedTo, ownerId, createdBy, sourceId, industry, city, state, country, startDate, endDate, sortBy, sortOrder, productId, }: {
         page: number;
         limit: number;
         status?: string;
+        priority?: string;
         search?: string;
         email?: string;
+        phone?: string;
         isDeleted?: boolean;
         assignedTo?: number;
+        ownerId?: number;
+        createdBy?: number;
+        sourceId?: number;
+        industry?: string;
+        city?: string;
+        state?: string;
+        country?: string;
+        startDate?: string;
+        endDate?: string;
         sortBy?: string;
         sortOrder?: 'asc' | 'desc';
+        productId?: number;
     }, user?: any): Promise<{
         success: boolean;
         data: {
@@ -75,6 +87,7 @@ export declare class LeadsService {
                     color: any;
                 }[];
                 source: any;
+                products: any;
             }[];
             pagination: {
                 totalItems: number;
@@ -99,21 +112,21 @@ export declare class LeadsService {
     create(dto: CreateLeadDto, userId?: number): Promise<{
         success: boolean;
         data: {
-            email: string | null;
-            firstName: string | null;
-            lastName: string | null;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
-            companyId: number | null;
             industry: string | null;
             currency: string | null;
             budget: import("@prisma/client/runtime/library").Decimal | null;
+            email: string | null;
+            firstName: string | null;
+            lastName: string | null;
             assignedTo: number | null;
             createdBy: number | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
+            notes: string | null;
             phone: string | null;
             company: string | null;
             position: string | null;
@@ -167,25 +180,25 @@ export declare class LeadsService {
                 id: number;
             } | null;
             source: {
+                description: string | null;
                 id: number;
                 name: string;
-                description: string | null;
             } | null;
-            email: string | null;
-            firstName: string | null;
-            lastName: string | null;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
-            companyId: number | null;
             industry: string | null;
             currency: string | null;
             budget: import("@prisma/client/runtime/library").Decimal | null;
+            email: string | null;
+            firstName: string | null;
+            lastName: string | null;
             assignedTo: number | null;
             createdBy: number | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
+            notes: string | null;
             phone: string | null;
             company: string | null;
             position: string | null;
@@ -233,45 +246,123 @@ export declare class LeadsService {
         success: boolean;
         message: string;
         data: {
-            email: string | null;
-            firstName: string | null;
-            lastName: string | null;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
-            companyId: number | null;
-            industry: string | null;
-            currency: string | null;
-            budget: import("@prisma/client/runtime/library").Decimal | null;
-            assignedTo: number | null;
-            createdBy: number | null;
-            phone: string | null;
-            company: string | null;
-            position: string | null;
-            sourceId: number | null;
-            lastContactedAt: Date | null;
-            nextFollowUpAt: Date | null;
-            priority: import(".prisma/client").$Enums.LeadPriority;
-            website: string | null;
-            companySize: number | null;
-            annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
-            leadScore: number | null;
-            address: string | null;
-            country: string | null;
-            state: string | null;
-            city: string | null;
-            zipCode: string | null;
-            linkedinProfile: string | null;
-            timezone: string | null;
-            preferredContactMethod: string | null;
-            customFields: import("@prisma/client/runtime/library").JsonValue | null;
-            convertedToDealId: number | null;
-            ownerId: number | null;
-            status: string;
-            previousStatus: string | null;
+            lead: {
+                status: string;
+                priority: string | undefined;
+                tags: {
+                    id: any;
+                    name: any;
+                    color: any;
+                }[];
+                products: {
+                    productId: any;
+                    name: any;
+                    quantity: any;
+                    price: number;
+                    sku: any;
+                    currency: any;
+                }[];
+                assignedUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                ownerUser: {
+                    email: string;
+                    firstName: string;
+                    lastName: string;
+                    id: number;
+                } | null;
+                source: {
+                    description: string | null;
+                    id: number;
+                    name: string;
+                } | null;
+                industry: string | null;
+                currency: string | null;
+                budget: import("@prisma/client/runtime/library").Decimal | null;
+                email: string | null;
+                firstName: string | null;
+                lastName: string | null;
+                assignedTo: number | null;
+                createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
+                phone: string | null;
+                company: string | null;
+                position: string | null;
+                sourceId: number | null;
+                lastContactedAt: Date | null;
+                nextFollowUpAt: Date | null;
+                website: string | null;
+                companySize: number | null;
+                annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                leadScore: number | null;
+                address: string | null;
+                country: string | null;
+                state: string | null;
+                city: string | null;
+                zipCode: string | null;
+                linkedinProfile: string | null;
+                timezone: string | null;
+                preferredContactMethod: string | null;
+                customFields: import("@prisma/client/runtime/library").JsonValue | null;
+                convertedToDealId: number | null;
+                ownerId: number | null;
+                previousStatus: string | null;
+            };
+        };
+    } | {
+        success: boolean;
+        message: string;
+        data: {
+            lead: {
+                industry: string | null;
+                currency: string | null;
+                budget: import("@prisma/client/runtime/library").Decimal | null;
+                email: string | null;
+                firstName: string | null;
+                lastName: string | null;
+                assignedTo: number | null;
+                createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
+                phone: string | null;
+                company: string | null;
+                position: string | null;
+                sourceId: number | null;
+                lastContactedAt: Date | null;
+                nextFollowUpAt: Date | null;
+                priority: import(".prisma/client").$Enums.LeadPriority;
+                website: string | null;
+                companySize: number | null;
+                annualRevenue: import("@prisma/client/runtime/library").Decimal | null;
+                leadScore: number | null;
+                address: string | null;
+                country: string | null;
+                state: string | null;
+                city: string | null;
+                zipCode: string | null;
+                linkedinProfile: string | null;
+                timezone: string | null;
+                preferredContactMethod: string | null;
+                customFields: import("@prisma/client/runtime/library").JsonValue | null;
+                convertedToDealId: number | null;
+                ownerId: number | null;
+                status: string;
+                previousStatus: string | null;
+            };
         };
     }>;
     bulkAssign(dto: BulkAssignDto): Promise<{
@@ -300,21 +391,21 @@ export declare class LeadsService {
         message: string;
         data: {
             lead: {
-                email: string | null;
-                firstName: string | null;
-                lastName: string | null;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                companyId: number | null;
                 industry: string | null;
                 currency: string | null;
                 budget: import("@prisma/client/runtime/library").Decimal | null;
+                email: string | null;
+                firstName: string | null;
+                lastName: string | null;
                 assignedTo: number | null;
                 createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
+                notes: string | null;
                 phone: string | null;
                 company: string | null;
                 position: string | null;
@@ -368,7 +459,8 @@ export declare class LeadsService {
     bulkExport(opts?: {
         status?: string;
         search?: string;
-    }): Promise<string>;
+        ids?: string;
+    }, user?: any): Promise<string>;
     syncAllIntegrations(): Promise<{
         success: boolean;
         data: {

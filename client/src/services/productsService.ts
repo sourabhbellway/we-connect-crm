@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 export interface Product {
   id: number;
@@ -13,8 +13,13 @@ export interface Product {
   unit?: string;
   taxRate?: number;
   hsnCode?: string;
+  pricingEnabled: boolean;
   isActive: boolean;
   image?: string;
+  categoryId?: number;
+  currencyId?: number;
+  taxId?: number;
+  unitId?: number;
   companyId?: number;
   createdAt: string;
   updatedAt: string;
@@ -34,10 +39,15 @@ export interface CreateProductDto {
   taxRate?: number;
   hsnCode?: string;
   image?: string;
+  categoryId?: number;
+  currencyId?: number;
+  taxId?: number;
+  unitId?: number;
+  pricingEnabled?: boolean;
   isActive?: boolean;
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> { }
+export interface UpdateProductDto extends Partial<CreateProductDto> {}
 
 class ProductsService {
   async list(params?: {
@@ -47,7 +57,7 @@ class ProductsService {
     status?: string;
     category?: string;
   }) {
-    const response = await apiClient.get('/products', { params });
+    const response = await apiClient.get("/products", { params });
     return response.data;
   }
 
@@ -57,7 +67,7 @@ class ProductsService {
   }
 
   async create(data: CreateProductDto) {
-    const response = await apiClient.post('/products', data);
+    const response = await apiClient.post("/products", data);
     return response.data;
   }
 
@@ -72,31 +82,30 @@ class ProductsService {
   }
 
   async bulkExport(params?: { search?: string }) {
-    const response = await apiClient.get('/products/bulk/export', {
+    const response = await apiClient.get("/products/bulk/export", {
       params,
-      responseType: 'blob',
+      responseType: "blob",
     });
     return response.data;
   }
 
   async bulkImport(file: File) {
     const formData = new FormData();
-    formData.append('csvFile', file);
-    const response = await apiClient.post('/products/bulk/import', formData, {
+    formData.append("csvFile", file);
+    const response = await apiClient.post("/products/bulk/import", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
   }
 
   async bulkDelete(ids: number[]) {
-    const response = await apiClient.delete('/products/bulk/delete', {
+    const response = await apiClient.delete("/products/bulk/delete", {
       data: { ids },
     });
     return response.data;
   }
 }
-
 
 export const productsService = new ProductsService();

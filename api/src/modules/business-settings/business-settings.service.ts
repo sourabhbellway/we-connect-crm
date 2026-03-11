@@ -32,7 +32,7 @@ function mapToCompanySettings(bs: any) {
 
 @Injectable()
 export class BusinessSettingsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
   private generateUniqueColor() {
     return (
       '#' +
@@ -120,7 +120,7 @@ export class BusinessSettingsService {
       ) {
         try {
           currentPreferences = JSON.parse(bs.description);
-        } catch { }
+        } catch {}
       }
 
       // If body has invalid invoiceTemplate, we might want to store it in preferences?
@@ -304,7 +304,7 @@ export class BusinessSettingsService {
         'PROSPECT',
         'NOT INTERESTED',
         'BAD TIMING',
-        'DELAYED'
+        'DELAYED',
       ];
       for (let i = 0; i < defaultLeadStatuses.length; i++) {
         await this.prisma.leadStatusOption.upsert({
@@ -358,6 +358,13 @@ export class BusinessSettingsService {
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any;
+    // Fetch dynamic Lead Status Options from FieldConfig
+    const fieldConfigs = await this.prisma.fieldConfig.findMany({
+      where: { entityType: 'lead' },
+    });
+    const statusField = fieldConfigs.find((f: any) => f.fieldName === 'status');
+    const leadStatusOptions = statusField?.options || [];
+
     return {
       success: true,
       data: {
@@ -366,6 +373,7 @@ export class BusinessSettingsService {
         tax,
         leadSources,
         leadStatuses,
+        leadStatusOptions,
         dealStatuses,
         numbering,
       },
@@ -403,7 +411,8 @@ export class BusinessSettingsService {
         color: body.color !== undefined ? body.color : undefined,
         sortOrder: body.sortOrder !== undefined ? body.sortOrder : undefined,
         isActive: body.isActive !== undefined ? body.isActive : undefined,
-        description: body.description !== undefined ? body.description : undefined,
+        description:
+          body.description !== undefined ? body.description : undefined,
       },
     });
     return { success: true, data: item };
@@ -1411,6 +1420,15 @@ export class BusinessSettingsService {
         section: 'lead_management',
         displayOrder: 19,
         validation: { type: 'select' },
+        options: [
+          { id: 'new', name: 'New', color: '#3B82F6' },
+          { id: 'contacted', name: 'Contacted', color: '#F59E0B' },
+          { id: 'qualified', name: 'Qualified', color: '#10B981' },
+          { id: 'negotiation', name: 'Negotiation', color: '#F97316' },
+          { id: 'closed', name: 'Closed', color: '#10B981' },
+          { id: 'lost', name: 'Lost', color: '#EF4444' },
+          { id: 'converted', name: 'Converted', color: '#6366F1' },
+        ],
       },
       {
         entityType: 'lead',
@@ -1656,7 +1674,6 @@ export class BusinessSettingsService {
     return { success: true, data: template };
   }
 
-
   // Lead Section Methods
   async listLeadSections() {
     let sections = await this.prisma.leadSection.findMany({
@@ -1706,7 +1723,13 @@ export class BusinessSettingsService {
   async deleteLeadSection(id: number) {
     const section = await this.prisma.leadSection.findUnique({ where: { id } });
     if (section) {
-      const protectedKeys = ['personal', 'company', 'location', 'lead_management', 'notes'];
+      const protectedKeys = [
+        'personal',
+        'company',
+        'location',
+        'lead_management',
+        'notes',
+      ];
       if (protectedKeys.includes(section.key)) {
         throw new BadRequestException('Cannot delete core system sections');
       }
@@ -1717,11 +1740,41 @@ export class BusinessSettingsService {
 
   async initializeDefaultLeadSections() {
     const defaultSections = [
-      { key: 'personal', label: 'Personal Information', icon: 'User', color: 'blue', sortOrder: 1 },
-      { key: 'company', label: 'Company Information', icon: 'Building', color: 'green', sortOrder: 2 },
-      { key: 'location', label: 'Location & Contact', icon: 'MapPin', color: 'purple', sortOrder: 3 },
-      { key: 'lead_management', label: 'Lead Management', icon: 'Award', color: 'orange', sortOrder: 4 },
-      { key: 'notes', label: 'Notes & Tags', icon: 'MessageSquare', color: 'indigo', sortOrder: 5 },
+      {
+        key: 'personal',
+        label: 'Personal Information',
+        icon: 'User',
+        color: 'blue',
+        sortOrder: 1,
+      },
+      {
+        key: 'company',
+        label: 'Company Information',
+        icon: 'Building',
+        color: 'green',
+        sortOrder: 2,
+      },
+      {
+        key: 'location',
+        label: 'Location & Contact',
+        icon: 'MapPin',
+        color: 'purple',
+        sortOrder: 3,
+      },
+      {
+        key: 'lead_management',
+        label: 'Lead Management',
+        icon: 'Award',
+        color: 'orange',
+        sortOrder: 4,
+      },
+      {
+        key: 'notes',
+        label: 'Notes & Tags',
+        icon: 'MessageSquare',
+        color: 'indigo',
+        sortOrder: 5,
+      },
     ];
 
     for (const section of defaultSections) {

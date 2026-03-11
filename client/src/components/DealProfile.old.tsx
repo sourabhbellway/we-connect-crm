@@ -1,21 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, DollarSign, Calendar, User, Building, TrendingUp, Edit, Trash2, Tag, Target,
-  Phone, Mail, MessageSquare, Clock, CheckCircle, FileText, CreditCard, Bell, Plus,
-  Activity, Users, BarChart3, Settings, Filter, Download, Eye
-} from 'lucide-react';
-import { Button, Card } from './ui';
-import { dealService } from '../services/dealService';
-import { useBusinessSettings } from '../contexts/BusinessSettingsContext';
-import { useAuth } from '../contexts/AuthContext';
-import { toast } from 'react-toastify';
-import ActivityTimeline from './shared/ActivityTimeline';
-import TaskManager from './shared/TaskManager';
-import CommunicationCenter from './shared/CommunicationCenter';
-import PaymentTracker from './shared/PaymentTracker';
-import NotificationPanel from './shared/NotificationPanel';
-import QuotationManager from './shared/QuotationManager';
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  DollarSign,
+  Calendar,
+  User,
+  Building,
+  TrendingUp,
+  Edit,
+  Trash2,
+  Tag,
+  Target,
+  Phone,
+  Mail,
+  MessageSquare,
+  Clock,
+  CheckCircle,
+  FileText,
+  CreditCard,
+  Bell,
+  Plus,
+  Activity,
+  Users,
+  BarChart3,
+  Settings,
+  Filter,
+  Download,
+  Eye,
+} from "lucide-react";
+import { Button, Card } from "./ui";
+import { dealService } from "../services/dealService";
+import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "react-toastify";
+import ActivityTimeline from "./shared/ActivityTimeline";
+import TaskManager from "./shared/TaskManager";
+import CommunicationCenter from "./shared/CommunicationCenter";
+import PaymentTracker from "./shared/PaymentTracker";
+import NotificationPanel from "./shared/NotificationPanel";
+import QuotationManager from "./shared/QuotationManager";
 
 interface Deal {
   id: string;
@@ -24,7 +47,7 @@ interface Deal {
   value?: number | null;
   currency: string;
   stage: string;
-  status?: 'DRAFT' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST';
+  status?: "DRAFT" | "PROPOSAL" | "NEGOTIATION" | "WON" | "LOST";
   probability: number;
   expectedCloseDate?: string;
   actualCloseDate?: string;
@@ -35,7 +58,7 @@ interface Deal {
   assignedToName?: string;
   tags?: string[];
   notes?: string;
-  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   nextFollowUpAt?: string;
   lastContactedAt?: string;
   createdAt: string;
@@ -59,17 +82,17 @@ const DealProfile: React.FC = () => {
   const { user, hasPermission } = useAuth();
   const [deal, setDeal] = useState<Deal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [isDeleting, setIsDeleting] = useState(false);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: Eye },
-    { id: 'activities', label: 'Activities', icon: Activity },
-    { id: 'tasks', label: 'Tasks', icon: CheckCircle },
-    { id: 'communications', label: 'Communications', icon: MessageSquare },
-    { id: 'quotations', label: 'Quotations', icon: FileText },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'notifications', label: 'Notifications', icon: Bell }
+    { id: "overview", label: "Overview", icon: Eye },
+    { id: "activities", label: "Activities", icon: Activity },
+    { id: "tasks", label: "Tasks", icon: CheckCircle },
+    { id: "communications", label: "Communications", icon: MessageSquare },
+    { id: "quotations", label: "Quotations", icon: FileText },
+    { id: "payments", label: "Payments", icon: CreditCard },
+    { id: "notifications", label: "Notifications", icon: Bell },
   ];
 
   useEffect(() => {
@@ -84,12 +107,12 @@ const DealProfile: React.FC = () => {
       const response = await dealService.getDeal(parseInt(id!));
       setDeal(response.data);
     } catch (error: any) {
-      console.error('Failed to fetch deal:', error);
+      console.error("Failed to fetch deal:", error);
       if (error.response?.status === 404) {
-        toast.error('Deal not found');
-        navigate('/deals');
+        toast.error("Deal not found");
+        navigate("/deals");
       } else {
-        toast.error('Failed to load deal details');
+        toast.error("Failed to load deal details");
       }
     } finally {
       setIsLoading(false);
@@ -97,18 +120,18 @@ const DealProfile: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!deal || !window.confirm('Are you sure you want to delete this deal?')) {
+    if (!deal || !window.confirm("Are you sure you want to delete this deal?")) {
       return;
     }
 
     try {
       setIsDeleting(true);
       await dealService.deleteDeal(parseInt(deal.id));
-      toast.success('Deal deleted successfully');
-      navigate('/deals');
+      toast.success("Deal deleted successfully");
+      navigate("/deals");
     } catch (error) {
-      console.error('Failed to delete deal:', error);
-      toast.error('Failed to delete deal');
+      console.error("Failed to delete deal:", error);
+      toast.error("Failed to delete deal");
     } finally {
       setIsDeleting(false);
     }
@@ -116,27 +139,27 @@ const DealProfile: React.FC = () => {
 
   const getStageColor = (stage: string) => {
     const stages = getDealStages();
-    const stageData = stages.find(s => s.name === stage);
-    return stageData?.color || '#6B7280';
+    const stageData = stages.find((s) => s.name === stage);
+    return stageData?.color || "#6B7280";
   };
 
   const getPriorityColor = (priority: string) => {
     const colors = {
-      LOW: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-      MEDIUM: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-      URGENT: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+      LOW: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+      MEDIUM: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      HIGH: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+      URGENT: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     };
     return colors[priority as keyof typeof colors] || colors.MEDIUM;
   };
 
   const getStatusColor = (status: string) => {
     const colors = {
-      DRAFT: 'bg-gray-100 text-gray-800',
-      PROPOSAL: 'bg-blue-100 text-blue-800',
-      NEGOTIATION: 'bg-yellow-100 text-yellow-800',
-      WON: 'bg-green-100 text-green-800',
-      LOST: 'bg-red-100 text-red-800'
+      DRAFT: "bg-gray-100 text-gray-800",
+      PROPOSAL: "bg-blue-100 text-blue-800",
+      NEGOTIATION: "bg-yellow-100 text-yellow-800",
+      WON: "bg-green-100 text-green-800",
+      LOST: "bg-red-100 text-red-800",
     };
     return colors[status as keyof typeof colors] || colors.DRAFT;
   };
@@ -160,7 +183,7 @@ const DealProfile: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             The deal you're looking for doesn't exist or has been deleted.
           </p>
-          <Button onClick={() => navigate('/deals')}>Back to Deals</Button>
+          <Button onClick={() => navigate("/deals")}>Back to Deals</Button>
         </div>
       </div>
     );
@@ -180,8 +203,8 @@ const DealProfile: React.FC = () => {
           </Link>
         </div>
         <div className="flex space-x-3">
-          {hasPermission('deal.update') && (
-            <Button 
+          {hasPermission("deal.update") && (
+            <Button
               variant="OUTLINE"
               onClick={() => navigate(`/deals/${deal.id}/edit`)}
               className="flex items-center gap-2"
@@ -190,15 +213,15 @@ const DealProfile: React.FC = () => {
               Edit Deal
             </Button>
           )}
-          {hasPermission('deal.delete') && (
-            <Button 
+          {hasPermission("deal.delete") && (
+            <Button
               variant="DESTRUCTIVE"
               onClick={handleDelete}
               disabled={isDeleting}
               className="flex items-center gap-2"
             >
               <Trash2 size={16} />
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           )}
         </div>
@@ -212,9 +235,7 @@ const DealProfile: React.FC = () => {
           </div>
           <div className="ml-6 flex-1">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {deal.title}
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{deal.title}</h1>
               <div className="text-right">
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(deal.value, deal.currency)}
@@ -222,7 +243,7 @@ const DealProfile: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center mt-2 space-x-3">
-              <span 
+              <span
                 className="px-3 py-1 text-sm font-medium rounded-full text-white"
                 style={{ backgroundColor: getStageColor(deal.stage) }}
               >
@@ -271,7 +292,7 @@ const DealProfile: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Contact</p>
                     <p className="text-gray-900 dark:text-white">
                       {deal.contactId ? (
-                        <Link 
+                        <Link
                           to={`/contacts/${deal.contactId}`}
                           className="hover:text-weconnect-red transition-colors"
                         >
@@ -320,16 +341,18 @@ const DealProfile: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
               Additional Details
             </h3>
-            
+
             {deal.description && (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</p>
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <p className="text-gray-900 dark:text-white whitespace-pre-line">{deal.description}</p>
+                  <p className="text-gray-900 dark:text-white whitespace-pre-line">
+                    {deal.description}
+                  </p>
                 </div>
               </div>
             )}
-            
+
             {deal.tags && deal.tags.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center">
@@ -348,7 +371,7 @@ const DealProfile: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             {deal.notes && (
               <div className="space-y-3">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes</p>
@@ -357,7 +380,7 @@ const DealProfile: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Created: {new Date(deal.createdAt).toLocaleDateString()}
@@ -376,11 +399,11 @@ const DealProfile: React.FC = () => {
             <span>{deal.probability}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-            <div 
-              className="h-3 rounded-full transition-all duration-300" 
-              style={{ 
+            <div
+              className="h-3 rounded-full transition-all duration-300"
+              style={{
                 width: `${deal.probability}%`,
-                backgroundColor: getStageColor(deal.stage)
+                backgroundColor: getStageColor(deal.stage),
               }}
             ></div>
           </div>
@@ -389,9 +412,7 @@ const DealProfile: React.FC = () => {
 
       {/* Activity Timeline */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6 mt-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Deal Activity
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Deal Activity</h3>
         <div className="text-center py-8">
           <Calendar size={48} className="mx-auto text-gray-400 dark:text-gray-600 mb-4" />
           <p className="text-gray-600 dark:text-gray-400">

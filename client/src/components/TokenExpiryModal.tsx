@@ -18,7 +18,9 @@ const TokenExpiryModal: React.FC<TokenExpiryModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
-        const loginButton = document.querySelector('[data-testid="login-again-button"]') as HTMLButtonElement;
+        const loginButton = document.querySelector(
+          '[data-testid="login-again-button"]'
+        ) as HTMLButtonElement;
         if (loginButton) {
           loginButton.focus();
         }
@@ -39,12 +41,8 @@ const TokenExpiryModal: React.FC<TokenExpiryModalProps> = ({
         </div>
 
         <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            {title}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            {message}
-          </p>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
+          <p className="text-gray-600 dark:text-gray-400">{message}</p>
         </div>
 
         <div className="flex justify-center">

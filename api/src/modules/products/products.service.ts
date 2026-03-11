@@ -64,10 +64,13 @@ export class ProductsService {
         return { success: false, message: 'Product name is required' };
       }
 
+      const pricingEnabled = dto.pricingEnabled !== false;
+
       if (
-        dto.price === undefined ||
-        dto.price === null ||
-        isNaN(Number(dto.price))
+        pricingEnabled &&
+        (dto.price === undefined ||
+          dto.price === null ||
+          isNaN(Number(dto.price)))
       ) {
         return { success: false, message: 'Valid price is required' };
       }
@@ -109,7 +112,7 @@ export class ProductsService {
             dto.category && String(dto.category).trim() !== ''
               ? dto.category.trim()
               : null,
-          price: Number(dto.price) as any,
+          price: (pricingEnabled ? Number(dto.price) : 0) as any,
           cost:
             dto.cost !== undefined && dto.cost !== null
               ? (Number(dto.cost) as any)
@@ -131,6 +134,11 @@ export class ProductsService {
             dto.image && String(dto.image).trim() !== ''
               ? dto.image.trim()
               : null,
+          categoryId: dto.categoryId || null,
+          currencyId: dto.currencyId || null,
+          taxId: dto.taxId || null,
+          unitId: dto.unitId || null,
+          pricingEnabled: pricingEnabled,
           isActive: dto.isActive ?? true,
         },
       });
@@ -174,8 +182,15 @@ export class ProductsService {
         return { success: false, message: 'Product not found' };
       }
 
-      // Validate price if provided
+      // Determine pricingEnabled: use dto value if provided, otherwise keep existing
+      const pricingEnabled =
+        dto.pricingEnabled !== undefined
+          ? dto.pricingEnabled
+          : existingProduct.pricingEnabled;
+
+      // Validate price if provided and pricing is enabled
       if (
+        pricingEnabled &&
         dto.price !== undefined &&
         (dto.price === null || isNaN(Number(dto.price)))
       ) {
@@ -224,6 +239,12 @@ export class ProductsService {
             : null;
       }
       if (dto.price !== undefined) updateData.price = Number(dto.price) as any;
+      if (dto.pricingEnabled !== undefined) {
+        updateData.pricingEnabled = dto.pricingEnabled;
+        if (!dto.pricingEnabled) {
+          updateData.price = 0;
+        }
+      }
       if (dto.cost !== undefined) {
         updateData.cost = dto.cost !== null ? (Number(dto.cost) as any) : null;
       }
@@ -251,6 +272,10 @@ export class ProductsService {
             ? dto.image.trim()
             : null;
       }
+      if (dto.categoryId !== undefined) updateData.categoryId = dto.categoryId;
+      if (dto.currencyId !== undefined) updateData.currencyId = dto.currencyId;
+      if (dto.taxId !== undefined) updateData.taxId = dto.taxId;
+      if (dto.unitId !== undefined) updateData.unitId = dto.unitId;
       if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
       updateData.updatedAt = new Date();
 

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Search, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown, Search, X } from "lucide-react";
 
 interface Option {
   value: string | number;
@@ -21,6 +21,7 @@ interface EnhancedSelectFieldProps {
   leftIcon?: React.ReactNode;
   disabled?: boolean;
   className?: string;
+  id?: string;
 }
 
 export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
@@ -35,33 +36,34 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
   clearable = true,
   leftIcon,
   disabled,
-  className
+  className,
+  id,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(-1);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const filteredOptions = options.filter(option =>
+  const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedOption = options.find(option => option.value === value);
+  const selectedOption = options.find((option) => option.value === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        setSearchTerm('');
+        setSearchTerm("");
         setFocusedIndex(-1);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -73,13 +75,13 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
   useEffect(() => {
     if (isOpen && focusedIndex >= 0 && listRef.current) {
       const focusedElement = listRef.current.children[focusedIndex] as HTMLElement;
-      focusedElement?.scrollIntoView({ block: 'nearest' });
+      focusedElement?.scrollIntoView({ block: "nearest" });
     }
   }, [focusedIndex, isOpen]);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (!isOpen) {
-      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         setIsOpen(true);
         setFocusedIndex(0);
@@ -88,27 +90,23 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
     }
 
     switch (event.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         event.preventDefault();
-        setFocusedIndex(prev =>
-          prev < filteredOptions.length - 1 ? prev + 1 : 0
-        );
+        setFocusedIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : 0));
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         event.preventDefault();
-        setFocusedIndex(prev =>
-          prev > 0 ? prev - 1 : filteredOptions.length - 1
-        );
+        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : filteredOptions.length - 1));
         break;
-      case 'Enter':
+      case "Enter":
         event.preventDefault();
         if (focusedIndex >= 0 && filteredOptions[focusedIndex]) {
           handleSelect(filteredOptions[focusedIndex].value);
         }
         break;
-      case 'Escape':
+      case "Escape":
         setIsOpen(false);
-        setSearchTerm('');
+        setSearchTerm("");
         setFocusedIndex(-1);
         break;
     }
@@ -117,14 +115,14 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
   const handleSelect = (optionValue: string | number) => {
     onChange(optionValue);
     setIsOpen(false);
-    setSearchTerm('');
+    setSearchTerm("");
     setFocusedIndex(-1);
   };
 
   const handleClear = (event: React.MouseEvent) => {
     event.stopPropagation();
-    onChange('');
-    setSearchTerm('');
+    onChange("");
+    setSearchTerm("");
   };
 
   const toggleDropdown = () => {
@@ -136,13 +134,11 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
   };
 
   return (
-    <div className={`relative ${className || ''}`} ref={dropdownRef}>
+    <div className={`relative ${className || ""}`} ref={dropdownRef} id={id}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           {label}
-          {required && (
-            <span className="text-red-500 ml-1">*</span>
-          )}
+          {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
 
@@ -151,17 +147,19 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
         <div
           className={`
             relative w-full rounded-lg border transition-all duration-200 cursor-pointer
-            ${leftIcon ? 'pl-12' : 'pl-4'} pr-10 py-3
+            ${leftIcon ? "pl-12" : "pl-4"} pr-10 py-3
             bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-            ${error
-              ? 'border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500'
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+            ${
+              error
+                ? "border-red-300 dark:border-red-600 hover:border-red-400 dark:hover:border-red-500"
+                : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
             }
-            ${isOpen
-              ? 'ring-2 ring-blue-500 border-blue-500'
-              : 'focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500'
+            ${
+              isOpen
+                ? "ring-2 ring-blue-500 border-blue-500"
+                : "focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500"
             }
-            ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800' : ''}
+            ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800" : ""}
           `}
           onClick={toggleDropdown}
           onKeyDown={handleKeyDown}
@@ -193,7 +191,13 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
                 {selectedOption?.icon && (
                   <span className="flex-shrink-0">{selectedOption.icon}</span>
                 )}
-                <span className={selectedOption ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'}>
+                <span
+                  className={
+                    selectedOption
+                      ? "text-gray-900 dark:text-gray-100"
+                      : "text-gray-500 dark:text-gray-400"
+                  }
+                >
                   {selectedOption ? selectedOption.label : placeholder}
                 </span>
               </div>
@@ -211,8 +215,11 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
                 <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
               </button>
             )}
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''
-              }`} />
+            <ChevronDown
+              className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+                isOpen ? "transform rotate-180" : ""
+              }`}
+            />
           </div>
         </div>
 
@@ -249,19 +256,19 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
                       className={`
                         w-full text-left px-4 py-3 text-sm transition-colors duration-150
                         flex items-center space-x-3
-                        ${index === focusedIndex
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-600'
+                        ${
+                          index === focusedIndex
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-600"
                         }
-                        ${option.value === value
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium'
-                          : 'text-gray-900 dark:text-gray-100'
+                        ${
+                          option.value === value
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium"
+                            : "text-gray-900 dark:text-gray-100"
                         }
                       `}
                     >
-                      {option.icon && (
-                        <span className="flex-shrink-0">{option.icon}</span>
-                      )}
+                      {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
                       <div className="flex-1">
                         <div>{option.label}</div>
                         {option.description && (
@@ -282,9 +289,7 @@ export const EnhancedSelectField: React.FC<EnhancedSelectFieldProps> = ({
         )}
       </div>
 
-      {error && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 };

@@ -23,12 +23,12 @@ export declare class CommunicationsService {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
                 type: import(".prisma/client").$Enums.CommunicationType;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
                 subject: string | null;
                 content: string;
                 direction: string;
@@ -50,12 +50,12 @@ export declare class CommunicationsService {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
                 type: import(".prisma/client").$Enums.CommunicationType;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
                 subject: string | null;
                 content: string;
                 direction: string;
@@ -83,12 +83,12 @@ export declare class CommunicationsService {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
                 type: import(".prisma/client").$Enums.CommunicationType;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
                 subject: string | null;
                 content: string;
                 direction: string;
@@ -114,18 +114,18 @@ export declare class CommunicationsService {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                companyId: number | null;
-                name: string;
-                isDefault: boolean;
                 type: import(".prisma/client").$Enums.TemplateType;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
                 subject: string | null;
                 content: string;
+                isDefault: boolean;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
             })[];
             pagination: {
@@ -147,18 +147,18 @@ export declare class CommunicationsService {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                companyId: number | null;
-                name: string;
-                isDefault: boolean;
                 type: import(".prisma/client").$Enums.TemplateType;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
                 subject: string | null;
                 content: string;
+                isDefault: boolean;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
             };
         };
@@ -174,18 +174,18 @@ export declare class CommunicationsService {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                companyId: number | null;
-                name: string;
-                isDefault: boolean;
                 type: import(".prisma/client").$Enums.TemplateType;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                companyId: number | null;
+                deletedAt: Date | null;
                 subject: string | null;
                 content: string;
+                isDefault: boolean;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
             };
         };
@@ -242,18 +242,18 @@ export declare class CommunicationsService {
                     phone: string | null;
                 };
                 template: {
+                    type: import(".prisma/client").$Enums.TemplateType;
                     id: number;
                     name: string;
-                    type: import(".prisma/client").$Enums.TemplateType;
                 } | null;
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
                 type: import(".prisma/client").$Enums.TemplateType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
                 status: import(".prisma/client").$Enums.MessageStatus;
                 subject: string | null;
                 content: string;

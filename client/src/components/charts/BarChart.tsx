@@ -1,5 +1,14 @@
-import React from 'react';
-import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React from "react";
+import {
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 interface BarChartProps {
   data: Array<{
@@ -25,20 +34,19 @@ const BarChart: React.FC<BarChartProps> = ({
   height = 300,
   showLegend = true,
   showTooltip = true,
-  dataKeys = [{ key: 'value', color: '#3B82F6', name: 'Value' }],
-  xAxisKey = 'name',
+  dataKeys = [{ key: "value", color: "#3B82F6", name: "Value" }],
+  xAxisKey = "name",
   valueFormatter = (val) => val,
 }) => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-            {label}
-          </p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm text-gray-600 dark:text-gray-300">
-              <span style={{ color: entry.color }}>●</span> {entry.name}: <span className="font-semibold">{valueFormatter(entry.value)}</span>
+              <span style={{ color: entry.color }}>●</span> {entry.name}:{" "}
+              <span className="font-semibold">{valueFormatter(entry.value)}</span>
             </p>
           ))}
         </div>
@@ -50,9 +58,7 @@ const BarChart: React.FC<BarChartProps> = ({
   return (
     <div className="w-full">
       {title && (
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          {title}
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{title}</h3>
       )}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart

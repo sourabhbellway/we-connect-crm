@@ -40,9 +40,7 @@ const SidebarDropdown: React.FC<SidebarDropdownProps> = ({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
-        <div
-          className={`flex items-center ${isCollapsed ? "justify-center" : ""}`}
-        >
+        <div className={`flex items-center ${isCollapsed ? "justify-center" : ""}`}>
           <Icon size={20} className={`${isCollapsed ? "mr-0" : "mr-3"}`} />
           {!isCollapsed && <span>{name}</span>}
         </div>

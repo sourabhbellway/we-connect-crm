@@ -11,7 +11,7 @@ interface RoleFormData {
   name: string;
   description: string;
   permissionIds: number[];
-  accessScope: 'OWN' | 'GLOBAL';
+  accessScope: "OWN" | "GLOBAL";
   isActive?: boolean;
 }
 
@@ -48,7 +48,7 @@ const RoleEdit: React.FC = () => {
             name: role.name,
             description: role.description || "",
             permissionIds: role.permissions?.map((p: any) => p.id) || [],
-            accessScope: role.accessScope || 'OWN',
+            accessScope: role.accessScope || "OWN",
             isActive: role.isActive,
           });
           setLoading(false);
@@ -70,7 +70,7 @@ const RoleEdit: React.FC = () => {
           name: role.name,
           description: role.description || "",
           permissionIds: role.permissions?.map((p: any) => p.id) || [],
-          accessScope: role.accessScope || 'OWN',
+          accessScope: role.accessScope || "OWN",
           isActive: role.isActive,
         });
       } catch (error: any) {
@@ -87,7 +87,6 @@ const RoleEdit: React.FC = () => {
     }
   }, [id, location.state, navigate]);
 
-
   const handleSubmit = async (data: RoleFormData) => {
     // If admin tries to deactivate role, ask confirmation
     if (initialData?.isActive === true && data.isActive === false) {
@@ -101,7 +100,7 @@ const RoleEdit: React.FC = () => {
         console.error("Error fetching affected users:", error);
         setAffectedUsers([]);
       }
-      
+
       setPendingFormData(data);
       setShowDeactivateConfirm(true);
       return;
@@ -123,29 +122,36 @@ const RoleEdit: React.FC = () => {
       }
 
       // If role was deactivated and there are affected users, notify them to logout
-      if (data.isActive === false && response.affectedUserIds && response.affectedUserIds.length > 0) {
+      if (
+        data.isActive === false &&
+        response.affectedUserIds &&
+        response.affectedUserIds.length > 0
+      ) {
         try {
           // Send logout notification to all affected users via localStorage event
           // This will trigger logout on their sessions if they're still logged in
-          const logoutEvent = new CustomEvent('roleDeactivated', {
+          const logoutEvent = new CustomEvent("roleDeactivated", {
             detail: {
               userIds: response.affectedUserIds,
               roleName: initialData?.name,
               timestamp: new Date().toISOString(),
-            }
+            },
           });
           window.dispatchEvent(logoutEvent);
 
           // Store in session storage so it can be picked up by other tabs
-          sessionStorage.setItem('role_deactivation_event', JSON.stringify({
-            userIds: response.affectedUserIds,
-            roleName: initialData?.name,
-            timestamp: new Date().toISOString(),
-          }));
+          sessionStorage.setItem(
+            "role_deactivation_event",
+            JSON.stringify({
+              userIds: response.affectedUserIds,
+              roleName: initialData?.name,
+              timestamp: new Date().toISOString(),
+            })
+          );
 
           toast.info(`${response.affectedUserIds.length} user(s) will be logged out automatically`);
         } catch (error) {
-          console.error('Error notifying users of logout:', error);
+          console.error("Error notifying users of logout:", error);
         }
       }
 
@@ -158,18 +164,12 @@ const RoleEdit: React.FC = () => {
     setSubmitting(false);
   };
 
-
-
-
   return (
-
     <>
       <div className="p-4 md:p-6">
         <div className="mb-6 flex  items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Edit Role
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Role</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Update the role details below
             </p>
@@ -182,36 +182,40 @@ const RoleEdit: React.FC = () => {
           {loading ? (
             <Loader />
           ) : (
-            <RoleForm
-              initial={initialData}
-              onSubmit={handleSubmit}
-              submitting={submitting}
-            />
+            <RoleForm initial={initialData} onSubmit={handleSubmit} submitting={submitting} />
           )}
         </div>
       </div>
       {showDeactivateConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-red-600">
-              ⚠️ Warning
-            </h3>
+            <h3 className="text-lg font-semibold mb-4 text-red-600">⚠️ Warning</h3>
 
             <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/40 border-2 border-red-600 rounded-lg">
               <p className="text-red-900 dark:text-red-200 font-semibold text-center text-lg">
-                {affectedUsers.length} User{affectedUsers.length !== 1 ? 's' : ''} will be Deactivated
+                {affectedUsers.length} User{affectedUsers.length !== 1 ? "s" : ""} will be
+                Deactivated
               </p>
             </div>
 
             {affectedUsers.length > 0 && (
               <div className="mb-6 max-h-48 overflow-y-auto bg-gray-50 dark:bg-gray-700/50 rounded p-4 border border-gray-200 dark:border-gray-600">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">These users will not be able to login:</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  These users will not be able to login:
+                </p>
                 <ul className="space-y-2">
                   {affectedUsers.map((user) => (
-                    <li key={user.id} className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <li
+                      key={user.id}
+                      className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2"
+                    >
                       <span className="w-2 h-2 bg-red-600 rounded-full"></span>
-                      <span>{user.firstName} {user.lastName}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">({user.email})</span>
+                      <span>
+                        {user.firstName} {user.lastName}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        ({user.email})
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -220,7 +224,8 @@ const RoleEdit: React.FC = () => {
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mb-6">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Note:</strong> These users won't be able to access the system until you reactivate the role.
+                <strong>Note:</strong> These users won't be able to access the system until you
+                reactivate the role.
               </p>
             </div>
 
@@ -245,11 +250,7 @@ const RoleEdit: React.FC = () => {
           </div>
         </div>
       )}
-
-
     </>
-
-
   );
 };
 

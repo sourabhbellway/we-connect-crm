@@ -5,57 +5,80 @@ export declare class ProductCategoriesController {
     private readonly productCategoriesService;
     constructor(productCategoriesService: ProductCategoriesService);
     create(createProductCategoryDto: CreateProductCategoryDto): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            category: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
     findAll(): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
-    }[]>;
+        success: boolean;
+        message: string;
+        data: {
+            description: string | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            deletedAt: Date | null;
+        }[];
+    }>;
     findOne(id: number): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            category: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
     update(id: number, updateProductCategoryDto: UpdateProductCategoryDto): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            category: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
     remove(id: number): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
     }>;
     toggleActive(id: number): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            category: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
 }

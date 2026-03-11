@@ -73,33 +73,33 @@ model SuperAdminRolePermission {
 }
 
 model User {
-  id                     Int                       @id @default(autoincrement())
-  email                  String                    @unique
+  id                     Int       @id @default(autoincrement())
+  email                  String    @unique
   password               String
   firstName              String
   lastName               String
-  isActive               Boolean                   @default(true)
+  isActive               Boolean   @default(true)
   lastLogin              DateTime?
-  createdAt              DateTime                  @default(now())
-  updatedAt              DateTime                  @updatedAt
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
   profilePicture         String?
   companyId              Int?
   deletedAt              DateTime?
   accountLockedUntil     DateTime?
-  emailVerificationToken String?                   @unique
-  emailVerified          Boolean                   @default(false)
+  emailVerificationToken String?   @unique
+  emailVerified          Boolean   @default(false)
   emailVerifiedAt        DateTime?
-  failedLoginAttempts    Int                       @default(0)
+  failedLoginAttempts    Int       @default(0)
   passwordResetExpires   DateTime?
-  passwordResetToken     String?                   @unique
-  twoFactorEnabled       Boolean                   @default(false)
+  passwordResetToken     String?   @unique
+  twoFactorEnabled       Boolean   @default(false)
   twoFactorSecret        String?
-  mustChangePassword     Boolean                   @default(false)
+  mustChangePassword     Boolean   @default(false)
   managerId              Int?
   teamId                 Int?
   deviceToken            String?
   fcmToken               String?
-  refreshTokens          RefreshToken[]
+
   activities             Activity[]                @relation("UserActivities")
   createdBudgets         Budget[]                  @relation("UserCreatedBudgets")
   callLogs               CallLog[]                 @relation("UserCallLogs")
@@ -423,19 +423,6 @@ model companies {
   users             User[]
 }
 
-model RefreshToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  userId    Int
-  expiresAt DateTime
-  isRevoked Boolean  @default(false)
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([expiresAt])
-}
-
 model PasswordHistory {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -611,27 +598,29 @@ model Note {
 }
 
 model Tax {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
-  rate        Decimal  @db.Decimal(5, 2)
+  rate        Decimal   @db.Decimal(5, 2)
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
 
   @@map("taxes")
 }
 
 model Currency {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  code         String   @unique
+  id           Int       @id @default(autoincrement())
+  name         String    @unique
+  code         String    @unique
   symbol       String
-  exchangeRate Decimal  @default(1.0) @db.Decimal(15, 6)
-  isActive     Boolean  @default(true)
-  isDefault    Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  exchangeRate Decimal   @default(1.0) @db.Decimal(15, 6)
+  isActive     Boolean   @default(true)
+  isDefault    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  products     Product[]
 
   @@map("currencies")
 }
@@ -1160,9 +1149,14 @@ model Product {
   price          Decimal         @db.Decimal(10, 2)
   cost           Decimal?        @db.Decimal(10, 2)
   currency       String          @default("USD")
+  currencyId     Int?
   unit           String?         @default("pcs")
+  unitId         Int?
   taxRate        Decimal?        @db.Decimal(5, 2)
+  taxId          Int?
+  categoryId     Int?
   hsnCode        String?
+  pricingEnabled Boolean         @default(true)
   isActive       Boolean         @default(true)
   stockQuantity  Int?            @default(0)
   minStockLevel  Int?            @default(0)
@@ -1177,6 +1171,11 @@ model Product {
   teams          Team[]
   leadProducts   LeadProduct[]
 
+  categoryRef ProductCategory? @relation(fields: [categoryId], references: [id])
+  unitRef     UnitType?        @relation(fields: [unitId], references: [id])
+  currencyRef Currency?        @relation(fields: [currencyId], references: [id])
+  taxRef      Tax?             @relation(fields: [taxId], references: [id])
+
   @@map("products")
 }
 
@@ -1188,6 +1187,7 @@ model ProductCategory {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  products    Product[]
 
   @@map("product_categories")
 }
@@ -1200,6 +1200,7 @@ model UnitType {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
+  products    Product[]
 
   @@map("unit_types")
 }

@@ -5,17 +5,17 @@ export declare class InvoiceTemplatesController {
     findAll(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             designType: string;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -28,17 +28,17 @@ export declare class InvoiceTemplatesController {
     findOne(id: string): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             designType: string;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -51,17 +51,17 @@ export declare class InvoiceTemplatesController {
     create(data: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             designType: string;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -74,17 +74,17 @@ export declare class InvoiceTemplatesController {
     update(id: string, data: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             designType: string;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;

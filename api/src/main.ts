@@ -49,15 +49,26 @@ async function bootstrap() {
   const corsOrigins =
     process.env.NODE_ENV === 'production'
       ? [
-        'http://147.93.27.62',
-        'http://147.93.27.62:4176',
-        'http://147.93.27.62:3010',
-        'http://31.97.233.21',
-        'http://31.97.233.21:8081',
-        'http://31.97.233.21:7001',
-        'http://31.97.233.21:3001',
-      ]
-      : true; // Allow all origins in development
+          'http://147.93.27.62',
+          'http://147.93.27.62:4176',
+          'http://147.93.27.62:3010',
+          'http://31.97.233.21',
+          'http://31.97.233.21:8081',
+          'http://31.97.233.21:7001',
+          'http://31.97.233.21:3001',
+          'http://localhost:5173',
+          'http://localhost:3000',
+          'http://127.0.0.1:5173',
+          'http://127.0.0.1:3000',
+        ]
+      : [
+          'http://localhost:5173',
+          'http://localhost:3000',
+          'http://127.0.0.1:5173',
+          'http://127.0.0.1:3000',
+          'http://localhost:3001',
+          'http://127.0.0.1:3001',
+        ]; // Allow localhost in development
 
   app.enableCors({
     origin: corsOrigins,

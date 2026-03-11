@@ -1,37 +1,37 @@
-import React, { useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { CountsProvider } from './contexts/CountsContext';
-import { BusinessSettingsProvider } from './contexts/BusinessSettingsContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import { MainLayout } from './layouts';
-import { LoginPage, DashboardPage, RolesPage, BusinessSettingsPage } from './pages';
-import { PERMISSIONS, TOAST_CONFIG } from './constants';
+import React, { useState } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { CountsProvider } from "./contexts/CountsContext";
+import { BusinessSettingsProvider } from "./contexts/BusinessSettingsContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { MainLayout } from "./layouts";
+import { LoginPage, DashboardPage, RolesPage, BusinessSettingsPage } from "./pages";
+import { PERMISSIONS, TOAST_CONFIG } from "./constants";
 
 // Import existing components that haven't been migrated yet
-import Leads from './components/Leads';
-import LeadCreate from './components/LeadCreate';
-import LeadEdit from './components/LeadEdit';
-import Users from './components/Users';
-import UserCreate from './components/UserCreate';
-import UserEdit from './components/UserEdit';
-import RoleCreate from './components/RoleCreate';
-import RoleEdit from './components/RoleEdit';
-import Trash from './components/Trash';
-import TrashUsers from './components/TrashUsers';
-import TrashLeads from './components/TrashLeads';
-import TrashRoles from './components/TrashRoles';
-import LeadSettings from './components/LeadSettings';
-import UserSettings from './components/UserSettings';
-import IndustrySettings from './components/IndustrySettings';
-import Profile from './components/Profile';
-import TokenExpiryModal from './components/TokenExpiryModal';
-import ErrorBoundary from './components/ErrorBoundary';
+import Leads from "./components/Leads";
+import LeadCreate from "./components/LeadCreate";
+import LeadEdit from "./components/LeadEdit";
+import Users from "./components/Users";
+import UserCreate from "./components/UserCreate";
+import UserEdit from "./components/UserEdit";
+import RoleCreate from "./components/RoleCreate";
+import RoleEdit from "./components/RoleEdit";
+import Trash from "./components/Trash";
+import TrashUsers from "./components/TrashUsers";
+import TrashLeads from "./components/TrashLeads";
+import TrashRoles from "./components/TrashRoles";
+import LeadSettings from "./components/LeadSettings";
+import UserSettings from "./components/UserSettings";
+import IndustrySettings from "./components/IndustrySettings";
+import Profile from "./components/Profile";
+import TokenExpiryModal from "./components/TokenExpiryModal";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AppContent() {
   const { error } = useAuth();
@@ -41,7 +41,7 @@ function AppContent() {
   const [expiryMessage, setExpiryMessage] = useState<string | undefined>(undefined);
 
   React.useEffect(() => {
-    if (error === 'Session expired. Please login again.') {
+    if (error === "Session expired. Please login again.") {
       setShowExpiryModal(true);
     }
   }, [error]);
@@ -55,10 +55,10 @@ function AppContent() {
       setShowExpiryModal(true);
     };
 
-    window.addEventListener('tokenExpired', handleTokenExpiry);
+    window.addEventListener("tokenExpired", handleTokenExpiry);
 
     return () => {
-      window.removeEventListener('tokenExpired', handleTokenExpiry);
+      window.removeEventListener("tokenExpired", handleTokenExpiry);
     };
   }, []);
 
@@ -66,7 +66,7 @@ function AppContent() {
     setShowExpiryModal(false);
     setExpiryTitle(undefined);
     setExpiryMessage(undefined);
-    navigate('/login');
+    navigate("/login");
   };
 
   return (

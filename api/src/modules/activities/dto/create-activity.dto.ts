@@ -1,4 +1,10 @@
-import { IsArray, IsNumber, IsOptional, IsString, IsNotEmpty } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreateActivityDto {
   @IsString({ message: 'Title must be a string' })

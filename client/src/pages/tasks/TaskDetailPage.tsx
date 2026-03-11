@@ -1,21 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
-  CheckCircle, Clock, CalendarDays, User, Mail, Phone, Building,
-  ArrowLeft, AlertCircle, Flag
-} from 'lucide-react';
-import { tasksService } from '../../services/tasksService';
-import { toast } from 'react-toastify';
-import BackButton from '../../components/BackButton';
-import { Button, Card } from '../../components/ui';
-import { useAuth } from '../../contexts/AuthContext';
+  CheckCircle,
+  Clock,
+  CalendarDays,
+  User,
+  Mail,
+  Phone,
+  Building,
+  ArrowLeft,
+  AlertCircle,
+  Flag,
+} from "lucide-react";
+import { tasksService } from "../../services/tasksService";
+import { toast } from "react-toastify";
+import BackButton from "../../components/BackButton";
+import { Button, Card } from "../../components/ui";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface TaskDetail {
   id: number;
   title: string;
   description?: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   dueDate?: string;
   completedAt?: string;
   assignedTo?: number;
@@ -69,12 +77,12 @@ const TaskDetailPage: React.FC = () => {
       if (taskData) {
         setTask(taskData);
       } else {
-        setError('Task not found');
+        setError("Task not found");
       }
     } catch (err: any) {
-      console.error('Error fetching task:', err);
-      setError(err?.response?.data?.message || 'Failed to load task');
-      toast.error(err?.response?.data?.message || 'Failed to load task');
+      console.error("Error fetching task:", err);
+      setError(err?.response?.data?.message || "Failed to load task");
+      toast.error(err?.response?.data?.message || "Failed to load task");
     } finally {
       setLoading(false);
     }
@@ -84,38 +92,37 @@ const TaskDetailPage: React.FC = () => {
     if (!task) return;
     try {
       setIsUpdating(true);
-      if (task.status === 'COMPLETED') {
-        await tasksService.update(task.id, { status: 'PENDING' });
-        toast.success('Task reopened');
+      if (task.status === "COMPLETED") {
+        await tasksService.update(task.id, { status: "PENDING" });
+        toast.success("Task reopened");
       } else {
         await tasksService.complete(task.id);
-        toast.success('Task completed');
+        toast.success("Task completed");
       }
       fetchTask();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to update task');
+      toast.error(err?.response?.data?.message || "Failed to update task");
     } finally {
       setIsUpdating(false);
     }
   };
 
-
   const getStatusColor = (status: string) => {
     const colors = {
-      PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-      IN_PROGRESS: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-      COMPLETED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-      CANCELLED: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+      PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+      IN_PROGRESS: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+      COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      CANCELLED: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
     };
     return colors[status as keyof typeof colors] || colors.PENDING;
   };
 
   const getPriorityColor = (priority: string) => {
     const colors = {
-      URGENT: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-      HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
-      MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-      LOW: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+      URGENT: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+      HIGH: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+      MEDIUM: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+      LOW: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
     };
     return colors[priority as keyof typeof colors] || colors.MEDIUM;
   };
@@ -139,14 +146,14 @@ const TaskDetailPage: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-sm">
             <AlertCircle className="h-20 w-20 text-weconnect-red mx-auto mb-6" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {error || 'Task not found'}
+              {error || "Task not found"}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
               The task you're looking for doesn't exist or you don't have permission to view it.
             </p>
             <Button
               variant="PRIMARY"
-              onClick={() => navigate('/task-management')}
+              onClick={() => navigate("/task-management")}
               className="px-8 py-3"
             >
               Back to Tasks
@@ -165,16 +172,16 @@ const TaskDetailPage: React.FC = () => {
           <div className="py-6">
             <div className="flex items-center justify-between mb-6">
               <BackButton to="/task-management" />
-              
+
               {/* Actions */}
               <div className="flex items-center space-x-3">
                 <Button
-                  variant={task.status === 'COMPLETED' ? 'SECONDARY' : 'PRIMARY'}
+                  variant={task.status === "COMPLETED" ? "SECONDARY" : "PRIMARY"}
                   onClick={handleToggleComplete}
                   disabled={isUpdating}
                   className="flex items-center gap-2"
                 >
-                  {task.status === 'COMPLETED' ? (
+                  {task.status === "COMPLETED" ? (
                     <>
                       <Clock className="h-4 w-4" />
                       Reopen Task
@@ -193,14 +200,16 @@ const TaskDetailPage: React.FC = () => {
             <div className="flex items-start space-x-6">
               {/* Status Icon */}
               <div className="flex-shrink-0">
-                <div className={`h-20 w-20 rounded-2xl flex items-center justify-center shadow-lg ${
-                  task.status === 'COMPLETED' 
-                    ? 'bg-green-500' 
-                    : task.status === 'IN_PROGRESS'
-                    ? 'bg-blue-500'
-                    : 'bg-yellow-500'
-                }`}>
-                  {task.status === 'COMPLETED' ? (
+                <div
+                  className={`h-20 w-20 rounded-2xl flex items-center justify-center shadow-lg ${
+                    task.status === "COMPLETED"
+                      ? "bg-green-500"
+                      : task.status === "IN_PROGRESS"
+                        ? "bg-blue-500"
+                        : "bg-yellow-500"
+                  }`}
+                >
+                  {task.status === "COMPLETED" ? (
                     <CheckCircle className="h-10 w-10 text-white" />
                   ) : (
                     <Clock className="h-10 w-10 text-white" />
@@ -213,21 +222,23 @@ const TaskDetailPage: React.FC = () => {
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
                   {task.title}
                 </h1>
-                
+
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${getStatusColor(task.status)}`}>
-                    {task.status.replace('_', ' ')}
+                  <span
+                    className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${getStatusColor(task.status)}`}
+                  >
+                    {task.status.replace("_", " ")}
                   </span>
-                  <span className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${getPriorityColor(task.priority)}`}>
+                  <span
+                    className={`inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium ${getPriorityColor(task.priority)}`}
+                  >
                     <Flag className="h-4 w-4 mr-2" />
                     {task.priority} Priority
                   </span>
                 </div>
 
                 {task.description && (
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    {task.description}
-                  </p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">{task.description}</p>
                 )}
               </div>
             </div>
@@ -246,25 +257,29 @@ const TaskDetailPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
                   Task Information
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                       Status
                     </label>
                     <p className="text-sm text-gray-900 dark:text-white">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                        {task.status.replace('_', ' ')}
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}
+                      >
+                        {task.status.replace("_", " ")}
                       </span>
                     </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                       Priority
                     </label>
                     <p className="text-sm text-gray-900 dark:text-white">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}
+                      >
                         {task.priority}
                       </span>
                     </p>
@@ -277,11 +292,11 @@ const TaskDetailPage: React.FC = () => {
                       </label>
                       <p className="text-sm text-gray-900 dark:text-white flex items-center gap-2">
                         <CalendarDays className="h-4 w-4" />
-                        {new Date(task.dueDate).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
+                        {new Date(task.dueDate).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
                         })}
                       </p>
                     </div>
@@ -294,13 +309,13 @@ const TaskDetailPage: React.FC = () => {
                       </label>
                       <p className="text-sm text-gray-900 dark:text-white flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
-                        {new Date(task.completedAt).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
+                        {new Date(task.completedAt).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
                     </div>
@@ -311,12 +326,12 @@ const TaskDetailPage: React.FC = () => {
                       Created At
                     </label>
                     <p className="text-sm text-gray-900 dark:text-white">
-                      {new Date(task.createdAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                      {new Date(task.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </div>
@@ -326,12 +341,12 @@ const TaskDetailPage: React.FC = () => {
                       Last Updated
                     </label>
                     <p className="text-sm text-gray-900 dark:text-white">
-                      {new Date(task.updatedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                      {new Date(task.updatedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   </div>
@@ -353,7 +368,7 @@ const TaskDetailPage: React.FC = () => {
                       View Lead
                     </Button>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -363,7 +378,7 @@ const TaskDetailPage: React.FC = () => {
                         {task.lead.firstName} {task.lead.lastName}
                       </p>
                     </div>
-                    
+
                     {task.lead.email && (
                       <div>
                         <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -375,7 +390,7 @@ const TaskDetailPage: React.FC = () => {
                         </p>
                       </div>
                     )}
-                    
+
                     {task.lead.phone && (
                       <div>
                         <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -387,7 +402,7 @@ const TaskDetailPage: React.FC = () => {
                         </p>
                       </div>
                     )}
-                    
+
                     {task.lead.company && (
                       <div>
                         <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
@@ -415,7 +430,8 @@ const TaskDetailPage: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-weconnect-red flex items-center justify-center">
                       <span className="text-white font-bold">
-                        {task.assignedUser.firstName[0]}{task.assignedUser.lastName[0]}
+                        {task.assignedUser.firstName[0]}
+                        {task.assignedUser.lastName[0]}
                       </span>
                     </div>
                     <div>
@@ -437,7 +453,8 @@ const TaskDetailPage: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 rounded-full bg-blue-500 flex items-center justify-center">
                       <span className="text-white font-bold">
-                        {task.createdByUser.firstName[0]}{task.createdByUser.lastName[0]}
+                        {task.createdByUser.firstName[0]}
+                        {task.createdByUser.lastName[0]}
                       </span>
                     </div>
                     <div>
@@ -457,12 +474,12 @@ const TaskDetailPage: React.FC = () => {
                 </h3>
                 <div className="space-y-3">
                   <Button
-                    variant={task.status === 'COMPLETED' ? 'SECONDARY' : 'PRIMARY'}
+                    variant={task.status === "COMPLETED" ? "SECONDARY" : "PRIMARY"}
                     fullWidth
                     onClick={handleToggleComplete}
                     disabled={isUpdating}
                   >
-                    {task.status === 'COMPLETED' ? 'Reopen Task' : 'Complete Task'}
+                    {task.status === "COMPLETED" ? "Reopen Task" : "Complete Task"}
                   </Button>
                   {task.lead && (
                     <Button
@@ -484,4 +501,3 @@ const TaskDetailPage: React.FC = () => {
 };
 
 export default TaskDetailPage;
-

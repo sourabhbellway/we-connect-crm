@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Tags,
-  Database,
-  Wrench,
-} from "lucide-react";
+import { Plus, Edit, Trash2, Tags, Database, Wrench } from "lucide-react";
 import { tagService, Tag } from "../services/tagService";
 import { leadSourceService, LeadSource } from "../services/leadSourceService";
 import { useAuth } from "../contexts/AuthContext";
@@ -57,10 +50,7 @@ const saveFields = (fields: LeadFieldDef[]) => {
   } catch {}
 };
 
-const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({
-  title,
-  subtitle,
-}) => (
+const EmptyState: React.FC<{ title: string; subtitle?: string }> = ({ title, subtitle }) => (
   <div className="text-center py-10 text-gray-500 dark:text-gray-400">
     <p className="text-sm font-medium">{title}</p>
     {subtitle && <p className="text-xs mt-1">{subtitle}</p>}
@@ -75,9 +65,7 @@ const SectionHeader: React.FC<{
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center space-x-2">
       {icon}
-      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-        {title}
-      </h3>
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{title}</h3>
     </div>
     {action}
   </div>
@@ -112,20 +100,22 @@ const LeadSettings: React.FC = () => {
       ]);
       // API returns wrapped data in backend; client services currently return response.data directly.
       // Normalize to arrays if wrapped
-      const tagsData =
-        (tagsRes as any)?.data?.tags ?? (tagsRes as any)?.tags ?? tagsRes;
+      const tagsData = (tagsRes as any)?.data?.tags ?? (tagsRes as any)?.tags ?? tagsRes;
       const srcData =
         (srcRes as any)?.data?.leadSources ??
         (srcRes as any)?.leadSources ??
         (srcRes as any)?.data ??
         srcRes;
-      
+
       // Ensure we always set an array
       setTags(Array.isArray(tagsData) ? tagsData : []);
       // Use context leadSources if available, otherwise use API response
-      const finalLeadSources = Array.isArray(contextLeadSources) && contextLeadSources.length > 0
-        ? contextLeadSources
-        : (Array.isArray(srcData) ? srcData : []);
+      const finalLeadSources =
+        Array.isArray(contextLeadSources) && contextLeadSources.length > 0
+          ? contextLeadSources
+          : Array.isArray(srcData)
+            ? srcData
+            : [];
       setLeadSources(finalLeadSources);
       // Load lead form fields (UI-only, from localStorage). If empty, seed with sample defaults
       const existing = loadFields();
@@ -330,44 +320,209 @@ const LeadSettings: React.FC = () => {
             isActive: true,
             isDefault: true,
           },
-          
         ];
         saveFields(sampleDefaults);
         setLeadFields(sampleDefaults);
       } else {
         // Build canonical default set (18 fields)
         const baseline: Omit<LeadFieldDef, "id">[] = [
-          { name: "First Name", key: "first_name", type: "TEXT", canBeTurnedOff: false, required: true, description: "Lead's first name", isActive: true, isDefault: true },
-          { name: "Last Name", key: "last_name", type: "TEXT", canBeTurnedOff: false, required: true, description: "Lead's last name", isActive: true, isDefault: true },
-          { name: "Email", key: "email", type: "EMAIL", canBeTurnedOff: true, required: false, description: "Primary email address", isActive: true, isDefault: true },
-          { name: "Phone Number", key: "phone", type: "PHONE", canBeTurnedOff: true, required: false, description: "Lead's phone number", isActive: true, isDefault: true },
-          { name: "Company Name", key: "company", type: "TEXT", canBeTurnedOff: true, required: false, description: "Name of lead's company", isActive: true, isDefault: true },
-          { name: "Job Title", key: "job_title", type: "TEXT", canBeTurnedOff: true, required: false, description: "Role of the lead in their company", isActive: true, isDefault: true },
-          { name: "Lead Source", key: "source_id", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "Origin of the lead", isActive: true, isDefault: true },
-          { name: "Industry", key: "industry", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "Industry the lead belongs to", isActive: true, isDefault: true },
-          { name: "Lead Status", key: "status", type: "DROPDOWN", canBeTurnedOff: false, required: true, description: "Pipeline stage", isActive: true, isDefault: true },
-          { name: "Rating", key: "rating", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "Lead quality", isActive: true, isDefault: true },
-          { name: "Owner", key: "owner_id", type: "DROPDOWN", canBeTurnedOff: false, required: true, description: "Assigned CRM user", isActive: true, isDefault: true },
-          { name: "Created Date", key: "created_at", type: "DATE", canBeTurnedOff: false, required: true, description: "Creation timestamp", isActive: true, isDefault: true },
-          { name: "Last Contacted Date", key: "last_contacted_at", type: "DATE", canBeTurnedOff: true, required: false, description: "Last contacted time", isActive: true, isDefault: true },
-          { name: "Notes", key: "notes", type: "TEXT", canBeTurnedOff: true, required: false, description: "Additional details", isActive: true, isDefault: true },
-          { name: "Tags", key: "tags", type: "MULTI_SELECT", canBeTurnedOff: true, required: false, description: "Tags to segment leads", isActive: true, isDefault: true },
-          { name: "Website", key: "website", type: "TEXT", canBeTurnedOff: true, required: false, description: "Company website", isActive: true, isDefault: true },
-          { name: "Location / Address", key: "address", type: "TEXT", canBeTurnedOff: true, required: false, description: "Lead's address or location", isActive: true, isDefault: true },
-          { name: "Time Zone", key: "time_zone", type: "DROPDOWN", canBeTurnedOff: true, required: false, description: "For scheduling follow-ups", isActive: true, isDefault: true },
+          {
+            name: "First Name",
+            key: "first_name",
+            type: "TEXT",
+            canBeTurnedOff: false,
+            required: true,
+            description: "Lead's first name",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Last Name",
+            key: "last_name",
+            type: "TEXT",
+            canBeTurnedOff: false,
+            required: true,
+            description: "Lead's last name",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Email",
+            key: "email",
+            type: "EMAIL",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Primary email address",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Phone Number",
+            key: "phone",
+            type: "PHONE",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Lead's phone number",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Company Name",
+            key: "company",
+            type: "TEXT",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Name of lead's company",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Job Title",
+            key: "job_title",
+            type: "TEXT",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Role of the lead in their company",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Lead Source",
+            key: "source_id",
+            type: "DROPDOWN",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Origin of the lead",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Industry",
+            key: "industry",
+            type: "DROPDOWN",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Industry the lead belongs to",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Lead Status",
+            key: "status",
+            type: "DROPDOWN",
+            canBeTurnedOff: false,
+            required: true,
+            description: "Pipeline stage",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Rating",
+            key: "rating",
+            type: "DROPDOWN",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Lead quality",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Owner",
+            key: "owner_id",
+            type: "DROPDOWN",
+            canBeTurnedOff: false,
+            required: true,
+            description: "Assigned CRM user",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Created Date",
+            key: "created_at",
+            type: "DATE",
+            canBeTurnedOff: false,
+            required: true,
+            description: "Creation timestamp",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Last Contacted Date",
+            key: "last_contacted_at",
+            type: "DATE",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Last contacted time",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Notes",
+            key: "notes",
+            type: "TEXT",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Additional details",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Tags",
+            key: "tags",
+            type: "MULTI_SELECT",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Tags to segment leads",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Website",
+            key: "website",
+            type: "TEXT",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Company website",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Location / Address",
+            key: "address",
+            type: "TEXT",
+            canBeTurnedOff: true,
+            required: false,
+            description: "Lead's address or location",
+            isActive: true,
+            isDefault: true,
+          },
+          {
+            name: "Time Zone",
+            key: "time_zone",
+            type: "DROPDOWN",
+            canBeTurnedOff: true,
+            required: false,
+            description: "For scheduling follow-ups",
+            isActive: true,
+            isDefault: true,
+          },
         ];
 
         // Remove deprecated and merge missing defaults
-        const filtered = existing.filter((f: LeadFieldDef) => f.key !== "lead_id" && f.key !== "custom_fields");
+        const filtered = existing.filter(
+          (f: LeadFieldDef) => f.key !== "lead_id" && f.key !== "custom_fields"
+        );
         const keySet = new Set(filtered.map((f: LeadFieldDef) => f.key));
         const merged: LeadFieldDef[] = [
           ...filtered,
           ...baseline
             .filter((d) => !keySet.has(d.key))
-            .map((d, idx) => ({ id: Date.now() + idx, ...d } as LeadFieldDef)),
+            .map((d, idx) => ({ id: Date.now() + idx, ...d }) as LeadFieldDef),
         ];
 
-        const normalized = merged.map((f: LeadFieldDef) => (!f.canBeTurnedOff ? { ...f, isActive: true } : f));
+        const normalized = merged.map((f: LeadFieldDef) =>
+          !f.canBeTurnedOff ? { ...f, isActive: true } : f
+        );
         saveFields(normalized);
         setLeadFields(normalized);
       }
@@ -428,8 +583,7 @@ const LeadSettings: React.FC = () => {
     editing: LeadFieldDef | null;
   }>({ open: false, editing: null });
   const openNewField = () => setFieldModal({ open: true, editing: null });
-  const openEditField = (f: LeadFieldDef) =>
-    setFieldModal({ open: true, editing: f });
+  const openEditField = (f: LeadFieldDef) => setFieldModal({ open: true, editing: f });
 
   const saveField = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -461,14 +615,20 @@ const LeadSettings: React.FC = () => {
       toast.error(nameErr || descErr);
       return;
     }
-    if (!payload.key)
-      payload.key = (payload.name as string).toLowerCase().replace(/\s+/g, "_");
+    if (!payload.key) payload.key = (payload.name as string).toLowerCase().replace(/\s+/g, "_");
     setLeadFields((prev) => {
       let next: LeadFieldDef[];
       if (payload.id) {
         next = prev.map((x) =>
           x.id === payload.id
-            ? ({ ...(x as any), ...payload, options: payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT" ? payload.options ?? x.options : undefined } as LeadFieldDef)
+            ? ({
+                ...(x as any),
+                ...payload,
+                options:
+                  payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT"
+                    ? (payload.options ?? x.options)
+                    : undefined,
+              } as LeadFieldDef)
             : x
         );
       } else {
@@ -480,7 +640,10 @@ const LeadSettings: React.FC = () => {
           canBeTurnedOff: Boolean(payload.canBeTurnedOff),
           required: Boolean(payload.required),
           description: payload.description,
-          options: payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT" ? payload.options : undefined,
+          options:
+            payload.type === "DROPDOWN" || payload.type === "MULTI_SELECT"
+              ? payload.options
+              : undefined,
           isActive: payload.isActive ?? true,
           isDefault: Boolean(payload.isDefault),
         };
@@ -571,12 +734,9 @@ const LeadSettings: React.FC = () => {
           color: formState.color,
           description: formState.description,
         });
-        const payload =
-          (updated as any)?.data?.tag ?? (updated as any)?.tag ?? updated;
+        const payload = (updated as any)?.data?.tag ?? (updated as any)?.tag ?? updated;
         setTags((prev) =>
-          prev.map((t) =>
-            t.id === tagModal.editing!.id ? { ...t, ...payload } : t
-          )
+          prev.map((t) => (t.id === tagModal.editing!.id ? { ...t, ...payload } : t))
         );
         toast.success("Tag updated");
       } else {
@@ -585,16 +745,13 @@ const LeadSettings: React.FC = () => {
           color: formState.color,
           description: formState.description,
         });
-        const payload =
-          (created as any)?.data?.tag ?? (created as any)?.tag ?? created;
+        const payload = (created as any)?.data?.tag ?? (created as any)?.tag ?? created;
         setTags((prev) => [payload, ...prev]);
         toast.success("Tag created");
       }
       setTagModal({ open: false, editing: null });
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || err?.message || "Operation failed"
-      );
+      toast.error(err?.response?.data?.message || err?.message || "Operation failed");
     } finally {
       setLoading(false);
     }
@@ -611,21 +768,14 @@ const LeadSettings: React.FC = () => {
     try {
       setLoading(true);
       if (sourceModal.editing) {
-        const updated = await leadSourceService.updateLeadSource(
-          sourceModal.editing.id,
-          {
-            name: formState.name,
-            description: formState.description,
-          }
-        );
+        const updated = await leadSourceService.updateLeadSource(sourceModal.editing.id, {
+          name: formState.name,
+          description: formState.description,
+        });
         const payload =
-          (updated as any)?.data?.leadSource ??
-          (updated as any)?.leadSource ??
-          updated;
+          (updated as any)?.data?.leadSource ?? (updated as any)?.leadSource ?? updated;
         setLeadSources((prev) =>
-          prev.map((s) =>
-            s.id === sourceModal.editing!.id ? { ...s, ...payload } : s
-          )
+          prev.map((s) => (s.id === sourceModal.editing!.id ? { ...s, ...payload } : s))
         );
         toast.success("Lead source updated");
       } else {
@@ -634,17 +784,13 @@ const LeadSettings: React.FC = () => {
           description: formState.description,
         });
         const payload =
-          (created as any)?.data?.leadSource ??
-          (created as any)?.leadSource ??
-          created;
+          (created as any)?.data?.leadSource ?? (created as any)?.leadSource ?? created;
         setLeadSources((prev) => [payload, ...prev]);
         toast.success("Lead source created");
       }
       setSourceModal({ open: false, editing: null });
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || err?.message || "Operation failed"
-      );
+      toast.error(err?.response?.data?.message || err?.message || "Operation failed");
     } finally {
       setLoading(false);
     }
@@ -668,9 +814,7 @@ const LeadSettings: React.FC = () => {
           {/* Page header */}
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Lead Settings
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lead Settings</h2>
               <p className="text-sm text-gray-600 dark:text-gray-300">
                 Organize taxonomy and configure the lead form for your team
               </p>
@@ -678,13 +822,10 @@ const LeadSettings: React.FC = () => {
             <BackButton to="/leads" />
           </div>
 
-
           {/* Lead Form Configuration */}
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/60 dark:border-gray-700/60 p-5 my-6">
             <SectionHeader
-              icon={
-                <Wrench className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-              }
+              icon={<Wrench className="h-4 w-4 text-gray-600 dark:text-gray-300" />}
               title="Lead Form Configuration"
               action={
                 <button
@@ -696,10 +837,10 @@ const LeadSettings: React.FC = () => {
               }
             />
 
-          {/* Dynamic Lead Form Fields Management */}
-          <div className="my-6">
-            <LeadFieldsSettings />
-          </div>
+            {/* Dynamic Lead Form Fields Management */}
+            <div className="my-6">
+              <LeadFieldsSettings />
+            </div>
             <FieldConfigTable
               fields={leadFields}
               onEdit={openEditField}
@@ -714,9 +855,7 @@ const LeadSettings: React.FC = () => {
             open={fieldModal.open}
             title={fieldModal.editing ? "Edit Field" : "Add Field"}
             onClose={() => setFieldModal({ open: false, editing: null })}
-            onSubmit={(e) =>
-              saveField(e as unknown as React.FormEvent<HTMLFormElement>)
-            }
+            onSubmit={(e) => saveField(e as unknown as React.FormEvent<HTMLFormElement>)}
             submitText={fieldModal.editing ? "Update" : "Create"}
           >
             <div className="space-y-3">
@@ -804,7 +943,8 @@ const LeadSettings: React.FC = () => {
                 </label>
                 {/* System default flag removed from UI */}
               </div>
-              {(fieldModal.editing?.type === "DROPDOWN" || fieldModal.editing?.type === "MULTI_SELECT") && (
+              {(fieldModal.editing?.type === "DROPDOWN" ||
+                fieldModal.editing?.type === "MULTI_SELECT") && (
                 <div>
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Options (comma or newline separated)
@@ -820,18 +960,12 @@ const LeadSettings: React.FC = () => {
               )}
             </div>
           </FormModal>
-          {error && (
-            <div className="mb-3 text-sm text-red-600 dark:text-red-400">
-              {error}
-            </div>
-          )}
+          {error && <div className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
           {/* Tags */}
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/60 dark:border-gray-700/60 p-5 my-6">
             <SectionHeader
-              icon={
-                <Tags className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-              }
+              icon={<Tags className="h-4 w-4 text-gray-600 dark:text-gray-300" />}
               title="Tags"
               action={
                 canManageLeads.create ? (
@@ -847,10 +981,7 @@ const LeadSettings: React.FC = () => {
             />
 
             {tags.length === 0 ? (
-              <EmptyState
-                title="No tags yet"
-                subtitle="Create your first tag"
-              />
+              <EmptyState title="No tags yet" subtitle="Create your first tag" />
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {tags.map((tag) => (
@@ -860,10 +991,7 @@ const LeadSettings: React.FC = () => {
                   >
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span
-                          className="w-3 h-3 rounded"
-                          style={{ backgroundColor: tag.color }}
-                        />
+                        <span className="w-3 h-3 rounded" style={{ backgroundColor: tag.color }} />
                         <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                           {tag.name}
                         </p>
@@ -905,9 +1033,7 @@ const LeadSettings: React.FC = () => {
           {/* Lead Sources */}
           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/60 dark:border-gray-700/60 p-5 my-6">
             <SectionHeader
-              icon={
-                <Database className="h-4 w-4 text-gray-600 dark:text-gray-300" />
-              }
+              icon={<Database className="h-4 w-4 text-gray-600 dark:text-gray-300" />}
               title="Lead Sources"
               action={
                 canManageLeads.create ? (
@@ -923,10 +1049,7 @@ const LeadSettings: React.FC = () => {
             />
 
             {!Array.isArray(leadSources) || leadSources.length === 0 ? (
-              <EmptyState
-                title="No lead sources yet"
-                subtitle="Create your first source"
-              />
+              <EmptyState title="No lead sources yet" subtitle="Create your first source" />
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {leadSources.map((src) => (

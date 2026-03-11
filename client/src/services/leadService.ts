@@ -2,11 +2,7 @@ import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../constants";
 
 // Helper function for exponential backoff retry
-const retryWithBackoff = async (
-  fn: () => Promise<any>,
-  maxRetries = 3,
-  baseDelay = 1000
-) => {
+const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3, baseDelay = 1000) => {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
@@ -47,15 +43,7 @@ export interface Lead {
   company?: string;
   position?: string;
   sourceId?: number;
-  status:
-  | "new"
-  | "contacted"
-  | "qualified"
-  | "proposal"
-  | "negotiation"
-  | "closed"
-  | "lost"
-  | "converted";
+  status: string;
   notes?: string;
   assignedTo?: number;
   ownerId?: number;
@@ -139,15 +127,7 @@ export interface LeadPayload {
 
   // Lead Management
   sourceId?: number;
-  status?:
-  | "new"
-  | "contacted"
-  | "qualified"
-  | "proposal"
-  | "negotiation"
-  | "closed"
-  | "lost"
-  | "converted";
+  status?: string;
   priority?: "low" | "medium" | "high" | "urgent";
   assignedTo?: number;
   ownerId?: number;
@@ -220,9 +200,21 @@ export interface LeadFilters {
   page?: number;
   limit?: number;
   status?: string;
+  priority?: string;
   search?: string;
   email?: string;
+  phone?: string;
   assignedTo?: number;
+  ownerId?: number;
+  createdBy?: number;
+  sourceId?: number;
+  industry?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  startDate?: string;
+  endDate?: string;
+  productId?: number;
 }
 
 export interface ConversionData {
@@ -263,8 +255,23 @@ export const leadService = {
     if (filters.page) params.append("page", filters.page.toString());
     if (filters.limit) params.append("limit", filters.limit.toString());
     if (filters.status) params.append("status", filters.status);
+    if (filters.priority) params.append("priority", filters.priority);
     if (filters.email) params.append("email", filters.email);
-    if (typeof filters.assignedTo === 'number') params.append('assignedTo', String(filters.assignedTo));
+    if (filters.phone) params.append("phone", filters.phone);
+    if (typeof filters.assignedTo === "number")
+      params.append("assignedTo", String(filters.assignedTo));
+    if (typeof filters.ownerId === "number") params.append("ownerId", String(filters.ownerId));
+    if (typeof filters.createdBy === "number")
+      params.append("createdBy", String(filters.createdBy));
+    if (typeof filters.sourceId === "number") params.append("sourceId", String(filters.sourceId));
+    if (filters.industry) params.append("industry", filters.industry);
+    if (filters.city) params.append("city", filters.city);
+    if (filters.state) params.append("state", filters.state);
+    if (filters.country) params.append("country", filters.country);
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (typeof filters.productId === "number")
+      params.append("productId", String(filters.productId));
     if (filters.search && filters.search.toString().trim() !== "") {
       params.append("search", filters.search.toString().trim());
     }
@@ -310,7 +317,12 @@ export const leadService = {
         const response = await apiClient.put(`/leads/${id}`, { assignedTo: userId ?? null });
         return response.data;
       } catch (error: any) {
-        console.error("Lead assign error:", { id, userId, status: error.response?.status, message: error.response?.data?.message });
+        console.error("Lead assign error:", {
+          id,
+          userId,
+          status: error.response?.status,
+          message: error.response?.data?.message,
+        });
         throw error;
       }
     });
@@ -322,11 +334,16 @@ export const leadService = {
       try {
         const response = await apiClient.put(`/leads/${id}/transfer`, {
           newUserId: newUserId ?? null,
-          notes: notes || ''
+          notes: notes || "",
         });
         return response.data;
       } catch (error: any) {
-        console.error("Lead transfer error:", { id, newUserId, status: error.response?.status, message: error.response?.data?.message });
+        console.error("Lead transfer error:", {
+          id,
+          newUserId,
+          status: error.response?.status,
+          message: error.response?.data?.message,
+        });
         throw error;
       }
     });
@@ -336,13 +353,18 @@ export const leadService = {
   bulkAssignLeads: async (leadIds: number[], newUserId: number | null) => {
     return retryWithBackoff(async () => {
       try {
-        const response = await apiClient.put('/leads/bulk/assign', {
+        const response = await apiClient.put("/leads/bulk/assign", {
           leadIds,
-          newUserId: newUserId ?? null
+          newUserId: newUserId ?? null,
         });
         return response.data;
       } catch (error: any) {
-        console.error("Bulk assign leads error:", { leadIds, newUserId, status: error.response?.status, message: error.response?.data?.message });
+        console.error("Bulk assign leads error:", {
+          leadIds,
+          newUserId,
+          status: error.response?.status,
+          message: error.response?.data?.message,
+        });
         throw error;
       }
     });
@@ -355,7 +377,12 @@ export const leadService = {
         const response = await apiClient.put(`/leads/${id}`, { status });
         return response.data;
       } catch (error: any) {
-        console.error("Lead status update error:", { id, status, httpStatus: error.response?.status, message: error.response?.data?.message });
+        console.error("Lead status update error:", {
+          id,
+          status,
+          httpStatus: error.response?.status,
+          message: error.response?.data?.message,
+        });
         throw error;
       }
     });
@@ -373,12 +400,17 @@ export const leadService = {
     return response.data;
   },
 
-  getDashboardKPIs: async (startDate?: string, endDate?: string, userId?: number, scope: 'all' | 'me' = 'all') => {
+  getDashboardKPIs: async (
+    startDate?: string,
+    endDate?: string,
+    userId?: number,
+    scope: "all" | "me" = "all"
+  ) => {
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
-    if (typeof userId === 'number') params.append('userId', String(userId));
-    params.append('scope', scope);
+    if (typeof userId === "number") params.append("userId", String(userId));
+    params.append("scope", scope);
 
     const response = await apiClient.get(`/analytics/dashboard/kpis?${params.toString()}`);
     return response.data;

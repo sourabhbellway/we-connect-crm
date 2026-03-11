@@ -1,46 +1,46 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 export enum WorkflowTrigger {
-  LEAD_CREATED = 'LEAD_CREATED',
-  LEAD_UPDATED = 'LEAD_UPDATED',
-  LEAD_STATUS_CHANGED = 'LEAD_STATUS_CHANGED',
-  LEAD_ASSIGNED = 'LEAD_ASSIGNED',
-  DEAL_CREATED = 'DEAL_CREATED',
-  DEAL_UPDATED = 'DEAL_UPDATED',
-  DEAL_STAGE_CHANGED = 'DEAL_STAGE_CHANGED',
-  TASK_CREATED = 'TASK_CREATED',
-  TASK_COMPLETED = 'TASK_COMPLETED',
+  LEAD_CREATED = "LEAD_CREATED",
+  LEAD_UPDATED = "LEAD_UPDATED",
+  LEAD_STATUS_CHANGED = "LEAD_STATUS_CHANGED",
+  LEAD_ASSIGNED = "LEAD_ASSIGNED",
+  DEAL_CREATED = "DEAL_CREATED",
+  DEAL_UPDATED = "DEAL_UPDATED",
+  DEAL_STAGE_CHANGED = "DEAL_STAGE_CHANGED",
+  TASK_CREATED = "TASK_CREATED",
+  TASK_COMPLETED = "TASK_COMPLETED",
 }
 
 export enum ConditionOperator {
-  EQUALS = 'EQUALS',
-  NOT_EQUALS = 'NOT_EQUALS',
-  CONTAINS = 'CONTAINS',
-  NOT_CONTAINS = 'NOT_CONTAINS',
-  GREATER_THAN = 'GREATER_THAN',
-  LESS_THAN = 'LESS_THAN',
-  GREATER_THAN_OR_EQUAL = 'GREATER_THAN_OR_EQUAL',
-  LESS_THAN_OR_EQUAL = 'LESS_THAN_OR_EQUAL',
-  IS_EMPTY = 'IS_EMPTY',
-  IS_NOT_EMPTY = 'IS_NOT_EMPTY',
+  EQUALS = "EQUALS",
+  NOT_EQUALS = "NOT_EQUALS",
+  CONTAINS = "CONTAINS",
+  NOT_CONTAINS = "NOT_CONTAINS",
+  GREATER_THAN = "GREATER_THAN",
+  LESS_THAN = "LESS_THAN",
+  GREATER_THAN_OR_EQUAL = "GREATER_THAN_OR_EQUAL",
+  LESS_THAN_OR_EQUAL = "LESS_THAN_OR_EQUAL",
+  IS_EMPTY = "IS_EMPTY",
+  IS_NOT_EMPTY = "IS_NOT_EMPTY",
 }
 
 export enum ConditionLogic {
-  AND = 'AND',
-  OR = 'OR',
+  AND = "AND",
+  OR = "OR",
 }
 
 export enum ActionType {
-  ASSIGN_TO_USER = 'ASSIGN_TO_USER',
-  ASSIGN_TO_TEAM = 'ASSIGN_TO_TEAM',
-  CHANGE_STATUS = 'CHANGE_STATUS',
-  SEND_EMAIL = 'SEND_EMAIL',
-  SEND_WHATSAPP = 'SEND_WHATSAPP',
-  CREATE_TASK = 'CREATE_TASK',
-  ADD_TAG = 'ADD_TAG',
-  REMOVE_TAG = 'REMOVE_TAG',
-  UPDATE_FIELD = 'UPDATE_FIELD',
-  SEND_WEBHOOK = 'SEND_WEBHOOK',
+  ASSIGN_TO_USER = "ASSIGN_TO_USER",
+  ASSIGN_TO_TEAM = "ASSIGN_TO_TEAM",
+  CHANGE_STATUS = "CHANGE_STATUS",
+  SEND_EMAIL = "SEND_EMAIL",
+  SEND_WHATSAPP = "SEND_WHATSAPP",
+  CREATE_TASK = "CREATE_TASK",
+  ADD_TAG = "ADD_TAG",
+  REMOVE_TAG = "REMOVE_TAG",
+  UPDATE_FIELD = "UPDATE_FIELD",
+  SEND_WEBHOOK = "SEND_WEBHOOK",
 }
 
 export interface WorkflowCondition {
@@ -84,7 +84,7 @@ export interface WorkflowExecution {
     trigger: WorkflowTrigger;
   };
   triggerData: any;
-  status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'SKIPPED';
+  status: "PENDING" | "RUNNING" | "SUCCESS" | "FAILED" | "SKIPPED";
   result?: any;
   error?: string;
   startedAt: string;
@@ -115,79 +115,79 @@ export interface CreateWorkflowPayload {
 // Enhanced field mappings for better automation
 export const TRIGGER_FIELD_MAPPING: TriggerFieldMapping = {
   [WorkflowTrigger.LEAD_CREATED]: [
-    { value: 'source', label: 'Source', category: 'Lead Info' },
-    { value: 'status', label: 'Status', category: 'Lead Info' },
-    { value: 'city', label: 'City', category: 'Lead Info' },
-    { value: 'budget', label: 'Budget', category: 'Lead Info' },
-    { value: 'email', label: 'Email', category: 'Contact' },
-    { value: 'phone', label: 'Phone', category: 'Contact' },
-    { value: 'company', label: 'Company', category: 'Contact' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
-    { value: 'createdAt', label: 'Created Date', category: 'System' },
+    { value: "source", label: "Source", category: "Lead Info" },
+    { value: "status", label: "Status", category: "Lead Info" },
+    { value: "city", label: "City", category: "Lead Info" },
+    { value: "budget", label: "Budget", category: "Lead Info" },
+    { value: "email", label: "Email", category: "Contact" },
+    { value: "phone", label: "Phone", category: "Contact" },
+    { value: "company", label: "Company", category: "Contact" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
+    { value: "createdAt", label: "Created Date", category: "System" },
   ],
   [WorkflowTrigger.LEAD_UPDATED]: [
-    { value: 'source', label: 'Source', category: 'Lead Info' },
-    { value: 'status', label: 'Status', category: 'Lead Info' },
-    { value: 'city', label: 'City', category: 'Lead Info' },
-    { value: 'budget', label: 'Budget', category: 'Lead Info' },
-    { value: 'email', label: 'Email', category: 'Contact' },
-    { value: 'phone', label: 'Phone', category: 'Contact' },
-    { value: 'company', label: 'Company', category: 'Contact' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
-    { value: 'updatedAt', label: 'Updated Date', category: 'System' },
+    { value: "source", label: "Source", category: "Lead Info" },
+    { value: "status", label: "Status", category: "Lead Info" },
+    { value: "city", label: "City", category: "Lead Info" },
+    { value: "budget", label: "Budget", category: "Lead Info" },
+    { value: "email", label: "Email", category: "Contact" },
+    { value: "phone", label: "Phone", category: "Contact" },
+    { value: "company", label: "Company", category: "Contact" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
+    { value: "updatedAt", label: "Updated Date", category: "System" },
   ],
   [WorkflowTrigger.LEAD_STATUS_CHANGED]: [
-    { value: 'status', label: 'New Status', category: 'Lead Info' },
-    { value: 'previousStatus', label: 'Previous Status', category: 'Lead Info' },
-    { value: 'source', label: 'Source', category: 'Lead Info' },
-    { value: 'city', label: 'City', category: 'Lead Info' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
+    { value: "status", label: "New Status", category: "Lead Info" },
+    { value: "previousStatus", label: "Previous Status", category: "Lead Info" },
+    { value: "source", label: "Source", category: "Lead Info" },
+    { value: "city", label: "City", category: "Lead Info" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
   ],
   [WorkflowTrigger.LEAD_ASSIGNED]: [
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
-    { value: 'previousAssignee', label: 'Previous Assignee', category: 'Assignment' },
-    { value: 'source', label: 'Source', category: 'Lead Info' },
-    { value: 'status', label: 'Status', category: 'Lead Info' },
-    { value: 'city', label: 'City', category: 'Lead Info' },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
+    { value: "previousAssignee", label: "Previous Assignee", category: "Assignment" },
+    { value: "source", label: "Source", category: "Lead Info" },
+    { value: "status", label: "Status", category: "Lead Info" },
+    { value: "city", label: "City", category: "Lead Info" },
   ],
   [WorkflowTrigger.DEAL_CREATED]: [
-    { value: 'title', label: 'Deal Title', category: 'Deal Info' },
-    { value: 'stage', label: 'Stage', category: 'Deal Info' },
-    { value: 'value', label: 'Deal Value', category: 'Deal Info' },
-    { value: 'probability', label: 'Probability (%)', category: 'Deal Info' },
-    { value: 'expectedCloseDate', label: 'Expected Close Date', category: 'Deal Info' },
-    { value: 'source', label: 'Source', category: 'Lead Info' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
+    { value: "title", label: "Deal Title", category: "Deal Info" },
+    { value: "stage", label: "Stage", category: "Deal Info" },
+    { value: "value", label: "Deal Value", category: "Deal Info" },
+    { value: "probability", label: "Probability (%)", category: "Deal Info" },
+    { value: "expectedCloseDate", label: "Expected Close Date", category: "Deal Info" },
+    { value: "source", label: "Source", category: "Lead Info" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
   ],
   [WorkflowTrigger.DEAL_UPDATED]: [
-    { value: 'title', label: 'Deal Title', category: 'Deal Info' },
-    { value: 'stage', label: 'Stage', category: 'Deal Info' },
-    { value: 'value', label: 'Deal Value', category: 'Deal Info' },
-    { value: 'probability', label: 'Probability (%)', category: 'Deal Info' },
-    { value: 'expectedCloseDate', label: 'Expected Close Date', category: 'Deal Info' },
-    { value: 'source', label: 'Source', category: 'Lead Info' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
-    { value: 'updatedAt', label: 'Updated Date', category: 'System' },
+    { value: "title", label: "Deal Title", category: "Deal Info" },
+    { value: "stage", label: "Stage", category: "Deal Info" },
+    { value: "value", label: "Deal Value", category: "Deal Info" },
+    { value: "probability", label: "Probability (%)", category: "Deal Info" },
+    { value: "expectedCloseDate", label: "Expected Close Date", category: "Deal Info" },
+    { value: "source", label: "Source", category: "Lead Info" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
+    { value: "updatedAt", label: "Updated Date", category: "System" },
   ],
   [WorkflowTrigger.DEAL_STAGE_CHANGED]: [
-    { value: 'stage', label: 'New Stage', category: 'Deal Info' },
-    { value: 'previousStage', label: 'Previous Stage', category: 'Deal Info' },
-    { value: 'value', label: 'Deal Value', category: 'Deal Info' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
+    { value: "stage", label: "New Stage", category: "Deal Info" },
+    { value: "previousStage", label: "Previous Stage", category: "Deal Info" },
+    { value: "value", label: "Deal Value", category: "Deal Info" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
   ],
   [WorkflowTrigger.TASK_CREATED]: [
-    { value: 'title', label: 'Task Title', category: 'Task Info' },
-    { value: 'status', label: 'Status', category: 'Task Info' },
-    { value: 'priority', label: 'Priority', category: 'Task Info' },
-    { value: 'dueDate', label: 'Due Date', category: 'Task Info' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
-    { value: 'createdAt', label: 'Created Date', category: 'System' },
+    { value: "title", label: "Task Title", category: "Task Info" },
+    { value: "status", label: "Status", category: "Task Info" },
+    { value: "priority", label: "Priority", category: "Task Info" },
+    { value: "dueDate", label: "Due Date", category: "Task Info" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
+    { value: "createdAt", label: "Created Date", category: "System" },
   ],
   [WorkflowTrigger.TASK_COMPLETED]: [
-    { value: 'status', label: 'Status', category: 'Task Info' },
-    { value: 'completedAt', label: 'Completed Date', category: 'Task Info' },
-    { value: 'priority', label: 'Priority', category: 'Task Info' },
-    { value: 'assignedTo', label: 'Assigned To', category: 'Assignment' },
+    { value: "status", label: "Status", category: "Task Info" },
+    { value: "completedAt", label: "Completed Date", category: "Task Info" },
+    { value: "priority", label: "Priority", category: "Task Info" },
+    { value: "assignedTo", label: "Assigned To", category: "Assignment" },
   ],
 };
 
@@ -196,73 +196,84 @@ export const getFieldsForTrigger = (trigger: WorkflowTrigger): FieldOption[] => 
   return TRIGGER_FIELD_MAPPING[trigger] || [];
 };
 
-export const getGroupedFieldsForTrigger = (trigger: WorkflowTrigger): Record<string, FieldOption[]> => {
+export const getGroupedFieldsForTrigger = (
+  trigger: WorkflowTrigger
+): Record<string, FieldOption[]> => {
   const fields = getFieldsForTrigger(trigger);
-  return fields.reduce((acc, field) => {
-    if (!acc[field.category]) {
-      acc[field.category] = [];
-    }
-    acc[field.category].push(field);
-    return acc;
-  }, {} as Record<string, FieldOption[]>);
+  return fields.reduce(
+    (acc, field) => {
+      if (!acc[field.category]) {
+        acc[field.category] = [];
+      }
+      acc[field.category].push(field);
+      return acc;
+    },
+    {} as Record<string, FieldOption[]>
+  );
 };
 
 export const getDefaultCondition = (trigger: WorkflowTrigger): WorkflowCondition => {
   switch (trigger) {
     case WorkflowTrigger.LEAD_CREATED:
     case WorkflowTrigger.LEAD_UPDATED:
-      return { field: 'source', operator: ConditionOperator.EQUALS, value: '' };
+      return { field: "source", operator: ConditionOperator.EQUALS, value: "" };
     case WorkflowTrigger.DEAL_CREATED:
     case WorkflowTrigger.DEAL_UPDATED:
-      return { field: 'stage', operator: ConditionOperator.EQUALS, value: '' };
+      return { field: "stage", operator: ConditionOperator.EQUALS, value: "" };
     case WorkflowTrigger.TASK_CREATED:
-      return { field: 'priority', operator: ConditionOperator.EQUALS, value: '' };
+      return { field: "priority", operator: ConditionOperator.EQUALS, value: "" };
     case WorkflowTrigger.LEAD_STATUS_CHANGED:
-      return { field: 'status', operator: ConditionOperator.EQUALS, value: '' };
+      return { field: "status", operator: ConditionOperator.EQUALS, value: "" };
     default:
-      return { field: 'status', operator: ConditionOperator.EQUALS, value: '' };
+      return { field: "status", operator: ConditionOperator.EQUALS, value: "" };
   }
 };
 
-export const validateWorkflowPayload = (payload: CreateWorkflowPayload): { isValid: boolean; errors: string[] } => {
+export const validateWorkflowPayload = (
+  payload: CreateWorkflowPayload
+): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
   if (!payload.name?.trim()) {
-    errors.push('Workflow name is required');
+    errors.push("Workflow name is required");
   }
 
   if (!payload.trigger) {
-    errors.push('Trigger is required');
+    errors.push("Trigger is required");
   }
 
   if (!payload.conditions?.conditions?.length) {
-    errors.push('At least one condition is required');
+    errors.push("At least one condition is required");
   }
 
   if (!payload.actions?.length) {
-    errors.push('At least one action is required');
+    errors.push("At least one action is required");
   }
 
   // Validate that all condition fields are valid for the trigger
   if (payload.conditions?.conditions && payload.trigger) {
-    const availableFields = getFieldsForTrigger(payload.trigger).map(f => f.value);
+    const availableFields = getFieldsForTrigger(payload.trigger).map((f) => f.value);
     payload.conditions.conditions.forEach((condition, index) => {
       if (!availableFields.includes(condition.field)) {
-        errors.push(`Condition ${index + 1}: Field "${condition.field}" is not available for trigger "${payload.trigger}"`);
+        errors.push(
+          `Condition ${index + 1}: Field "${condition.field}" is not available for trigger "${payload.trigger}"`
+        );
       }
     });
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
 export const automationService = {
   // Workflows
   async getWorkflows(includeInactive = false): Promise<Workflow[]> {
-    const response = await apiClient.get(`/automation/workflows?includeInactive=${includeInactive}`);
+    const response = await apiClient.get(
+      `/automation/workflows?includeInactive=${includeInactive}`
+    );
     return response.data;
   },
 
@@ -275,10 +286,10 @@ export const automationService = {
     // Validate payload before sending
     const validation = validateWorkflowPayload(payload);
     if (!validation.isValid) {
-      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
     }
 
-    const response = await apiClient.post('/automation/workflows', payload);
+    const response = await apiClient.post("/automation/workflows", payload);
     return response.data;
   },
 
@@ -287,7 +298,7 @@ export const automationService = {
     if (payload.name || payload.trigger || payload.conditions || payload.actions) {
       const validation = validateWorkflowPayload(payload as CreateWorkflowPayload);
       if (!validation.isValid) {
-        throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+        throw new Error(`Validation failed: ${validation.errors.join(", ")}`);
       }
     }
 
@@ -312,9 +323,9 @@ export const automationService = {
   // Execution History
   async getExecutionHistory(workflowId?: number, limit = 50): Promise<WorkflowExecution[]> {
     const params = new URLSearchParams();
-    if (workflowId) params.append('workflowId', workflowId.toString());
-    params.append('limit', limit.toString());
-    
+    if (workflowId) params.append("workflowId", workflowId.toString());
+    params.append("limit", limit.toString());
+
     const response = await apiClient.get(`/automation/executions?${params.toString()}`);
     return response.data;
   },

@@ -1,7 +1,7 @@
-import React from 'react';
-import LeadFieldsSettings from '../../components/LeadFieldsSettings';
-import { Settings, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import LeadFieldsSettings from "../../components/LeadFieldsSettings";
+import { Settings, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const LeadFieldsSettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const LeadFieldsSettingsPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/business-settings')}
+            onClick={() => navigate("/business-settings")}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             title="Back to Business Settings"
           >
@@ -41,4 +41,3 @@ const LeadFieldsSettingsPage: React.FC = () => {
 };
 
 export default LeadFieldsSettingsPage;
-

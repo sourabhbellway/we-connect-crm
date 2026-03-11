@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Copy, Check, Webhook, Mail, MessageCircle, AlertCircle, ExternalLink } from 'lucide-react';
-import { toast } from 'react-toastify';
-import apiClient from '../../services/apiClient';
+import React, { useState, useEffect } from "react";
+import { Copy, Check, Webhook, Mail, MessageCircle, AlertCircle, ExternalLink } from "lucide-react";
+import { toast } from "react-toastify";
+import apiClient from "../../services/apiClient";
 
 const WebhookConfigurationPage: React.FC = () => {
   const [webhookUrls, setWebhookUrls] = useState<{
@@ -17,11 +17,11 @@ const WebhookConfigurationPage: React.FC = () => {
 
   const fetchWebhookUrls = async () => {
     try {
-      const response = await apiClient.get('/communications/webhooks/urls');
+      const response = await apiClient.get("/communications/webhooks/urls");
       setWebhookUrls(response.data.data);
     } catch (error) {
-      console.error('Failed to fetch webhook URLs:', error);
-      toast.error('Failed to load webhook URLs');
+      console.error("Failed to fetch webhook URLs:", error);
+      toast.error("Failed to load webhook URLs");
     } finally {
       setLoading(false);
     }
@@ -30,7 +30,7 @@ const WebhookConfigurationPage: React.FC = () => {
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    toast.success('Copied to clipboard!');
+    toast.success("Copied to clipboard!");
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -62,8 +62,9 @@ const WebhookConfigurationPage: React.FC = () => {
               Enable Two-Way Communication
             </h3>
             <p className="text-sm text-blue-800 dark:text-blue-400">
-              After configuring these webhooks, replies from your leads will automatically appear in your CRM.
-              Make sure to configure your API keys in the Communication API settings first.
+              After configuring these webhooks, replies from your leads will automatically appear in
+              your CRM. Make sure to configure your API keys in the Communication API settings
+              first.
             </p>
           </div>
         </div>
@@ -91,15 +92,15 @@ const WebhookConfigurationPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                value={webhookUrls?.whatsapp || ''}
+                value={webhookUrls?.whatsapp || ""}
                 readOnly
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
               />
               <button
-                onClick={() => copyToClipboard(webhookUrls?.whatsapp || '', 'whatsapp')}
+                onClick={() => copyToClipboard(webhookUrls?.whatsapp || "", "whatsapp")}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2"
               >
-                {copiedField === 'whatsapp' ? (
+                {copiedField === "whatsapp" ? (
                   <>
                     <Check className="h-4 w-4 text-green-600" />
                     <span className="text-sm">Copied!</span>
@@ -119,10 +120,16 @@ const WebhookConfigurationPage: React.FC = () => {
               Configuration Steps:
             </h3>
             <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <li>Log in to your WhatsApp Business API provider dashboard (e.g., Twilio, MessageBird, 360Dialog)</li>
+              <li>
+                Log in to your WhatsApp Business API provider dashboard (e.g., Twilio, MessageBird,
+                360Dialog)
+              </li>
               <li>Navigate to Webhook Settings or Inbound Message Configuration</li>
               <li>Paste the webhook URL above</li>
-              <li>Set the HTTP method to <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">POST</code></li>
+              <li>
+                Set the HTTP method to{" "}
+                <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">POST</code>
+              </li>
               <li>Save the configuration</li>
               <li>Test by sending a WhatsApp message to your business number</li>
             </ol>
@@ -132,7 +139,7 @@ const WebhookConfigurationPage: React.FC = () => {
                 Expected Request Format:
               </h4>
               <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
-{`{
+                {`{
   "from": "+1234567890",
   "to": "+0987654321",
   "content": "Message text",
@@ -173,15 +180,15 @@ const WebhookConfigurationPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <input
                 type="text"
-                value={webhookUrls?.email || ''}
+                value={webhookUrls?.email || ""}
                 readOnly
                 className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
               />
               <button
-                onClick={() => copyToClipboard(webhookUrls?.email || '', 'email')}
+                onClick={() => copyToClipboard(webhookUrls?.email || "", "email")}
                 className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2"
               >
-                {copiedField === 'email' ? (
+                {copiedField === "email" ? (
                   <>
                     <Check className="h-4 w-4 text-green-600" />
                     <span className="text-sm">Copied!</span>
@@ -214,7 +221,7 @@ const WebhookConfigurationPage: React.FC = () => {
                 Expected Request Format:
               </h4>
               <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-x-auto">
-{`{
+                {`{
   "from": "lead@example.com",
   "fromName": "John Doe",
   "to": "sales@yourcompany.com",
@@ -262,7 +269,10 @@ const WebhookConfigurationPage: React.FC = () => {
             <ul className="list-disc list-inside space-y-1 text-sm text-yellow-800 dark:text-yellow-400">
               <li>Send a WhatsApp message to your business number from a lead's phone</li>
               <li>Send an email from a lead's email address to your configured inbox</li>
-              <li>Check the lead's profile in the CRM - the message should appear with a "Received" badge</li>
+              <li>
+                Check the lead's profile in the CRM - the message should appear with a "Received"
+                badge
+              </li>
               <li>Check Activity logs for the lead to see webhook processing</li>
             </ul>
           </div>

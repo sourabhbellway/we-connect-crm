@@ -12,12 +12,9 @@ export declare class AuthService {
     private readonly config;
     constructor(prisma: PrismaService, jwt: JwtService, activitiesService: ActivitiesService, config: ConfigService);
     private tokenExpiryISO;
+    private generateAuthTokens;
     private buildUserWithRoles;
     login(dto: LoginDto): Promise<{
-        success: boolean;
-        message: string;
-        data?: undefined;
-    } | {
         success: boolean;
         data: {
             accessToken: string;
@@ -44,7 +41,6 @@ export declare class AuthService {
                 }[] | undefined;
             };
         };
-        message?: undefined;
     }>;
     register(dto: RegisterDto): Promise<{
         success: boolean;
@@ -73,26 +69,17 @@ export declare class AuthService {
     }>;
     refreshToken(dto: RefreshDto): Promise<{
         success: boolean;
-        message: string;
-        data?: undefined;
-    } | {
-        success: boolean;
         data: {
             accessToken: string;
             refreshToken: string;
             tokenExpiry: string;
         };
-        message?: undefined;
     }>;
     logout(refreshToken?: string): Promise<{
         success: boolean;
         message: string;
     }>;
     profile(userId: number): Promise<{
-        success: boolean;
-        message: string;
-        data?: undefined;
-    } | {
         success: boolean;
         data: {
             user: {
@@ -116,6 +103,5 @@ export declare class AuthService {
                 }[];
             };
         };
-        message?: undefined;
     }>;
 }

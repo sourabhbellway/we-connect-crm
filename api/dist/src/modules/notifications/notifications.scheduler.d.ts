@@ -6,6 +6,7 @@ export declare class NotificationCronService {
     private readonly logger;
     constructor(prisma: PrismaService, notificationsService: NotificationsService);
     handleDueReminders(): Promise<void>;
+    cleanupExpiredSessions(): Promise<void>;
     private handleDueTasks;
     private handleDueFollowUps;
 }

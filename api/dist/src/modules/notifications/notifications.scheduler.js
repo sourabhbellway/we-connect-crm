@@ -31,10 +31,26 @@ let NotificationCronService = NotificationCronService_1 = class NotificationCron
             await Promise.all([
                 this.handleDueTasks(windowStart, now),
                 this.handleDueFollowUps(windowStart, now),
+                this.cleanupExpiredSessions(),
             ]);
         }
         catch (error) {
             this.logger.error('Error running due reminders cron:', error);
+        }
+    }
+    async cleanupExpiredSessions() {
+        this.logger.log('Running background cleanup for expired/inactive login sessions');
+        const now = new Date();
+        try {
+            const result = await this.prisma.loginSession.deleteMany({
+                where: {
+                    OR: [{ expiresAt: { lt: now } }, { isActive: false }],
+                },
+            });
+            this.logger.log(`Cleanup complete: Deleted ${result.count} session records`);
+        }
+        catch (error) {
+            this.logger.error('Failed to cleanup expired sessions:', error);
         }
     }
     async handleDueTasks(windowStart, now) {
@@ -155,6 +171,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], NotificationCronService.prototype, "handleDueReminders", null);
+__decorate([
+    (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_DAY_AT_MIDNIGHT),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], NotificationCronService.prototype, "cleanupExpiredSessions", null);
 exports.NotificationCronService = NotificationCronService = NotificationCronService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,

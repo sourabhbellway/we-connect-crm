@@ -1,13 +1,13 @@
-import React from 'react';
-import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
-import SimpleHeaderSearch from './SimpleHeaderSearch';
-import { Button } from './ui';
-import { NotificationBell } from './NotificationBell';
-import LanguageSelector from './LanguageSelector';
-import { PERMISSIONS } from '../constants';
+import React from "react";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useTranslation } from "react-i18next";
+import SimpleHeaderSearch from "./SimpleHeaderSearch";
+import { Button } from "./ui";
+import { NotificationBell } from "./NotificationBell";
+import LanguageSelector from "./LanguageSelector";
+import { PERMISSIONS } from "../constants";
 
 const TopHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -17,14 +17,14 @@ const TopHeader: React.FC = () => {
   // Keyboard shortcut for search (Cmd/Ctrl + K)
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        const el = document.querySelector<HTMLInputElement>('input[data-topsearch-input]');
+        const el = document.querySelector<HTMLInputElement>("input[data-topsearch-input]");
         el?.focus();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
@@ -43,17 +43,17 @@ const TopHeader: React.FC = () => {
           {/* Create New Button - standardized using shared Button */}
           {hasPermission(PERMISSIONS.LEAD.CREATE) && (
             <>
-              {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
+              {}
               <span className="sr-only">Create new lead</span>
               <Button
-                onClick={() => navigate('/leads/new')}
+                onClick={() => navigate("/leads/new")}
                 variant="PRIMARY"
                 size="SM"
                 icon={<Plus className="w-4 h-4" />}
                 aria-label="Create new lead"
                 className="shadow-sm"
               >
-                <span className="hidden lg:inline">{t('header.new', 'New')}</span>
+                <span className="hidden lg:inline">{t("header.new", "New")}</span>
               </Button>
             </>
           )}
@@ -70,7 +70,6 @@ const TopHeader: React.FC = () => {
           >
             {t('header.customersArea', 'Customers area')}
           </button> */}
-
 
           {/* Share */}
           {/* <button className="p-2.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-gray-600 dark:text-gray-400" title="Share">
@@ -97,7 +96,6 @@ const TopHeader: React.FC = () => {
           <NotificationBell />
         </div>
       </div>
-
     </>
   );
 };

@@ -18,7 +18,7 @@ interface RoleFormData {
   name: string;
   description: string;
   permissionIds: number[];
-  accessScope: 'OWN' | 'GLOBAL';
+  accessScope: "OWN" | "GLOBAL";
   isActive?: boolean;
 }
 
@@ -28,22 +28,16 @@ interface RoleFormProps {
   submitting: boolean;
 }
 
-const RoleForm: React.FC<RoleFormProps> = ({
-  initial,
-  onSubmit,
-  submitting,
-}) => {
+const RoleForm: React.FC<RoleFormProps> = ({ initial, onSubmit, submitting }) => {
   // const { t } = useTranslation();
   const [formData, setFormData] = useState<RoleFormData>({
     name: "",
     description: "",
     permissionIds: [],
-    accessScope: 'OWN',
+    accessScope: "OWN",
     isActive: true,
   });
-  const [groupedPermissions, setGroupedPermissions] = useState<
-    Record<string, Permission[]>
-  >({});
+  const [groupedPermissions, setGroupedPermissions] = useState<Record<string, Permission[]>>({});
   // Note: we compute groupedPermissions directly; no separate flat permissions state needed
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,7 +48,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
   useEffect(() => {
     if (initial) {
-      setFormData({ accessScope: 'OWN', ...initial });
+      setFormData({ accessScope: "OWN", ...initial });
       setErrors({});
     }
   }, [initial]);
@@ -89,17 +83,16 @@ const RoleForm: React.FC<RoleFormProps> = ({
         : (response?.permissions as Permission[]) || (response?.data as Permission[]) || [];
 
       // remove contact permission entirely before grouping
-      const filteredList = list.filter(p => {
+      const filteredList = list.filter((p) => {
         // adjust condition depending on how the API labels the permission
-        return !(p.key?.toLowerCase() === 'contact' ||
-                 p.name?.toLowerCase().includes('contact'));
+        return !(p.key?.toLowerCase() === "contact" || p.name?.toLowerCase().includes("contact"));
       });
 
       // Group permissions by module on the frontend
       const grouped = (filteredList || []).reduce(
         (acc: Record<string, Permission[]>, permission: Permission) => {
           if (!permission) return acc;
-          const mod = permission.module || 'GENERAL';
+          const mod = permission.module || "GENERAL";
           if (!acc[mod]) acc[mod] = [];
           acc[mod].push(permission);
           return acc;
@@ -109,12 +102,15 @@ const RoleForm: React.FC<RoleFormProps> = ({
 
       setGroupedPermissions(grouped);
       // ensure any selected contact permission ids are also removed from form data
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        permissionIds: prev.permissionIds.filter(id => {
-          const perm = list.find(p => p.id === id);
-          return perm && !(perm.key?.toLowerCase() === 'contact' || perm.name?.toLowerCase().includes('contact'));
-        })
+        permissionIds: prev.permissionIds.filter((id) => {
+          const perm = list.find((p) => p.id === id);
+          return (
+            perm &&
+            !(perm.key?.toLowerCase() === "contact" || perm.name?.toLowerCase().includes("contact"))
+          );
+        }),
       }));
     } catch (error) {
       console.error("Error fetching permissions:", error);
@@ -123,7 +119,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
       setIsLoading(false);
     }
 
-  // Optionally call a server endpoint to purge contact permissions entirely
+    // Optionally call a server endpoint to purge contact permissions entirely
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -158,9 +154,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
     } else {
       setFormData({
         ...formData,
-        permissionIds: formData.permissionIds.filter(
-          (id) => id !== permissionId
-        ),
+        permissionIds: formData.permissionIds.filter((id) => id !== permissionId),
       });
     }
   };
@@ -207,9 +201,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
               <input
                 type="checkbox"
                 checked={formData.isActive}
-                onChange={(e) =>
-                  setFormData({ ...formData, isActive: e.target.checked })
-                }
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
@@ -227,17 +219,23 @@ const RoleForm: React.FC<RoleFormProps> = ({
       {/* Access Scope */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Access Scope *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Access Scope *
+          </label>
           <select
             value={formData.accessScope}
-            onChange={(e) => setFormData({ ...formData, accessScope: e.target.value as 'OWN' | 'GLOBAL' })}
+            onChange={(e) =>
+              setFormData({ ...formData, accessScope: e.target.value as "OWN" | "GLOBAL" })
+            }
             className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           >
             <option value="OWN">Own</option>
             <option value="GLOBAL">Global</option>
           </select>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Choose whether this role grants access only to user's own records or global access.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Choose whether this role grants access only to user's own records or global access.
+          </p>
         </div>
       </div>
 
@@ -268,9 +266,7 @@ const RoleForm: React.FC<RoleFormProps> = ({
           Permissions *
         </label>
         {errors.permissions && (
-          <p className="text-sm text-red-600 dark:text-red-400 mb-3">
-            {errors.permissions}
-          </p>
+          <p className="text-sm text-red-600 dark:text-red-400 mb-3">{errors.permissions}</p>
         )}
 
         <div className="max-h-64 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-xl p-4 bg-white dark:bg-gray-700">
@@ -283,48 +279,39 @@ const RoleForm: React.FC<RoleFormProps> = ({
               No permissions available
             </div>
           ) : (
-            Object.entries(groupedPermissions || {}).map(
-              ([module, modulePermissions]) => (
-                <div key={module} className="mb-4 last:mb-0">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
-                    <Settings className="h-4 w-4 mr-2 text-purple-600 dark:text-purple-400" />
-                    {module}
-                  </h4>
-                  <div className="space-y-2 ml-6">
-                    {modulePermissions.map((permission) => (
-                      <label
-                        key={permission.id}
-                        className="flex items-center space-x-2 p-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.permissionIds.includes(
-                            permission.id
-                          )}
-                          onChange={(e) =>
-                            handlePermissionChange(
-                              permission.id,
-                              e.target.checked
-                            )
-                          }
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <div className="flex-1">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
-                            {permission.name}
-                          </span>
-                          {permission.description && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {permission.description}
-                            </p>
-                          )}
-                        </div>
-                      </label>
-                    ))}
-                  </div>
+            Object.entries(groupedPermissions || {}).map(([module, modulePermissions]) => (
+              <div key={module} className="mb-4 last:mb-0">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                  <Settings className="h-4 w-4 mr-2 text-purple-600 dark:text-purple-400" />
+                  {module}
+                </h4>
+                <div className="space-y-2 ml-6">
+                  {modulePermissions.map((permission) => (
+                    <label
+                      key={permission.id}
+                      className="flex items-center space-x-2 p-2 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.permissionIds.includes(permission.id)}
+                        onChange={(e) => handlePermissionChange(permission.id, e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {permission.name}
+                        </span>
+                        {permission.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {permission.description}
+                          </p>
+                        )}
+                      </div>
+                    </label>
+                  ))}
                 </div>
-              )
-            )
+              </div>
+            ))
           )}
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">

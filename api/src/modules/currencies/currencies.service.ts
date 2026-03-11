@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { PrismaService } from '../../database/prisma.service';
@@ -8,8 +8,9 @@ export class CurrenciesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createCurrencyDto: CreateCurrencyDto) {
+    let currency;
     if (createCurrencyDto.isDefault) {
-      return this.prisma.$transaction(async (tx) => {
+      currency = await this.prisma.$transaction(async (tx) => {
         await tx.currency.updateMany({
           where: { isDefault: true },
           data: { isDefault: false },
@@ -18,27 +19,47 @@ export class CurrenciesService {
           data: createCurrencyDto,
         });
       });
+    } else {
+      currency = await this.prisma.currency.create({
+        data: createCurrencyDto,
+      });
     }
-    return this.prisma.currency.create({
-      data: createCurrencyDto,
-    });
+    return {
+      success: true,
+      message: 'Currency created successfully',
+      data: { currency },
+    };
   }
 
-  findAll() {
-    return this.prisma.currency.findMany({
+  async findAll() {
+    const currencies = await this.prisma.currency.findMany({
       orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
     });
+    return {
+      success: true,
+      message: 'Currencies retrieved successfully',
+      data: currencies,
+    };
   }
 
-  findOne(id: number) {
-    return this.prisma.currency.findUnique({
+  async findOne(id: number) {
+    const currency = await this.prisma.currency.findUnique({
       where: { id },
     });
+    if (!currency) {
+      throw new NotFoundException('Currency not found');
+    }
+    return {
+      success: true,
+      message: 'Currency retrieved successfully',
+      data: { currency },
+    };
   }
 
   async update(id: number, updateCurrencyDto: UpdateCurrencyDto) {
+    let currency;
     if (updateCurrencyDto.isDefault) {
-      return this.prisma.$transaction(async (tx) => {
+      currency = await this.prisma.$transaction(async (tx) => {
         await tx.currency.updateMany({
           where: { isDefault: true, id: { not: id } },
           data: { isDefault: false },
@@ -48,17 +69,27 @@ export class CurrenciesService {
           data: updateCurrencyDto,
         });
       });
+    } else {
+      currency = await this.prisma.currency.update({
+        where: { id },
+        data: updateCurrencyDto,
+      });
     }
 
-    return this.prisma.currency.update({
-      where: { id },
-      data: updateCurrencyDto,
-    });
+    return {
+      success: true,
+      message: 'Currency updated successfully',
+      data: { currency },
+    };
   }
 
-  remove(id: number) {
-    return this.prisma.currency.delete({
+  async remove(id: number) {
+    await this.prisma.currency.delete({
       where: { id },
     });
+    return {
+      success: true,
+      message: 'Currency deleted successfully',
+    };
   }
 }

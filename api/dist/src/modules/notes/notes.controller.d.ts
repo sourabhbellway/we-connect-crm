@@ -15,13 +15,13 @@ export declare class NotesController {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
                 content: string;
                 isPinned: boolean;
             })[];
@@ -45,13 +45,13 @@ export declare class NotesController {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
                 content: string;
                 isPinned: boolean;
             };
@@ -69,13 +69,13 @@ export declare class NotesController {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
                 content: string;
                 isPinned: boolean;
             };
@@ -96,13 +96,13 @@ export declare class NotesController {
                     id: number;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 title: string;
                 leadId: number;
                 createdBy: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                deletedAt: Date | null;
                 content: string;
                 isPinned: boolean;
             };

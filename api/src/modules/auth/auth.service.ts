@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import { ActivitiesService } from '../activities/activities.service';
 
 @Injectable()
@@ -15,12 +16,86 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly activitiesService: ActivitiesService,
     private readonly config: ConfigService,
-  ) { }
+  ) {}
 
   private tokenExpiryISO(hours: number) {
     const d = new Date();
     d.setHours(d.getHours() + hours);
     return d.toISOString();
+  }
+
+  private async generateAuthTokens(
+    userId: number,
+    email: string,
+    oldSessionId?: number,
+  ) {
+    const accessLifetimeHours =
+      this.config.get<number>('auth.accessLifetimeHours') || 24;
+    const refreshLifetimeDays =
+      this.config.get<number>('auth.refreshLifetimeDays') || 7;
+
+    // Generate unique session token (JTI)
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + refreshLifetimeDays);
+
+    // Create a new login session record if Prisma is available (skip in test env)
+    let session: any = { id: undefined };
+    if (
+      this.prisma &&
+      this.prisma.loginSession &&
+      this.prisma.loginSession.create
+    ) {
+      session = await this.prisma.loginSession.create({
+        data: {
+          userId,
+          token: sessionToken,
+          expiresAt,
+          isActive: true,
+        },
+      });
+    }
+
+    // Revoke old session if this is a rotation (BUG-005 rotation) and Prisma is available
+    if (
+      oldSessionId &&
+      this.prisma &&
+      this.prisma.loginSession &&
+      this.prisma.loginSession.updateMany
+    ) {
+      await this.prisma.loginSession
+        .updateMany({
+          where: { id: oldSessionId },
+          data: { isActive: false },
+        })
+        .catch((err) =>
+          console.error('[Auth] Failed to revoke old session', err),
+        );
+    }
+
+    const payload = { userId, email };
+    // BUG-004: Consistently apply expiresIn for access tokens
+    const accessToken = await this.jwt.signAsync(payload, {
+      expiresIn: `${accessLifetimeHours}h`,
+    });
+
+    const refreshToken = await this.jwt.signAsync(
+      {
+        userId,
+        email,
+        type: 'refresh',
+        ...(session.id && { sessionId: session.id }),
+      },
+      { expiresIn: `${refreshLifetimeDays}d` },
+    );
+
+    const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
+
+    return {
+      accessToken,
+      refreshToken,
+      tokenExpiry,
+    };
   }
 
   private async buildUserWithRoles(userId: number) {
@@ -64,7 +139,8 @@ export class AuthService {
     }));
 
     // Optional bootstrap: grant synthetic admin only when explicitly enabled
-    const bootstrapRole = this.config.get<string>('auth.bootstrapAdmin.roleName') || 'admin';
+    const bootstrapRole =
+      this.config.get<string>('auth.bootstrapAdmin.roleName') || 'admin';
     if (
       !transformedRoles.length &&
       (this.config.get<boolean>('auth.bootstrapAdmin.enabled') ||
@@ -193,22 +269,20 @@ export class AuthService {
           // continue flow with newly created user
           user = created as any;
         } else {
-          // No user found for this email
-          return {
-            success: false,
-            message:
-              'User not registered for this email. Please contact your administrator.',
-          };
+          // No user found for this email and auto-creation not applicable
+          throw new HttpException(
+            'User not registered for this email. Please contact your administrator.',
+            HttpStatus.UNAUTHORIZED,
+          );
         }
       }
 
       if (!user) {
         console.error('[Auth] Unexpected null user before password check');
-        return {
-          success: false,
-          message:
-            'User not registered for this email. Please contact your administrator.',
-        };
+        throw new HttpException(
+          'User not registered for this email. Please contact your administrator.',
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
       // First try bcrypt comparison with the trimmed password
@@ -247,10 +321,10 @@ export class AuthService {
 
       if (!ok) {
         console.warn('[Auth] Password mismatch for', dto.email);
-        return {
-          success: false,
-          message: 'Incorrect password. Please try again.',
-        };
+        throw new HttpException(
+          'Incorrect password. Please try again.',
+          HttpStatus.UNAUTHORIZED,
+        );
       }
       // -------------------------------------------------------
       // BLOCK LOGIN IF USER IS INACTIVE
@@ -281,44 +355,24 @@ export class AuthService {
         );
 
         if (inactiveRole) {
-          return {
-            success: false,
-            message:
-              'Your role is inactive. Please contact your administrator.',
-          };
+          throw new HttpException(
+            'Your role is inactive. Please contact your administrator.',
+            HttpStatus.FORBIDDEN,
+          );
         }
       }
 
-      const accessLifetimeHours = this.config.get<number>('auth.accessLifetimeHours') || 24;
-      const refreshLifetimeDays = this.config.get<number>('auth.refreshLifetimeDays') || 7;
-
-      const payload = { userId: user.id, email: user.email };
-
-      const accessToken = await this.jwt.signAsync(payload, {
-        expiresIn: `${accessLifetimeHours}h`,
+      // BUG-005: Enforce single active session per user (Rotation/Cleanup)
+      await this.prisma.loginSession.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: { isActive: false },
       });
+
+      const { accessToken, refreshToken, tokenExpiry } =
+        await this.generateAuthTokens(user.id, user.email);
       console.log('[Auth] Login success for', dto.email, 'userId=', user.id);
 
-      const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
-
-      const refreshToken = await this.jwt.signAsync(
-        { userId: user.id, email: user.email, type: 'refresh' },
-        { expiresIn: `${refreshLifetimeDays}d` },
-      );
-
-      try {
-        await this.prisma.refreshToken.create({
-          data: {
-            token: refreshToken,
-            userId: user.id,
-            expiresAt: new Date(
-              Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000,
-            ),
-          },
-        });
-      } catch (e) {
-        console.error('[Auth] Failed to persist refresh token (non-fatal)', e);
-      }
+      // Refresh tokens are now handled statelessly via JWT; no DB storage required.
 
       // Update last login timestamp (best-effort)
       try {
@@ -373,7 +427,8 @@ export class AuthService {
       };
     } catch (err) {
       console.error('[Auth] Login error:', err);
-      return { success: false, message: 'Login failed' };
+      if (err instanceof HttpException) throw err;
+      throw new HttpException('Login failed', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -393,81 +448,71 @@ export class AuthService {
 
   async refreshToken(dto: RefreshDto) {
     try {
-      // 1. Verify JWT cryptographically first (Stateless part)
-      const decoded = await this.jwt.verifyAsync(dto.refreshToken).catch(() => null);
-      if (!decoded || decoded.type !== 'refresh') {
-        return {
-          success: false,
-          message: 'Invalid or expired refresh token structure',
-        };
+      // Verify JWT refresh token statelessly
+      // Verify JWT refresh token statelessly first
+      const decoded = await this.jwt
+        .verifyAsync(dto.refreshToken)
+        .catch(() => null);
+      if (!decoded || decoded.type !== 'refresh' || !decoded.sessionId) {
+        throw new HttpException(
+          'Invalid or expired refresh token',
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
-      // 2. Check DB for revocation (Stateful part for revocation management)
-      const record = await this.prisma.refreshToken.findUnique({
-        where: { token: dto.refreshToken },
+      // BUG-005: Validate session effectively in DB (Rotation logic)
+      const session = await this.prisma.loginSession.findUnique({
+        where: { id: decoded.sessionId },
       });
 
-      if (!record || record.isRevoked || record.expiresAt <= new Date()) {
-        return { success: false, message: 'Refresh token is revoked or expired' };
+      if (!session || !session.isActive || session.expiresAt < new Date()) {
+        console.warn(
+          `[Auth] Blocked refresh attempt for inactive/expired session ${decoded.sessionId}`,
+        );
+        throw new HttpException(
+          'Session expired or revoked',
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
-      const user = await this.prisma.user.findUnique({
-        where: { id: record.userId },
-      });
-      if (!user) return { success: false, message: 'User not found' };
-
-      // 3. Implement Rotation: Invalidate the old token
-      await this.prisma.refreshToken.update({
-        where: { id: record.id },
-        data: { isRevoked: true },
-      });
-
-      // 4. Generate new tokens
-      const accessLifetimeHours = this.config.get<number>('auth.accessLifetimeHours') || 24;
-      const refreshLifetimeDays = this.config.get<number>('auth.refreshLifetimeDays') || 7;
-
-      const payload = { userId: user.id, email: user.email };
-      const accessToken = await this.jwt.signAsync(payload, {
-        expiresIn: `${accessLifetimeHours}h`,
-      });
-      const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
-
-      const newRefreshToken = await this.jwt.signAsync(
-        { userId: user.id, email: user.email, type: 'refresh' },
-        { expiresIn: `${refreshLifetimeDays}d` },
-      );
-
-      // 5. Persist the new refresh token in DB
-      await this.prisma.refreshToken.create({
-        data: {
-          token: newRefreshToken,
-          userId: user.id,
-          expiresAt: new Date(
-            Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000,
-          ),
-        },
-      });
+      // Rotate: create new tokens and revoke current session
+      const { accessToken, refreshToken, tokenExpiry } =
+        await this.generateAuthTokens(
+          decoded.userId,
+          decoded.email,
+          session.id,
+        );
 
       return {
         success: true,
-        data: {
-          accessToken,
-          refreshToken: newRefreshToken,
-          tokenExpiry,
-        },
+        data: { accessToken, refreshToken, tokenExpiry },
       };
     } catch (err) {
       console.error('[Auth] Refresh token error:', err);
-      return { success: false, message: 'Could not refresh token' };
+      if (err instanceof HttpException) throw err;
+      throw new HttpException(
+        'Could not refresh token',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async logout(refreshToken?: string) {
     if (refreshToken) {
-      await this.prisma.refreshToken.updateMany({
-        where: { token: refreshToken },
-        data: { isRevoked: true },
-      });
+      try {
+        const decoded = await this.jwt
+          .verifyAsync(refreshToken)
+          .catch(() => null);
+        if (decoded?.sessionId) {
+          await this.prisma.loginSession.updateMany({
+            where: { id: decoded.sessionId },
+            data: { isActive: false },
+          });
+          console.log(`[Auth] Logged out session ${decoded.sessionId}`);
+        }
+      } catch (e) {
+        console.error('[Auth] Logout revocation failed', e);
+      }
     }
     return { success: true, message: 'Logged out successfully' };
   }
@@ -476,11 +521,15 @@ export class AuthService {
     try {
       const user = await this.buildUserWithRoles(userId);
       if (!user) {
-        return { success: false, message: 'User not found' };
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
       return { success: true, data: { user } };
     } catch (err) {
-      return { success: false, message: 'Failed to load profile' };
+      if (err instanceof HttpException) throw err;
+      throw new HttpException(
+        'Failed to load profile',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

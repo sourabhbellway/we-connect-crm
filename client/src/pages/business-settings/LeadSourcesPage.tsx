@@ -1,37 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
-import { Card, CardHeader, CardContent, Button, PageLoader } from '../../components/ui';
-import { Users, ArrowLeft, Save, Plus, Edit3, Trash2, Move, Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { LeadSource } from '../../features/business-settings/types';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBusinessSettings } from "../../contexts/BusinessSettingsContext";
+import { Card, CardHeader, CardContent, Button, PageLoader } from "../../components/ui";
+import { Users, ArrowLeft, Save, Plus, Edit3, Trash2, Move, Eye, EyeOff } from "lucide-react";
+import { toast } from "react-toastify";
+import { LeadSource } from "../../features/business-settings/types";
 
-interface LeadSourceFormData extends Omit<LeadSource, 'id'> {}
+interface LeadSourceFormData extends Omit<LeadSource, "id"> {}
 
 // Predefined color palette for lead sources
 const predefinedColors = [
-  '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6',
-  '#EC4899', '#14B8A6', '#F97316', '#84CC16', '#6366F1',
-  '#64748B', '#374151', '#7C2D12', '#B91C1C', '#365314'
+  "#EF4444",
+  "#F59E0B",
+  "#10B981",
+  "#3B82F6",
+  "#8B5CF6",
+  "#EC4899",
+  "#14B8A6",
+  "#F97316",
+  "#84CC16",
+  "#6366F1",
+  "#64748B",
+  "#374151",
+  "#7C2D12",
+  "#B91C1C",
+  "#365314",
 ];
 
 // Get a random color from the palette, avoiding any colors in "excludeColors".
 // If all colors are excluded, it falls back to the full palette.
 const getRandomColor = (excludeColors: string[] = []) => {
-  const availableColors = predefinedColors.filter(color => !excludeColors.includes(color));
+  const availableColors = predefinedColors.filter((color) => !excludeColors.includes(color));
   const pool = availableColors.length > 0 ? availableColors : predefinedColors;
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
 const LeadSourcesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { leadSources, addLeadSource, updateLeadSource, deleteLeadSource, reorderLeadSources, isLoading } = useBusinessSettings();
-  
+  const {
+    leadSources,
+    addLeadSource,
+    updateLeadSource,
+    deleteLeadSource,
+    reorderLeadSources,
+    isLoading,
+  } = useBusinessSettings();
+
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<LeadSourceFormData>(() => ({
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     color: getRandomColor(),
     isActive: true,
     sortOrder: 0,
@@ -40,13 +59,11 @@ const LeadSourcesPage: React.FC = () => {
   const [errors, setErrors] = useState<{ name?: string }>({});
 
   const resetForm = () => {
-    const usedColors = leadSources
-      .map(s => s.color)
-      .filter((c): c is string => Boolean(c));
+    const usedColors = leadSources.map((s) => s.color).filter((c): c is string => Boolean(c));
 
     setFormData({
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       color: getRandomColor(usedColors),
       isActive: true,
       sortOrder: leadSources.length,
@@ -59,7 +76,7 @@ const LeadSourcesPage: React.FC = () => {
   const handleEdit = (source: LeadSource) => {
     setFormData({
       name: source.name,
-      description: source.description || '',
+      description: source.description || "",
       color: source.color || getRandomColor(),
       isActive: source.isActive,
       sortOrder: source.sortOrder,
@@ -73,12 +90,12 @@ const LeadSourcesPage: React.FC = () => {
     e.preventDefault();
 
     const validationErrors: { name?: string } = {};
-    const trimmedName = (formData.name || '').trim();
+    const trimmedName = (formData.name || "").trim();
 
     if (!trimmedName) {
-      validationErrors.name = 'Lead source name is required';
+      validationErrors.name = "Lead source name is required";
     } else if (trimmedName.length > 50) {
-      validationErrors.name = 'Lead source name must be at most 50 characters';
+      validationErrors.name = "Lead source name must be at most 50 characters";
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -88,7 +105,7 @@ const LeadSourcesPage: React.FC = () => {
 
     setErrors({});
     setIsSaving(true);
-    
+
     try {
       if (editingId) {
         await updateLeadSource(editingId, { ...formData, name: trimmedName });
@@ -99,7 +116,7 @@ const LeadSourcesPage: React.FC = () => {
       }
       resetForm();
     } catch (error) {
-      console.error('Failed to save lead source:', error);
+      console.error("Failed to save lead source:", error);
       // toast.error('Failed to save lead source');
     } finally {
       setIsSaving(false);
@@ -107,13 +124,16 @@ const LeadSourcesPage: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this lead source? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this lead source? This action cannot be undone."
+      )
+    ) {
       try {
         await deleteLeadSource(id);
-        toast.success('Lead source deleted successfully');
+        toast.success("Lead source deleted successfully");
       } catch (error) {
-        console.error('Failed to delete lead source:', error);
-      
+        console.error("Failed to delete lead source:", error);
       }
     }
   };
@@ -122,8 +142,7 @@ const LeadSourcesPage: React.FC = () => {
     try {
       await updateLeadSource(id, { isActive: !isActive });
     } catch (error) {
-      console.error('Failed to update lead source:', error);
-     
+      console.error("Failed to update lead source:", error);
     }
   };
 
@@ -138,7 +157,7 @@ const LeadSourcesPage: React.FC = () => {
         <Button
           variant="GHOST"
           size="sm"
-          onClick={() => navigate('/business-settings')}
+          onClick={() => navigate("/business-settings")}
           className="p-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -164,7 +183,7 @@ const LeadSourcesPage: React.FC = () => {
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {isEditing ? 'Edit Lead Source' : 'Add New Lead Source'}
+                {isEditing ? "Edit Lead Source" : "Add New Lead Source"}
               </h3>
             </CardHeader>
             <CardContent>
@@ -178,21 +197,24 @@ const LeadSourcesPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => {
                       const value = e.target.value;
-                      setFormData(prev => ({ ...prev, name: value }));
+                      setFormData((prev) => ({ ...prev, name: value }));
 
                       const trimmed = value.trim();
                       if (!trimmed) {
-                        setErrors(prev => ({ ...prev, name: 'Lead source name is required' }));
+                        setErrors((prev) => ({ ...prev, name: "Lead source name is required" }));
                       } else if (trimmed.length > 50) {
-                        setErrors(prev => ({ ...prev, name: 'Lead source name must be at most 50 characters' }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          name: "Lead source name must be at most 50 characters",
+                        }));
                       } else {
-                        setErrors(prev => ({ ...prev, name: undefined }));
+                        setErrors((prev) => ({ ...prev, name: undefined }));
                       }
                     }}
                     className={`w-full p-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                       errors.name
-                        ? 'border-red-300 dark:border-red-600'
-                        : 'border-gray-300 dark:border-gray-600'
+                        ? "border-red-300 dark:border-red-600"
+                        : "border-gray-300 dark:border-gray-600"
                     }`}
                     placeholder="e.g., Website, Referral, Social Media"
                   />
@@ -207,7 +229,9 @@ const LeadSourcesPage: React.FC = () => {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     rows={3}
                     className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     placeholder="Brief description of this lead source"
@@ -222,36 +246,37 @@ const LeadSourcesPage: React.FC = () => {
                     <input
                       type="color"
                       value={formData.color}
-                      onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
                       className="w-10 h-10 border border-gray-300 dark:border-gray-600 rounded cursor-pointer"
                     />
                     <input
                       type="text"
                       value={formData.color}
-                      onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
                       className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-5 gap-2">
-                    {predefinedColors.map(color => (
+                    {predefinedColors.map((color) => (
                       <button
                         key={color}
                         type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, color }))}
-                        className={`w-8 h-8 rounded border-2 ${formData.color === color ? 'border-gray-800 dark:border-white' : 'border-gray-300 dark:border-gray-600'}`}
+                        onClick={() => setFormData((prev) => ({ ...prev, color }))}
+                        className={`w-8 h-8 rounded border-2 ${formData.color === color ? "border-gray-800 dark:border-white" : "border-gray-300 dark:border-gray-600"}`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
                   </div>
                 </div>
 
-
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, isActive: e.target.checked }))
+                    }
                     className="rounded border-gray-300 dark:border-gray-600"
                   />
                   <label htmlFor="isActive" className="text-sm text-gray-700 dark:text-gray-300">
@@ -267,14 +292,10 @@ const LeadSourcesPage: React.FC = () => {
                     className="flex items-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    {isSaving ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
+                    {isSaving ? "Saving..." : isEditing ? "Update" : "Add"}
                   </Button>
                   {isEditing && (
-                    <Button
-                      type="button"
-                      variant="OUTLINE"
-                      onClick={resetForm}
-                    >
+                    <Button type="button" variant="OUTLINE" onClick={resetForm}>
                       Cancel
                     </Button>
                   )}
@@ -333,7 +354,7 @@ const LeadSourcesPage: React.FC = () => {
                               #{index + 1}
                             </span>
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <h4 className="font-medium text-gray-900 dark:text-white">
@@ -354,8 +375,6 @@ const LeadSourcesPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
-                        
-                          
                           <Button
                             variant="GHOST"
                             size="sm"
@@ -365,7 +384,7 @@ const LeadSourcesPage: React.FC = () => {
                           >
                             <Edit3 className="w-4 h-4 text-blue-500" />
                           </Button>
-                          
+
                           <Button
                             variant="GHOST"
                             size="sm"
@@ -397,14 +416,14 @@ const LeadSourcesPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {leadSources.filter(s => s.isActive).length}
+                  {leadSources.filter((s) => s.isActive).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Active Sources</p>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
-                  {leadSources.filter(s => !s.isActive).length}
+                  {leadSources.filter((s) => !s.isActive).length}
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Inactive Sources</p>
               </div>

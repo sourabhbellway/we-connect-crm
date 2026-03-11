@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { LoginRequest } from '../../types/auth';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { LoginRequest } from "../../types/auth";
 
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 64;
@@ -21,8 +21,8 @@ interface FormErrors {
 const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
   const { login, isLoading, error: authError, clearError } = useAuth();
   const [formData, setFormData] = useState<LoginRequest>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -30,11 +30,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
 
   // Load remembered email on mount
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem('rememberedEmail');
-    const wasRemembered = localStorage.getItem('rememberMe') === 'true';
+    const rememberedEmail = localStorage.getItem("rememberedEmail");
+    const wasRemembered = localStorage.getItem("rememberMe") === "true";
 
     if (rememberedEmail && wasRemembered) {
-      setFormData(prev => ({ ...prev, email: rememberedEmail }));
+      setFormData((prev) => ({ ...prev, email: rememberedEmail }));
       setRememberMe(true);
     }
   }, []);
@@ -49,13 +49,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
   const validateEmail = (rawEmail: string): string | undefined => {
     const email = rawEmail.trim();
     if (!email) {
-      return 'Email is required';
+      return "Email is required";
     }
     if (email.length > MAX_EMAIL_LENGTH) {
-      return 'Email is too long';
+      return "Email is too long";
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return 'Enter a valid email address';
+      return "Enter a valid email address";
     }
     return undefined;
   };
@@ -63,7 +63,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
   const validatePassword = (rawPassword: string): string | undefined => {
     const password = rawPassword.trim();
     if (!password) {
-      return 'Password is required';
+      return "Password is required";
     }
     if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
       return `Password must be between ${MIN_PASSWORD_LENGTH} and ${MAX_PASSWORD_LENGTH} characters`;
@@ -86,11 +86,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     // Clear field-specific error when user starts typing
     if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
@@ -115,24 +115,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
 
       // Handle remember me functionality
       if (rememberMe) {
-        localStorage.setItem('rememberedEmail', formData.email);
-        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem("rememberedEmail", formData.email);
+        localStorage.setItem("rememberMe", "true");
       } else {
-        localStorage.removeItem('rememberedEmail');
-        localStorage.removeItem('rememberMe');
+        localStorage.removeItem("rememberedEmail");
+        localStorage.removeItem("rememberMe");
       }
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
-      const errorMessage = error.message || 'Login failed. Please try again.';
+      const errorMessage = error.message || "Login failed. Please try again.";
       const newErrors: FormErrors = { general: errorMessage };
 
       if (error.validationErrors && Array.isArray(error.validationErrors)) {
         error.validationErrors.forEach((err: any) => {
-          if (err.field === 'email') newErrors.email = err.messages.join(', ');
-          if (err.field === 'password') newErrors.password = err.messages.join(', ');
+          if (err.field === "email") newErrors.email = err.messages.join(", ");
+          if (err.field === "password") newErrors.password = err.messages.join(", ");
         });
       }
 
@@ -159,13 +159,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
                 <div className="flex">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-red-800">
-                      {errors.general || authError}
-                    </p>
+                    <p className="text-sm text-red-800">{errors.general || authError}</p>
                   </div>
                 </div>
               </div>
@@ -187,17 +189,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
                 onChange={handleInputChange}
                 onBlur={(e) => {
                   const v = e.target.value.trim();
-                  if (v !== e.target.value) setFormData(prev => ({ ...prev, email: v }));
+                  if (v !== e.target.value) setFormData((prev) => ({ ...prev, email: v }));
                 }}
-                className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email
-                    ? 'border-red-300 bg-red-50'
-                    : 'border-gray-300 bg-white'
-                  }`}
+                className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.email ? "border-red-300 bg-red-50" : "border-gray-300 bg-white"
+                }`}
                 placeholder="Enter your email"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
             <div>
@@ -208,7 +207,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   minLength={MIN_PASSWORD_LENGTH}
@@ -217,12 +216,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
                   onChange={handleInputChange}
                   onBlur={(e) => {
                     const v = e.target.value.trim();
-                    if (v !== e.target.value) setFormData(prev => ({ ...prev, password: v }));
+                    if (v !== e.target.value) setFormData((prev) => ({ ...prev, password: v }));
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${errors.password
-                      ? 'border-red-300 bg-red-50'
-                      : 'border-gray-300 bg-white'
-                    }`}
+                  className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
+                    errors.password ? "border-red-300 bg-red-50" : "border-gray-300 bg-white"
+                  }`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -231,20 +229,43 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l4.242 4.242m0 0L15.536 15.536m0 0l1.414 1.414" />
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l4.242 4.242m0 0L15.536 15.536m0 0l1.414 1.414"
+                      />
                     </svg>
                   ) : (
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7-1.275 4.057-5.065 7-9.543 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7-1.275 4.057-5.065 7-9.543 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
                     </svg>
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             <div className="flex items-center justify-between">
@@ -277,28 +298,45 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, onError }) => {
               disabled={isLoading}
               aria-disabled={isLoading}
               aria-busy={isLoading}
-              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${isLoading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 active:bg-blue-800'
-                }`}
+              className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all duration-200 ${
+                isLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 active:bg-blue-800"
+              }`}
             >
               {isLoading ? (
                 <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing in...
                 </div>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link
                 to="/register"
                 className="font-medium text-blue-600 hover:text-blue-500 transition-colors"

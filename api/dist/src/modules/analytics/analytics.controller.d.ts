@@ -150,7 +150,7 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getLeadReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
+    getLeadReport(months?: string, startDate?: string, endDate?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -191,7 +191,50 @@ export declare class AnalyticsController {
             };
         };
     }>;
-    getDealReport(months?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
+    getLeadMetricDetails(metricType: string, metricValue: string, startDate?: string, endDate?: string, userId?: string, scope?: string, user?: any): Promise<{
+        success: boolean;
+        data: {
+            email: string | null;
+            firstName: string | null;
+            lastName: string | null;
+            id: number;
+            createdAt: Date;
+            callLogs: {
+                id: number;
+                createdAt: Date;
+                duration: number | null;
+                outcome: string | null;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
+                isAnswered: boolean;
+            }[];
+            followUps: {
+                type: import(".prisma/client").$Enums.CommunicationType;
+                id: number;
+                subject: string;
+                scheduledAt: Date | null;
+            }[];
+            phone: string | null;
+            company: string | null;
+            status: string;
+            assignedUser: {
+                firstName: string;
+                lastName: string;
+            } | null;
+            source: {
+                name: string;
+            } | null;
+            leadNotes: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                };
+                id: number;
+                createdAt: Date;
+                content: string;
+            }[];
+        }[];
+    }>;
+    getDealReport(months?: string, startDate?: string, endDate?: string, userId?: string, scope?: string, page?: string, limit?: string, filters?: string, user?: any): Promise<{
         success: boolean;
         data: {
             stats: {

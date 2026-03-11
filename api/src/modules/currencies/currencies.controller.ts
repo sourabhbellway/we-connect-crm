@@ -18,7 +18,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('currencies')
 export class CurrenciesController {
-  constructor(private readonly currenciesService: CurrenciesService) { }
+  constructor(private readonly currenciesService: CurrenciesService) {}
 
   @Post()
   @RequirePermission('business_settings_currency.create')

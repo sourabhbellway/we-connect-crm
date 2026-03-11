@@ -48,6 +48,7 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const prisma_service_1 = require("../../database/prisma.service");
 const bcrypt = __importStar(require("bcryptjs"));
+const crypto = __importStar(require("crypto"));
 const activities_service_1 = require("../activities/activities.service");
 let AuthService = class AuthService {
     prisma;
@@ -64,6 +65,53 @@ let AuthService = class AuthService {
         const d = new Date();
         d.setHours(d.getHours() + hours);
         return d.toISOString();
+    }
+    async generateAuthTokens(userId, email, oldSessionId) {
+        const accessLifetimeHours = this.config.get('auth.accessLifetimeHours') || 24;
+        const refreshLifetimeDays = this.config.get('auth.refreshLifetimeDays') || 7;
+        const sessionToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + refreshLifetimeDays);
+        let session = { id: undefined };
+        if (this.prisma &&
+            this.prisma.loginSession &&
+            this.prisma.loginSession.create) {
+            session = await this.prisma.loginSession.create({
+                data: {
+                    userId,
+                    token: sessionToken,
+                    expiresAt,
+                    isActive: true,
+                },
+            });
+        }
+        if (oldSessionId &&
+            this.prisma &&
+            this.prisma.loginSession &&
+            this.prisma.loginSession.updateMany) {
+            await this.prisma.loginSession
+                .updateMany({
+                where: { id: oldSessionId },
+                data: { isActive: false },
+            })
+                .catch((err) => console.error('[Auth] Failed to revoke old session', err));
+        }
+        const payload = { userId, email };
+        const accessToken = await this.jwt.signAsync(payload, {
+            expiresIn: `${accessLifetimeHours}h`,
+        });
+        const refreshToken = await this.jwt.signAsync({
+            userId,
+            email,
+            type: 'refresh',
+            ...(session.id && { sessionId: session.id }),
+        }, { expiresIn: `${refreshLifetimeDays}d` });
+        const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
+        return {
+            accessToken,
+            refreshToken,
+            tokenExpiry,
+        };
     }
     async buildUserWithRoles(userId) {
         const u = await this.prisma.user.findUnique({
@@ -216,18 +264,12 @@ let AuthService = class AuthService {
                     user = created;
                 }
                 else {
-                    return {
-                        success: false,
-                        message: 'User not registered for this email. Please contact your administrator.',
-                    };
+                    throw new common_1.HttpException('User not registered for this email. Please contact your administrator.', common_1.HttpStatus.UNAUTHORIZED);
                 }
             }
             if (!user) {
                 console.error('[Auth] Unexpected null user before password check');
-                return {
-                    success: false,
-                    message: 'User not registered for this email. Please contact your administrator.',
-                };
+                throw new common_1.HttpException('User not registered for this email. Please contact your administrator.', common_1.HttpStatus.UNAUTHORIZED);
             }
             let ok = await bcrypt.compare(password, user.password).catch((e) => {
                 console.error('[Auth] Bcrypt compare failed', e);
@@ -252,10 +294,7 @@ let AuthService = class AuthService {
             }
             if (!ok) {
                 console.warn('[Auth] Password mismatch for', dto.email);
-                return {
-                    success: false,
-                    message: 'Incorrect password. Please try again.',
-                };
+                throw new common_1.HttpException('Incorrect password. Please try again.', common_1.HttpStatus.UNAUTHORIZED);
             }
             if (!user.isActive) {
                 throw new (require('@nestjs/common').HttpException)({
@@ -270,33 +309,15 @@ let AuthService = class AuthService {
             if (userRoles.length > 0) {
                 const inactiveRole = userRoles.find((ur) => ur.role && ur.role.isActive === false);
                 if (inactiveRole) {
-                    return {
-                        success: false,
-                        message: 'Your role is inactive. Please contact your administrator.',
-                    };
+                    throw new common_1.HttpException('Your role is inactive. Please contact your administrator.', common_1.HttpStatus.FORBIDDEN);
                 }
             }
-            const accessLifetimeHours = this.config.get('auth.accessLifetimeHours') || 24;
-            const refreshLifetimeDays = this.config.get('auth.refreshLifetimeDays') || 7;
-            const payload = { userId: user.id, email: user.email };
-            const accessToken = await this.jwt.signAsync(payload, {
-                expiresIn: `${accessLifetimeHours}h`,
+            await this.prisma.loginSession.updateMany({
+                where: { userId: user.id, isActive: true },
+                data: { isActive: false },
             });
+            const { accessToken, refreshToken, tokenExpiry } = await this.generateAuthTokens(user.id, user.email);
             console.log('[Auth] Login success for', dto.email, 'userId=', user.id);
-            const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
-            const refreshToken = await this.jwt.signAsync({ userId: user.id, email: user.email, type: 'refresh' }, { expiresIn: `${refreshLifetimeDays}d` });
-            try {
-                await this.prisma.refreshToken.create({
-                    data: {
-                        token: refreshToken,
-                        userId: user.id,
-                        expiresAt: new Date(Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000),
-                    },
-                });
-            }
-            catch (e) {
-                console.error('[Auth] Failed to persist refresh token (non-fatal)', e);
-            }
             try {
                 await this.prisma.user.update({
                     where: { id: user.id },
@@ -347,7 +368,9 @@ let AuthService = class AuthService {
         }
         catch (err) {
             console.error('[Auth] Login error:', err);
-            return { success: false, message: 'Login failed' };
+            if (err instanceof common_1.HttpException)
+                throw err;
+            throw new common_1.HttpException('Login failed', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async register(dto) {
@@ -365,63 +388,49 @@ let AuthService = class AuthService {
     }
     async refreshToken(dto) {
         try {
-            const decoded = await this.jwt.verifyAsync(dto.refreshToken).catch(() => null);
-            if (!decoded || decoded.type !== 'refresh') {
-                return {
-                    success: false,
-                    message: 'Invalid or expired refresh token structure',
-                };
+            const decoded = await this.jwt
+                .verifyAsync(dto.refreshToken)
+                .catch(() => null);
+            if (!decoded || decoded.type !== 'refresh' || !decoded.sessionId) {
+                throw new common_1.HttpException('Invalid or expired refresh token', common_1.HttpStatus.UNAUTHORIZED);
             }
-            const record = await this.prisma.refreshToken.findUnique({
-                where: { token: dto.refreshToken },
+            const session = await this.prisma.loginSession.findUnique({
+                where: { id: decoded.sessionId },
             });
-            if (!record || record.isRevoked || record.expiresAt <= new Date()) {
-                return { success: false, message: 'Refresh token is revoked or expired' };
+            if (!session || !session.isActive || session.expiresAt < new Date()) {
+                console.warn(`[Auth] Blocked refresh attempt for inactive/expired session ${decoded.sessionId}`);
+                throw new common_1.HttpException('Session expired or revoked', common_1.HttpStatus.UNAUTHORIZED);
             }
-            const user = await this.prisma.user.findUnique({
-                where: { id: record.userId },
-            });
-            if (!user)
-                return { success: false, message: 'User not found' };
-            await this.prisma.refreshToken.update({
-                where: { id: record.id },
-                data: { isRevoked: true },
-            });
-            const accessLifetimeHours = this.config.get('auth.accessLifetimeHours') || 24;
-            const refreshLifetimeDays = this.config.get('auth.refreshLifetimeDays') || 7;
-            const payload = { userId: user.id, email: user.email };
-            const accessToken = await this.jwt.signAsync(payload, {
-                expiresIn: `${accessLifetimeHours}h`,
-            });
-            const tokenExpiry = this.tokenExpiryISO(accessLifetimeHours);
-            const newRefreshToken = await this.jwt.signAsync({ userId: user.id, email: user.email, type: 'refresh' }, { expiresIn: `${refreshLifetimeDays}d` });
-            await this.prisma.refreshToken.create({
-                data: {
-                    token: newRefreshToken,
-                    userId: user.id,
-                    expiresAt: new Date(Date.now() + refreshLifetimeDays * 24 * 60 * 60 * 1000),
-                },
-            });
+            const { accessToken, refreshToken, tokenExpiry } = await this.generateAuthTokens(decoded.userId, decoded.email, session.id);
             return {
                 success: true,
-                data: {
-                    accessToken,
-                    refreshToken: newRefreshToken,
-                    tokenExpiry,
-                },
+                data: { accessToken, refreshToken, tokenExpiry },
             };
         }
         catch (err) {
             console.error('[Auth] Refresh token error:', err);
-            return { success: false, message: 'Could not refresh token' };
+            if (err instanceof common_1.HttpException)
+                throw err;
+            throw new common_1.HttpException('Could not refresh token', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async logout(refreshToken) {
         if (refreshToken) {
-            await this.prisma.refreshToken.updateMany({
-                where: { token: refreshToken },
-                data: { isRevoked: true },
-            });
+            try {
+                const decoded = await this.jwt
+                    .verifyAsync(refreshToken)
+                    .catch(() => null);
+                if (decoded?.sessionId) {
+                    await this.prisma.loginSession.updateMany({
+                        where: { id: decoded.sessionId },
+                        data: { isActive: false },
+                    });
+                    console.log(`[Auth] Logged out session ${decoded.sessionId}`);
+                }
+            }
+            catch (e) {
+                console.error('[Auth] Logout revocation failed', e);
+            }
         }
         return { success: true, message: 'Logged out successfully' };
     }
@@ -429,12 +438,14 @@ let AuthService = class AuthService {
         try {
             const user = await this.buildUserWithRoles(userId);
             if (!user) {
-                return { success: false, message: 'User not found' };
+                throw new common_1.HttpException('User not found', common_1.HttpStatus.NOT_FOUND);
             }
             return { success: true, data: { user } };
         }
         catch (err) {
-            return { success: false, message: 'Failed to load profile' };
+            if (err instanceof common_1.HttpException)
+                throw err;
+            throw new common_1.HttpException('Failed to load profile', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 };

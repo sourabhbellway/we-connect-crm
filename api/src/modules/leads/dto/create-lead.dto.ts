@@ -38,7 +38,7 @@ export class CreateLeadDto {
   // Basic - Now optional, validation will be dynamic based on field configs
   @IsOptional()
   @IsString({ message: 'First name must be a string' })
-  @MinLength(2, { message: 'First name must be at least 2 characters' })
+  @MinLength(1, { message: 'First name must be at least 1 character' })
   @MaxLength(50, { message: 'First name must not exceed 50 characters' })
   @Matches(/^[A-Za-z\s]+$/, {
     message: 'First name can only contain letters and spaces',
@@ -47,7 +47,7 @@ export class CreateLeadDto {
 
   @IsOptional()
   @IsString({ message: 'Last name must be a string' })
-  @MinLength(2, { message: 'Last name must be at least 2 characters' })
+  @MinLength(1, { message: 'Last name must be at least 1 character' })
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
   @Matches(/^[A-Za-z\s]+$/, {
     message: 'Last name can only contain letters and spaces',
@@ -90,17 +90,43 @@ export class CreateLeadDto {
   preferredContactMethod?: string;
 
   // Lead Management
-  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Source ID must be a number' }) sourceId?: number;
-  @IsOptional() @IsString({ message: 'Status must be a string' }) status?: string; // maps to LeadStatus (uppercased)
-  @IsOptional() @IsIn(['low', 'medium', 'high', 'urgent'], { message: 'Priority must be one of: low, medium, high, urgent' }) priority?: string; // maps to LeadPriority (uppercased)
-  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Assigned to ID must be a number' }) assignedTo?: number;
-  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Owner ID must be a number' }) ownerId?: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Source ID must be a number' })
+  sourceId?: number;
+  @IsOptional()
+  @IsString({ message: 'Status must be a string' })
+  status?: string; // maps to LeadStatus (uppercased)
+  @IsOptional()
+  @IsIn(['low', 'medium', 'high', 'urgent'], {
+    message: 'Priority must be one of: low, medium, high, urgent',
+  })
+  priority?: string; // maps to LeadPriority (uppercased)
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Assigned to ID must be a number' })
+  assignedTo?: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Owner ID must be a number' })
+  ownerId?: number;
 
   // Business
-  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Budget must be a number' }) budget?: number;
-  @IsOptional() @IsString({ message: 'Currency must be a string' }) currency?: string;
-  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Lead score must be a number' }) leadScore?: number;
-  @IsOptional() @Type(() => Number) @IsNumber({}, { message: 'Product ID must be a number' }) productId?: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Budget must be a number' })
+  budget?: number;
+  @IsOptional()
+  @IsString({ message: 'Currency must be a string' })
+  currency?: string;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Lead score must be a number' })
+  leadScore?: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Product ID must be a number' })
+  productId?: number;
 
   @IsOptional()
   @IsArray()

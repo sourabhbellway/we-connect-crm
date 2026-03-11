@@ -1,5 +1,5 @@
-import React from 'react';
-import StatsCard from './StatsCard';
+import React from "react";
+import StatsCard from "./StatsCard";
 import {
   HiOutlineUsers,
   HiOutlineUserGroup,
@@ -8,7 +8,7 @@ import {
   HiOutlineArrowUp,
   HiOutlineArrowDown,
   HiOutlineMinus,
-} from 'react-icons/hi2';
+} from "react-icons/hi2";
 
 // Example component showing how to use StatsCard
 function StatsCardExample() {
@@ -17,7 +17,7 @@ function StatsCardExample() {
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
         StatsCard Component Examples
       </h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Basic Card */}
         <StatsCard
@@ -45,7 +45,7 @@ function StatsCardExample() {
           trend={{
             value: 15,
             label: "vs last month",
-            isPositive: true
+            isPositive: true,
           }}
           color="purple"
         />
@@ -59,7 +59,7 @@ function StatsCardExample() {
           trend={{
             value: 8,
             label: "vs last month",
-            isPositive: false
+            isPositive: false,
           }}
           color="red"
         />
@@ -83,22 +83,20 @@ function StatsCardExample() {
           trend={{
             value: 0,
             label: "vs last month",
-            isPositive: true
+            isPositive: true,
           }}
           color="indigo"
         />
       </div>
 
       <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-          Usage Examples
-        </h2>
-        
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Usage Examples</h2>
+
         <div className="space-y-4 text-sm text-gray-600 dark:text-gray-300">
           <div>
             <h3 className="font-medium text-gray-900 dark:text-white">Basic Usage:</h3>
             <pre className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded text-xs overflow-x-auto">
-{`<StatsCard
+              {`<StatsCard
   icon={<HiOutlineUsers className="w-6 h-6" />}
   title="Total Users"
   value={1250}
@@ -110,7 +108,7 @@ function StatsCardExample() {
           <div>
             <h3 className="font-medium text-gray-900 dark:text-white">With Trend:</h3>
             <pre className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded text-xs overflow-x-auto">
-{`<StatsCard
+              {`<StatsCard
   icon={<HiOutlineClipboard className="w-6 h-6" />}
   title="Total Leads"
   value={3420}

@@ -18,7 +18,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('roles')
 export class RolesController {
-  constructor(private readonly service: RolesService) { }
+  constructor(private readonly service: RolesService) {}
 
   @Get()
   @RequirePermission('role.read')

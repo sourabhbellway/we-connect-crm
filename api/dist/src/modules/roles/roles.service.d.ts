@@ -22,17 +22,17 @@ export declare class RolesService {
                 updatedAt: Date;
                 deletedAt: Date | null;
                 permissions: {
+                    description: string | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
-                    description: string | null;
                     key: string;
                     module: string;
                 }[];
                 users: {
-                    id: number;
                     userId: number;
+                    id: number;
                     roleId: number;
                 }[];
                 permissionsCount: number;
@@ -60,11 +60,11 @@ export declare class RolesService {
             isActive: boolean;
             accessScope: import(".prisma/client").$Enums.RoleAccessScope;
             permissions: {
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
                 key: string;
                 module: string;
             }[];
@@ -78,8 +78,8 @@ export declare class RolesService {
             email: string;
             firstName: string;
             lastName: string;
-            isActive: boolean;
             id: number;
+            isActive: boolean;
         }[];
     }>;
     update(id: number, dto: UpsertRoleDto): Promise<{
@@ -102,11 +102,11 @@ export declare class RolesService {
             isActive: boolean;
             accessScope: import(".prisma/client").$Enums.RoleAccessScope;
             permissions: {
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
                 key: string;
                 module: string;
             }[];

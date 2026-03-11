@@ -29,19 +29,42 @@ let ProductCategoriesService = class ProductCategoriesService {
         if (existingCategory) {
             throw new common_1.ConflictException('Product category with this name already exists');
         }
-        return this.prisma.productCategory.create({
+        const category = await this.prisma.productCategory.create({
             data: {
                 ...createProductCategoryDto,
                 isActive: createProductCategoryDto.isActive ?? true,
             },
         });
+        return {
+            success: true,
+            message: 'Product category created successfully',
+            data: { category },
+        };
     }
     async findAll() {
-        return this.prisma.productCategory.findMany({
+        const categories = await this.prisma.productCategory.findMany({
             orderBy: [{ isActive: 'desc' }, { name: 'asc' }],
         });
+        return {
+            success: true,
+            message: 'Product categories retrieved successfully',
+            data: categories,
+        };
     }
     async findOne(id) {
+        const category = await this.prisma.productCategory.findUnique({
+            where: { id },
+        });
+        if (!category) {
+            throw new common_1.NotFoundException('Product category not found');
+        }
+        return {
+            success: true,
+            message: 'Product category retrieved successfully',
+            data: { category },
+        };
+    }
+    async getCategoryOrThrow(id) {
         const category = await this.prisma.productCategory.findUnique({
             where: { id },
         });
@@ -51,7 +74,7 @@ let ProductCategoriesService = class ProductCategoriesService {
         return category;
     }
     async update(id, updateProductCategoryDto) {
-        await this.findOne(id);
+        await this.getCategoryOrThrow(id);
         if (updateProductCategoryDto.name) {
             const existingCategory = await this.prisma.productCategory.findFirst({
                 where: {
@@ -68,29 +91,43 @@ let ProductCategoriesService = class ProductCategoriesService {
                 throw new common_1.ConflictException('Product category with this name already exists');
             }
         }
-        return this.prisma.productCategory.update({
+        const updatedCategory = await this.prisma.productCategory.update({
             where: { id },
             data: updateProductCategoryDto,
         });
+        return {
+            success: true,
+            message: 'Product category updated successfully',
+            data: { category: updatedCategory },
+        };
     }
     async remove(id) {
-        await this.findOne(id);
+        await this.getCategoryOrThrow(id);
         const productsUsingCategory = await this.prisma.product.findFirst({
             where: { category: { equals: id.toString() } },
         });
         if (productsUsingCategory) {
             throw new common_1.ConflictException('Cannot delete category as it is being used by products');
         }
-        return this.prisma.productCategory.delete({
+        await this.prisma.productCategory.delete({
             where: { id },
         });
+        return {
+            success: true,
+            message: 'Product category deleted successfully',
+        };
     }
     async toggleActive(id) {
-        const category = await this.findOne(id);
-        return this.prisma.productCategory.update({
+        const category = await this.getCategoryOrThrow(id);
+        const updatedCategory = await this.prisma.productCategory.update({
             where: { id },
             data: { isActive: !category.isActive },
         });
+        return {
+            success: true,
+            message: 'Product category status updated successfully',
+            data: { category: updatedCategory },
+        };
     }
 };
 exports.ProductCategoriesService = ProductCategoriesService;

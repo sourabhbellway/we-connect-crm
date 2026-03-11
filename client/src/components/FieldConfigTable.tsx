@@ -87,9 +87,7 @@ const FieldConfigTable: React.FC<FieldConfigTableProps> = ({
               </td>
 
               {/* Key */}
-              <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
-                {field.key}
-              </td>
+              <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">{field.key}</td>
 
               {/* Type */}
               <td className="py-2 pr-3 text-gray-700 dark:text-gray-300">
@@ -106,8 +104,8 @@ const FieldConfigTable: React.FC<FieldConfigTableProps> = ({
                       ? field.optionsSource === "roles"
                         ? "Roles"
                         : field.optionsSource === "users"
-                        ? "Users"
-                        : `${field.options?.length || 0} values`
+                          ? "Users"
+                          : `${field.options?.length || 0} values`
                       : `${field.options?.length || 0} values`}
                   </span>
                 ) : (
@@ -143,11 +141,7 @@ const FieldConfigTable: React.FC<FieldConfigTableProps> = ({
 
               {/* Active Toggle */}
               <td className="py-2 pr-3">
-                <div
-                  title={
-                    field.canBeTurnedOff ? "" : "This field cannot be turned off"
-                  }
-                >
+                <div title={field.canBeTurnedOff ? "" : "This field cannot be turned off"}>
                   <ToggleSwitch
                     checked={field.isActive}
                     onChange={(v) => {
@@ -155,11 +149,7 @@ const FieldConfigTable: React.FC<FieldConfigTableProps> = ({
                     }}
                     activeLabel="On"
                     inactiveLabel="Off"
-                    className={
-                      field.canBeTurnedOff
-                        ? ""
-                        : "opacity-50 pointer-events-none"
-                    }
+                    className={field.canBeTurnedOff ? "" : "opacity-50 pointer-events-none"}
                   />
                 </div>
               </td>

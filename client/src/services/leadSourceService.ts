@@ -15,17 +15,12 @@ export const leadSourceService = {
     return response.data;
   },
 
-  createLeadSource: async (
-    sourceData: Partial<LeadSource>
-  ): Promise<LeadSource> => {
+  createLeadSource: async (sourceData: Partial<LeadSource>): Promise<LeadSource> => {
     const response = await apiClient.post("/lead-sources", sourceData);
     return response.data;
   },
 
-  updateLeadSource: async (
-    id: number,
-    sourceData: Partial<LeadSource>
-  ): Promise<LeadSource> => {
+  updateLeadSource: async (id: number, sourceData: Partial<LeadSource>): Promise<LeadSource> => {
     const response = await apiClient.put(`/lead-sources/${id}`, sourceData);
     return response.data;
   },

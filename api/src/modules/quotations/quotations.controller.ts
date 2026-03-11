@@ -24,7 +24,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('quotations')
 export class QuotationsController {
-  constructor(private readonly service: QuotationsService) { }
+  constructor(private readonly service: QuotationsService) {}
 
   @Get('template')
   @RequirePermission('quotations.read')
@@ -79,20 +79,20 @@ export class QuotationsController {
 
     const items = Array.isArray(body.items)
       ? body.items.map((it: any) => ({
-        productId: it.productId ? Number(it.productId) : undefined,
-        name: it.name ?? it.description ?? 'Item',
-        description: it.longDescription ?? it.description ?? undefined,
-        quantity: Number(it.quantity ?? 1),
-        unit: it.unit ?? 'pcs',
-        unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
-        taxRate: it.taxRate !== undefined ? Number(it.taxRate) : undefined,
-        discountRate:
-          it.discountRate !== undefined
-            ? Number(it.discountRate)
-            : body.discountType === '%'
-              ? Number(body.discountValue || 0)
-              : undefined,
-      }))
+          productId: it.productId ? Number(it.productId) : undefined,
+          name: it.name ?? it.description ?? 'Item',
+          description: it.longDescription ?? it.description ?? undefined,
+          quantity: Number(it.quantity ?? 1),
+          unit: it.unit ?? 'pcs',
+          unitPrice: Number(it.unitPrice ?? it.rate ?? 0),
+          taxRate: it.taxRate !== undefined ? Number(it.taxRate) : undefined,
+          discountRate:
+            it.discountRate !== undefined
+              ? Number(it.discountRate)
+              : body.discountType === '%'
+                ? Number(body.discountValue || 0)
+                : undefined,
+        }))
       : [];
 
     const payload: CreateQuotationDto = {

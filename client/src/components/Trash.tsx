@@ -1,13 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Trash2,
-  Users as UsersIcon,
-  FileText,
-  Shield,
-  ArrowRight,
-  Clock,
-} from "lucide-react";
+import { Trash2, Users as UsersIcon, FileText, Shield, ArrowRight, Clock } from "lucide-react";
 // Landing page only; no tables here
 
 import { useCounts } from "../contexts/CountsContext";
@@ -26,7 +19,7 @@ const Trash: React.FC = () => {
       bgColor: "bg-blue-50 dark:bg-blue-900/20",
       borderColor: "border-blue-200 dark:border-blue-800",
       countKey: "trashUsers",
-      retention: "30 days"
+      retention: "30 days",
     },
     {
       title: "Deleted Leads",
@@ -37,7 +30,7 @@ const Trash: React.FC = () => {
       bgColor: "bg-green-50 dark:bg-green-900/20",
       borderColor: "border-green-200 dark:border-green-800",
       countKey: "trashLeads",
-      retention: "30 days"
+      retention: "30 days",
     },
     {
       title: "Deleted Roles",
@@ -48,8 +41,8 @@ const Trash: React.FC = () => {
       bgColor: "bg-purple-50 dark:bg-purple-900/20",
       borderColor: "border-purple-200 dark:border-purple-800",
       countKey: "trashRoles",
-      retention: "30 days"
-    }
+      retention: "30 days",
+    },
   ];
 
   useEffect(() => {
@@ -75,7 +68,9 @@ const Trash: React.FC = () => {
         {/* content */}
         <div className="relative px-6 py-6">
           <div className=" mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Trash Management</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Trash Management
+            </h1>
             <p className="text-sm text-gray-600 dark:text-gray-300 ">
               View soft-deleted records. Items are permanently deleted after 30 days.
             </p>
@@ -86,7 +81,6 @@ const Trash: React.FC = () => {
       {/* Main Content */}
       <div className="px-6 py-4">
         <div className="max-w-full mx-auto">
-
           {/* Trash Categories */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {trashItems.map((item) => (
@@ -96,12 +90,16 @@ const Trash: React.FC = () => {
                 className={`group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow border ${item.borderColor} hover:shadow-lg transition-all duration-300 w-full text-left`}
               >
                 {/* Background Gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-                
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+                ></div>
+
                 <div className="relative px-4 py-3 w-full">
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3 w-full">
-                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${item.color} shadow-lg flex-shrink-0`}>
+                    <div
+                      className={`p-2.5 rounded-xl bg-gradient-to-br ${item.color} shadow-lg flex-shrink-0`}
+                    >
                       <item.icon className="h-4 w-4 text-white" />
                     </div>
                     <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors flex-shrink-0" />
@@ -148,5 +146,3 @@ const Trash: React.FC = () => {
 };
 
 export default Trash;
-
-

@@ -1,4 +1,10 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, IsNotEmpty } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductDto {
@@ -22,10 +28,14 @@ export class CreateProductDto {
   @IsString({ message: 'Category must be a string' })
   category?: string;
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: 'Price must be a valid number' })
-  @IsNotEmpty({ message: 'Price is required' })
-  price: number;
+  price?: number;
+
+  @IsOptional()
+  @IsBoolean({ message: 'pricingEnabled must be a boolean' })
+  pricingEnabled?: boolean;
 
   @IsOptional()
   @Type(() => Number)
@@ -67,6 +77,26 @@ export class CreateProductDto {
   @IsOptional()
   @IsString({ message: 'Image path must be a string' })
   image?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Category ID must be a number' })
+  categoryId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Currency ID must be a number' })
+  currencyId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Tax ID must be a number' })
+  taxId?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Unit ID must be a number' })
+  unitId?: number;
 
   @IsOptional()
   @IsBoolean({ message: 'isActive must be a boolean' })

@@ -1,5 +1,5 @@
-import apiClient from './apiClient';
-import { API_ENDPOINTS } from '../constants';
+import apiClient from "./apiClient";
+import { API_ENDPOINTS } from "../constants";
 
 export interface Deal {
   id: number;
@@ -78,7 +78,7 @@ class DealService {
       const response = await apiClient.get(`${API_ENDPOINTS.DEALS.BASE}?${params}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching deals:', error);
+      console.error("Error fetching deals:", error);
       throw error;
     }
   }
@@ -90,7 +90,7 @@ class DealService {
       const deal = raw?.data?.deal || raw?.data || raw;
       return { success: raw?.success ?? true, data: deal, message: raw?.message } as DealResponse;
     } catch (error) {
-      console.error('Error fetching deal:', error);
+      console.error("Error fetching deal:", error);
       throw error;
     }
   }
@@ -100,7 +100,7 @@ class DealService {
       const response = await apiClient.post(API_ENDPOINTS.DEALS.BASE, dealData);
       return response.data;
     } catch (error) {
-      console.error('Error creating deal:', error);
+      console.error("Error creating deal:", error);
       throw error;
     }
   }
@@ -110,7 +110,7 @@ class DealService {
       const response = await apiClient.put(`${API_ENDPOINTS.DEALS.BASE}/${id}`, dealData);
       return response.data;
     } catch (error) {
-      console.error('Error updating deal:', error);
+      console.error("Error updating deal:", error);
       throw error;
     }
   }
@@ -120,7 +120,7 @@ class DealService {
       const response = await apiClient.delete(`${API_ENDPOINTS.DEALS.BASE}/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Error deleting deal:', error);
+      console.error("Error deleting deal:", error);
       throw error;
     }
   }
@@ -134,7 +134,7 @@ class DealService {
       const response = await apiClient.get(API_ENDPOINTS.DEALS.STATS);
       return response.data;
     } catch (error) {
-      console.error('Error fetching deal stats:', error);
+      console.error("Error fetching deal stats:", error);
       throw error;
     }
   }
@@ -142,14 +142,17 @@ class DealService {
   async bulkExportDeals(search?: string): Promise<Blob> {
     try {
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
+      if (search) params.append("search", search);
 
-      const response = await apiClient.get(`${API_ENDPOINTS.DEALS.BASE}/bulk/export?${params.toString()}`, {
-        responseType: 'blob',
-      });
+      const response = await apiClient.get(
+        `${API_ENDPOINTS.DEALS.BASE}/bulk/export?${params.toString()}`,
+        {
+          responseType: "blob",
+        }
+      );
       return response.data;
     } catch (error) {
-      console.error('Error exporting deals:', error);
+      console.error("Error exporting deals:", error);
       throw error;
     }
   }
@@ -157,26 +160,29 @@ class DealService {
   async bulkImportDeals(file: File): Promise<any> {
     try {
       const formData = new FormData();
-      formData.append('csvFile', file);
+      formData.append("csvFile", file);
 
       const response = await apiClient.post(`${API_ENDPOINTS.DEALS.BASE}/bulk/import`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
       return response.data;
     } catch (error) {
-      console.error('Error importing deals:', error);
+      console.error("Error importing deals:", error);
       throw error;
     }
   }
 
   async bulkAssignDeals(dealIds: number[], userId: number | null): Promise<any> {
     try {
-      const response = await apiClient.put(`${API_ENDPOINTS.DEALS.BASE}/bulk/assign`, { dealIds, userId });
+      const response = await apiClient.put(`${API_ENDPOINTS.DEALS.BASE}/bulk/assign`, {
+        dealIds,
+        userId,
+      });
       return response.data;
     } catch (error) {
-      console.error('Error bulk assigning deals:', error);
+      console.error("Error bulk assigning deals:", error);
       throw error;
     }
   }

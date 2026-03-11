@@ -18,9 +18,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If backend deactivates the user during an active session, force logout
   useEffect(() => {
-    if (user && typeof (user as any).isActive !== 'undefined' && (user as any).isActive === false) {
+    if (user && typeof (user as any).isActive !== "undefined" && (user as any).isActive === false) {
       // Inform user and log out
-      toast.info('Your account has been deactivated. You will be logged out.');
+      toast.info("Your account has been deactivated. You will be logged out.");
       // Call logout (will clear local state)
       logout();
     }
@@ -39,12 +39,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If user is deactivated, prevent access to routes
-  if (user && typeof (user as any).isActive !== 'undefined' && (user as any).isActive === false) {
+  if (user && typeof (user as any).isActive !== "undefined" && (user as any).isActive === false) {
     return <Navigate to="/login" replace />;
   }
 
   // Force users who must change password to go to Profile page first
-  if (user?.mustChangePassword && window.location.pathname !== '/profile') {
+  if (user?.mustChangePassword && window.location.pathname !== "/profile") {
     return <Navigate to="/profile" replace />;
   }
 
@@ -52,9 +52,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Access Denied
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h2>
           <p className="text-gray-600 dark:text-gray-400">
             You don't have permission to access this page.
           </p>
@@ -67,9 +65,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Access Denied
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h2>
           <p className="text-gray-600 dark:text-gray-400">
             You don't have the required role to access this page.
           </p>

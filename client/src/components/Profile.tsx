@@ -86,7 +86,6 @@ const Profile: React.FC = () => {
     loadIndustries();
   }, []);
 
-
   // Build an aggregated permission list for display.
   // For Admin roles we show *all* system permissions (from /permissions).
   useEffect(() => {
@@ -143,7 +142,9 @@ const Profile: React.FC = () => {
     const enrichPermissionsIfMissing = async () => {
       try {
         const roles = user?.roles || [];
-        const rolesNeeding = roles.filter((r: any) => !Array.isArray(r.permissions) || r.permissions.length === 0);
+        const rolesNeeding = roles.filter(
+          (r: any) => !Array.isArray(r.permissions) || r.permissions.length === 0
+        );
         if (rolesNeeding.length === 0) return;
 
         const fetched = await Promise.all(
@@ -161,7 +162,10 @@ const Profile: React.FC = () => {
         const permsByRoleId = new Map(fetched.map((f) => [f.id, f.permissions]));
         const newRoles = roles.map((r: any) => ({
           ...r,
-          permissions: Array.isArray(r.permissions) && r.permissions.length > 0 ? r.permissions : (permsByRoleId.get(r.id) || []),
+          permissions:
+            Array.isArray(r.permissions) && r.permissions.length > 0
+              ? r.permissions
+              : permsByRoleId.get(r.id) || [],
         }));
 
         updateUser({ ...(user as any), roles: newRoles } as any);
@@ -231,14 +235,8 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
-    const firstNameError = getNameError(
-      formData.firstName,
-      t("user.firstName", "First name")
-    );
-    const lastNameError = getNameError(
-      formData.lastName,
-      t("user.lastName", "Last name")
-    );
+    const firstNameError = getNameError(formData.firstName, t("user.firstName", "First name"));
+    const lastNameError = getNameError(formData.lastName, t("user.lastName", "Last name"));
 
     const nextErrors: typeof formErrors = {};
     if (firstNameError) {
@@ -250,10 +248,7 @@ const Profile: React.FC = () => {
 
     if (Object.keys(nextErrors).length > 0) {
       setFormErrors(nextErrors);
-      toast.error(
-        Object.values(nextErrors).join(" "),
-        { toastId: "profile_validation_error" }
-      );
+      toast.error(Object.values(nextErrors).join(" "), { toastId: "profile_validation_error" });
       return;
     }
 
@@ -272,24 +267,23 @@ const Profile: React.FC = () => {
 
       // userService.updateProfile returns the API payload directly.
       // Normalize potential shapes: { success, data: { user } } | { user } | user
-      const updatedUserFromServer = (response as any)?.data?.user
-        || (response as any)?.user
-        || response;
+      const updatedUserFromServer =
+        (response as any)?.data?.user || (response as any)?.user || response;
 
       // Preserve existing roles/permissions if API doesn't return them
       const mergedUser = {
         ...user,
         ...(updatedUserFromServer || {}),
-        roles: (updatedUserFromServer && (updatedUserFromServer as any).roles)
-          ? (updatedUserFromServer as any).roles
-          : user?.roles || [],
+        roles:
+          updatedUserFromServer && (updatedUserFromServer as any).roles
+            ? (updatedUserFromServer as any).roles
+            : user?.roles || [],
       } as any;
 
       updateUser(mergedUser);
-      toast.success(
-        t("user.profileUpdateSuccess", "Profile updated successfully"),
-        { toastId: "profile_update_success" }
-      );
+      toast.success(t("user.profileUpdateSuccess", "Profile updated successfully"), {
+        toastId: "profile_update_success",
+      });
       setFormErrors({});
       setIsEditing(false);
     } catch (error: any) {
@@ -331,8 +325,8 @@ const Profile: React.FC = () => {
     setPasswordError(null);
     setPasswordSuccess(null);
 
-    if (name === 'newPassword') {
-      const pwd = value || '';
+    if (name === "newPassword") {
+      const pwd = value || "";
       const hasLower = /[a-z]/.test(pwd);
       const hasUpper = /[A-Z]/.test(pwd);
       const hasNumber = /[0-9]/.test(pwd);
@@ -352,18 +346,22 @@ const Profile: React.FC = () => {
     setPasswordError(null);
     setPasswordSuccess(null);
 
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
-      setPasswordError('Please fill in all password fields');
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setPasswordError("Please fill in all password fields");
       return;
     }
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError('New password and confirm password do not match');
+      setPasswordError("New password and confirm password do not match");
       return;
     }
 
     // Strong password validation (same as user creation form)
-    const pwd = passwordForm.newPassword || '';
+    const pwd = passwordForm.newPassword || "";
     const hasLower = /[a-z]/.test(pwd);
     const hasUpper = /[A-Z]/.test(pwd);
     const hasNumber = /[0-9]/.test(pwd);
@@ -372,8 +370,16 @@ const Profile: React.FC = () => {
 
     const allOk = hasLength && hasLower && hasUpper && hasNumber && hasSpecial;
     if (!allOk) {
-      setPasswordCriteria({ length: hasLength, lowercase: hasLower, uppercase: hasUpper, number: hasNumber, special: hasSpecial });
-      setPasswordError('Password must be 8+ chars with uppercase, lowercase, number, and special symbol');
+      setPasswordCriteria({
+        length: hasLength,
+        lowercase: hasLower,
+        uppercase: hasUpper,
+        number: hasNumber,
+        special: hasSpecial,
+      });
+      setPasswordError(
+        "Password must be 8+ chars with uppercase, lowercase, number, and special symbol"
+      );
       return;
     }
 
@@ -384,9 +390,7 @@ const Profile: React.FC = () => {
         newPassword: passwordForm.newPassword,
       });
 
-      const updatedUserFromServer = (resp as any)?.data?.user
-        || (resp as any)?.user
-        || resp;
+      const updatedUserFromServer = (resp as any)?.data?.user || (resp as any)?.user || resp;
 
       if (updatedUserFromServer) {
         updateUser({ ...(user as any), ...updatedUserFromServer } as any);
@@ -395,10 +399,10 @@ const Profile: React.FC = () => {
         updateUser({ ...(user as any), mustChangePassword: false } as any);
       }
 
-      setPasswordSuccess('Password updated successfully');
+      setPasswordSuccess("Password updated successfully");
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to update password';
+      const msg = err?.response?.data?.message || err?.message || "Failed to update password";
       setPasswordError(msg);
     } finally {
       setPasswordLoading(false);
@@ -413,7 +417,9 @@ const Profile: React.FC = () => {
       setTimeout(() => {
         document.getElementById("change-password-section")?.scrollIntoView({ behavior: "smooth" });
         // Optionally focus the first password field
-        const firstInput = document.querySelector('input[name="currentPassword"]') as HTMLInputElement;
+        const firstInput = document.querySelector(
+          'input[name="currentPassword"]'
+        ) as HTMLInputElement;
         if (firstInput) firstInput.focus();
       }, 500); // Small delay to ensure render
     }
@@ -423,9 +429,7 @@ const Profile: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-5">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t("user.profile")}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t("user.profile")}</h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {t("user.profileDescription", "Manage your account settings and preferences")}
           </p>
@@ -467,13 +471,15 @@ const Profile: React.FC = () => {
                           try {
                             setAvatarUploading(true);
                             const resp = await userService.uploadProfilePicture(file);
-                            const updatedUserFromServer = (resp as any)?.data?.user
-                              || (resp as any)?.user
-                              || resp;
-                            const updatedUser = { ...(user as any), ...(updatedUserFromServer || {}) } as any;
+                            const updatedUserFromServer =
+                              (resp as any)?.data?.user || (resp as any)?.user || resp;
+                            const updatedUser = {
+                              ...(user as any),
+                              ...(updatedUserFromServer || {}),
+                            } as any;
                             updateUser(updatedUser);
                           } catch (err: any) {
-                            setAvatarError(err?.message || 'Failed to upload');
+                            setAvatarError(err?.message || "Failed to upload");
                           } finally {
                             setAvatarUploading(false);
                           }
@@ -481,13 +487,15 @@ const Profile: React.FC = () => {
                       />
                     </label>
                   )}
-                  {avatarError && (
-                    <p className="text-xs text-red-500 mt-2">{avatarError}</p>
-                  )}
+                  {avatarError && <p className="text-xs text-red-500 mt-2">{avatarError}</p>}
                 </div>
                 <div className="text-center xl:text-left">
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{user?.fullName}</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{user?.roles?.[0]?.name || t("common.noRole")}</p>
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {user?.fullName}
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {user?.roles?.[0]?.name || t("common.noRole")}
+                  </p>
                   {user?.email && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{user.email}</p>
                   )}
@@ -510,9 +518,9 @@ const Profile: React.FC = () => {
                     {aggregatedPermissions.length > 0
                       ? aggregatedPermissions.length
                       : user?.roles?.reduce(
-                        (acc, role) => acc + ((role as any).permissions?.length ?? 0),
-                        0,
-                      ) || 0}
+                          (acc, role) => acc + ((role as any).permissions?.length ?? 0),
+                          0
+                        ) || 0}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {t("user.permissionSummary", "Total permissions granted")}
@@ -554,7 +562,9 @@ const Profile: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{t("common.theme")}</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {t("common.theme")}
+                    </h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {t("user.themeDescription", "Choose your preferred theme")}
                     </p>
@@ -563,7 +573,9 @@ const Profile: React.FC = () => {
                     onClick={toggleTheme}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isDark ? "bg-[#EF444E]" : "bg-gray-200"}`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? "translate-x-3" : "-translate-x-3"}`} />
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isDark ? "translate-x-3" : "-translate-x-3"}`}
+                    />
                   </button>
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-700 pt-3">
@@ -579,18 +591,22 @@ const Profile: React.FC = () => {
             <div className="xl:col-span-8 space-y-6">
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700">
                 <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">{t("user.personalInformation")}</h3>
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                    {t("user.personalInformation")}
+                  </h3>
                   <button
                     onClick={() => setIsEditing(!isEditing)}
                     className="flex items-center px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
                   >
                     {isEditing ? (
                       <>
-                        <X className="h-4 w-4 mr-1" />{t("common.cancel")}
+                        <X className="h-4 w-4 mr-1" />
+                        {t("common.cancel")}
                       </>
                     ) : (
                       <>
-                        <Edit className="h-4 w-4 mr-1" />{t("common.edit")}
+                        <Edit className="h-4 w-4 mr-1" />
+                        {t("common.edit")}
                       </>
                     )}
                   </button>
@@ -669,16 +685,26 @@ const Profile: React.FC = () => {
 
               {/* Change Password */}
               {/* Change Password */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5" id="change-password-section">
+              <div
+                className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5"
+                id="change-password-section"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <Lock className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Change Password</h4>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                        Change Password
+                      </h4>
                     </div>
                   </div>
                 </div>
-                <form onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleChangePassword();
+                  }}
+                >
                   {/* Hidden username/email for accessibility */}
                   <input
                     type="text"
@@ -697,7 +723,7 @@ const Profile: React.FC = () => {
                       value={passwordForm.currentPassword}
                       onChange={handlePasswordInputChange}
                       autoComplete="current-password"
-                      required={true}  // Added this to remove "{optional}" text
+                      required={true} // Added this to remove "{optional}" text
                     />
                     <InputField
                       label="New Password"
@@ -706,7 +732,7 @@ const Profile: React.FC = () => {
                       value={passwordForm.newPassword}
                       onChange={handlePasswordInputChange}
                       autoComplete="new-password"
-                      required={true}  // Added this to remove "{optional}" text
+                      required={true} // Added this to remove "{optional}" text
                     />
                     <InputField
                       label="Confirm New Password"
@@ -715,12 +741,14 @@ const Profile: React.FC = () => {
                       value={passwordForm.confirmPassword}
                       onChange={handlePasswordInputChange}
                       autoComplete="new-password"
-                      required={true}  // Added this to remove "{optional}" text
+                      required={true} // Added this to remove "{optional}" text
                     />
                   </div>
 
                   <div className="flex justify-end">
-                    <button type="submit" disabled={passwordLoading}>Update Password</button>
+                    <button type="submit" disabled={passwordLoading}>
+                      Update Password
+                    </button>
                   </div>
                 </form>
 
@@ -771,9 +799,7 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                {passwordError && (
-                  <p className="text-xs text-red-500 mb-2">{passwordError}</p>
-                )}
+                {passwordError && <p className="text-xs text-red-500 mb-2">{passwordError}</p>}
                 {passwordSuccess && (
                   <p className="text-xs text-green-600 mb-2">{passwordSuccess}</p>
                 )}
@@ -796,7 +822,9 @@ const Profile: React.FC = () => {
 
               {/* Aggregated User Permissions */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow border border-gray-100 dark:border-gray-700 p-5">
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">{t("user.permissions", "Permissions")}</h3>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
+                  {t("user.permissions", "Permissions")}
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {isLoadingPermissions ? (
                     <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -818,10 +846,6 @@ const Profile: React.FC = () => {
                   )}
                 </div>
               </div>
-
-
-
-
             </div>
           </div>
         </div>

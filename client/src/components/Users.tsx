@@ -62,17 +62,17 @@ const Users: React.FC = () => {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
+  const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    'user',
-    'role',
-    'status',
-    'lastLogin',
-    'createdAt',
+    "user",
+    "role",
+    "status",
+    "lastLogin",
+    "createdAt",
   ]);
 
   // New Tab State
-  const [activeTab, setActiveTab] = useState<'users' | 'teams'>('users');
+  const [activeTab, setActiveTab] = useState<"users" | "teams">("users");
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -86,8 +86,7 @@ const Users: React.FC = () => {
   const [pageSize] = useState(50);
 
   // Debounced search with 500ms delay for better UX
-  const { searchValue, debouncedSearchValue, setSearch, isSearching } =
-    useDebouncedSearch("", 500);
+  const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch("", 500);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -101,10 +100,10 @@ const Users: React.FC = () => {
   // Load column visibility preferences
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('users_visible_columns');
+      const stored = localStorage.getItem("users_visible_columns");
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.every((c) => typeof c === 'string')) {
+        if (Array.isArray(parsed) && parsed.every((c) => typeof c === "string")) {
           setVisibleColumns(parsed);
         }
       }
@@ -115,7 +114,7 @@ const Users: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('users_visible_columns', JSON.stringify(visibleColumns));
+      localStorage.setItem("users_visible_columns", JSON.stringify(visibleColumns));
     } catch {
       // ignore
     }
@@ -154,10 +153,11 @@ const Users: React.FC = () => {
       // 1) { success, data: { users: User[], pagination: {...} } }
       // 2) { success, data: User[] }
       // 3) { users: User[], pagination? }
-      const list: User[] = (api?.data?.users as User[])
-        ?? (Array.isArray(api?.data) ? (api.data as User[]) : undefined)
-        ?? (api?.users as User[])
-        ?? ([] as User[]);
+      const list: User[] =
+        (api?.data?.users as User[]) ??
+        (Array.isArray(api?.data) ? (api.data as User[]) : undefined) ??
+        (api?.users as User[]) ??
+        ([] as User[]);
 
       setUsers(list || []);
 
@@ -230,11 +230,11 @@ const Users: React.FC = () => {
   const toggleUserStatus = async (u: User) => {
     try {
       await userService.updateUser(u.id, { isActive: !u.isActive });
-      toast.success(`User ${!u.isActive ? 'activated' : 'deactivated'} successfully`);
+      toast.success(`User ${!u.isActive ? "activated" : "deactivated"} successfully`);
       await refreshUsersCount();
       fetchUsers();
     } catch (error: any) {
-      const msg = error?.response?.data?.message || 'Failed to update user status';
+      const msg = error?.response?.data?.message || "Failed to update user status";
       toast.error(msg);
     }
   };
@@ -283,13 +283,14 @@ const Users: React.FC = () => {
   const hasActiveFilters = isSearchActive || isStatusActive || isRoleActive;
 
   const isColumnVisible = (id: string) => visibleColumns.includes(id);
-  const noResultsDescription = isSearchActive && (isStatusActive || isRoleActive)
-    ? "No users match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all users."
-    : isSearchActive
-      ? "No users found for your search. Try adjusting your search terms. You can also clear all filters to see all users."
-      : (isStatusActive || isRoleActive)
-        ? "No users found for the selected filters. Try adjusting your filters or clear all filters to see all users."
-        : undefined;
+  const noResultsDescription =
+    isSearchActive && (isStatusActive || isRoleActive)
+      ? "No users match your search and filters. Try adjusting your filters or search terms. You can also clear all filters to see all users."
+      : isSearchActive
+        ? "No users found for your search. Try adjusting your search terms. You can also clear all filters to see all users."
+        : isStatusActive || isRoleActive
+          ? "No users found for the selected filters. Try adjusting your filters or clear all filters to see all users."
+          : undefined;
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
@@ -302,7 +303,8 @@ const Users: React.FC = () => {
             {/* Search */}
             <div className="w-full sm:w-48">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <div className="flex items-center gap-2">{t("common.search")}
+                <div className="flex items-center gap-2">
+                  {t("common.search")}
                   {isSearching && (
                     <div className="flex items-center gap-1 text-xs text-blue-500">
                       <Search className="h-3 w-3 animate-pulse" />
@@ -323,9 +325,7 @@ const Users: React.FC = () => {
               <DropdownFilter
                 label="Status"
                 value={filters.status}
-                onChange={(value) =>
-                  handleFilterChange("status", value as string)
-                }
+                onChange={(value) => handleFilterChange("status", value as string)}
                 options={[
                   { value: "", label: "All Statuses" },
                   { value: "active", label: "Active" },
@@ -339,9 +339,7 @@ const Users: React.FC = () => {
               <DropdownFilter
                 label="Role"
                 value={filters.roleId}
-                onChange={(value) =>
-                  handleFilterChange("roleId", value as string)
-                }
+                onChange={(value) => handleFilterChange("roleId", value as string)}
                 options={[
                   { value: "", label: "All Roles" },
                   ...roles.map((role) => ({
@@ -368,15 +366,15 @@ const Users: React.FC = () => {
         {/* View toggle - Right aligned */}
         <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 ml-auto">
           <button
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-            onClick={() => setViewMode('list')}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            onClick={() => setViewMode("list")}
             title="List view"
           >
             <LayoutList className="w-4 h-4" />
           </button>
           <button
-            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'card' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-            onClick={() => setViewMode('card')}
+            className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "card" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+            onClick={() => setViewMode("card")}
             title="Card view"
           >
             <LayoutGrid className="w-4 h-4" />
@@ -387,20 +385,22 @@ const Users: React.FC = () => {
       {/* Tabs */}
       <div className="flex space-x-1 bg-gray-200 dark:bg-gray-700 p-1 rounded-lg w-fit">
         <button
-          onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'users'
-              ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-            }`}
+          onClick={() => setActiveTab("users")}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+            activeTab === "users"
+              ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          }`}
         >
           {t("users.allUsers")}
         </button>
         <button
-          onClick={() => setActiveTab('teams')}
-          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'teams'
-              ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-            }`}
+          onClick={() => setActiveTab("teams")}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+            activeTab === "teams"
+              ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+              : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          }`}
         >
           Teams
         </button>
@@ -412,10 +412,11 @@ const Users: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {activeTab === 'users' ? t("users.allUsers") : "All Teams"} {pagination && `(${pagination.totalUsers})`}
+                {activeTab === "users" ? t("users.allUsers") : "All Teams"}{" "}
+                {pagination && `(${pagination.totalUsers})`}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {activeTab === 'users' ? t("users.manageAndTrack") : "Manage and track user teams."}
+                {activeTab === "users" ? t("users.manageAndTrack") : "Manage and track user teams."}
                 {pagination && (
                   <span className="ml-2 text-gray-500">
                     • Showing {users.length} of {pagination.totalUsers} users
@@ -424,9 +425,7 @@ const Users: React.FC = () => {
                   </span>
                 )}
                 {(debouncedSearchValue || filters.status || filters.roleId) && (
-                  <span className="ml-2 text-blue-600 dark:text-blue-400">
-                    • Filters active
-                  </span>
+                  <span className="ml-2 text-blue-600 dark:text-blue-400">• Filters active</span>
                 )}
               </p>
             </div>
@@ -434,7 +433,7 @@ const Users: React.FC = () => {
           </div>
         </div>
 
-        {activeTab === 'users' ? (
+        {activeTab === "users" ? (
           <>
             <div className="mb-4">
               <MetaBar
@@ -446,11 +445,11 @@ const Users: React.FC = () => {
                 }}
                 columnConfig={{
                   columns: [
-                    { id: 'user', label: 'User' },
-                    { id: 'role', label: 'Role' },
-                    { id: 'status', label: 'Status' },
-                    { id: 'lastLogin', label: 'Last Login' },
-                    { id: 'createdAt', label: 'Created' },
+                    { id: "user", label: "User" },
+                    { id: "role", label: "Role" },
+                    { id: "status", label: "Status" },
+                    { id: "lastLogin", label: "Last Login" },
+                    { id: "createdAt", label: "Created" },
                   ],
                   visibleColumns,
                   onChange: setVisibleColumns,
@@ -459,7 +458,7 @@ const Users: React.FC = () => {
               />
             </div>
 
-            {viewMode === 'card' ? (
+            {viewMode === "card" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-6">
                 {isLoading ? (
                   <div className="col-span-full">
@@ -488,7 +487,7 @@ const Users: React.FC = () => {
                     <div
                       key={user.id}
                       className="rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
-                      style={{ minHeight: '280px' }}
+                      style={{ minHeight: "280px" }}
                     >
                       {/* Card Header */}
                       <div className="p-4 border-b border-gray-100 dark:border-gray-700">
@@ -510,10 +509,13 @@ const Users: React.FC = () => {
 
                         {/* Status Badge */}
                         <div className="flex items-center justify-between">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${user.isActive
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-                            : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
-                            }`}>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
+                              user.isActive
+                                ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                                : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
+                            }`}
+                          >
                             {user.isActive ? "Active" : "Inactive"}
                           </span>
                         </div>
@@ -540,7 +542,9 @@ const Users: React.FC = () => {
                           {user.lastLogin && (
                             <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                               <Calendar className="h-3 w-3 flex-shrink-0" />
-                              <span>Last login: {new Date(user.lastLogin).toLocaleDateString()}</span>
+                              <span>
+                                Last login: {new Date(user.lastLogin).toLocaleDateString()}
+                              </span>
                             </div>
                           )}
                           <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
@@ -568,13 +572,18 @@ const Users: React.FC = () => {
                             {hasPermission("user.update") && (
                               <button
                                 onClick={() => toggleUserStatus(user)}
-                                className={`p-1.5 rounded transition-colors ${user.isActive
-                                  ? "text-amber-600 hover:text-amber-900 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                                  : "text-green-600 hover:text-green-900 hover:bg-green-50 dark:hover:bg-green-900/20"
-                                  }`}
+                                className={`p-1.5 rounded transition-colors ${
+                                  user.isActive
+                                    ? "text-amber-600 hover:text-amber-900 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                                    : "text-green-600 hover:text-green-900 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                }`}
                                 title={user.isActive ? "Deactivate user" : "Activate user"}
                               >
-                                {user.isActive ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                                {user.isActive ? (
+                                  <XCircle className="h-4 w-4" />
+                                ) : (
+                                  <CheckCircle className="h-4 w-4" />
+                                )}
                               </button>
                             )}
                             {hasPermission("user.delete") && (
@@ -598,19 +607,29 @@ const Users: React.FC = () => {
                 <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-900">
                     <tr>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('user') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("user") ? "hidden" : ""}`}
+                      >
                         {t("users.user")}
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('role') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("role") ? "hidden" : ""}`}
+                      >
                         {t("users.role")}
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('status') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("status") ? "hidden" : ""}`}
+                      >
                         {t("common.status")}
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('lastLogin') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("lastLogin") ? "hidden" : ""}`}
+                      >
                         {t("users.lastLogin")}
                       </th>
-                      <th className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible('createdAt') ? 'hidden' : ''}`}>
+                      <th
+                        className={`px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${!isColumnVisible("createdAt") ? "hidden" : ""}`}
+                      >
                         {t("users.created")}
                       </th>
                       <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -624,7 +643,10 @@ const Users: React.FC = () => {
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {error ? (
                         <tr>
-                          <td colSpan={visibleColumns.length + 1} className="px-6 py-12 text-center">
+                          <td
+                            colSpan={visibleColumns.length + 1}
+                            className="px-6 py-12 text-center"
+                          >
                             <NoResults
                               title="Network or server error"
                               description={error}
@@ -639,7 +661,9 @@ const Users: React.FC = () => {
                             key={user.id}
                             className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           >
-                            <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('user') ? 'hidden' : ''}`}>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("user") ? "hidden" : ""}`}
+                            >
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-10 w-10">
                                   <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
@@ -660,7 +684,9 @@ const Users: React.FC = () => {
                                 </div>
                               </div>
                             </td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('role') ? 'hidden' : ''}`}>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("role") ? "hidden" : ""}`}
+                            >
                               <div className="flex flex-wrap gap-1">
                                 {user.roles.length > 0 ? (
                                   user.roles.map((role) => (
@@ -679,12 +705,15 @@ const Users: React.FC = () => {
                                 )}
                               </div>
                             </td>
-                            <td className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible('status') ? 'hidden' : ''}`}>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap ${!isColumnVisible("status") ? "hidden" : ""}`}
+                            >
                               <span
-                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.isActive
-                                  ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
-                                  : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
-                                  }`}
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  user.isActive
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                                    : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400"
+                                }`}
                               >
                                 {user.isActive ? (
                                   <CheckCircle className="h-3 w-3 mr-1" />
@@ -694,7 +723,9 @@ const Users: React.FC = () => {
                                 {user.isActive ? "Active" : "Inactive"}
                               </span>
                             </td>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('lastLogin') ? 'hidden' : ''}`}>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible("lastLogin") ? "hidden" : ""}`}
+                            >
                               {user.lastLogin ? (
                                 <div className="flex items-center">
                                   <Calendar className="h-3 w-3 mr-1" />
@@ -704,7 +735,9 @@ const Users: React.FC = () => {
                                 "Never"
                               )}
                             </td>
-                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible('createdAt') ? 'hidden' : ''}`}>
+                            <td
+                              className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 ${!isColumnVisible("createdAt") ? "hidden" : ""}`}
+                            >
                               <div className="flex items-center">
                                 <Calendar className="h-3 w-3 mr-1" />
                                 {new Date(user.createdAt).toLocaleDateString()}
@@ -731,7 +764,11 @@ const Users: React.FC = () => {
                                       ].join(" ")}
                                       title={user.isActive ? "Deactivate user" : "Activate user"}
                                     >
-                                      {user.isActive ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                                      {user.isActive ? (
+                                        <XCircle className="h-4 w-4" />
+                                      ) : (
+                                        <CheckCircle className="h-4 w-4" />
+                                      )}
                                     </button>
                                   </>
                                 )}
@@ -750,7 +787,10 @@ const Users: React.FC = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={visibleColumns.length + 1} className="px-6 py-12 text-center">
+                          <td
+                            colSpan={visibleColumns.length + 1}
+                            className="px-6 py-12 text-center"
+                          >
                             <NoResults
                               icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
                               description={noResultsDescription}
@@ -772,10 +812,18 @@ const Users: React.FC = () => {
             <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User (Team Lead)</th>
-                  <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reporting Authority</th>
-                  <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Team Size</th>
-                  <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    User (Team Lead)
+                  </th>
+                  <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Reporting Authority
+                  </th>
+                  <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Team Size
+                  </th>
+                  <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               {isLoading ? (
@@ -808,13 +856,17 @@ const Users: React.FC = () => {
                 </tbody>
               ) : (
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {users.map(user => (
+                  {users.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">{user.firstName[0]}</div>
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold mr-3">
+                            {user.firstName[0]}
+                          </div>
                           <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.fullName}</div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {user.fullName}
+                            </div>
                             <div className="text-xs text-gray-500">{user.email}</div>
                           </div>
                         </div>
@@ -835,7 +887,13 @@ const Users: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-end">
-                        <button onClick={() => handleEditUser(user)} className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors" title="Edit user"><Edit className="h-4 w-4" /></button>
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                          title="Edit user"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -885,8 +943,8 @@ const Users: React.FC = () => {
                 </div>
               </div>
               <p>
-                Are you sure you want to delete this user? This action will
-                deactivate their account and cannot be undone.
+                Are you sure you want to delete this user? This action will deactivate their account
+                and cannot be undone.
               </p>
             </div>
           ) : null

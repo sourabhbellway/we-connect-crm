@@ -15,19 +15,25 @@ let HttpExceptionFilter = class HttpExceptionFilter {
         let status = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal server error';
         const isHttpException = exception instanceof common_1.HttpException ||
-            (typeof exception === 'object' && exception !== null && 'getStatus' in exception && 'getResponse' in exception);
+            (typeof exception === 'object' &&
+                exception !== null &&
+                'getStatus' in exception &&
+                'getResponse' in exception);
         if (isHttpException) {
             const httpException = exception;
             const httpStatus = httpException.getStatus();
             const httpRes = httpException.getResponse();
-            if (httpStatus === common_1.HttpStatus.BAD_REQUEST && httpRes.message && Array.isArray(httpRes.message)) {
+            if (httpStatus === common_1.HttpStatus.BAD_REQUEST &&
+                httpRes.message &&
+                Array.isArray(httpRes.message)) {
                 response.status(httpStatus).json({
                     success: false,
                     message: 'Validation failed',
-                    errors: httpRes.errors || httpRes.message.map((msg) => ({
-                        field: msg.split(' ')[0] || 'field',
-                        messages: [msg],
-                    })),
+                    errors: httpRes.errors ||
+                        httpRes.message.map((msg) => ({
+                            field: msg.split(' ')[0] || 'field',
+                            messages: [msg],
+                        })),
                 });
                 return;
             }

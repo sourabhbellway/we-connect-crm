@@ -3,16 +3,7 @@ import InputField from "./InputField";
 import { UserPayload, UserEditPayload } from "./UserCreate";
 import { roleService } from "../services/roleService";
 import { userService } from "../services/userService";
-import {
-  User,
-  Mail,
-  Lock,
-  Shield,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { User, Mail, Lock, Shield, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 export interface UserFormProps<T = UserPayload> {
   initial?: T;
@@ -73,16 +64,25 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
           roleService.getRoles({ status: "active" }),
           userService.getUsers(),
         ]);
-        const parsedRoles = (rolesResp as any)?.data?.roles
-          ?? (rolesResp as any)?.roles
-          ?? (rolesResp as any)?.data?.items
-          ?? (rolesResp as any)?.items
-          ?? [];
+        const parsedRoles =
+          (rolesResp as any)?.data?.roles ??
+          (rolesResp as any)?.roles ??
+          (rolesResp as any)?.data?.items ??
+          (rolesResp as any)?.items ??
+          [];
         setRoles(Array.isArray(parsedRoles) ? parsedRoles : []);
-        const list = (usersResp as any)?.data?.users ?? (usersResp as any)?.data ?? (usersResp as any)?.users ?? [] as any[];
+        const list =
+          (usersResp as any)?.data?.users ??
+          (usersResp as any)?.data ??
+          (usersResp as any)?.users ??
+          ([] as any[]);
         setAllUsers(
           Array.isArray(list)
-            ? list.map((u: any) => ({ id: u.id, fullName: u.fullName || `${u.firstName} ${u.lastName}`, email: u.email }))
+            ? list.map((u: any) => ({
+                id: u.id,
+                fullName: u.fullName || `${u.firstName} ${u.lastName}`,
+                email: u.email,
+              }))
             : []
         );
       } catch (e) {
@@ -250,9 +250,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
             label="First Name"
             leftIcon={<User className="h-4 w-4 text-gray-400" />}
             value={form.firstName || ""}
-            onChange={(e) =>
-              handleChange("firstName", (e.target as HTMLInputElement).value)
-            }
+            onChange={(e) => handleChange("firstName", (e.target as HTMLInputElement).value)}
             required
             error={firstNameError || undefined}
           />
@@ -262,9 +260,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
             label="Last Name"
             leftIcon={<User className="h-4 w-4 text-gray-400" />}
             value={form.lastName || ""}
-            onChange={(e) =>
-              handleChange("lastName", (e.target as HTMLInputElement).value)
-            }
+            onChange={(e) => handleChange("lastName", (e.target as HTMLInputElement).value)}
             required
             error={lastNameError || undefined}
           />
@@ -275,9 +271,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
             leftIcon={<Mail className="h-4 w-4 text-gray-400" />}
             type="email"
             value={form.email || ""}
-            onChange={(e) =>
-              handleChange("email", (e.target as HTMLInputElement).value)
-            }
+            onChange={(e) => handleChange("email", (e.target as HTMLInputElement).value)}
             required
             error={emailError || undefined}
           />
@@ -293,18 +287,12 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 title={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             }
             type={showPassword ? "text" : "password"}
             value={form.password || ""}
-            onChange={(e) =>
-              handleChange("password", (e.target as HTMLInputElement).value)
-            }
+            onChange={(e) => handleChange("password", (e.target as HTMLInputElement).value)}
             required={false}
             minLength={8}
             placeholder={
@@ -394,8 +382,13 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
         </label>
         <select
           className="block w-full px-4 py-3 rounded-lg border text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          value={(form as any).managerId ?? ''}
-          onChange={(e) => handleChange("managerId" as keyof T, e.target.value ? Number(e.target.value) : undefined)}
+          value={(form as any).managerId ?? ""}
+          onChange={(e) =>
+            handleChange(
+              "managerId" as keyof T,
+              e.target.value ? Number(e.target.value) : undefined
+            )
+          }
         >
           <option value="">None</option>
           {allUsers.map((u) => (
@@ -404,7 +397,9 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
             </option>
           ))}
         </select>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Select the user's reporting manager.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Select the user's reporting manager.
+        </p>
       </div>
 
       {/* Roles */}
@@ -420,10 +415,11 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
               return (
                 <label
                   key={role.id}
-                  className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer transition-colors ${selected
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    }`}
+                  className={`flex items-center space-x-2 p-2 rounded-lg border cursor-pointer transition-colors ${
+                    selected
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                      : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
                 >
                   <input
                     type="radio"
@@ -437,9 +433,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
                       {role.name}
                     </span>
                     {role.description && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {role.description}
-                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{role.description}</p>
                     )}
                   </div>
                 </label>
@@ -454,11 +448,7 @@ const UserForm = <T extends UserPayload | UserEditPayload>({
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           Select a role to assign to this user
         </p>
-        {roleError && (
-          <p className="text-xs text-red-500 mt-1">
-            {roleError}
-          </p>
-        )}
+        {roleError && <p className="text-xs text-red-500 mt-1">{roleError}</p>}
       </div>
 
       {/* Submit Button */}

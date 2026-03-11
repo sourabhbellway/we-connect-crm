@@ -16,8 +16,8 @@ export declare class ExpensesController {
                     company: string | null;
                 } | null;
                 deal: {
-                    id: number;
                     title: string;
+                    id: number;
                 } | null;
                 approvedByUser: {
                     firstName: string;
@@ -36,15 +36,15 @@ export declare class ExpensesController {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                description: string | null;
                 currency: string;
+                description: string | null;
                 type: import(".prisma/client").$Enums.ExpenseType;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                deletedAt: Date | null;
                 status: import(".prisma/client").$Enums.ExpenseStatus;
                 category: string;
                 approvedAt: Date | null;
@@ -67,8 +67,8 @@ export declare class ExpensesController {
                     company: string | null;
                 } | null;
                 deal: {
-                    id: number;
                     title: string;
+                    id: number;
                 } | null;
                 approvedByUser: {
                     firstName: string;
@@ -87,15 +87,15 @@ export declare class ExpensesController {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                description: string | null;
                 currency: string;
+                description: string | null;
                 type: import(".prisma/client").$Enums.ExpenseType;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                deletedAt: Date | null;
                 status: import(".prisma/client").$Enums.ExpenseStatus;
                 category: string;
                 approvedAt: Date | null;
@@ -151,8 +151,8 @@ export declare class ExpensesController {
                     company: string | null;
                 } | null;
                 deal: {
-                    id: number;
                     title: string;
+                    id: number;
                 } | null;
                 approvedByUser: {
                     firstName: string;
@@ -171,15 +171,15 @@ export declare class ExpensesController {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                description: string | null;
                 currency: string;
+                description: string | null;
                 type: import(".prisma/client").$Enums.ExpenseType;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                deletedAt: Date | null;
                 status: import(".prisma/client").$Enums.ExpenseStatus;
                 category: string;
                 approvedAt: Date | null;
@@ -208,15 +208,15 @@ export declare class ExpensesController {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                description: string | null;
                 currency: string;
+                description: string | null;
                 type: import(".prisma/client").$Enums.ExpenseType;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                deletedAt: Date | null;
                 status: import(".prisma/client").$Enums.ExpenseStatus;
                 category: string;
                 approvedAt: Date | null;
@@ -244,15 +244,15 @@ export declare class ExpensesController {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                description: string | null;
                 currency: string;
+                description: string | null;
                 type: import(".prisma/client").$Enums.ExpenseType;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                deletedAt: Date | null;
                 status: import(".prisma/client").$Enums.ExpenseStatus;
                 category: string;
                 approvedAt: Date | null;
@@ -290,15 +290,15 @@ export declare class ExpensesController {
                     id: number;
                 };
             } & {
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
-                description: string | null;
                 currency: string;
+                description: string | null;
                 type: import(".prisma/client").$Enums.ExpenseType;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                isActive: boolean;
+                deletedAt: Date | null;
                 status: import(".prisma/client").$Enums.ExpenseStatus;
                 category: string;
                 approvedAt: Date | null;

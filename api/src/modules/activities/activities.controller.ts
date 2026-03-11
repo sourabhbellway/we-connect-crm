@@ -17,7 +17,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('activities')
 export class ActivitiesController {
-  constructor(private readonly service: ActivitiesService) { }
+  constructor(private readonly service: ActivitiesService) {}
 
   @Get('recent')
   @RequirePermission('activity.read')

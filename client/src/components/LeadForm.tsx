@@ -10,7 +10,7 @@ import { industryService, Industry } from "../services/industryService";
 import { productsService, Product } from "../services/productsService";
 import { useBusinessSettings } from "../contexts/BusinessSettingsContext";
 import { countries } from "../data/countries";
-import { Country as CSCCountry, State, City } from 'country-state-city';
+import { Country as CSCCountry, State, City } from "country-state-city";
 import { useAuth } from "../contexts/AuthContext";
 import apiClient from "../services/apiClient";
 import {
@@ -33,7 +33,6 @@ import {
   MessageSquare,
   DollarSign,
   Package,
-  Plus,
   Trash2,
 } from "lucide-react";
 
@@ -102,7 +101,7 @@ const defaultState: LeadPayload = {
   tags: [],
   // Enhanced fields
   budget: undefined,
-  currency: "Rs",
+  currency: "",
   priority: "medium",
   website: "",
   address: "",
@@ -124,32 +123,39 @@ const defaultState: LeadPayload = {
   customFields: {},
 };
 
-const LeadForm: React.FC<LeadFormProps> = ({
-  initial,
-  onSubmit,
-  submitting,
-}) => {
-  const { currencySettings, leadStatuses } = useBusinessSettings();
+const LeadForm: React.FC<LeadFormProps> = ({ initial, onSubmit, submitting }) => {
+  const { currencySettings, leadStatusOptions } = useBusinessSettings();
   const { user: currentUser } = useAuth();
 
   // Check if user is admin or super admin
-  const isAdmin = currentUser?.roles?.some(
-    (role) => role.name.toLowerCase() === 'admin' || role.name.toLowerCase() === 'super admin' || role.name.toLowerCase() === 'super_admin'
-  ) || false;
+  const isAdmin =
+    currentUser?.roles?.some(
+      (role) =>
+        role.name.toLowerCase() === "admin" ||
+        role.name.toLowerCase() === "super admin" ||
+        role.name.toLowerCase() === "super_admin"
+    ) || false;
+
+  // Helper to get the actual default currency code from settings
+  const getEffectiveDefaultCurrency = () => {
+    if (!currencySettings) return "";
+    const defaultFromList = currencySettings.currencies?.find((c) => c.isDefault);
+    return defaultFromList?.code || currencySettings.primary || "";
+  };
 
   const [formState, setFormState] = useState<FormState>({
     form: {
       ...defaultState,
-      currency: currencySettings?.primary || "Rs",
+      currency: initial?.currency || getEffectiveDefaultCurrency(),
       ...(initial || {}),
     },
     errors: {},
     isSubmitting: false,
     hasSubmitted: false,
   });
-  const [users, setUsers] = useState<
-    Array<{ id: number; firstName: string; lastName: string }>
-  >([]);
+  const [users, setUsers] = useState<Array<{ id: number; firstName: string; lastName: string }>>(
+    []
+  );
   const { leadSources: settingsLeadSources } = useBusinessSettings();
   const [selectedLeadSourceId, setSelectedLeadSourceId] = useState<string | number>("");
   const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -184,17 +190,19 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
     // If we have currencies from settings, use them
     if (currencySettings?.currencies && currencySettings.currencies.length > 0) {
-      return currencySettings.currencies.map(c => ({
-        value: c.code,
-        label: `${c.code} (${c.symbol})`,
-        description: c.name,
-        symbol: c.symbol
-      })).sort((a, b) => {
-        const primary = currencySettings.primary || "USD";
-        if (a.value === primary) return -1;
-        if (b.value === primary) return 1;
-        return a.label.localeCompare(b.label);
-      });
+      return currencySettings.currencies
+        .map((c) => ({
+          value: c.code,
+          label: `${c.code} (${c.symbol})`,
+          description: c.name,
+          symbol: c.symbol,
+        }))
+        .sort((a, b) => {
+          const primary = getEffectiveDefaultCurrency();
+          if (primary && a.value === primary) return -1;
+          if (primary && b.value === primary) return 1;
+          return a.label.localeCompare(b.label);
+        });
     }
 
     // Fallback to common currencies if none in settings
@@ -205,26 +213,26 @@ const LeadForm: React.FC<LeadFormProps> = ({
       // We still include the primary even if not in supported (should be though)
       if (currencySettings.primary) supportedSet.add(currencySettings.primary);
 
-      filtered = commonCurrencies.filter(c => supportedSet.has(c.value));
+      filtered = commonCurrencies.filter((c) => supportedSet.has(c.value));
 
       // Add any supported currencies that are NOT in our common list
-      currencySettings.supportedCurrencies.forEach(code => {
-        if (!commonCurrencies.find(c => c.value === code)) {
+      currencySettings.supportedCurrencies.forEach((code) => {
+        if (!commonCurrencies.find((c) => c.value === code)) {
           filtered.push({
             value: code,
             label: `${code}`,
             description: code,
-            symbol: "" // We'll handle this in getCurrencySymbol
+            symbol: "", // We'll handle this in getCurrencySymbol
           });
         }
       });
     }
 
     // Sort: Primary first, then alphabetically
-    const primary = currencySettings?.primary || "Rs";
+    const primary = getEffectiveDefaultCurrency();
     return filtered.sort((a, b) => {
-      if (a.value === primary) return -1;
-      if (b.value === primary) return 1;
+      if (primary && a.value === primary) return -1;
+      if (primary && b.value === primary) return 1;
       return a.label.localeCompare(b.label);
     });
   };
@@ -233,47 +241,47 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const getCurrencySymbol = (currencyCode: string): string => {
     // Check if symbol exists in currencySettings first
     if (currencySettings?.currencies) {
-      const match = currencySettings.currencies.find(c => c.code === currencyCode);
+      const match = currencySettings.currencies.find((c) => c.code === currencyCode);
       if (match?.symbol) return match.symbol;
     }
 
     const currencyMap: { [key: string]: string } = {
-      "USD": "$",
-      "EUR": "€",
-      "GBP": "£",
-      "INR": "₹",
-      "JPY": "¥",
-      "CNY": "¥",
-      "CAD": "C$",
-      "AUD": "A$",
-      "SGD": "S$",
-      "HKD": "HK$",
-      "CHF": "₣",
-      "KRW": "₩",
-      "MXN": "MX$",
-      "BRL": "R$",
-      "RUB": "₽",
-      "ZAR": "R",
-      "TRY": "₺",
-      "NOK": "kr",
-      "SEK": "kr",
-      "DKK": "kr",
-      "PLN": "zł",
-      "CZK": "Kč",
-      "HUF": "Ft",
-      "ILS": "₪",
-      "AED": "د.إ",
-      "SAR": "﷼",
-      "THB": "฿",
-      "MYR": "RM",
-      "IDR": "Rp",
-      "PHP": "₱",
-      "VND": "₫",
-      "KGS": "сом",
-      "KPW": "₩",
-      "SYP": "£",
-      "UYU": "$U",
-      "YER": "﷼"
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      INR: "₹",
+      JPY: "¥",
+      CNY: "¥",
+      CAD: "C$",
+      AUD: "A$",
+      SGD: "S$",
+      HKD: "HK$",
+      CHF: "₣",
+      KRW: "₩",
+      MXN: "MX$",
+      BRL: "R$",
+      RUB: "₽",
+      ZAR: "R",
+      TRY: "₺",
+      NOK: "kr",
+      SEK: "kr",
+      DKK: "kr",
+      PLN: "zł",
+      CZK: "Kč",
+      HUF: "Ft",
+      ILS: "₪",
+      AED: "د.إ",
+      SAR: "﷼",
+      THB: "฿",
+      MYR: "RM",
+      IDR: "Rp",
+      PHP: "₱",
+      VND: "₫",
+      KGS: "сом",
+      KPW: "₩",
+      SYP: "£",
+      UYU: "$U",
+      YER: "﷼",
     };
 
     return currencyMap[currencyCode] || currencyCode;
@@ -284,7 +292,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
       // Convert tags from objects to IDs if needed
       const tagsArray = initial.tags
         ? Array.isArray(initial.tags)
-          ? initial.tags.map((t: any) => typeof t === 'object' ? t.id : t).filter(Boolean)
+          ? initial.tags.map((t: any) => (typeof t === "object" ? t.id : t)).filter(Boolean)
           : []
         : [];
 
@@ -292,7 +300,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         ...prev,
         form: {
           ...defaultState,
-          currency: currencySettings?.primary || "Rs",
+          currency: initial?.currency || getEffectiveDefaultCurrency(),
           ...initial,
           tags: tagsArray,
         },
@@ -307,21 +315,27 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   // Update currency when business settings load
   useEffect(() => {
-    if (currencySettings && !initial) {
-      setFormState((prev) => ({
-        ...prev,
-        form: {
-          ...prev.form,
-          currency: prev.form.currency || currencySettings.primary,
-        },
-      }));
+    const defaultCurrency = getEffectiveDefaultCurrency();
+    if (defaultCurrency && !initial?.currency) {
+      setFormState((prev) => {
+        // Only update if current currency is empty and settings have a primary
+        if (!prev.form.currency && defaultCurrency) {
+          return {
+            ...prev,
+            form: { ...prev.form, currency: defaultCurrency },
+          };
+        }
+        return prev;
+      });
     }
   }, [currencySettings, initial]);
 
   // Fetch states based on country
   useEffect(() => {
     if (formState.form.country) {
-      const countryObj = CSCCountry.getAllCountries().find(c => c.name === formState.form.country);
+      const countryObj = CSCCountry.getAllCountries().find(
+        (c) => c.name === formState.form.country
+      );
       if (countryObj) {
         const fetchedStates = State.getStatesOfCountry(countryObj.isoCode);
         setStates(fetchedStates);
@@ -336,8 +350,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
   // Fetch cities based on state
   useEffect(() => {
     if (formState.form.country && formState.form.state) {
-      const countryObj = CSCCountry.getAllCountries().find(c => c.name === formState.form.country);
-      const stateObj = states.find(s => s.name === formState.form.state);
+      const countryObj = CSCCountry.getAllCountries().find(
+        (c) => c.name === formState.form.country
+      );
+      const stateObj = states.find((s) => s.name === formState.form.state);
       if (countryObj && stateObj) {
         const fetchedCities = City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode);
         setCities(fetchedCities);
@@ -348,8 +364,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
       setCities([]);
     }
   }, [formState.form.country, formState.form.state, states]);
-
-
 
   useEffect(() => {
     const load = async () => {
@@ -362,13 +376,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
         ]);
 
         // Handle different API response structures - normalize to arrays
-        const usersData =
-          (usersRes as any)?.data ??
-          (usersRes as any)?.users ??
-          usersRes;
+        const usersData = (usersRes as any)?.data ?? (usersRes as any)?.users ?? usersRes;
         // Lead sources now managed via BusinessSettingsContext (settingsLeadSources)
-        const tagsData =
-          (tagsRes as any)?.data ?? (tagsRes as any)?.tags ?? tagsRes;
+        const tagsData = (tagsRes as any)?.data ?? (tagsRes as any)?.tags ?? tagsRes;
         const productsData =
           (productsRes as any)?.data?.items ??
           (productsRes as any)?.data?.products ??
@@ -384,7 +394,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         setProducts(Array.isArray(productsData) ? productsData : []);
 
         if (!Array.isArray(tagsData)) {
-          console.warn('Tags payload not array:', tagsRes);
+          console.warn("Tags payload not array:", tagsRes);
         }
       } catch (e) {
         console.error("Error loading form data:", e);
@@ -414,20 +424,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
   }, []);
 
   // Sync currency from Business Settings when it loads (may load after form init)
-  useEffect(() => {
-    if (currencySettings?.primary && !initial?.currency) {
-      setFormState((prev) => {
-        // Only update if still on fallback "USD" and settings have a different default
-        if (prev.form.currency === "USD" && currencySettings.primary !== "USD") {
-          return {
-            ...prev,
-            form: { ...prev.form, currency: currencySettings.primary },
-          };
-        }
-        return prev;
-      });
-    }
-  }, [currencySettings?.primary]);
+  // This hook is now redundant due to the consolidated one above, but ensuring primary is prioritized.
 
   // Check if current industry is in the list or needs "Other" input
   useEffect(() => {
@@ -445,51 +442,53 @@ const LeadForm: React.FC<LeadFormProps> = ({
   // Fetch field configurations (exposed so other components can trigger a refresh)
   const fetchFieldConfigs = async () => {
     try {
-      const response = await apiClient.get('/business-settings/field-configs/lead');
+      const response = await apiClient.get("/business-settings/field-configs/lead");
       if (response.data?.success) {
-        let configs = response.data.data;
+        const configs = response.data.data;
         // Inject ownerId if it doesn't exist
-        const hasOwnerId = configs.some((f: any) => f.fieldName === 'ownerId');
+        const hasOwnerId = configs.some((f: any) => f.fieldName === "ownerId");
         if (!hasOwnerId) {
           configs.push({
             id: -1,
-            entityType: 'lead',
-            fieldName: 'ownerId',
-            label: 'Lead Owner',
+            entityType: "lead",
+            fieldName: "ownerId",
+            label: "Lead Owner",
             isRequired: false,
             isVisible: true,
             displayOrder: 99,
-            section: 'lead_management',
-            placeholder: 'Select owner'
+            section: "lead_management",
+            placeholder: "Select owner",
           });
         }
         setFieldConfigs(configs);
       }
     } catch (error) {
-      console.error('Error fetching field configs:', error);
+      console.error("Error fetching field configs:", error);
       // Fallback to empty configs if API fails
-      setFieldConfigs([{
-        id: -1,
-        entityType: 'lead',
-        fieldName: 'ownerId',
-        label: 'Lead Owner',
-        isRequired: false,
-        isVisible: true,
-        displayOrder: 99,
-        section: 'lead_management',
-        placeholder: 'Select owner'
-      }]);
+      setFieldConfigs([
+        {
+          id: -1,
+          entityType: "lead",
+          fieldName: "ownerId",
+          label: "Lead Owner",
+          isRequired: false,
+          isVisible: true,
+          displayOrder: 99,
+          section: "lead_management",
+          placeholder: "Select owner",
+        },
+      ]);
     }
   };
 
   const fetchSections = async () => {
     try {
-      const response = await apiClient.get('/business-settings/lead-sections');
+      const response = await apiClient.get("/business-settings/lead-sections");
       if (response.data?.success) {
         setSections(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching sections:', error);
+      console.error("Error fetching sections:", error);
     }
   };
 
@@ -500,8 +499,8 @@ const LeadForm: React.FC<LeadFormProps> = ({
       fetchFieldConfigs();
       fetchSections();
     };
-    window.addEventListener('fieldConfigsUpdated', handler as EventListener);
-    return () => window.removeEventListener('fieldConfigsUpdated', handler as EventListener);
+    window.addEventListener("fieldConfigsUpdated", handler as EventListener);
+    return () => window.removeEventListener("fieldConfigsUpdated", handler as EventListener);
   }, []);
 
   // Validation functions
@@ -523,16 +522,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }
     // Each domain label must not start/end with hyphen and must be non-empty
     const labels = domainPart.split(".");
-    if (
-      labels.some(
-        (label) => !label || label.startsWith("-") || label.endsWith("-")
-      )
-    ) {
+    if (labels.some((label) => !label || label.startsWith("-") || label.endsWith("-"))) {
       return "Please enter a valid email address";
     }
     return null;
   };
-
 
   // Country-specific phone digit rules (local/national part, excluding country code)
   // For every country in the phone dropdown (from ../data/countries), we apply
@@ -543,37 +537,46 @@ const LeadForm: React.FC<LeadFormProps> = ({
     US: { min: 10, max: 10 }, // United States
     CA: { min: 10, max: 10 }, // Canada
     GB: { min: 10, max: 10 }, // United Kingdom
-    AU: { min: 9, max: 9 },   // Australia (without leading 0)
-    AE: { min: 9, max: 9 },   // United Arab Emirates
-    SA: { min: 9, max: 9 },   // Saudi Arabia
-    SG: { min: 8, max: 8 },   // Singapore
-    MY: { min: 9, max: 10 },  // Malaysia
+    AU: { min: 9, max: 9 }, // Australia (without leading 0)
+    AE: { min: 9, max: 9 }, // United Arab Emirates
+    SA: { min: 9, max: 9 }, // Saudi Arabia
+    SG: { min: 8, max: 8 }, // Singapore
+    MY: { min: 9, max: 10 }, // Malaysia
     ID: { min: 10, max: 12 }, // Indonesia
     PK: { min: 10, max: 10 }, // Pakistan
     BD: { min: 10, max: 10 }, // Bangladesh
     NP: { min: 10, max: 10 }, // Nepal
-    LK: { min: 9, max: 9 },   // Sri Lanka
+    LK: { min: 9, max: 9 }, // Sri Lanka
     PH: { min: 10, max: 10 }, // Philippines
-    ZA: { min: 9, max: 9 },   // South Africa
-    NG: { min: 8, max: 10 },  // Nigeria
+    ZA: { min: 9, max: 9 }, // South Africa
+    NG: { min: 8, max: 10 }, // Nigeria
   };
 
   // Helper to render icon by name
   const renderIconByName = (iconName: string) => {
     const props = { className: "h-5 w-5" };
     switch (iconName.toLowerCase()) {
-      case 'user': return <UserIcon {...props} />;
-      case 'building': return <BuildingIcon {...props} />;
-      case 'mappin':
-      case 'map-pin': return <MapPin {...props} />;
-      case 'award': return <Award {...props} />;
-      case 'messagesquare':
-      case 'message-square': return <MessageSquare {...props} />;
-      case 'briefcase': return <BriefcaseIcon {...props} />;
-      case 'globe': return <Globe {...props} />;
-      case 'trendingup':
-      case 'trending-up': return <TrendingUp {...props} />;
-      default: return <MessageSquare {...props} />;
+      case "user":
+        return <UserIcon {...props} />;
+      case "building":
+        return <BuildingIcon {...props} />;
+      case "mappin":
+      case "map-pin":
+        return <MapPin {...props} />;
+      case "award":
+        return <Award {...props} />;
+      case "messagesquare":
+      case "message-square":
+        return <MessageSquare {...props} />;
+      case "briefcase":
+        return <BriefcaseIcon {...props} />;
+      case "globe":
+        return <Globe {...props} />;
+      case "trendingup":
+      case "trending-up":
+        return <TrendingUp {...props} />;
+      default:
+        return <MessageSquare {...props} />;
     }
   };
 
@@ -585,18 +588,22 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
     // Group fields by section
     const visibleFields = fieldConfigs
-      .filter(f => f.isVisible)
+      .filter((f) => f.isVisible)
       .sort((a, b) => a.displayOrder - b.displayOrder);
 
-    visibleFields.forEach(field => {
-      const sectionKey = field.section || 'other';
+    visibleFields.forEach((field) => {
+      const sectionKey = field.section || "other";
       if (!sectionMap[sectionKey]) {
-        const sectionInfo = sections.find(s => s.key === sectionKey);
+        const sectionInfo = sections.find((s) => s.key === sectionKey);
         sectionMap[sectionKey] = {
           id: sectionKey,
-          title: sectionInfo?.label || sectionKey.replace(/_/g, ' '),
-          icon: sectionInfo ? renderIconByName(sectionInfo.icon) : <MessageSquare className="h-5 w-5" />,
-          color: sectionInfo?.color || 'gray',
+          title: sectionInfo?.label || sectionKey.replace(/_/g, " "),
+          icon: sectionInfo ? (
+            renderIconByName(sectionInfo.icon)
+          ) : (
+            <MessageSquare className="h-5 w-5" />
+          ),
+          color: sectionInfo?.color || "gray",
           fields: [],
         };
       }
@@ -604,27 +611,52 @@ const LeadForm: React.FC<LeadFormProps> = ({
     });
 
     // Sort sections based on the 'sections' metadata from API
-    const sortedSectionKeys = sections.map(s => s.key);
+    const sortedSectionKeys = sections.map((s) => s.key);
 
     return sortedSectionKeys
-      .filter(key => sectionMap[key])
-      .map(key => sectionMap[key])
-      .concat(
-        Object.values(sectionMap)
-          .filter(s => !sortedSectionKeys.includes(s.id))
-      );
+      .filter((key) => sectionMap[key])
+      .map((key) => sectionMap[key])
+      .concat(Object.values(sectionMap).filter((s) => !sortedSectionKeys.includes(s.id)));
   };
 
   // Get section color class - Unified for cleaner look
   const getSectionColorClass = (color: string) => {
     const colors: Record<string, { bg: string; icon: string; border: string }> = {
-      blue: { bg: 'bg-transparent', icon: 'text-blue-600 dark:text-blue-400', border: 'border-gray-200 dark:border-gray-700' },
-      green: { bg: 'bg-transparent', icon: 'text-green-600 dark:text-green-400', border: 'border-gray-200 dark:border-gray-700' },
-      purple: { bg: 'bg-transparent', icon: 'text-purple-600 dark:text-purple-400', border: 'border-gray-200 dark:border-gray-700' },
-      orange: { bg: 'bg-transparent', icon: 'text-orange-600 dark:text-orange-400', border: 'border-gray-200 dark:border-gray-700' },
-      indigo: { bg: 'bg-transparent', icon: 'text-indigo-600 dark:text-indigo-400', border: 'border-gray-200 dark:border-gray-700' },
-      red: { bg: 'bg-transparent', icon: 'text-red-600 dark:text-red-400', border: 'border-gray-200 dark:border-gray-700' },
-      gray: { bg: 'bg-transparent', icon: 'text-gray-600 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700' },
+      blue: {
+        bg: "bg-transparent",
+        icon: "text-blue-600 dark:text-blue-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
+      green: {
+        bg: "bg-transparent",
+        icon: "text-green-600 dark:text-green-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
+      purple: {
+        bg: "bg-transparent",
+        icon: "text-purple-600 dark:text-purple-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
+      orange: {
+        bg: "bg-transparent",
+        icon: "text-orange-600 dark:text-orange-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
+      indigo: {
+        bg: "bg-transparent",
+        icon: "text-indigo-600 dark:text-indigo-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
+      red: {
+        bg: "bg-transparent",
+        icon: "text-red-600 dark:text-red-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
+      gray: {
+        bg: "bg-transparent",
+        icon: "text-gray-600 dark:text-gray-400",
+        border: "border-gray-200 dark:border-gray-700",
+      },
     };
     return colors[color] || colors.gray;
   };
@@ -632,29 +664,37 @@ const LeadForm: React.FC<LeadFormProps> = ({
   // Render custom fields dynamically based on field type
   const renderCustomField = (field: FieldConfig) => {
     // Check both customFields and direct form fields
-    const value = (formState.form as any)[field.fieldName] !== undefined
-      ? (formState.form as any)[field.fieldName]
-      : ((formState.form as any).customFields?.[field.fieldName] || '');
+    const value =
+      (formState.form as any)[field.fieldName] !== undefined
+        ? (formState.form as any)[field.fieldName]
+        : (formState.form as any).customFields?.[field.fieldName] || "";
     const error = (formState.errors as any)[field.fieldName];
-    const fieldType = (field.validation as any)?.type || 'text';
+    const fieldType = (field.validation as any)?.type || "text";
 
     switch (fieldType.toLowerCase()) {
-      case 'number':
+      case "number":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             type="number"
             value={value || ""}
-            onChange={(e) => handleCustomFieldChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) =>
+              handleCustomFieldChange(
+                field.fieldName,
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
             required={field.isRequired}
             error={error}
             placeholder={field.placeholder}
           />
         );
-      case 'date':
+      case "date":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             type="date"
@@ -665,10 +705,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder}
           />
         );
-      case 'datetime':
-      case 'datetime-local':
+      case "datetime":
+      case "datetime-local":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             type="datetime-local"
@@ -679,9 +720,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder}
           />
         );
-      case 'textarea':
+      case "textarea":
         return (
           <TextAreaField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             value={value || ""}
@@ -692,22 +734,30 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder}
           />
         );
-      case 'select':
-      case 'dropdown':
+      case "select":
+      case "dropdown":
         const options = (field.options as any)?.options || (field.options as any) || [];
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             value={value || ""}
             placeholder={field.placeholder || `Select ${field.label}`}
-            options={Array.isArray(options) ? options.map((opt: any) => ({
-              value: typeof opt === 'string' ? opt : (opt.value || opt),
-              label: typeof opt === 'string' ? opt : (opt.label || opt.value || opt),
-            })) : []}
+            options={
+              Array.isArray(options)
+                ? options.map((opt: any) => ({
+                    value: typeof opt === "string" ? opt : opt.value || opt,
+                    label: typeof opt === "string" ? opt : opt.label || opt.value || opt,
+                  }))
+                : []
+            }
             onChange={(v) => {
               // Store in customFields if it's a custom field, otherwise in main form
-              if (field.fieldName.startsWith('custom') || !(formState.form as any).hasOwnProperty(field.fieldName)) {
+              if (
+                field.fieldName.startsWith("custom") ||
+                !(formState.form as any).hasOwnProperty(field.fieldName)
+              ) {
                 handleCustomFieldChange(field.fieldName, v);
               } else {
                 handleChange(field.fieldName, v);
@@ -719,9 +769,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
             error={error}
           />
         );
-      case 'checkbox':
+      case "checkbox":
         return (
-          <div key={field.fieldName} className="flex items-center">
+          <div key={field.fieldName} id={`field_${field.fieldName}`} className="flex items-center">
             <input
               type="checkbox"
               checked={value || false}
@@ -732,21 +782,23 @@ const LeadForm: React.FC<LeadFormProps> = ({
               {field.label}
               {field.isRequired && <span className="text-red-500 ml-1">*</span>}
             </label>
-            {error && (
-              <p className="ml-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>
-            )}
+            {error && <p className="ml-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
           </div>
         );
       default:
         // Default to text input
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             value={value || ""}
             onChange={(e) => {
               // Store in customFields if it's a custom field, otherwise in main form
-              if (field.fieldName.startsWith('custom') || !(formState.form as any).hasOwnProperty(field.fieldName)) {
+              if (
+                field.fieldName.startsWith("custom") ||
+                !(formState.form as any).hasOwnProperty(field.fieldName)
+              ) {
                 handleCustomFieldChange(field.fieldName, e.target.value);
               } else {
                 handleChange(field.fieldName, e.target.value);
@@ -763,18 +815,44 @@ const LeadForm: React.FC<LeadFormProps> = ({
   // Dynamic field rendering
   const renderField = (field: FieldConfig) => {
     // Check both direct form fields and customFields
-    const value = (formState.form as any)[field.fieldName] !== undefined
-      ? (formState.form as any)[field.fieldName]
-      : ((formState.form as any).customFields?.[field.fieldName]);
+    const value =
+      (formState.form as any)[field.fieldName] !== undefined
+        ? (formState.form as any)[field.fieldName]
+        : (formState.form as any).customFields?.[field.fieldName];
     const error = (formState.errors as any)[field.fieldName];
 
     // If this is a custom field (not in the standard switch cases), use renderCustomField
     const isCustomField = ![
-      'firstName', 'lastName', 'email', 'phone', 'company', 'position', 'industry',
-      'website', 'companySize', 'annualRevenue', 'country', 'state', 'city', 'zipCode',
-      'address', 'timezone', 'linkedinProfile', 'sourceId', 'status', 'priority',
-      'assignedTo', 'ownerId', 'budget', 'currency', 'leadScore', 'preferredContactMethod',
-      'nextFollowUpAt', 'notes', 'tags', 'productId'
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "company",
+      "position",
+      "industry",
+      "website",
+      "companySize",
+      "annualRevenue",
+      "country",
+      "state",
+      "city",
+      "zipCode",
+      "address",
+      "timezone",
+      "linkedinProfile",
+      "sourceId",
+      "status",
+      "priority",
+      "assignedTo",
+      "ownerId",
+      "budget",
+      "currency",
+      "leadScore",
+      "preferredContactMethod",
+      "nextFollowUpAt",
+      "notes",
+      "tags",
+      "productId",
     ].includes(field.fieldName);
 
     if (isCustomField) {
@@ -782,10 +860,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
     }
 
     switch (field.fieldName) {
-      case 'firstName':
-      case 'lastName':
+      case "firstName":
+      case "lastName":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<UserIcon className="h-4 w-4 text-gray-400" />}
@@ -797,9 +876,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'email':
+      case "email":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Mail className="h-4 w-4 text-gray-400" />}
@@ -812,9 +892,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'phone':
+      case "phone":
         return (
           <PhoneInputWithCountry
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             value={value || ""}
@@ -825,9 +906,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'company':
+      case "company":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<BuildingIcon className="h-4 w-4 text-gray-400" />}
@@ -839,9 +921,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'position':
+      case "position":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<BriefcaseIcon className="h-4 w-4 text-gray-400" />}
@@ -853,17 +936,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'productId':
+      case "productId":
         // Hide individual productId field since we use a dedicated Products section
         return null;
 
-      case 'industry':
+      case "industry":
         return (
           <div key={field.fieldName}>
             <EnhancedSelectField
+              id={`field_${field.fieldName}`}
               label={field.label}
               leftIcon={<TrendingUp className="h-4 w-4 text-gray-400" />}
-              value={showOtherIndustryInput ? "Other" : (value || "")}
+              value={showOtherIndustryInput ? "Other" : value || ""}
               onChange={(v) => {
                 if (v === "Other") {
                   setShowOtherIndustryInput(true);
@@ -900,9 +984,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           </div>
         );
 
-      case 'website':
+      case "website":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Globe className="h-4 w-4 text-gray-400" />}
@@ -915,39 +1000,46 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'companySize':
+      case "companySize":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Users className="h-4 w-4 text-gray-400" />}
             type="number"
             value={value || ""}
-            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) =>
+              handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)
+            }
             placeholder={field.placeholder || "Number of employees"}
             required={field.isRequired}
             error={error}
           />
         );
 
-      case 'annualRevenue':
+      case "annualRevenue":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />}
             type="number"
             value={value || ""}
-            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) =>
+              handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)
+            }
             placeholder={field.placeholder || "Annual revenue"}
             required={field.isRequired}
             error={error}
           />
         );
 
-      case 'country':
+      case "country":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Flag className="h-4 w-4 text-gray-400" />}
@@ -961,21 +1053,6 @@ const LeadForm: React.FC<LeadFormProps> = ({
               handleChange(field.fieldName, v || "");
               handleChange("state", "");
               handleChange("city", "");
-
-              // Auto-select currency based on country - REMOVED per user request
-              // Currency should default to business settings and only change if user explicitly changes the currency field
-              /*
-              if (v) {
-                const countryObj = CSCCountry.getAllCountries().find(c => c.name === v);
-                if (countryObj && countryObj.currency) {
-                  handleChange("currency", countryObj.currency);
-                } else {
-                  // Fallback to local mapping if library doesn't have it
-                  const fallback = countryToCurrency[v];
-                  if (fallback) handleChange("currency", fallback);
-                }
-              }
-              */
             }}
             searchable={true}
             clearable={true}
@@ -984,9 +1061,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'state':
+      case "state":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
@@ -1007,9 +1085,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'city':
+      case "city":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
@@ -1030,9 +1109,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'zipCode':
+      case "zipCode":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<MapPin className="h-4 w-4 text-gray-400" />}
@@ -1044,9 +1124,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'address':
+      case "address":
         return (
           <TextAreaField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             value={value || ""}
@@ -1058,9 +1139,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'timezone':
+      case "timezone":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Clock className="h-4 w-4 text-gray-400" />}
@@ -1072,9 +1154,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'linkedinProfile':
+      case "linkedinProfile":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Linkedin className="h-4 w-4 text-gray-400" />}
@@ -1087,9 +1170,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'sourceId':
+      case "sourceId":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
@@ -1097,14 +1181,16 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder || "Select source"}
             options={[
               { value: "", label: "Select source" },
-              ...Array.isArray(settingsLeadSources) ? settingsLeadSources
-                .filter((s: any) => s.isActive !== false)
-                .sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-                .map((s: any) => ({
-                  value: s.id || s.name,
-                  label: s.name,
-                  description: s.description || undefined
-                })) : []
+              ...(Array.isArray(settingsLeadSources)
+                ? settingsLeadSources
+                    .filter((s: any) => s.isActive !== false)
+                    .sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+                    .map((s: any) => ({
+                      value: s.id || s.name,
+                      label: s.name,
+                      description: s.description || undefined,
+                    }))
+                : []),
             ]}
             onChange={(v) => {
               setSelectedLeadSourceId(v);
@@ -1118,19 +1204,18 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'status':
+      case "status":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<ListFilter className="h-4 w-4 text-gray-400" />}
             value={value || "new"}
             placeholder={field.placeholder || "Select status"}
-            options={leadStatuses
-              .filter(s => s.isActive)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map(s => ({
-                value: s.name.toLowerCase(),
+            options={leadStatusOptions
+              .map((s) => ({
+                value: s.id,
                 label: s.name,
               }))}
             onChange={(v) => handleChange(field.fieldName, v)}
@@ -1141,19 +1226,40 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'priority':
+      case "priority":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Flag className="h-4 w-4 text-gray-400" />}
             value={value || "medium"}
             placeholder={field.placeholder || "Select priority"}
             options={[
-              { value: "low", label: "Low", icon: <span className="text-green-500">●</span>, description: "Low priority" },
-              { value: "medium", label: "Medium", icon: <span className="text-yellow-500">●</span>, description: "Medium priority" },
-              { value: "high", label: "High", icon: <span className="text-orange-500">●</span>, description: "High priority" },
-              { value: "urgent", label: "Urgent", icon: <span className="text-red-500">●</span>, description: "Urgent priority" }
+              {
+                value: "low",
+                label: "Low",
+                icon: <span className="text-green-500">●</span>,
+                description: "Low priority",
+              },
+              {
+                value: "medium",
+                label: "Medium",
+                icon: <span className="text-yellow-500">●</span>,
+                description: "Medium priority",
+              },
+              {
+                value: "high",
+                label: "High",
+                icon: <span className="text-orange-500">●</span>,
+                description: "High priority",
+              },
+              {
+                value: "urgent",
+                label: "Urgent",
+                icon: <span className="text-red-500">●</span>,
+                description: "Urgent priority",
+              },
             ]}
             onChange={(v) => handleChange(field.fieldName, v)}
             searchable={false}
@@ -1163,9 +1269,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'assignedTo':
+      case "assignedTo":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<UserCheck className="h-4 w-4 text-gray-400" />}
@@ -1173,12 +1280,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder || "Select user"}
             options={[
               { value: "", label: "Select user" },
-              ...Array.isArray(users) ? users.map((u) => ({
-                value: u.id,
-                label: `${u.firstName} ${u.lastName}`,
-                icon: <UserIcon className="h-4 w-4 text-blue-500" />,
-                description: `User ID: ${u.id}`
-              })) : []
+              ...(Array.isArray(users)
+                ? users.map((u) => ({
+                    value: u.id,
+                    label: `${u.firstName} ${u.lastName}`,
+                    icon: <UserIcon className="h-4 w-4 text-blue-500" />,
+                    description: `User ID: ${u.id}`,
+                  }))
+                : []),
             ]}
             onChange={(v) => handleChange(field.fieldName, v ? Number(v) : undefined)}
             searchable={true}
@@ -1188,9 +1297,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'ownerId':
+      case "ownerId":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label || "Lead Owner"}
             leftIcon={<UserCheck className="h-4 w-4 text-gray-400" />}
@@ -1198,12 +1308,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
             placeholder={field.placeholder || "Select owner"}
             options={[
               { value: "", label: "Select owner" },
-              ...Array.isArray(users) ? users.map((u) => ({
-                value: u.id,
-                label: `${u.firstName} ${u.lastName}`,
-                icon: <UserIcon className="h-4 w-4 text-blue-500" />,
-                description: `User ID: ${u.id}`
-              })) : []
+              ...(Array.isArray(users)
+                ? users.map((u) => ({
+                    value: u.id,
+                    label: `${u.firstName} ${u.lastName}`,
+                    icon: <UserIcon className="h-4 w-4 text-blue-500" />,
+                    description: `User ID: ${u.id}`,
+                  }))
+                : []),
             ]}
             onChange={(v) => handleChange(field.fieldName, v ? Number(v) : undefined)}
             searchable={true}
@@ -1214,24 +1326,27 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'budget': {
-        const currencyField = fieldConfigs.find(f => f.fieldName === 'currency');
+      case "budget": {
+        const currencyField = fieldConfigs.find((f) => f.fieldName === "currency");
         const isCurrencyVisible = currencyField?.isVisible ?? true;
 
         if (!isCurrencyVisible) {
           return (
             <InputField
+              id={`field_${field.fieldName}`}
               key={field.fieldName}
               label={field.label}
               leftIcon={
                 <span className="text-gray-400 font-medium text-sm">
-                  {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "Rs")}
+                  {getCurrencySymbol(formState.form.currency || getEffectiveDefaultCurrency())}
                 </span>
               }
               type="number"
               step="0.01"
               value={value || ""}
-              onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+              onChange={(e) =>
+                handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)
+              }
               placeholder={field.placeholder || "Enter amount"}
               required={field.isRequired}
               error={error}
@@ -1240,7 +1355,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
         }
 
         return (
-          <div key={field.fieldName} className="space-y-2">
+          <div key={field.fieldName} id={`field_${field.fieldName}`} className="space-y-2">
             <label className="block text-sm font-medium text-gray-900 dark:text-white">
               {field.label}
               {field.isRequired && <span className="text-red-500 ml-1">*</span>}
@@ -1250,20 +1365,27 @@ const LeadForm: React.FC<LeadFormProps> = ({
                 <InputField
                   leftIcon={
                     <span className="text-gray-400 font-medium text-sm">
-                      {getCurrencySymbol(formState.form.currency || currencySettings?.primary || "USD")}
+                      {getCurrencySymbol(
+                        formState.form.currency || currencySettings?.primary || "USD"
+                      )}
                     </span>
                   }
                   type="number"
                   step="0.01"
                   value={value || ""}
-                  onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+                  onChange={(e) =>
+                    handleChange(
+                      field.fieldName,
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
                   placeholder={field.placeholder || "Enter amount"}
                   error={error}
                 />
               </div>
               <div>
                 <EnhancedSelectField
-                  value={formState.form.currency || currencySettings?.primary || "USD"}
+                  value={formState.form.currency || getEffectiveDefaultCurrency()}
                   placeholder="Currency"
                   options={getCurrencyOptions()}
                   onChange={(v) => handleChange("currency", v)}
@@ -1277,8 +1399,8 @@ const LeadForm: React.FC<LeadFormProps> = ({
         );
       }
 
-      case 'currency': {
-        const budgetField = fieldConfigs.find(f => f.fieldName === 'budget');
+      case "currency": {
+        const budgetField = fieldConfigs.find((f) => f.fieldName === "budget");
         const isBudgetVisible = budgetField?.isVisible ?? true;
 
         // If budget is visible, it already includes the currency selector
@@ -1286,10 +1408,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<DollarSign className="h-4 w-4 text-gray-400" />}
-            value={value || currencySettings?.primary || "Rs"}
+            value={value || getEffectiveDefaultCurrency()}
             placeholder={field.placeholder || "Select currency"}
             options={getCurrencyOptions()}
             onChange={(v) => handleChange(field.fieldName, v)}
@@ -1301,9 +1424,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
         );
       }
 
-      case 'leadScore':
+      case "leadScore":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Award className="h-4 w-4 text-gray-400" />}
@@ -1311,27 +1435,55 @@ const LeadForm: React.FC<LeadFormProps> = ({
             min="0"
             max="100"
             value={value || ""}
-            onChange={(e) => handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) =>
+              handleChange(field.fieldName, e.target.value ? Number(e.target.value) : undefined)
+            }
             placeholder={field.placeholder || "Score (0-100)"}
             required={field.isRequired}
             error={error}
           />
         );
 
-      case 'preferredContactMethod':
+      case "preferredContactMethod":
         return (
           <EnhancedSelectField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<MessageSquare className="h-4 w-4 text-gray-400" />}
             value={value || "email"}
             placeholder={field.placeholder || "Select contact method"}
             options={[
-              { value: "email", label: "Email", icon: <Mail className="h-4 w-4 text-blue-500" />, description: "Contact via email" },
-              { value: "phone", label: "Phone", icon: <PhoneIcon className="h-4 w-4 text-green-500" />, description: "Contact via phone call" },
-              { value: "sms", label: "SMS", icon: <MessageSquare className="h-4 w-4 text-purple-500" />, description: "Contact via SMS" },
-              { value: "whatsapp", label: "WhatsApp", icon: <MessageSquare className="h-4 w-4 text-green-600" />, description: "Contact via WhatsApp" },
-              { value: "linkedin", label: "LinkedIn", icon: <Linkedin className="h-4 w-4 text-blue-600" />, description: "Contact via LinkedIn" }
+              {
+                value: "email",
+                label: "Email",
+                icon: <Mail className="h-4 w-4 text-blue-500" />,
+                description: "Contact via email",
+              },
+              {
+                value: "phone",
+                label: "Phone",
+                icon: <PhoneIcon className="h-4 w-4 text-green-500" />,
+                description: "Contact via phone call",
+              },
+              {
+                value: "sms",
+                label: "SMS",
+                icon: <MessageSquare className="h-4 w-4 text-purple-500" />,
+                description: "Contact via SMS",
+              },
+              {
+                value: "whatsapp",
+                label: "WhatsApp",
+                icon: <MessageSquare className="h-4 w-4 text-green-600" />,
+                description: "Contact via WhatsApp",
+              },
+              {
+                value: "linkedin",
+                label: "LinkedIn",
+                icon: <Linkedin className="h-4 w-4 text-blue-600" />,
+                description: "Contact via LinkedIn",
+              },
             ]}
             onChange={(v) => handleChange(field.fieldName, v)}
             searchable={false}
@@ -1341,9 +1493,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'nextFollowUpAt':
+      case "nextFollowUpAt":
         return (
           <InputField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             leftIcon={<Calendar className="h-4 w-4 text-gray-400" />}
@@ -1355,9 +1508,10 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'notes':
+      case "notes":
         return (
           <TextAreaField
+            id={`field_${field.fieldName}`}
             key={field.fieldName}
             label={field.label}
             value={value || ""}
@@ -1369,9 +1523,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
           />
         );
 
-      case 'tags':
+      case "tags":
         return (
-          <div key={field.fieldName}>
+          <div key={field.fieldName} id={`field_${field.fieldName}`}>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               {field.label}
               {field.isRequired && <span className="text-red-500 ml-1">*</span>}
@@ -1385,10 +1539,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
                       key={tag.id}
                       type="button"
                       onClick={() => toggleTag(tag.id)}
-                      className={`px-4 py-2 text-sm rounded-full border transition-all duration-200 ${selected
-                        ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-md"
-                        : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 hover:border-gray-400"
-                        }`}
+                      className={`px-4 py-2 text-sm rounded-full border transition-all duration-200 ${
+                        selected
+                          ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-md"
+                          : "bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 hover:border-gray-400"
+                      }`}
                     >
                       {tag.name}
                     </button>
@@ -1398,9 +1553,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
                 <p className="text-sm text-gray-500 italic">No tags available</p>
               )}
             </div>
-            {error && (
-              <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>
-            )}
+            {error && <p className="mt-2 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
           </div>
         );
 
@@ -1428,22 +1581,27 @@ const LeadForm: React.FC<LeadFormProps> = ({
     let matchedPhoneCodeDigitsLength = 0;
     for (const country of countries) {
       const phoneCodeDigits = country.phoneCode.replace(/\D/g, "");
-      if (digitsOnly.startsWith(phoneCodeDigits) && phoneCodeDigits.length > matchedPhoneCodeDigitsLength) {
+      if (
+        digitsOnly.startsWith(phoneCodeDigits) &&
+        phoneCodeDigits.length > matchedPhoneCodeDigitsLength
+      ) {
         matchedCountryCode = country.code;
         matchedPhoneCodeDigitsLength = phoneCodeDigits.length;
       }
     }
 
     // Determine applicable rule (country-specific or default)
-    const matchedRule = matchedCountryCode && phoneDigitRules[matchedCountryCode]
-      ? phoneDigitRules[matchedCountryCode]
-      : defaultPhoneRule;
+    const matchedRule =
+      matchedCountryCode && phoneDigitRules[matchedCountryCode]
+        ? phoneDigitRules[matchedCountryCode]
+        : defaultPhoneRule;
 
     if (matchedRule) {
       // Exclude country code digits from the count for validation
-      const localDigitsLength = matchedCountryCode && matchedPhoneCodeDigitsLength > 0
-        ? digitsOnly.length - matchedPhoneCodeDigitsLength
-        : digitsOnly.length;
+      const localDigitsLength =
+        matchedCountryCode && matchedPhoneCodeDigitsLength > 0
+          ? digitsOnly.length - matchedPhoneCodeDigitsLength
+          : digitsOnly.length;
 
       if (localDigitsLength < matchedRule.min) {
         return `Phone number must be at least ${matchedRule.min} digits`;
@@ -1458,7 +1616,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
   // Basic change handler used by renderField inputs
   const handleChange = (fieldName: string, value: any) => {
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
       form: {
         ...prev.form,
@@ -1466,14 +1624,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
       },
       errors: {
         ...prev.errors,
-        [fieldName]: ""
+        [fieldName]: "",
       },
     }));
   };
 
   // Handler for custom fields (stored in customFields object)
   const handleCustomFieldChange = (fieldName: string, value: any) => {
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
       form: {
         ...prev.form,
@@ -1484,13 +1642,13 @@ const LeadForm: React.FC<LeadFormProps> = ({
       },
       errors: {
         ...prev.errors,
-        [fieldName]: ""
+        [fieldName]: "",
       },
     }));
   };
 
   const toggleTag = (tagId: number) => {
-    setFormState(prev => {
+    setFormState((prev) => {
       const tags = Array.isArray(prev.form.tags) ? [...prev.form.tags] : [];
       const idx = tags.indexOf(tagId);
       if (idx === -1) tags.push(tagId);
@@ -1504,17 +1662,23 @@ const LeadForm: React.FC<LeadFormProps> = ({
     for (const cfg of fieldConfigs) {
       if (cfg.isVisible && cfg.isRequired) {
         // Check both direct form fields and customFields
-        const val = (formState.form as any)[cfg.fieldName] ||
+        const val =
+          (formState.form as any)[cfg.fieldName] ||
           (formState.form.customFields as any)?.[cfg.fieldName];
-        if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
+        if (
+          val === undefined ||
+          val === null ||
+          val === "" ||
+          (Array.isArray(val) && val.length === 0)
+        ) {
           errors[cfg.fieldName] = `${cfg.label || cfg.fieldName} is required`;
         } else {
           // Field specific validations
-          if (cfg.fieldName === 'email') {
+          if (cfg.fieldName === "email") {
             const e = validateEmail(String(val));
             if (e) errors[cfg.fieldName] = e;
           }
-          if (cfg.fieldName === 'phone') {
+          if (cfg.fieldName === "phone") {
             const e = validatePhone(String(val));
             if (e) errors[cfg.fieldName] = e;
           }
@@ -1522,36 +1686,57 @@ const LeadForm: React.FC<LeadFormProps> = ({
       }
     }
 
-    setFormState(prev => ({ ...prev, errors }));
-    return Object.keys(errors).length === 0;
+    setFormState((prev) => ({ ...prev, errors }));
+    const errorFields = Object.keys(errors);
+
+    // Scroll to first error field if there are validation errors
+    if (errorFields.length > 0) {
+      // Use setTimeout to ensure the DOM has updated with error states
+      setTimeout(() => {
+        const firstErrorFieldName = errorFields[0];
+        const fieldElement = document.getElementById(`field_${firstErrorFieldName}`);
+        if (fieldElement) {
+          // Find the actual input/select/textarea element inside the wrapper
+          const inputElement = fieldElement.querySelector("input, select, textarea") as HTMLElement;
+          if (inputElement) {
+            inputElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            inputElement.focus();
+          } else {
+            fieldElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }, 100);
+    }
+
+    return errorFields.length === 0;
   };
 
   const handleAddProductById = (idOrValue: string | number) => {
     const productId = Number(idOrValue);
     if (!productId) return;
 
-    const found = products.find(p => p.id === productId);
+    const found = products.find((p) => p.id === productId);
     if (!found) return;
 
     // Don't add if already added (optional, but cleaner)
-    if (formState.form.products?.some(p => p.productId === productId)) {
+    if (formState.form.products?.some((p) => p.productId === productId)) {
       return;
     }
 
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
       form: {
         ...prev.form,
         products: [
           ...(prev.form.products || []),
-          { productId: found.id, name: found.name, quantity: 1, price: found.price }
-        ]
-      }
+          { productId: found.id, name: found.name, quantity: 1, price: found.price },
+        ],
+      },
     }));
   };
 
   const removeProduct = (idx: number) => {
-    setFormState(prev => {
+    setFormState((prev) => {
       const newProducts = [...(prev.form.products || [])];
       newProducts.splice(idx, 1);
       return { ...prev, form: { ...prev.form, products: newProducts } };
@@ -1559,26 +1744,48 @@ const LeadForm: React.FC<LeadFormProps> = ({
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (!validateForm()) return;
 
     try {
-      setFormState(prev => ({ ...prev, isSubmitting: true }));
+      setFormState((prev) => ({ ...prev, isSubmitting: true }));
       await onSubmit(formState.form);
-      setFormState(prev => ({ ...prev, hasSubmitted: true, isSubmitting: false }));
+      setFormState((prev) => ({ ...prev, hasSubmitted: true, isSubmitting: false }));
     } catch (err: any) {
-      setFormState(prev => ({ ...prev, isSubmitting: false }));
-      console.error('Error submitting lead:', err);
+      setFormState((prev) => ({ ...prev, isSubmitting: false }));
+      console.error("Error submitting lead:", err);
 
       const data = err?.response?.data;
       if (Array.isArray(data?.errors) && data.errors.length > 0) {
         const apiErrors: ValidationErrors = {};
         data.errors.forEach((e: any) => {
           if (e.field) {
-            apiErrors[e.field] = Array.isArray(e.messages) ? e.messages.join(', ') : (e.msg || e.message);
+            apiErrors[e.field] = Array.isArray(e.messages)
+              ? e.messages.join(", ")
+              : e.msg || e.message;
           }
         });
-        setFormState(prev => ({ ...prev, errors: { ...prev.errors, ...apiErrors } }));
+        setFormState((prev) => ({ ...prev, errors: { ...prev.errors, ...apiErrors } }));
+
+        // Scroll to first API error field
+        const firstErrorFieldName = Object.keys(apiErrors)[0];
+        if (firstErrorFieldName) {
+          setTimeout(() => {
+            const fieldElement = document.getElementById(`field_${firstErrorFieldName}`);
+            if (fieldElement) {
+              // Find the actual input/select/textarea element inside the wrapper
+              const inputElement = fieldElement.querySelector(
+                "input, select, textarea"
+              ) as HTMLElement;
+              if (inputElement) {
+                inputElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                inputElement.focus();
+              } else {
+                fieldElement.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }
+          }, 100);
+        }
       }
     }
   };
@@ -1587,11 +1794,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
   const formSections = getGroupedAndSortedFields();
 
   return (
-    <form onSubmit={handleSubmit} className="bg-transparent space-y-8">
-      {formSections.map(section => {
+    <form onSubmit={handleSubmit} noValidate className="bg-transparent space-y-8">
+      {formSections.map((section) => {
         const colorClass = getSectionColorClass(section.color);
         return (
-          <div key={section.id} className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0">
+          <div
+            key={section.id}
+            className="pb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0"
+          >
             <div className="flex items-center mb-6">
               <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700/50 ${colorClass.icon}`}>
                 {section.icon}
@@ -1601,7 +1811,7 @@ const LeadForm: React.FC<LeadFormProps> = ({
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-6">
-              {section.fields.map(field => {
+              {section.fields.map((field) => {
                 if (!field.isVisible) return null;
                 const rendered = renderField(field);
                 return rendered ? (
@@ -1630,11 +1840,11 @@ const LeadForm: React.FC<LeadFormProps> = ({
             <EnhancedSelectField
               placeholder="Search and select products..."
               options={products
-                .filter(p => !formState.form.products?.some(sp => sp.productId === p.id))
-                .map(p => ({
+                .filter((p) => !formState.form.products?.some((sp) => sp.productId === p.id))
+                .map((p) => ({
                   value: p.id,
                   label: `${p.name} - ${p.currency} ${p.price}`,
-                  description: p.sku || 'No SKU'
+                  description: p.sku || "No SKU",
                 }))}
               onChange={handleAddProductById}
               leftIcon={<Package className="h-4 w-4 text-gray-400" />}
@@ -1674,9 +1884,14 @@ const LeadForm: React.FC<LeadFormProps> = ({
 
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
               <div className="text-right">
-                <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Total Value</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                  Total Value
+                </span>
                 <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                  {formState.form.currency} {formState.form.products.reduce((acc, p) => acc + (Number(p.price) * (p.quantity || 1)), 0).toFixed(2)}
+                  {formState.form.currency}{" "}
+                  {formState.form.products
+                    .reduce((acc, p) => acc + Number(p.price) * (p.quantity || 1), 0)
+                    .toFixed(2)}
                 </div>
               </div>
             </div>
@@ -1687,7 +1902,9 @@ const LeadForm: React.FC<LeadFormProps> = ({
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
         <button
           type="button"
-          onClick={() => { setFormState({ ...formState, form: { ...defaultState } }); }}
+          onClick={() => {
+            setFormState({ ...formState, form: { ...defaultState } });
+          }}
           className="w-full sm:w-auto px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
           Reset
@@ -1700,12 +1917,26 @@ const LeadForm: React.FC<LeadFormProps> = ({
           {formState.isSubmitting || submitting ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               Saving...
             </span>
-          ) : 'Save Lead'}
+          ) : (
+            "Save Lead"
+          )}
         </button>
       </div>
     </form>

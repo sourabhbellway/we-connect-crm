@@ -33,17 +33,29 @@ let LeadsController = class LeadsController {
     getStats() {
         return this.leads.getStats();
     }
-    list(page, limit, status, search, email, isDeleted, assignedTo, sortBy, sortOrder, user) {
+    list(page, limit, status, priority, search, email, phone, isDeleted, assignedTo, ownerId, createdBy, sourceId, industry, city, state, country, startDate, endDate, productId, sortBy, sortOrder, user) {
         const isDeletedBool = isDeleted !== undefined &&
             String(isDeleted).toLowerCase().trim() === 'true';
         return this.leads.list({
             page: page ? parseInt(page) : 1,
             limit: limit ? parseInt(limit) : 10,
             status,
+            priority,
             search,
             email,
+            phone,
             isDeleted: isDeletedBool,
             assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
+            ownerId: ownerId ? parseInt(ownerId) : undefined,
+            createdBy: createdBy ? parseInt(createdBy) : undefined,
+            sourceId: sourceId ? parseInt(sourceId) : undefined,
+            industry,
+            city,
+            state,
+            country,
+            startDate,
+            endDate,
+            productId: productId ? parseInt(productId) : undefined,
             sortBy,
             sortOrder,
         }, user);
@@ -84,8 +96,8 @@ let LeadsController = class LeadsController {
         }
         return this.leads.bulkImportFromCsv(file);
     }
-    async bulkExport(res, status, search) {
-        const csv = await this.leads.bulkExport({ status, search });
+    async bulkExport(res, status, search, ids, user) {
+        const csv = await this.leads.bulkExport({ status, search, ids }, user);
         const filename = `leads_export_${new Date().toISOString().slice(0, 10)}.csv`;
         const bom = '\uFEFF';
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -110,15 +122,27 @@ __decorate([
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('status')),
-    __param(3, (0, common_1.Query)('search')),
-    __param(4, (0, common_1.Query)('email')),
-    __param(5, (0, common_1.Query)('isDeleted')),
-    __param(6, (0, common_1.Query)('assignedTo')),
-    __param(7, (0, common_1.Query)('sortBy')),
-    __param(8, (0, common_1.Query)('sortOrder')),
-    __param(9, (0, user_decorator_1.User)()),
+    __param(3, (0, common_1.Query)('priority')),
+    __param(4, (0, common_1.Query)('search')),
+    __param(5, (0, common_1.Query)('email')),
+    __param(6, (0, common_1.Query)('phone')),
+    __param(7, (0, common_1.Query)('isDeleted')),
+    __param(8, (0, common_1.Query)('assignedTo')),
+    __param(9, (0, common_1.Query)('ownerId')),
+    __param(10, (0, common_1.Query)('createdBy')),
+    __param(11, (0, common_1.Query)('sourceId')),
+    __param(12, (0, common_1.Query)('industry')),
+    __param(13, (0, common_1.Query)('city')),
+    __param(14, (0, common_1.Query)('state')),
+    __param(15, (0, common_1.Query)('country')),
+    __param(16, (0, common_1.Query)('startDate')),
+    __param(17, (0, common_1.Query)('endDate')),
+    __param(18, (0, common_1.Query)('productId')),
+    __param(19, (0, common_1.Query)('sortBy')),
+    __param(20, (0, common_1.Query)('sortOrder')),
+    __param(21, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], LeadsController.prototype, "list", null);
 __decorate([
@@ -228,8 +252,10 @@ __decorate([
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Query)('status')),
     __param(2, (0, common_1.Query)('search')),
+    __param(3, (0, common_1.Query)('ids')),
+    __param(4, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], LeadsController.prototype, "bulkExport", null);
 __decorate([

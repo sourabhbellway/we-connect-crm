@@ -11,7 +11,6 @@ import MustChangePasswordModal from "./MustChangePasswordModal";
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 64;
 
-
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
@@ -114,8 +113,8 @@ const Login: React.FC = () => {
       if (anyErr.validationErrors && Array.isArray(anyErr.validationErrors)) {
         const newErrors: Record<string, string> = {};
         anyErr.validationErrors.forEach((error: any) => {
-          if (error.field === 'email') newErrors.email = error.messages.join(', ');
-          if (error.field === 'password') newErrors.password = error.messages.join(', ');
+          if (error.field === "email") newErrors.email = error.messages.join(", ");
+          if (error.field === "password") newErrors.password = error.messages.join(", ");
         });
         setErrors(newErrors);
       }
@@ -177,18 +176,13 @@ const Login: React.FC = () => {
                   className="mx-auto max-w-[200px] max-h-[80px] w-auto h-auto object-contain"
                 />
               ) : (
-                <img
-                  src={WeConnectLogo}
-                  alt="WeConnect"
-                  className="mx-auto w-48 h-auto"
-                />
+                <img src={WeConnectLogo} alt="WeConnect" className="mx-auto w-48 h-auto" />
               )}
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">
-              Welcome back
-            </h1>
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Welcome back</h1>
             <p className="text-base text-white/60">
-              Sign in to {companySettings?.name ? `${companySettings.name} CRM` : 'your CRM dashboard'}
+              Sign in to{" "}
+              {companySettings?.name ? `${companySettings.name} CRM` : "your CRM dashboard"}
             </p>
           </div>
 
@@ -202,10 +196,7 @@ const Login: React.FC = () => {
           {/* Form */}
           <form className="relative space-y-6" onSubmit={handleSubmit} noValidate>
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold text-white/90 mb-3"
-              >
+              <label htmlFor="email" className="block text-sm font-semibold text-white/90 mb-3">
                 Email Address
               </label>
               <div className="relative group">
@@ -219,27 +210,22 @@ const Login: React.FC = () => {
                   inputMode="email"
                   autoComplete="email"
                   required
-
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={handleTrimOnBlur}
-                  className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${errors.email
+                  className={`block w-full pl-12 pr-4 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
+                    errors.email
                       ? "border-red-400/60 ring-red-400/20"
                       : "border-white/10 hover:border-white/20 hover:bg-white/10"
-                    }`}
+                  }`}
                   placeholder="Enter your email address"
                 />
               </div>
-              {errors.email && (
-                <p className="mt-2 text-sm text-red-400">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-2 text-sm text-red-400">{errors.email}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-semibold text-white/90 mb-3"
-              >
+              <label htmlFor="password" className="block text-sm font-semibold text-white/90 mb-3">
                 Password
               </label>
               <div className="relative group">
@@ -257,10 +243,11 @@ const Login: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={handleTrimOnBlur}
-                  className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${errors.password
+                  className={`block w-full pl-12 pr-12 py-4 rounded-xl border-2 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-weconnect-red/50 focus:border-weconnect-red backdrop-blur-sm transition-all duration-200 ${
+                    errors.password
                       ? "border-red-400/60 ring-red-400/20"
                       : "border-white/10 hover:border-white/20 hover:bg-white/10"
-                    }`}
+                  }`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -301,10 +288,7 @@ const Login: React.FC = () => {
                 type="button"
                 className="text-sm font-medium text-weconnect-red hover:text-red-400 transition-colors"
                 onClick={() => {
-                  const email =
-                    formData.email ||
-                    localStorage.getItem("rememberedEmail") ||
-                    "";
+                  const email = formData.email || localStorage.getItem("rememberedEmail") || "";
                   const mailto = `mailto:support@example.com?subject=Password%20reset%20request&body=My%20login%20email:%20${encodeURIComponent(
                     email
                   )}`;
@@ -332,7 +316,6 @@ const Login: React.FC = () => {
               )}
             </button>
           </form>
-
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-  import React from "react";
+import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PaginationProps {
@@ -63,8 +63,8 @@ const Pagination: React.FC<PaginationProps> = ({
         {/* Items info */}
         {showItemsPerPage && (
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Showing <span className="font-medium text-gray-900 dark:text-white">{startItem}</span> to{" "}
-            <span className="font-medium text-gray-900 dark:text-white">{endItem}</span> of{" "}
+            Showing <span className="font-medium text-gray-900 dark:text-white">{startItem}</span>{" "}
+            to <span className="font-medium text-gray-900 dark:text-white">{endItem}</span> of{" "}
             <span className="font-medium text-gray-900 dark:text-white">{totalItems}</span> results
           </div>
         )}

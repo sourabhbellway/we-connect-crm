@@ -6,39 +6,39 @@ export declare class TagsController {
     list(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
         }[];
     }>;
     create(dto: UpsertTagDto): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
         };
     }>;
     update(id: string, dto: UpsertTagDto): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
         };
     }>;

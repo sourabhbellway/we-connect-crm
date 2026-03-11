@@ -11,16 +11,16 @@ export declare class ProposalTemplatesService {
         success: boolean;
         data: {
             items: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
+                deletedAt: Date | null;
+                content: string;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 headerHtml: string | null;
@@ -40,16 +40,16 @@ export declare class ProposalTemplatesService {
         success: boolean;
         data: {
             template: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
+                deletedAt: Date | null;
+                content: string;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 headerHtml: string | null;
@@ -63,16 +63,16 @@ export declare class ProposalTemplatesService {
         success: boolean;
         data: {
             template: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
+                deletedAt: Date | null;
+                content: string;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 headerHtml: string | null;
@@ -85,16 +85,16 @@ export declare class ProposalTemplatesService {
         success: boolean;
         data: {
             template: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                deletedAt: Date | null;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
+                deletedAt: Date | null;
+                content: string;
                 isDefault: boolean;
                 styles: import("@prisma/client/runtime/library").JsonValue | null;
-                content: string;
                 category: string | null;
                 variables: import("@prisma/client/runtime/library").JsonValue | null;
                 headerHtml: string | null;

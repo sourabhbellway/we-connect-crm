@@ -1,7 +1,7 @@
-import React from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import React from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-export type SortOrder = 'asc' | 'desc';
+export type SortOrder = "asc" | "desc";
 
 interface Props<T extends string> {
   label: string;
@@ -12,7 +12,14 @@ interface Props<T extends string> {
   className?: string;
 }
 
-const TableSortHeader = <T extends string>({ label, column, sortBy, sortOrder, onChange, className = '' }: Props<T>) => {
+const TableSortHeader = <T extends string>({
+  label,
+  column,
+  sortBy,
+  sortOrder,
+  onChange,
+  className = "",
+}: Props<T>) => {
   const active = sortBy === column;
   return (
     <button
@@ -22,7 +29,7 @@ const TableSortHeader = <T extends string>({ label, column, sortBy, sortOrder, o
     >
       <span>{label}</span>
       {active ? (
-        sortOrder === 'asc' ? (
+        sortOrder === "asc" ? (
           <ChevronUp className="w-3 h-3" />
         ) : (
           <ChevronDown className="w-3 h-3" />

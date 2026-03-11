@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { Search, User, Users, DollarSign } from 'lucide-react';
-import { leadService, Lead } from '../services/leadService';
-import { dealService, Deal } from '../services/dealService';
+import React, { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import { Search, User, Users, DollarSign } from "lucide-react";
+import { leadService, Lead } from "../services/leadService";
+import { dealService, Deal } from "../services/dealService";
 
 const SearchResults: React.FC = () => {
   const [params] = useSearchParams();
-  const q = (params.get('q') || '').trim();
+  const q = (params.get("q") || "").trim();
   const [loading, setLoading] = useState(false);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -16,8 +16,12 @@ const SearchResults: React.FC = () => {
     const run = async () => {
       setLoading(true);
       try {
-        const leadPromise = q ? leadService.getLeads({ page: 1, limit: 10, search: q }) : Promise.resolve({ data: { leads: [] } });
-        const dealPromise = q ? dealService.getDeals(1, 10, q) : Promise.resolve({ data: { deals: [] } });
+        const leadPromise = q
+          ? leadService.getLeads({ page: 1, limit: 10, search: q })
+          : Promise.resolve({ data: { leads: [] } });
+        const dealPromise = q
+          ? dealService.getDeals(1, 10, q)
+          : Promise.resolve({ data: { deals: [] } });
 
         const [lr, dr] = await Promise.all([
           leadPromise.catch(() => ({ data: { leads: [] } })),
@@ -32,7 +36,9 @@ const SearchResults: React.FC = () => {
       }
     };
     run();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [q]);
 
   return (
@@ -43,13 +49,9 @@ const SearchResults: React.FC = () => {
         {q && <span className="text-gray-500">for "{q}"</span>}
       </div>
 
-      {loading && (
-        <div className="text-gray-500">Searching...</div>
-      )}
+      {loading && <div className="text-gray-500">Searching...</div>}
 
-      {!loading && !q && (
-        <div className="text-gray-500">Type a search above and press Enter.</div>
-      )}
+      {!loading && !q && <div className="text-gray-500">Type a search above and press Enter.</div>}
 
       {!loading && q && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -61,11 +63,18 @@ const SearchResults: React.FC = () => {
               <span className="ml-auto text-xs text-gray-500">{leads.length}</span>
             </div>
             <ul className="divide-y divide-gray-100 dark:divide-slate-800">
-              {leads.map(l => (
+              {leads.map((l) => (
                 <li key={l.id}>
-                  <Link to={`/leads/${l.id}`} className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{[l.firstName, l.lastName].filter(Boolean).join(' ') || l.email || `Lead #${l.id}`}</div>
-                    <div className="text-xs text-gray-500">{l.email || l.phone || ''}</div>
+                  <Link
+                    to={`/leads/${l.id}`}
+                    className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800"
+                  >
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {[l.firstName, l.lastName].filter(Boolean).join(" ") ||
+                        l.email ||
+                        `Lead #${l.id}`}
+                    </div>
+                    <div className="text-xs text-gray-500">{l.email || l.phone || ""}</div>
                   </Link>
                 </li>
               ))}
@@ -83,11 +92,18 @@ const SearchResults: React.FC = () => {
               <span className="ml-auto text-xs text-gray-500">{deals.length}</span>
             </div>
             <ul className="divide-y divide-gray-100 dark:divide-slate-800">
-              {deals.map(d => (
+              {deals.map((d) => (
                 <li key={d.id}>
-                  <Link to={`/deals/${d.id}`} className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{d.title || `Deal #${d.id}`}</div>
-                    <div className="text-xs text-gray-500">{d.value != null && d.currency ? `${d.value} ${d.currency}` : d.status}</div>
+                  <Link
+                    to={`/deals/${d.id}`}
+                    className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800"
+                  >
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {d.title || `Deal #${d.id}`}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {d.value != null && d.currency ? `${d.value} ${d.currency}` : d.status}
+                    </div>
                   </Link>
                 </li>
               ))}

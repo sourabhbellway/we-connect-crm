@@ -6,7 +6,7 @@ import { getRoleBasedWhereClause } from '../../common/utils/permission.util';
 
 @Injectable()
 export class NotesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(leadId: number, user?: any) {
     try {

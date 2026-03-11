@@ -7,10 +7,6 @@ export declare class AuthController {
     constructor(authService: AuthService);
     login(dto: LoginDto): Promise<{
         success: boolean;
-        message: string;
-        data?: undefined;
-    } | {
-        success: boolean;
         data: {
             accessToken: string;
             refreshToken: string;
@@ -36,7 +32,6 @@ export declare class AuthController {
                 }[] | undefined;
             };
         };
-        message?: undefined;
     }>;
     register(dto: RegisterDto): Promise<{
         success: boolean;
@@ -65,26 +60,17 @@ export declare class AuthController {
     }>;
     refresh(dto: RefreshDto): Promise<{
         success: boolean;
-        message: string;
-        data?: undefined;
-    } | {
-        success: boolean;
         data: {
             accessToken: string;
             refreshToken: string;
             tokenExpiry: string;
         };
-        message?: undefined;
     }>;
     logout(refreshToken?: string): Promise<{
         success: boolean;
         message: string;
     }>;
     profile(user: any): Promise<{
-        success: boolean;
-        message: string;
-        data?: undefined;
-    } | {
         success: boolean;
         data: {
             user: {
@@ -108,6 +94,5 @@ export declare class AuthController {
                 }[];
             };
         };
-        message?: undefined;
     }>;
 }

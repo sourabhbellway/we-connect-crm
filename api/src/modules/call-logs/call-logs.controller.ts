@@ -20,7 +20,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('call-logs')
 export class CallLogsController {
-  constructor(private readonly service: CallLogsService) { }
+  constructor(private readonly service: CallLogsService) {}
 
   @Get()
   @RequirePermission('activity.read')

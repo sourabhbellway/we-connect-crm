@@ -24,17 +24,10 @@ const Loader: React.FC<LoaderProps> = ({
   sizeClassName = "h-12 w-12",
 }) => {
   return (
-    <div
-      className={containerClassName}
-      aria-busy="true"
-      aria-label={ariaLabel}
-      role="status"
-    >
+    <div className={containerClassName} aria-busy="true" aria-label={ariaLabel} role="status">
       <div className="animate-pulse">
         {showTitle && (
-          <div
-            className={`h-8 ${titleWidthClassName} mb-4 rounded bg-gray-300 dark:bg-gray-600`}
-          />
+          <div className={`h-8 ${titleWidthClassName} mb-4 rounded bg-gray-300 dark:bg-gray-600`} />
         )}
 
         {blocks > 0 ? (
@@ -50,11 +43,7 @@ const Loader: React.FC<LoaderProps> = ({
           <div className="flex flex-col items-center justify-center py-10">
             <div className={`relative ${sizeClassName}`}>
               {/* Track */}
-              <svg
-                viewBox="0 0 50 50"
-                className="absolute inset-0 animate-spin"
-                aria-hidden="true"
-              >
+              <svg viewBox="0 0 50 50" className="absolute inset-0 animate-spin" aria-hidden="true">
                 {/* Background track (white/gray) */}
                 <circle
                   cx="25"
@@ -88,9 +77,7 @@ const Loader: React.FC<LoaderProps> = ({
               {/* Soft glow accent */}
               <div className="absolute inset-0 rounded-full blur-md opacity-20 bg-gradient-to-tr from-[#EF444E] to-[#2B2C2B]" />
             </div>
-            <p className="mt-3 text-sm text-[#2B2C2B] dark:text-gray-300">
-              Loading...
-            </p>
+            <p className="mt-3 text-sm text-[#2B2C2B] dark:text-gray-300">Loading...</p>
           </div>
         )}
       </div>

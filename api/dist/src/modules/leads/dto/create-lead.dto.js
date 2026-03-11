@@ -80,7 +80,7 @@ exports.CreateLeadDto = CreateLeadDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)({ message: 'First name must be a string' }),
-    (0, class_validator_1.MinLength)(2, { message: 'First name must be at least 2 characters' }),
+    (0, class_validator_1.MinLength)(1, { message: 'First name must be at least 1 character' }),
     (0, class_validator_1.MaxLength)(50, { message: 'First name must not exceed 50 characters' }),
     (0, class_validator_1.Matches)(/^[A-Za-z\s]+$/, {
         message: 'First name can only contain letters and spaces',
@@ -90,7 +90,7 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)({ message: 'Last name must be a string' }),
-    (0, class_validator_1.MinLength)(2, { message: 'Last name must be at least 2 characters' }),
+    (0, class_validator_1.MinLength)(1, { message: 'Last name must be at least 1 character' }),
     (0, class_validator_1.MaxLength)(50, { message: 'Last name must not exceed 50 characters' }),
     (0, class_validator_1.Matches)(/^[A-Za-z\s]+$/, {
         message: 'Last name can only contain letters and spaces',
@@ -197,7 +197,9 @@ __decorate([
 ], CreateLeadDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsIn)(['low', 'medium', 'high', 'urgent'], { message: 'Priority must be one of: low, medium, high, urgent' }),
+    (0, class_validator_1.IsIn)(['low', 'medium', 'high', 'urgent'], {
+        message: 'Priority must be one of: low, medium, high, urgent',
+    }),
     __metadata("design:type", String)
 ], CreateLeadDto.prototype, "priority", void 0);
 __decorate([

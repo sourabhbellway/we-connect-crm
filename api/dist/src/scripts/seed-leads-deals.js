@@ -17,7 +17,16 @@ const INDUSTRIES = [
     'Manufacturing',
     'Retail',
 ];
-const LEAD_STATUS_NAMES = ['NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'CLOSED', 'LOST', 'CONVERTED'];
+const LEAD_STATUS_NAMES = [
+    'NEW',
+    'CONTACTED',
+    'QUALIFIED',
+    'PROPOSAL',
+    'NEGOTIATION',
+    'CLOSED',
+    'LOST',
+    'CONVERTED',
+];
 const DEAL_STATUS_NAMES = [
     'DRAFT',
     'PROPOSAL',

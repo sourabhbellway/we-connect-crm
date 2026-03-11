@@ -91,7 +91,7 @@ export interface CompanyActivity {
   metadata?: any;
   createdAt: string;
   updatedAt: string;
-  
+
   user?: {
     id: number;
     firstName: string;
@@ -114,7 +114,7 @@ export interface CompanyCommunication {
   readAt?: string;
   createdAt: string;
   updatedAt: string;
-  
+
   user: {
     id: number;
     firstName: string;
@@ -136,7 +136,7 @@ export interface CompanyFollowUp {
   reminderSet: boolean;
   createdAt: string;
   updatedAt: string;
-  
+
   user: {
     id: number;
     firstName: string;
@@ -165,7 +165,7 @@ export enum CompanySize {
   SMALL = "SMALL",
   MEDIUM = "MEDIUM",
   LARGE = "LARGE",
-  ENTERPRISE = "ENTERPRISE"
+  ENTERPRISE = "ENTERPRISE",
 }
 
 export enum CompanyStatus {
@@ -174,7 +174,7 @@ export enum CompanyStatus {
   PROSPECT = "PROSPECT",
   CUSTOMER = "CUSTOMER",
   PARTNER = "PARTNER",
-  COMPETITOR = "COMPETITOR"
+  COMPETITOR = "COMPETITOR",
 }
 
 export enum CompanyActivityType {
@@ -194,7 +194,7 @@ export enum CompanyActivityType {
   AUDIT = "AUDIT",
   REVIEW = "REVIEW",
   PARTNERSHIP = "PARTNERSHIP",
-  OTHER = "OTHER"
+  OTHER = "OTHER",
 }
 
 export enum CommunicationType {
@@ -202,7 +202,7 @@ export enum CommunicationType {
   EMAIL = "EMAIL",
   SMS = "SMS",
   MEETING = "MEETING",
-  NOTE = "NOTE"
+  NOTE = "NOTE",
 }
 
 export enum MessageStatus {
@@ -211,14 +211,14 @@ export enum MessageStatus {
   DELIVERED = "DELIVERED",
   READ = "READ",
   FAILED = "FAILED",
-  CANCELLED = "CANCELLED"
+  CANCELLED = "CANCELLED",
 }
 
 export enum TaskPriority {
   LOW = "LOW",
   MEDIUM = "MEDIUM",
   HIGH = "HIGH",
-  URGENT = "URGENT"
+  URGENT = "URGENT",
 }
 
 // Shared types from other modules

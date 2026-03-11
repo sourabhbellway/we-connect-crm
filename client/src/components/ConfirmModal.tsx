@@ -28,9 +28,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-black dark:bg-opacity-60 overflow-y-auto w-full z-50 flex items-center justify-center -top-10 ">
       <div className="relative mx-auto p-6 border w-full max-w-md shadow-xl rounded-2xl bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {title}
-          </h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -41,9 +39,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </div>
 
         {description && (
-          <div className="mb-6 text-gray-700 dark:text-gray-300 text-sm">
-            {description}
-          </div>
+          <div className="mb-6 text-gray-700 dark:text-gray-300 text-sm">{description}</div>
         )}
 
         <div className="flex justify-end space-x-3">

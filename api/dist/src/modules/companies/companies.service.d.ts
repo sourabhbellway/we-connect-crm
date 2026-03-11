@@ -12,11 +12,11 @@ export declare class CompaniesService {
         success: boolean;
         data: ({
             industry: {
-                isActive: boolean;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
+                isActive: boolean;
                 slug: string;
             } | null;
             assignedUser: {
@@ -26,19 +26,19 @@ export declare class CompaniesService {
                 id: number;
             } | null;
         } & {
-            email: string | null;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            notes: string | null;
-            id: number;
-            name: string;
-            description: string | null;
             currency: string | null;
+            email: string | null;
+            description: string | null;
             tags: string[];
             assignedTo: number | null;
             createdBy: number | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            deletedAt: Date | null;
+            notes: string | null;
             phone: string | null;
             lastContactedAt: Date | null;
             nextFollowUpAt: Date | null;
@@ -74,11 +74,11 @@ export declare class CompaniesService {
         data: {
             company: {
                 industry: {
-                    isActive: boolean;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    id: number;
                     name: string;
+                    isActive: boolean;
                     slug: string;
                 } | null;
                 assignedUser: {
@@ -88,19 +88,19 @@ export declare class CompaniesService {
                     id: number;
                 } | null;
             } & {
-                email: string | null;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                name: string;
-                description: string | null;
                 currency: string | null;
+                email: string | null;
+                description: string | null;
                 tags: string[];
                 assignedTo: number | null;
                 createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+                notes: string | null;
                 phone: string | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
@@ -134,19 +134,19 @@ export declare class CompaniesService {
         message: string;
         data: {
             company: {
-                email: string | null;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                name: string;
-                description: string | null;
                 currency: string | null;
+                email: string | null;
+                description: string | null;
                 tags: string[];
                 assignedTo: number | null;
                 createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+                notes: string | null;
                 phone: string | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;
@@ -179,19 +179,19 @@ export declare class CompaniesService {
         message: string;
         data: {
             company: {
-                email: string | null;
-                isActive: boolean;
-                createdAt: Date;
-                updatedAt: Date;
-                deletedAt: Date | null;
-                notes: string | null;
-                id: number;
-                name: string;
-                description: string | null;
                 currency: string | null;
+                email: string | null;
+                description: string | null;
                 tags: string[];
                 assignedTo: number | null;
                 createdBy: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+                notes: string | null;
                 phone: string | null;
                 lastContactedAt: Date | null;
                 nextFollowUpAt: Date | null;

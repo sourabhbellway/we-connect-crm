@@ -518,12 +518,22 @@ let UsersService = UsersService_1 = class UsersService {
             data.managerId = dto.managerId;
         try {
             const updated = await this.prisma.user.update({ where: { id }, data });
+            if (dto.password) {
+                await this.prisma.loginSession.updateMany({
+                    where: { userId: id, isActive: true },
+                    data: { isActive: false },
+                });
+            }
             if (dto.email && dto.email.trim().toLowerCase() !== user.email) {
                 const tempPassword = this.generateRandomPassword();
                 const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
                 await this.prisma.user.update({
                     where: { id },
                     data: { password: hashedTempPassword, mustChangePassword: true },
+                });
+                await this.prisma.loginSession.updateMany({
+                    where: { userId: id, isActive: true },
+                    data: { isActive: false },
                 });
                 let emailSent = false;
                 try {
@@ -680,6 +690,10 @@ let UsersService = UsersService_1 = class UsersService {
                 password: hashed,
             },
         });
+        await this.prisma.loginSession.updateMany({
+            where: { userId: userId, isActive: true },
+            data: { isActive: false },
+        });
         return { success: true, data: { user: updated } };
     }
     async changePasswordForNewUser(userId, newPassword) {
@@ -720,6 +734,10 @@ let UsersService = UsersService_1 = class UsersService {
                 mustChangePassword: false,
                 failedLoginAttempts: 0,
             },
+        });
+        await this.prisma.loginSession.updateMany({
+            where: { userId: userId, isActive: true },
+            data: { isActive: false },
         });
         return { success: true, data: { user: updated } };
     }

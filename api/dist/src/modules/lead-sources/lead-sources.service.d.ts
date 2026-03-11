@@ -7,13 +7,13 @@ export declare class LeadSourcesService {
     list(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
             sortOrder: number;
         }[];
@@ -21,13 +21,13 @@ export declare class LeadSourcesService {
     create(dto: UpsertLeadSourceDto): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
             sortOrder: number;
         };
@@ -35,13 +35,13 @@ export declare class LeadSourcesService {
     update(id: number, dto: UpsertLeadSourceDto): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
             sortOrder: number;
         };

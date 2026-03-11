@@ -155,7 +155,57 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getLeadReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
+    getLeadMetricDetails(params: {
+        metricType: string;
+        metricValue: string;
+        startDate?: string;
+        endDate?: string;
+        userId?: number;
+        scope?: 'all' | 'me';
+    }, currentUser?: any): Promise<{
+        success: boolean;
+        data: {
+            email: string | null;
+            firstName: string | null;
+            lastName: string | null;
+            id: number;
+            createdAt: Date;
+            callLogs: {
+                id: number;
+                createdAt: Date;
+                duration: number | null;
+                outcome: string | null;
+                callStatus: import(".prisma/client").$Enums.CallStatus;
+                isAnswered: boolean;
+            }[];
+            followUps: {
+                type: import(".prisma/client").$Enums.CommunicationType;
+                id: number;
+                subject: string;
+                scheduledAt: Date | null;
+            }[];
+            phone: string | null;
+            company: string | null;
+            status: string;
+            assignedUser: {
+                firstName: string;
+                lastName: string;
+            } | null;
+            source: {
+                name: string;
+            } | null;
+            leadNotes: {
+                user: {
+                    firstName: string;
+                    lastName: string;
+                };
+                id: number;
+                createdAt: Date;
+                content: string;
+            }[];
+        }[];
+    }>;
+    getLeadReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any, startDate?: string, endDate?: string): Promise<{
         success: boolean;
         data: {
             stats: {
@@ -196,7 +246,7 @@ export declare class AnalyticsService {
             };
         };
     }>;
-    getDealReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any): Promise<{
+    getDealReport(months?: number, userId?: number, scope?: 'all' | 'me', currentUser?: any, page?: number, limit?: number, filters?: any, startDate?: string, endDate?: string): Promise<{
         success: boolean;
         data: {
             stats: {

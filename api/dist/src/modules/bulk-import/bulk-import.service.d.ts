@@ -8,9 +8,9 @@ export declare class BulkImportService {
         data: {
             batch: {
                 records: {
-                    createdAt: Date;
-                    id: number;
                     leadId: number | null;
+                    id: number;
+                    createdAt: Date;
                     status: import(".prisma/client").$Enums.LeadImportStatus;
                     errors: import("@prisma/client/runtime/library").JsonValue | null;
                     rowIndex: number;
@@ -18,10 +18,10 @@ export declare class BulkImportService {
                     batchId: number;
                 }[];
             } & {
+                createdBy: number;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
-                createdBy: number;
                 status: import(".prisma/client").$Enums.LeadImportStatus;
                 errorDetails: import("@prisma/client/runtime/library").JsonValue | null;
                 fileName: string;
@@ -38,10 +38,10 @@ export declare class BulkImportService {
         success: boolean;
         data: {
             items: {
+                createdBy: number;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
-                createdBy: number;
                 status: import(".prisma/client").$Enums.LeadImportStatus;
                 errorDetails: import("@prisma/client/runtime/library").JsonValue | null;
                 fileName: string;
@@ -58,9 +58,9 @@ export declare class BulkImportService {
         success: boolean;
         data: {
             items: {
-                createdAt: Date;
-                id: number;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
                 status: import(".prisma/client").$Enums.LeadImportStatus;
                 errors: import("@prisma/client/runtime/library").JsonValue | null;
                 rowIndex: number;

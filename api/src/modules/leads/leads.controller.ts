@@ -29,7 +29,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leads: LeadsService) { }
+  constructor(private readonly leads: LeadsService) {}
 
   @Get('stats')
   @RequirePermission('lead.read')
@@ -52,10 +52,22 @@ export class LeadsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('status') status?: string,
+    @Query('priority') priority?: string,
     @Query('search') search?: string,
     @Query('email') email?: string,
-    @Query('isDeleted') isDeleted?: string, // Query parameter to filter by deletion status
+    @Query('phone') phone?: string,
+    @Query('isDeleted') isDeleted?: string,
     @Query('assignedTo') assignedTo?: string,
+    @Query('ownerId') ownerId?: string,
+    @Query('createdBy') createdBy?: string,
+    @Query('sourceId') sourceId?: string,
+    @Query('industry') industry?: string,
+    @Query('city') city?: string,
+    @Query('state') state?: string,
+    @Query('country') country?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('productId') productId?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
     @User() user?: any,
@@ -70,10 +82,22 @@ export class LeadsController {
         page: page ? parseInt(page) : 1,
         limit: limit ? parseInt(limit) : 10,
         status,
+        priority,
         search,
         email,
+        phone,
         isDeleted: isDeletedBool,
         assignedTo: assignedTo ? parseInt(assignedTo) : undefined,
+        ownerId: ownerId ? parseInt(ownerId) : undefined,
+        createdBy: createdBy ? parseInt(createdBy) : undefined,
+        sourceId: sourceId ? parseInt(sourceId) : undefined,
+        industry,
+        city,
+        state,
+        country,
+        startDate,
+        endDate,
+        productId: productId ? parseInt(productId) : undefined,
         sortBy,
         sortOrder,
       },
@@ -215,8 +239,10 @@ export class LeadsController {
     @Res() res: Response,
     @Query('status') status?: string,
     @Query('search') search?: string,
+    @Query('ids') ids?: string,
+    @User() user?: any,
   ) {
-    const csv = await this.leads.bulkExport({ status, search });
+    const csv = await this.leads.bulkExport({ status, search, ids }, user);
     const filename = `leads_export_${new Date().toISOString().slice(0, 10)}.csv`;
     // Prepend UTF-8 BOM so Excel recognizes UTF-8 encoding
     const bom = '\uFEFF';

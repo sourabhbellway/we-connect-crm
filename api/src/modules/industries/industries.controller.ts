@@ -18,7 +18,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('industries')
 export class IndustriesController {
-  constructor(private readonly service: IndustriesService) { }
+  constructor(private readonly service: IndustriesService) {}
 
   @Get()
   list() {

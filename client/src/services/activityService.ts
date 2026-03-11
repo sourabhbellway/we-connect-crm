@@ -11,7 +11,7 @@ export const activityService = {
       search?: string;
       dateFrom?: string;
       dateTo?: string;
-    },
+    }
   ) => {
     try {
       const response = await apiClient.get("/activities", {
@@ -78,9 +78,9 @@ export const activityService = {
         params: { page, limit },
         ...(options?.skipLoader
           ? {
-            headers: { 'X-Skip-Global-Loader': 'true' },
-            skipGlobalLoader: true as any,
-          }
+              headers: { "X-Skip-Global-Loader": "true" },
+              skipGlobalLoader: true as any,
+            }
           : {}),
       });
       return response.data;

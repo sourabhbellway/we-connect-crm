@@ -8,17 +8,17 @@ export declare class PaymentsController {
         data: {
             payment: {
                 invoice: {
-                    createdAt: Date;
-                    updatedAt: Date;
-                    deletedAt: Date | null;
-                    notes: string | null;
-                    id: number;
-                    companyId: number | null;
-                    description: string | null;
                     currency: string;
                     title: string;
+                    description: string | null;
                     leadId: number | null;
                     createdBy: number;
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    companyId: number | null;
+                    deletedAt: Date | null;
+                    notes: string | null;
                     status: import(".prisma/client").$Enums.InvoiceStatus;
                     dueDate: Date | null;
                     dealId: number | null;
@@ -40,12 +40,12 @@ export declare class PaymentsController {
                     id: number;
                 };
             } & {
+                currency: string;
+                createdBy: number;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
-                currency: string;
-                createdBy: number;
                 invoiceId: number;
                 amount: import("@prisma/client/runtime/library").Decimal;
                 paymentMethod: string;
@@ -64,12 +64,12 @@ export declare class PaymentsController {
                     id: number;
                 };
             } & {
+                currency: string;
+                createdBy: number;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
                 notes: string | null;
-                id: number;
-                currency: string;
-                createdBy: number;
                 invoiceId: number;
                 amount: import("@prisma/client/runtime/library").Decimal;
                 paymentMethod: string;

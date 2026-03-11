@@ -19,7 +19,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @Controller('payments')
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) { }
+  constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
   @RequirePermission('payments.create')

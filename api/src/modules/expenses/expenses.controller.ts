@@ -21,7 +21,7 @@ import { User } from '../../common/decorators/user.decorator';
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('expenses')
 export class ExpensesController {
-  constructor(private readonly service: ExpensesService) { }
+  constructor(private readonly service: ExpensesService) {}
 
   @Get()
   @RequirePermission('expense.read')

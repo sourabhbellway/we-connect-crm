@@ -5,11 +5,11 @@ export declare class PermissionsService {
     list(): Promise<{
         success: boolean;
         data: {
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
             key: string;
             module: string;
         }[];

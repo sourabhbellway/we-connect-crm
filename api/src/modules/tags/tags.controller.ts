@@ -17,7 +17,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('tags')
 export class TagsController {
-  constructor(private readonly service: TagsService) { }
+  constructor(private readonly service: TagsService) {}
 
   @Get()
   list() {

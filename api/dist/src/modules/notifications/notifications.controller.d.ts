@@ -16,15 +16,15 @@ export declare class NotificationsController {
         success: boolean;
         data: {
             notifications: {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
-                link: string | null;
                 message: string;
                 title: string;
                 type: import(".prisma/client").$Enums.NotificationType;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                link: string | null;
                 read: boolean;
                 readAt: Date | null;
             }[];
@@ -46,15 +46,15 @@ export declare class NotificationsController {
     markAsRead(id: string, req: any): Promise<{
         success: boolean;
         data: {
-            createdAt: Date;
-            updatedAt: Date;
-            id: number;
-            link: string | null;
             message: string;
             title: string;
             type: import(".prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             userId: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            link: string | null;
             read: boolean;
             readAt: Date | null;
         };
@@ -76,15 +76,15 @@ export declare class NotificationsController {
     } | {
         success: boolean;
         data: {
-            createdAt: Date;
-            updatedAt: Date;
-            id: number;
-            link: string | null;
             message: string;
             title: string;
             type: import(".prisma/client").$Enums.NotificationType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             userId: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            link: string | null;
             read: boolean;
             readAt: Date | null;
         };
@@ -99,10 +99,10 @@ export declare class NotificationsController {
     getPreferences(req: any): Promise<{
         success: boolean;
         data: {
+            userId: number;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            userId: number;
             preferences: import("@prisma/client/runtime/library").JsonValue;
             inAppEnabled: boolean;
             emailEnabled: boolean;
@@ -114,10 +114,10 @@ export declare class NotificationsController {
     updatePreferences(req: any, dto: UpdateNotificationPreferenceDto): Promise<{
         success: boolean;
         data: {
+            userId: number;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            userId: number;
             preferences: import("@prisma/client/runtime/library").JsonValue;
             inAppEnabled: boolean;
             emailEnabled: boolean;

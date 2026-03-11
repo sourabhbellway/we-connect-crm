@@ -50,5 +50,3 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ colors = defaultColors, val
 };
 
 export default ColorPalette;
-
-

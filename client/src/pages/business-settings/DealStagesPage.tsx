@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useBusinessSettings } from '../../contexts/BusinessSettingsContext';
-import { Card, CardHeader, CardContent, Button, PageLoader } from '../../components/ui';
-import { Workflow, ArrowLeft, Plus, Edit3, Trash2, Tag } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { DealStatus } from '../../features/business-settings/types';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useBusinessSettings } from "../../contexts/BusinessSettingsContext";
+import { Card, CardHeader, CardContent, Button, PageLoader } from "../../components/ui";
+import { Workflow, ArrowLeft, Plus, Edit3, Trash2, Tag } from "lucide-react";
+import { toast } from "react-toastify";
+import { DealStatus } from "../../features/business-settings/types";
 
 const DealStagesPage: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    dealStatuses, addDealStatus, updateDealStatus, deleteDealStatus, isLoading
-  } = useBusinessSettings();
+  const { dealStatuses, addDealStatus, updateDealStatus, deleteDealStatus, isLoading } =
+    useBusinessSettings();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    color: '#3B82F6',
+    name: "",
+    color: "#3B82F6",
     sortOrder: 0,
     isActive: true,
   });
@@ -25,8 +24,8 @@ const DealStagesPage: React.FC = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      color: '#3B82F6',
+      name: "",
+      color: "#3B82F6",
       sortOrder: dealStatuses.length,
       isActive: true,
     });
@@ -37,7 +36,7 @@ const DealStagesPage: React.FC = () => {
   const handleEdit = (status: DealStatus) => {
     setFormData({
       name: status.name,
-      color: status.color || '#3B82F6',
+      color: status.color || "#3B82F6",
       sortOrder: status.sortOrder,
       isActive: status.isActive,
     });
@@ -49,7 +48,7 @@ const DealStagesPage: React.FC = () => {
     e.preventDefault();
     const name = formData.name.trim();
     if (!name) {
-      toast.error('Status name is required');
+      toast.error("Status name is required");
       return;
     }
     setIsSaving(true);
@@ -57,28 +56,30 @@ const DealStagesPage: React.FC = () => {
     try {
       if (editingId) {
         await updateDealStatus(editingId, formData);
-        toast.success('Deal status updated successfully');
+        toast.success("Deal status updated successfully");
       } else {
         await addDealStatus(formData);
-        toast.success('Deal status added successfully');
+        toast.success("Deal status added successfully");
       }
       resetForm();
     } catch (error) {
-      console.error('Failed to save deal status:', error);
-      toast.error('Failed to save deal status');
+      console.error("Failed to save deal status:", error);
+      toast.error("Failed to save deal status");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this status? This may affect deals using it.')) {
+    if (
+      window.confirm("Are you sure you want to delete this status? This may affect deals using it.")
+    ) {
       try {
         await deleteDealStatus(id);
-        toast.success('Deal status deleted successfully');
+        toast.success("Deal status deleted successfully");
       } catch (error) {
-        console.error('Failed to delete deal status:', error);
-        toast.error('Failed to delete deal status');
+        console.error("Failed to delete deal status:", error);
+        toast.error("Failed to delete deal status");
       }
     }
   };
@@ -95,7 +96,7 @@ const DealStagesPage: React.FC = () => {
           <Button
             variant="GHOST"
             size="SM"
-            onClick={() => navigate('/business-settings')}
+            onClick={() => navigate("/business-settings")}
             className="p-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -117,7 +118,10 @@ const DealStagesPage: React.FC = () => {
         {!isEditing && (
           <Button
             variant="PRIMARY"
-            onClick={() => { resetForm(); setIsEditing(true); }}
+            onClick={() => {
+              resetForm();
+              setIsEditing(true);
+            }}
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -146,46 +150,54 @@ const DealStagesPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {dealStatuses.sort((a, b) => a.sortOrder - b.sortOrder).map((status) => (
-                    <div
-                      key={status.id}
-                      className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-xl hover:shadow-md transition-all bg-white dark:bg-gray-800 group"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="w-3 h-3 rounded-full shadow-sm"
-                          style={{ backgroundColor: status.color || '#3B82F6' }}
-                        />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-gray-900 dark:text-white">{status.name}</span>
-                            {!status.isActive && (
-                              <span className="text-[10px] px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full font-bold">INACTIVE</span>
-                            )}
+                  {dealStatuses
+                    .sort((a, b) => a.sortOrder - b.sortOrder)
+                    .map((status) => (
+                      <div
+                        key={status.id}
+                        className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-xl hover:shadow-md transition-all bg-white dark:bg-gray-800 group"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div
+                            className="w-3 h-3 rounded-full shadow-sm"
+                            style={{ backgroundColor: status.color || "#3B82F6" }}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-900 dark:text-white">
+                                {status.name}
+                              </span>
+                              {!status.isActive && (
+                                <span className="text-[10px] px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full font-bold">
+                                  INACTIVE
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              Order: {status.sortOrder}
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-400 mt-0.5">Order: {status.sortOrder}</p>
+                        </div>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="GHOST"
+                            size="SM"
+                            onClick={() => handleEdit(status)}
+                            className="p-1.5 h-8 w-8 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="GHOST"
+                            size="SM"
+                            onClick={() => handleDelete(status.id!)}
+                            className="p-1.5 h-8 w-8 hover:bg-red-50 hover:text-red-600 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="GHOST"
-                          size="SM"
-                          onClick={() => handleEdit(status)}
-                          className="p-1.5 h-8 w-8 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="GHOST"
-                          size="SM"
-                          onClick={() => handleDelete(status.id!)}
-                          className="p-1.5 h-8 w-8 hover:bg-red-50 hover:text-red-600 rounded-lg"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
             </CardContent>
@@ -198,17 +210,19 @@ const DealStagesPage: React.FC = () => {
             <Card className="sticky top-6 border-2 border-orange-100 dark:border-orange-900/30">
               <CardHeader className="border-b pb-4">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {editingId ? 'Edit Status' : 'New Status'}
+                  {editingId ? "Edit Status" : "New Status"}
                 </h3>
               </CardHeader>
               <CardContent className="pt-6">
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Status Name</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
+                      Status Name
+                    </label>
                     <input
                       type="text"
                       value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                       className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none transition-all"
                       placeholder="e.g., Contacted, Qualified, Won"
                       required
@@ -217,23 +231,36 @@ const DealStagesPage: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Color</label>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
+                        Color
+                      </label>
                       <div className="flex items-center gap-3">
                         <input
                           type="color"
                           value={formData.color}
-                          onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, color: e.target.value }))
+                          }
                           className="w-10 h-10 p-0.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white cursor-pointer"
                         />
-                        <span className="text-xs font-mono text-gray-500 uppercase">{formData.color}</span>
+                        <span className="text-xs font-mono text-gray-500 uppercase">
+                          {formData.color}
+                        </span>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Sort Order</label>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">
+                        Sort Order
+                      </label>
                       <input
                         type="number"
                         value={formData.sortOrder}
-                        onChange={(e) => setFormData(prev => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            sortOrder: parseInt(e.target.value) || 0,
+                          }))
+                        }
                         className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
                       />
                     </div>
@@ -244,17 +271,22 @@ const DealStagesPage: React.FC = () => {
                       type="checkbox"
                       id="isActive"
                       checked={formData.isActive}
-                      onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, isActive: e.target.checked }))
+                      }
                       className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
                     />
-                    <label htmlFor="isActive" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <label
+                      htmlFor="isActive"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                    >
                       Status is Active
                     </label>
                   </div>
 
                   <div className="flex gap-3 pt-2">
                     <Button type="submit" variant="PRIMARY" className="flex-1" disabled={isSaving}>
-                      {isSaving ? 'Saving...' : (editingId ? 'Update Status' : 'Add Status')}
+                      {isSaving ? "Saving..." : editingId ? "Update Status" : "Add Status"}
                     </Button>
                     <Button type="button" variant="GHOST" onClick={resetForm} className="flex-1">
                       Cancel
@@ -269,12 +301,16 @@ const DealStagesPage: React.FC = () => {
                 <Tag className="w-12 h-12 text-orange-200 dark:text-orange-800 mx-auto mb-4" />
                 <h4 className="font-bold text-gray-900 dark:text-white mb-2">Management</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-                  Select a status to edit or click "Add Status" to create a new one. These statuses are used for deals.
+                  Select a status to edit or click "Add Status" to create a new one. These statuses
+                  are used for deals.
                 </p>
                 <Button
                   variant="OUTLINE"
                   size="SM"
-                  onClick={() => { resetForm(); setIsEditing(true); }}
+                  onClick={() => {
+                    resetForm();
+                    setIsEditing(true);
+                  }}
                   className="w-full border-orange-200 text-orange-600 hover:bg-orange-50"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -282,8 +318,7 @@ const DealStagesPage: React.FC = () => {
                 </Button>
               </CardContent>
             </Card>
-          )
-          }
+          )}
         </div>
       </div>
     </div>

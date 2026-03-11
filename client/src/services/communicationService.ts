@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 export interface Meeting {
   id: number;
@@ -25,7 +25,7 @@ export interface Meeting {
 export interface CreateMeetingDto {
   leadId: number;
   userId: number;
-  type: 'MEETING';
+  type: "MEETING";
   subject?: string;
   content: string;
   direction?: string;
@@ -36,19 +36,24 @@ export interface CreateMeetingDto {
 }
 
 export const communicationService = {
-  getMeetings: async (leadId: number): Promise<{ success: boolean; data: { items: Meeting[] } }> => {
+  getMeetings: async (
+    leadId: number
+  ): Promise<{ success: boolean; data: { items: Meeting[] } }> => {
     const response = await apiClient.get(`/communications/leads/${leadId}/meetings`);
     return response.data;
   },
 
-  createMeeting: async (dto: CreateMeetingDto): Promise<{ success: boolean; data: { communication: Meeting } }> => {
-    const response = await apiClient.post('/communications/leads', dto);
+  createMeeting: async (
+    dto: CreateMeetingDto
+  ): Promise<{ success: boolean; data: { communication: Meeting } }> => {
+    const response = await apiClient.post("/communications/leads", dto);
     return response.data;
   },
 
-  getCommunications: async (leadId: number): Promise<{ success: boolean; data: { items: Meeting[] } }> => {
+  getCommunications: async (
+    leadId: number
+  ): Promise<{ success: boolean; data: { items: Meeting[] } }> => {
     const response = await apiClient.get(`/communications/leads?leadId=${leadId}`);
     return response.data;
   },
 };
-

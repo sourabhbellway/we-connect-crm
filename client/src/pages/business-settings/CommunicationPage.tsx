@@ -1,15 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  Plus, Edit, Trash2, Mail, MessageSquare, Zap, Settings,
-  Save, X, Copy, Eye, EyeOff, AlertCircle, CheckCircle, Clock, FileText, Filter
-} from 'lucide-react';
-import { toast } from 'react-toastify';
+  Plus,
+  Edit,
+  Trash2,
+  Mail,
+  MessageSquare,
+  Zap,
+  Settings,
+  Save,
+  X,
+  Copy,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  FileText,
+  Filter,
+} from "lucide-react";
+import { toast } from "react-toastify";
 
 interface Template {
   id: number;
   name: string;
-  type: 'EMAIL' | 'WHATSAPP' | 'SMS';
+  type: "EMAIL" | "WHATSAPP" | "SMS";
   subject?: string;
   content: string;
   variables?: any;
@@ -25,7 +40,7 @@ interface Template {
 interface Automation {
   id: number;
   name: string;
-  triggerType: 'LEAD_CREATED' | 'LEAD_UPDATED' | 'LEAD_STATUS_CHANGED' | 'LEAD_ASSIGNED';
+  triggerType: "LEAD_CREATED" | "LEAD_UPDATED" | "LEAD_STATUS_CHANGED" | "LEAD_ASSIGNED";
   template: {
     id: number;
     name: string;
@@ -40,7 +55,7 @@ interface Automation {
 interface Provider {
   id: number;
   name: string;
-  type: 'EMAIL' | 'WHATSAPP' | 'SMS';
+  type: "EMAIL" | "WHATSAPP" | "SMS";
   config: any;
   isActive: boolean;
   isDefault: boolean;
@@ -49,14 +64,24 @@ interface Provider {
 interface EmailTemplate {
   id: number;
   name: string;
-  category: 'WELCOME' | 'EMAIL_VERIFICATION' | 'EMAIL_CHANGE_CONFIRMATION' | 'PASSWORD_RESET' | 'WELCOME_SERIES' | 'ONBOARDING' | 'NEWSLETTER' | 'MARKETING' | 'SYSTEM_NOTIFICATION' | 'CUSTOM';
-  type: 'EMAIL';
+  category:
+    | "WELCOME"
+    | "EMAIL_VERIFICATION"
+    | "EMAIL_CHANGE_CONFIRMATION"
+    | "PASSWORD_RESET"
+    | "WELCOME_SERIES"
+    | "ONBOARDING"
+    | "NEWSLETTER"
+    | "MARKETING"
+    | "SYSTEM_NOTIFICATION"
+    | "CUSTOM";
+  type: "EMAIL";
   subject: string;
   htmlContent: string;
   textContent: string;
   variables?: any;
   metadata?: any;
-  status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'ACTIVE' | 'ARCHIVED' | 'REJECTED';
+  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "ACTIVE" | "ARCHIVED" | "REJECTED";
   isActive: boolean;
   isDefault: boolean;
   createdAt: string;
@@ -65,7 +90,7 @@ interface EmailTemplate {
 
 const CommunicationPage: React.FC = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('email-templates');
+  const [activeTab, setActiveTab] = useState("email-templates");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
   const [automations, setAutomations] = useState<Automation[]>([]);
@@ -79,42 +104,46 @@ const CommunicationPage: React.FC = () => {
   const [editingEmailTemplate, setEditingEmailTemplate] = useState<EmailTemplate | null>(null);
   const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
   const [editingProvider, setEditingProvider] = useState<Provider | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [previewData, setPreviewData] = useState<any>(null);
 
   const [templateForm, setTemplateForm] = useState({
-    name: '',
-    type: 'EMAIL' as 'EMAIL' | 'WHATSAPP' | 'SMS',
-    subject: '',
-    content: '',
-    isDefault: false
+    name: "",
+    type: "EMAIL" as "EMAIL" | "WHATSAPP" | "SMS",
+    subject: "",
+    content: "",
+    isDefault: false,
   });
 
   const [emailTemplateForm, setEmailTemplateForm] = useState({
-    name: '',
-    category: 'WELCOME' as EmailTemplate['category'],
-    subject: '',
-    htmlContent: '',
-    textContent: '',
+    name: "",
+    category: "WELCOME" as EmailTemplate["category"],
+    subject: "",
+    htmlContent: "",
+    textContent: "",
     variables: {} as Record<string, boolean>,
     isActive: true,
     isDefault: false,
-    status: 'ACTIVE' as EmailTemplate['status']
+    status: "ACTIVE" as EmailTemplate["status"],
   });
 
   const [automationForm, setAutomationForm] = useState({
-    name: '',
-    triggerType: 'LEAD_CREATED' as 'LEAD_CREATED' | 'LEAD_UPDATED' | 'LEAD_STATUS_CHANGED' | 'LEAD_ASSIGNED',
-    templateId: '',
-    conditions: '',
-    delay: 0
+    name: "",
+    triggerType: "LEAD_CREATED" as
+      | "LEAD_CREATED"
+      | "LEAD_UPDATED"
+      | "LEAD_STATUS_CHANGED"
+      | "LEAD_ASSIGNED",
+    templateId: "",
+    conditions: "",
+    delay: 0,
   });
 
   const [providerForm, setProviderForm] = useState({
-    name: '',
-    type: 'EMAIL' as 'EMAIL' | 'WHATSAPP' | 'SMS',
-    config: '',
-    isDefault: false
+    name: "",
+    type: "EMAIL" as "EMAIL" | "WHATSAPP" | "SMS",
+    config: "",
+    isDefault: false,
   });
 
   useEffect(() => {
@@ -128,10 +157,10 @@ const CommunicationPage: React.FC = () => {
         fetchTemplates(),
         fetchEmailTemplates(),
         fetchAutomations(),
-        fetchProviders()
+        fetchProviders(),
       ]);
     } catch (error) {
-      console.error('Error fetching communication data:', error);
+      console.error("Error fetching communication data:", error);
     } finally {
       setLoading(false);
     }
@@ -139,10 +168,10 @@ const CommunicationPage: React.FC = () => {
 
   const fetchTemplates = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch('/api/communications/templates', {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const response = await fetch("/api/communications/templates", {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
       const data = await response.json();
@@ -150,16 +179,16 @@ const CommunicationPage: React.FC = () => {
         setTemplates(data.data.templates);
       }
     } catch (error) {
-      console.error('Error fetching templates:', error);
+      console.error("Error fetching templates:", error);
     }
   };
 
   const fetchEmailTemplates = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch('/api/business-settings/email-templates', {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const response = await fetch("/api/business-settings/email-templates", {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
       const data = await response.json();
@@ -167,16 +196,16 @@ const CommunicationPage: React.FC = () => {
         setEmailTemplates(data.data);
       }
     } catch (error) {
-      console.error('Error fetching email templates:', error);
+      console.error("Error fetching email templates:", error);
     }
   };
 
   const fetchAutomations = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch('/api/automation/workflows', {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const response = await fetch("/api/automation/workflows", {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
       const data = await response.json();
@@ -184,16 +213,16 @@ const CommunicationPage: React.FC = () => {
         setAutomations(data.data.automations);
       }
     } catch (error) {
-      console.error('Error fetching automations:', error);
+      console.error("Error fetching automations:", error);
     }
   };
 
   const fetchProviders = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch('/api/communication/providers', {
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const response = await fetch("/api/communication/providers", {
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
       const data = await response.json();
@@ -201,64 +230,66 @@ const CommunicationPage: React.FC = () => {
         setProviders(data.data.providers);
       }
     } catch (error) {
-      console.error('Error fetching providers:', error);
+      console.error("Error fetching providers:", error);
     }
   };
 
   const handleSaveTemplate = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const url = editingTemplate
         ? `/api/communications/templates/${editingTemplate.id}`
-        : '/api/communications/templates';
+        : "/api/communications/templates";
 
       const response = await fetch(url, {
-        method: editingTemplate ? 'PUT' : 'POST',
+        method: editingTemplate ? "PUT" : "POST",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(templateForm),
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success(editingTemplate ? 'Template updated successfully' : 'Template created successfully');
+        toast.success(
+          editingTemplate ? "Template updated successfully" : "Template created successfully"
+        );
         setShowTemplateModal(false);
         setEditingTemplate(null);
-        setTemplateForm({ name: '', type: 'EMAIL', subject: '', content: '', isDefault: false });
+        setTemplateForm({ name: "", type: "EMAIL", subject: "", content: "", isDefault: false });
         await fetchTemplates();
       } else {
-        toast.error(data.message || 'Failed to save template');
+        toast.error(data.message || "Failed to save template");
       }
     } catch (error) {
-      console.error('Error saving template:', error);
-      toast.error('Failed to save template');
+      console.error("Error saving template:", error);
+      toast.error("Failed to save template");
     }
   };
 
   const handleDeleteTemplate = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this template?')) return;
+    if (!confirm("Are you sure you want to delete this template?")) return;
 
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await fetch(`/api/communications/templates/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success('Template deleted successfully');
+        toast.success("Template deleted successfully");
         await fetchTemplates();
       } else {
-        toast.error(data.message || 'Failed to delete template');
+        toast.error(data.message || "Failed to delete template");
       }
     } catch (error) {
-      console.error('Error deleting template:', error);
-      toast.error('Failed to delete template');
+      console.error("Error deleting template:", error);
+      toast.error("Failed to delete template");
     }
   };
 
@@ -267,20 +298,20 @@ const CommunicationPage: React.FC = () => {
     setTemplateForm({
       name: template.name,
       type: template.type,
-      subject: template.subject || '',
+      subject: template.subject || "",
       content: template.content,
-      isDefault: template.isDefault
+      isDefault: template.isDefault,
     });
     setShowTemplateModal(true);
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'EMAIL':
+      case "EMAIL":
         return <Mail className="h-4 w-4 text-blue-500" />;
-      case 'WHATSAPP':
+      case "WHATSAPP":
         return <MessageSquare className="h-4 w-4 text-green-500" />;
-      case 'SMS':
+      case "SMS":
         return <MessageSquare className="h-4 w-4 text-purple-500" />;
       default:
         return <MessageSquare className="h-4 w-4 text-gray-500" />;
@@ -289,14 +320,14 @@ const CommunicationPage: React.FC = () => {
 
   const getTriggerTypeLabel = (triggerType: string) => {
     switch (triggerType) {
-      case 'LEAD_CREATED':
-        return 'Lead Created';
-      case 'LEAD_UPDATED':
-        return 'Lead Updated';
-      case 'LEAD_STATUS_CHANGED':
-        return 'Status Changed';
-      case 'LEAD_ASSIGNED':
-        return 'Lead Assigned';
+      case "LEAD_CREATED":
+        return "Lead Created";
+      case "LEAD_UPDATED":
+        return "Lead Updated";
+      case "LEAD_STATUS_CHANGED":
+        return "Status Changed";
+      case "LEAD_ASSIGNED":
+        return "Lead Assigned";
       default:
         return triggerType;
     }
@@ -304,29 +335,29 @@ const CommunicationPage: React.FC = () => {
 
   const getCategoryLabel = (category: string) => {
     const labels: Record<string, string> = {
-      'WELCOME': 'Welcome Email',
-      'EMAIL_VERIFICATION': 'Email Verification',
-      'EMAIL_CHANGE_CONFIRMATION': 'Email Change Confirmation',
-      'PASSWORD_RESET': 'Password Reset',
-      'WELCOME_SERIES': 'Welcome Series',
-      'ONBOARDING': 'Onboarding',
-      'NEWSLETTER': 'Newsletter',
-      'MARKETING': 'Marketing',
-      'SYSTEM_NOTIFICATION': 'System Notification',
-      'CUSTOM': 'Custom'
+      WELCOME: "Welcome Email",
+      EMAIL_VERIFICATION: "Email Verification",
+      EMAIL_CHANGE_CONFIRMATION: "Email Change Confirmation",
+      PASSWORD_RESET: "Password Reset",
+      WELCOME_SERIES: "Welcome Series",
+      ONBOARDING: "Onboarding",
+      NEWSLETTER: "Newsletter",
+      MARKETING: "Marketing",
+      SYSTEM_NOTIFICATION: "System Notification",
+      CUSTOM: "Custom",
     };
     return labels[category] || category;
   };
 
   const handleSaveEmailTemplate = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const userIdStr = localStorage.getItem('userId');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const userIdStr = localStorage.getItem("userId");
       const userId = userIdStr ? parseInt(userIdStr, 10) : 1;
 
       const url = editingEmailTemplate
         ? `/api/business-settings/email-templates/${editingEmailTemplate.id}`
-        : '/api/business-settings/email-templates';
+        : "/api/business-settings/email-templates";
 
       const payload = {
         ...emailTemplateForm,
@@ -337,14 +368,17 @@ const CommunicationPage: React.FC = () => {
       if (emailTemplateForm.isDefault) {
         // First unset other defaults for this category
         const existingDefaults = emailTemplates.filter(
-          t => t.category === emailTemplateForm.category && t.isDefault && t.id !== editingEmailTemplate?.id
+          (t) =>
+            t.category === emailTemplateForm.category &&
+            t.isDefault &&
+            t.id !== editingEmailTemplate?.id
         );
         for (const template of existingDefaults) {
           await fetch(`/api/business-settings/email-templates/${template.id}`, {
-            method: 'PUT',
+            method: "PUT",
             headers: {
-              'Authorization': token ? `Bearer ${token}` : '',
-              'Content-Type': 'application/json',
+              Authorization: token ? `Bearer ${token}` : "",
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({ ...template, isDefault: false }),
           });
@@ -352,62 +386,66 @@ const CommunicationPage: React.FC = () => {
       }
 
       const response = await fetch(url, {
-        method: editingEmailTemplate ? 'PUT' : 'POST',
+        method: editingEmailTemplate ? "PUT" : "POST",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success(editingEmailTemplate ? 'Email template updated successfully' : 'Email template created successfully');
+        toast.success(
+          editingEmailTemplate
+            ? "Email template updated successfully"
+            : "Email template created successfully"
+        );
         setShowEmailTemplateModal(false);
         setEditingEmailTemplate(null);
         setEmailTemplateForm({
-          name: '',
-          category: 'WELCOME',
-          subject: '',
-          htmlContent: '',
-          textContent: '',
+          name: "",
+          category: "WELCOME",
+          subject: "",
+          htmlContent: "",
+          textContent: "",
           variables: {},
           isActive: true,
           isDefault: false,
-          status: 'ACTIVE'
+          status: "ACTIVE",
         });
         await fetchEmailTemplates();
       } else {
-        toast.error(data.message || 'Failed to save email template');
+        toast.error(data.message || "Failed to save email template");
       }
     } catch (error) {
-      console.error('Error saving email template:', error);
-      toast.error('Failed to save email template');
+      console.error("Error saving email template:", error);
+      toast.error("Failed to save email template");
     }
   };
 
   const handleDeleteEmailTemplate = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this email template?')) return;
+    if (!confirm("Are you sure you want to delete this email template?")) return;
 
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
       const response = await fetch(`/api/business-settings/email-templates/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          Authorization: token ? `Bearer ${token}` : "",
         },
       });
 
       const data = await response.json();
       if (data.success) {
-        toast.success('Email template deleted successfully');
+        toast.success("Email template deleted successfully");
         await fetchEmailTemplates();
       } else {
-        toast.error(data.message || 'Failed to delete email template');
+        toast.error(data.message || "Failed to delete email template");
       }
     } catch (error) {
-      console.error('Error deleting email template:', error);
-      toast.error('Failed to delete email template');
+      console.error("Error deleting email template:", error);
+      toast.error("Failed to delete email template");
     }
   };
 
@@ -422,39 +460,43 @@ const CommunicationPage: React.FC = () => {
       variables: template.variables || {},
       isActive: template.isActive,
       isDefault: template.isDefault,
-      status: template.status
+      status: template.status,
     });
     setShowEmailTemplateModal(true);
   };
 
   const handlePreviewEmailTemplate = async (template: EmailTemplate) => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      const response = await fetch(`/api/business-settings/email-templates/preview/${template.id}`, {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-      });
+      const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+      const response = await fetch(
+        `/api/business-settings/email-templates/preview/${template.id}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
+      );
       const data = await response.json();
       if (data.success) {
         setPreviewData(data.data);
       }
     } catch (error) {
-      console.error('Error previewing email template:', error);
-      toast.error('Failed to preview email template');
+      console.error("Error previewing email template:", error);
+      toast.error("Failed to preview email template");
     }
   };
 
   const addVariable = (variable: string) => {
-    setEmailTemplateForm(prev => ({
+    setEmailTemplateForm((prev) => ({
       ...prev,
-      variables: { ...prev.variables, [variable]: true }
+      variables: { ...prev.variables, [variable]: true },
     }));
   };
 
-  const filteredEmailTemplates = selectedCategory === 'ALL'
-    ? emailTemplates
-    : emailTemplates.filter(t => t.category === selectedCategory);
+  const filteredEmailTemplates =
+    selectedCategory === "ALL"
+      ? emailTemplates
+      : emailTemplates.filter((t) => t.category === selectedCategory);
 
   if (loading) {
     return (
@@ -467,17 +509,15 @@ const CommunicationPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Communication Settings
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Communication Settings</h1>
       </div>
 
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: 'email-templates', label: 'Email Templates', icon: FileText },
-            { id: 'templates', label: 'Message Templates', icon: Mail },
+            { id: "email-templates", label: "Email Templates", icon: FileText },
+            { id: "templates", label: "Message Templates", icon: Mail },
             // { id: 'automations', label: 'Automations', icon: Zap },
             // { id: 'providers', label: 'Providers', icon: Settings },
           ].map((tab) => {
@@ -486,10 +526,11 @@ const CommunicationPage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
-                    ? 'border-weconnect-red text-weconnect-red'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === tab.id
+                    ? "border-weconnect-red text-weconnect-red"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
               >
                 <Icon className="h-4 w-4 mr-2" />
                 {tab.label}
@@ -500,7 +541,7 @@ const CommunicationPage: React.FC = () => {
       </div>
 
       {/* Email Templates Tab */}
-      {activeTab === 'email-templates' && (
+      {activeTab === "email-templates" && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -510,15 +551,15 @@ const CommunicationPage: React.FC = () => {
               onClick={() => {
                 setEditingEmailTemplate(null);
                 setEmailTemplateForm({
-                  name: '',
-                  category: 'WELCOME',
-                  subject: '',
-                  htmlContent: '',
-                  textContent: '',
+                  name: "",
+                  category: "WELCOME",
+                  subject: "",
+                  htmlContent: "",
+                  textContent: "",
                   variables: {},
                   isActive: true,
                   isDefault: false,
-                  status: 'ACTIVE'
+                  status: "ACTIVE",
                 });
                 setShowEmailTemplateModal(true);
               }}
@@ -580,10 +621,15 @@ const CommunicationPage: React.FC = () => {
                             Inactive
                           </span>
                         )}
-                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${template.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                            template.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                          }`}>
+                        <span
+                          className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                            template.status === "ACTIVE"
+                              ? "bg-green-100 text-green-800"
+                              : template.status === "DRAFT"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
                           {template.status}
                         </span>
                       </div>
@@ -594,17 +640,21 @@ const CommunicationPage: React.FC = () => {
 
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         {template.htmlContent.length > 150
-                          ? `${template.htmlContent.substring(0, 150).replace(/<[^>]*>/g, '')}...`
-                          : template.htmlContent.replace(/<[^>]*>/g, '')
-                        }
+                          ? `${template.htmlContent.substring(0, 150).replace(/<[^>]*>/g, "")}...`
+                          : template.htmlContent.replace(/<[^>]*>/g, "")}
                       </p>
 
                       {template.variables && Object.keys(template.variables).length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
                           <span className="text-xs text-gray-500">Variables: </span>
                           {Object.keys(template.variables).map((key) => (
-                            <span key={key} className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                              {'{'}{key}{'}'}
+                            <span
+                              key={key}
+                              className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded"
+                            >
+                              {"{"}
+                              {key}
+                              {"}"}
                             </span>
                           ))}
                         </div>
@@ -648,21 +698,26 @@ const CommunicationPage: React.FC = () => {
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {selectedCategory === 'ALL' ? 'No email templates found' : `No templates found for ${getCategoryLabel(selectedCategory)}`}
+                {selectedCategory === "ALL"
+                  ? "No email templates found"
+                  : `No templates found for ${getCategoryLabel(selectedCategory)}`}
               </p>
               <button
                 onClick={() => {
                   setEditingEmailTemplate(null);
                   setEmailTemplateForm({
-                    name: '',
-                    category: selectedCategory !== 'ALL' ? selectedCategory as EmailTemplate['category'] : 'WELCOME',
-                    subject: '',
-                    htmlContent: '',
-                    textContent: '',
+                    name: "",
+                    category:
+                      selectedCategory !== "ALL"
+                        ? (selectedCategory as EmailTemplate["category"])
+                        : "WELCOME",
+                    subject: "",
+                    htmlContent: "",
+                    textContent: "",
                     variables: {},
                     isActive: true,
                     isDefault: false,
-                    status: 'ACTIVE'
+                    status: "ACTIVE",
                   });
                   setShowEmailTemplateModal(true);
                 }}
@@ -676,7 +731,7 @@ const CommunicationPage: React.FC = () => {
       )}
 
       {/* Templates Tab */}
-      {activeTab === 'templates' && (
+      {activeTab === "templates" && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -685,7 +740,13 @@ const CommunicationPage: React.FC = () => {
             <button
               onClick={() => {
                 setEditingTemplate(null);
-                setTemplateForm({ name: '', type: 'EMAIL', subject: '', content: '', isDefault: false });
+                setTemplateForm({
+                  name: "",
+                  type: "EMAIL",
+                  subject: "",
+                  content: "",
+                  isDefault: false,
+                });
                 setShowTemplateModal(true);
               }}
               className="bg-weconnect-red text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors flex items-center"
@@ -703,9 +764,7 @@ const CommunicationPage: React.FC = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="flex-shrink-0">
-                      {getTypeIcon(template.type)}
-                    </div>
+                    <div className="flex-shrink-0">{getTypeIcon(template.type)}</div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -732,12 +791,12 @@ const CommunicationPage: React.FC = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         {template.content.length > 100
                           ? `${template.content.substring(0, 100)}...`
-                          : template.content
-                        }
+                          : template.content}
                       </p>
 
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Created by {template.createdByUser.firstName} {template.createdByUser.lastName} on{' '}
+                        Created by {template.createdByUser.firstName}{" "}
+                        {template.createdByUser.lastName} on{" "}
                         {new Date(template.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -778,7 +837,7 @@ const CommunicationPage: React.FC = () => {
       )}
 
       {/* Automations Tab */}
-      {activeTab === 'automations' && (
+      {activeTab === "automations" && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -821,7 +880,8 @@ const CommunicationPage: React.FC = () => {
                           <strong>Trigger:</strong> {getTriggerTypeLabel(automation.triggerType)}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          <strong>Template:</strong> {automation.template.name} ({automation.template.type})
+                          <strong>Template:</strong> {automation.template.name} (
+                          {automation.template.type})
                         </p>
                         {automation.delay && automation.delay > 0 && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -871,7 +931,7 @@ const CommunicationPage: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {editingEmailTemplate ? 'Edit Email Template' : 'Create New Email Template'}
+                  {editingEmailTemplate ? "Edit Email Template" : "Create New Email Template"}
                 </h3>
                 <button
                   onClick={() => {
@@ -893,7 +953,9 @@ const CommunicationPage: React.FC = () => {
                     <input
                       type="text"
                       value={emailTemplateForm.name}
-                      onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, name: e.target.value })}
+                      onChange={(e) =>
+                        setEmailTemplateForm({ ...emailTemplateForm, name: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                       placeholder="Welcome Email Template"
                     />
@@ -905,7 +967,12 @@ const CommunicationPage: React.FC = () => {
                     </label>
                     <select
                       value={emailTemplateForm.category}
-                      onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, category: e.target.value as EmailTemplate['category'] })}
+                      onChange={(e) =>
+                        setEmailTemplateForm({
+                          ...emailTemplateForm,
+                          category: e.target.value as EmailTemplate["category"],
+                        })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                     >
                       <option value="WELCOME">Welcome</option>
@@ -929,12 +996,15 @@ const CommunicationPage: React.FC = () => {
                   <input
                     type="text"
                     value={emailTemplateForm.subject}
-                    onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, subject: e.target.value })}
+                    onChange={(e) =>
+                      setEmailTemplateForm({ ...emailTemplateForm, subject: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                     placeholder="{appName} - Welcome {firstName}"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Use {'{variableName}'} for dynamic values (e.g., {'{firstName}'}, {'{email}'}, {'{password}'}, {'{appName}'})
+                    Use {"{variableName}"} for dynamic values (e.g., {"{firstName}"}, {"{email}"},{" "}
+                    {"{password}"}, {"{appName}"})
                   </p>
                 </div>
 
@@ -944,7 +1014,9 @@ const CommunicationPage: React.FC = () => {
                   </label>
                   <textarea
                     value={emailTemplateForm.htmlContent}
-                    onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, htmlContent: e.target.value })}
+                    onChange={(e) =>
+                      setEmailTemplateForm({ ...emailTemplateForm, htmlContent: e.target.value })
+                    }
                     rows={10}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white font-mono text-sm"
                     placeholder="<p>Hello {firstName},</p><p>Your account has been created...</p>"
@@ -957,7 +1029,9 @@ const CommunicationPage: React.FC = () => {
                   </label>
                   <textarea
                     value={emailTemplateForm.textContent}
-                    onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, textContent: e.target.value })}
+                    onChange={(e) =>
+                      setEmailTemplateForm({ ...emailTemplateForm, textContent: e.target.value })
+                    }
                     rows={8}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white font-mono text-sm"
                     placeholder="Hello {firstName}, Your account has been created..."
@@ -966,29 +1040,42 @@ const CommunicationPage: React.FC = () => {
 
                 {/* Available Variables Helper */}
                 <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Available Variables:</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Available Variables:
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {['firstName', 'lastName', 'email', 'password', 'appName', 'verificationLink', 'resetLink'].map((varName) => (
+                    {[
+                      "firstName",
+                      "lastName",
+                      "email",
+                      "password",
+                      "appName",
+                      "verificationLink",
+                      "resetLink",
+                    ].map((varName) => (
                       <button
                         key={varName}
                         type="button"
                         onClick={() => {
                           const varText = `{${varName}}`;
-                          setEmailTemplateForm(prev => ({
+                          setEmailTemplateForm((prev) => ({
                             ...prev,
                             htmlContent: prev.htmlContent + varText,
                             textContent: prev.textContent + varText,
-                            variables: { ...prev.variables, [varName]: true }
+                            variables: { ...prev.variables, [varName]: true },
                           }));
                         }}
                         className="text-xs bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-500"
                       >
-                        {'{'}{varName}{'}'}
+                        {"{"}
+                        {varName}
+                        {"}"}
                       </button>
                     ))}
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Click on a variable to insert it into your template. Welcome emails should include {'{email}'} and {'{password}'} fields.
+                    Click on a variable to insert it into your template. Welcome emails should
+                    include {"{email}"} and {"{password}"} fields.
                   </p>
                 </div>
 
@@ -998,10 +1085,15 @@ const CommunicationPage: React.FC = () => {
                       type="checkbox"
                       id="isActive"
                       checked={emailTemplateForm.isActive}
-                      onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, isActive: e.target.checked })}
+                      onChange={(e) =>
+                        setEmailTemplateForm({ ...emailTemplateForm, isActive: e.target.checked })
+                      }
                       className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
                     />
-                    <label htmlFor="isActive" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor="isActive"
+                      className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
                       Active
                     </label>
                   </div>
@@ -1010,10 +1102,15 @@ const CommunicationPage: React.FC = () => {
                       type="checkbox"
                       id="isDefault"
                       checked={emailTemplateForm.isDefault}
-                      onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, isDefault: e.target.checked })}
+                      onChange={(e) =>
+                        setEmailTemplateForm({ ...emailTemplateForm, isDefault: e.target.checked })
+                      }
                       className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
                     />
-                    <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    <label
+                      htmlFor="isDefault"
+                      className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                    >
                       Set as Default
                     </label>
                   </div>
@@ -1023,7 +1120,12 @@ const CommunicationPage: React.FC = () => {
                     </label>
                     <select
                       value={emailTemplateForm.status}
-                      onChange={(e) => setEmailTemplateForm({ ...emailTemplateForm, status: e.target.value as EmailTemplate['status'] })}
+                      onChange={(e) =>
+                        setEmailTemplateForm({
+                          ...emailTemplateForm,
+                          status: e.target.value as EmailTemplate["status"],
+                        })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                     >
                       <option value="DRAFT">Draft</option>
@@ -1048,11 +1150,16 @@ const CommunicationPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleSaveEmailTemplate}
-                  disabled={!emailTemplateForm.name || !emailTemplateForm.subject || !emailTemplateForm.htmlContent || !emailTemplateForm.textContent}
+                  disabled={
+                    !emailTemplateForm.name ||
+                    !emailTemplateForm.subject ||
+                    !emailTemplateForm.htmlContent ||
+                    !emailTemplateForm.textContent
+                  }
                   className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {editingEmailTemplate ? 'Update' : 'Create'} Template
+                  {editingEmailTemplate ? "Update" : "Create"} Template
                 </button>
               </div>
             </div>
@@ -1081,13 +1188,18 @@ const CommunicationPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Subject:
                   </label>
-                  <p className="text-sm text-gray-900 dark:text-white font-medium">{previewData.subject}</p>
+                  <p className="text-sm text-gray-900 dark:text-white font-medium">
+                    {previewData.subject}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     HTML Preview:
                   </label>
-                  <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700" dangerouslySetInnerHTML={{ __html: previewData.htmlContent }} />
+                  <div
+                    className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700"
+                    dangerouslySetInnerHTML={{ __html: previewData.htmlContent }}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1118,7 +1230,7 @@ const CommunicationPage: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {editingTemplate ? 'Edit Template' : 'Create New Template'}
+                  {editingTemplate ? "Edit Template" : "Create New Template"}
                 </h3>
                 <button
                   onClick={() => setShowTemplateModal(false)}
@@ -1149,7 +1261,9 @@ const CommunicationPage: React.FC = () => {
                     </label>
                     <select
                       value={templateForm.type}
-                      onChange={(e) => setTemplateForm({ ...templateForm, type: e.target.value as any })}
+                      onChange={(e) =>
+                        setTemplateForm({ ...templateForm, type: e.target.value as any })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                     >
                       <option value="EMAIL">Email</option>
@@ -1159,7 +1273,7 @@ const CommunicationPage: React.FC = () => {
                   </div>
                 </div>
 
-                {templateForm.type === 'EMAIL' && (
+                {templateForm.type === "EMAIL" && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Subject *
@@ -1167,7 +1281,9 @@ const CommunicationPage: React.FC = () => {
                     <input
                       type="text"
                       value={templateForm.subject}
-                      onChange={(e) => setTemplateForm({ ...templateForm, subject: e.target.value })}
+                      onChange={(e) =>
+                        setTemplateForm({ ...templateForm, subject: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
                       placeholder="Welcome to {{companyName}}"
                     />
@@ -1186,7 +1302,10 @@ const CommunicationPage: React.FC = () => {
                     placeholder="Hi {{leadFirstName}}, welcome to {{companyName}}..."
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Available variables: {'{{leadFirstName}}, {{leadLastName}}, {{leadEmail}}, {{leadPhone}}, {{leadCompany}}, {{companyName}}, {{assignedUserName}}'}
+                    Available variables:{" "}
+                    {
+                      "{{leadFirstName}}, {{leadLastName}}, {{leadEmail}}, {{leadPhone}}, {{leadCompany}}, {{companyName}}, {{assignedUserName}}"
+                    }
                   </p>
                 </div>
 
@@ -1195,10 +1314,15 @@ const CommunicationPage: React.FC = () => {
                     type="checkbox"
                     id="isDefault"
                     checked={templateForm.isDefault}
-                    onChange={(e) => setTemplateForm({ ...templateForm, isDefault: e.target.checked })}
+                    onChange={(e) =>
+                      setTemplateForm({ ...templateForm, isDefault: e.target.checked })
+                    }
                     className="h-4 w-4 text-weconnect-red focus:ring-weconnect-red border-gray-300 rounded"
                   />
-                  <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="isDefault"
+                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  >
                     Set as default template for this type
                   </label>
                 </div>
@@ -1217,7 +1341,7 @@ const CommunicationPage: React.FC = () => {
                   className="px-4 py-2 text-sm font-medium text-white bg-weconnect-red rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  {editingTemplate ? 'Update' : 'Create'} Template
+                  {editingTemplate ? "Update" : "Create"} Template
                 </button>
               </div>
             </div>

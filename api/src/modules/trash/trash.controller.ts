@@ -17,7 +17,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('trash')
 export class TrashController {
-  constructor(private readonly trashService: TrashService) { }
+  constructor(private readonly trashService: TrashService) {}
 
   @Get('stats')
   @RequirePermission('trash.read')

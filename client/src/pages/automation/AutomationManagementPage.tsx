@@ -1,11 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { PERMISSIONS } from '../../constants';
-import { Zap, Plus, Play, Pause, Trash2, Clock, CheckCircle, XCircle, AlertCircle, LayoutList, LayoutGrid, Edit, Eye } from 'lucide-react';
-import WorkflowDetails from '../../components/WorkflowDetails';
-import WorkflowBuilder from '../../components/WorkflowBuilder';
-import { automationService, Workflow, WorkflowExecution, CreateWorkflowPayload } from '../../services/automationService';
-import { formatDistanceToNow } from 'date-fns';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { PERMISSIONS } from "../../constants";
+import {
+  Zap,
+  Plus,
+  Play,
+  Pause,
+  Trash2,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  LayoutList,
+  LayoutGrid,
+  Edit,
+  Eye,
+} from "lucide-react";
+import WorkflowDetails from "../../components/WorkflowDetails";
+import WorkflowBuilder from "../../components/WorkflowBuilder";
+import {
+  automationService,
+  Workflow,
+  WorkflowExecution,
+  CreateWorkflowPayload,
+} from "../../services/automationService";
+import { formatDistanceToNow } from "date-fns";
 
 const AutomationManagementPage: React.FC = () => {
   const { hasPermission } = useAuth();
@@ -15,8 +34,8 @@ const AutomationManagementPage: React.FC = () => {
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [viewingWorkflow, setViewingWorkflow] = useState<Workflow | null>(null);
-  const [activeTab, setActiveTab] = useState<'workflows' | 'logs'>('workflows');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [activeTab, setActiveTab] = useState<"workflows" | "logs">("workflows");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     loadData();
@@ -32,7 +51,7 @@ const AutomationManagementPage: React.FC = () => {
       setWorkflows(workflowsData);
       setExecutions(executionsData);
     } catch (error) {
-      console.error('Failed to load automation data:', error);
+      console.error("Failed to load automation data:", error);
     } finally {
       setLoading(false);
     }
@@ -49,7 +68,7 @@ const AutomationManagementPage: React.FC = () => {
       setEditingWorkflow(null);
       loadData();
     } catch (error) {
-      console.error('Failed to save workflow:', error);
+      console.error("Failed to save workflow:", error);
       throw error;
     }
   };
@@ -68,30 +87,30 @@ const AutomationManagementPage: React.FC = () => {
       await automationService.toggleWorkflow(id, !isActive);
       loadData();
     } catch (error) {
-      console.error('Failed to toggle workflow:', error);
-      alert('Failed to toggle workflow');
+      console.error("Failed to toggle workflow:", error);
+      alert("Failed to toggle workflow");
     }
   };
 
   const handleDeleteWorkflow = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this workflow?')) return;
+    if (!confirm("Are you sure you want to delete this workflow?")) return;
     try {
       await automationService.deleteWorkflow(id);
       loadData();
     } catch (error) {
-      console.error('Failed to delete workflow:', error);
-      alert('Failed to delete workflow');
+      console.error("Failed to delete workflow:", error);
+      alert("Failed to delete workflow");
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'SUCCESS':
+      case "SUCCESS":
         return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'FAILED':
+      case "FAILED":
         return <XCircle className="h-5 w-5 text-red-500" />;
-      case 'RUNNING':
-      case 'PENDING':
+      case "RUNNING":
+      case "PENDING":
         return <Clock className="h-5 w-5 text-yellow-500" />;
       default:
         return <AlertCircle className="h-5 w-5 text-gray-500" />;
@@ -100,15 +119,15 @@ const AutomationManagementPage: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'SUCCESS':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'FAILED':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      case 'RUNNING':
-      case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case "SUCCESS":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+      case "FAILED":
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+      case "RUNNING":
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400";
     }
   };
 
@@ -120,33 +139,28 @@ const AutomationManagementPage: React.FC = () => {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {workflow.name}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{workflow.name}</h3>
             <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${workflow.isActive
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-                }`}
+              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                workflow.isActive
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+              }`}
             >
-              {workflow.isActive ? 'Active' : 'Inactive'}
+              {workflow.isActive ? "Active" : "Inactive"}
             </span>
           </div>
           {workflow.description && (
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
-              {workflow.description}
-            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{workflow.description}</p>
           )}
           <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
             <span className="flex items-center gap-1">
               <Zap className="h-4 w-4" />
-              {workflow.trigger.replace(/_/g, ' ')}
+              {workflow.trigger.replace(/_/g, " ")}
             </span>
             <span>{workflow.conditions.conditions.length} conditions</span>
             <span>{workflow.actions.length} actions</span>
-            {workflow._count && (
-              <span>{workflow._count.executions} executions</span>
-            )}
+            {workflow._count && <span>{workflow._count.executions} executions</span>}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -161,7 +175,7 @@ const AutomationManagementPage: React.FC = () => {
             <button
               onClick={() => handleToggleWorkflow(workflow.id, workflow.isActive)}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              title={workflow.isActive ? 'Pause' : 'Activate'}
+              title={workflow.isActive ? "Pause" : "Activate"}
             >
               {workflow.isActive ? (
                 <Pause className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -202,21 +216,23 @@ const AutomationManagementPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Automation</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Build rules to automate your workflows</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Build rules to automate your workflows
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
             <button
-              className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-              onClick={() => setViewMode('list')}
+              className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+              onClick={() => setViewMode("list")}
               title="List view"
             >
               <LayoutList className="w-4 h-4" />
             </button>
             <button
-              className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
-              onClick={() => setViewMode('grid')}
+              className={`flex items-center justify-center p-2 rounded-md transition-colors ${viewMode === "grid" ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"}`}
+              onClick={() => setViewMode("grid")}
               title="Grid view"
             >
               <LayoutGrid className="w-4 h-4" />
@@ -235,27 +251,28 @@ const AutomationManagementPage: React.FC = () => {
             </button>
           )}
         </div>
-
       </div>
 
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-4">
           <button
-            onClick={() => setActiveTab('workflows')}
-            className={`px-4 py-2 border-b-2 font-medium transition-colors ${activeTab === 'workflows'
-              ? 'border-weconnect-red text-weconnect-red'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+            onClick={() => setActiveTab("workflows")}
+            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+              activeTab === "workflows"
+                ? "border-weconnect-red text-weconnect-red"
+                : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            }`}
           >
             Workflows ({workflows.length})
           </button>
           <button
-            onClick={() => setActiveTab('logs')}
-            className={`px-4 py-2 border-b-2 font-medium transition-colors ${activeTab === 'logs'
-              ? 'border-weconnect-red text-weconnect-red'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+            onClick={() => setActiveTab("logs")}
+            className={`px-4 py-2 border-b-2 font-medium transition-colors ${
+              activeTab === "logs"
+                ? "border-weconnect-red text-weconnect-red"
+                : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            }`}
           >
             Execution Logs ({executions.length})
           </button>
@@ -266,7 +283,7 @@ const AutomationManagementPage: React.FC = () => {
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-weconnect-red"></div>
         </div>
-      ) : activeTab === 'workflows' ? (
+      ) : activeTab === "workflows" ? (
         <div className="space-y-4">
           {workflows.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
@@ -290,16 +307,14 @@ const AutomationManagementPage: React.FC = () => {
                 </button>
               )}
             </div>
+          ) : viewMode === "grid" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {workflows.map((workflow) => renderWorkflowCard(workflow))}
+            </div>
           ) : (
-            viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {workflows.map((workflow) => renderWorkflowCard(workflow))}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {workflows.map((workflow) => renderWorkflowCard(workflow))}
-              </div>
-            )
+            <div className="space-y-4">
+              {workflows.map((workflow) => renderWorkflowCard(workflow))}
+            </div>
           )}
         </div>
       ) : (
@@ -358,12 +373,12 @@ const AutomationManagementPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {execution.workflow.trigger.replace(/_/g, ' ')}
+                          {execution.workflow.trigger.replace(/_/g, " ")}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {execution.duration ? `${execution.duration}ms` : '-'}
+                          {execution.duration ? `${execution.duration}ms` : "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -392,10 +407,7 @@ const AutomationManagementPage: React.FC = () => {
       )}
 
       {viewingWorkflow && (
-        <WorkflowDetails
-          workflow={viewingWorkflow}
-          onClose={() => setViewingWorkflow(null)}
-        />
+        <WorkflowDetails workflow={viewingWorkflow} onClose={() => setViewingWorkflow(null)} />
       )}
     </div>
   );

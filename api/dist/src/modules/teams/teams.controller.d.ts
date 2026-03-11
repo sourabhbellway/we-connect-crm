@@ -9,12 +9,12 @@ export declare class TeamsController {
     findOne(id: string): Promise<any>;
     update(id: string, updateTeamDto: UpdateTeamDto): Promise<any>;
     remove(id: string): Promise<{
+        description: string | null;
+        id: number;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
-        managerId: number | null;
         name: string;
-        description: string | null;
+        managerId: number | null;
         productId: number | null;
     }>;
 }

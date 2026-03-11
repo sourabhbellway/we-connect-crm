@@ -8,14 +8,12 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   inputRef?: React.Ref<HTMLInputElement>;
 }
 
-interface TextAreaFieldProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface TextAreaFieldProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
 }
 
-interface SelectFieldProps
-  extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
@@ -29,10 +27,11 @@ export const InputField: React.FC<InputFieldProps> = ({
   className,
   required,
   inputRef,
+  id,
   ...rest
 }) => {
   return (
-    <div>
+    <div id={id}>
       {label && (
         <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           {label}
@@ -66,14 +65,10 @@ export const InputField: React.FC<InputFieldProps> = ({
           ].join(" ")}
         />
         {rightIcon && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-            {rightIcon}
-          </div>
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">{rightIcon}</div>
         )}
       </div>
-      {error && (
-        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
     </div>
   );
 };
@@ -85,28 +80,29 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   rows = 3,
   onChange,
   required,
+  id,
   ...rest
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     let value = e.target.value;
-    
+
     // Restrict special characters that could be harmful
     const restrictedChars = /<script|<\/script|javascript:|on\w+\s*=|<iframe|<object|<embed/i;
     if (restrictedChars.test(value)) {
       // Remove restricted content
-      value = value.replace(restrictedChars, '');
+      value = value.replace(restrictedChars, "");
     }
-    
+
     // Update the event target value
     e.target.value = value;
-    
+
     if (onChange) {
       onChange(e);
     }
   };
 
   return (
-    <div>
+    <div id={id}>
       {label && (
         <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           {label}
@@ -129,9 +125,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
           className || "",
         ].join(" ")}
       />
-      {error && (
-        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
     </div>
   );
 };
@@ -143,10 +137,11 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   className,
   children,
   required,
+  id,
   ...rest
 }) => {
   return (
-    <div>
+    <div id={id}>
       {label && (
         <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           {label}
@@ -180,9 +175,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           {children}
         </select>
       </div>
-      {error && (
-        <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
     </div>
   );
 };

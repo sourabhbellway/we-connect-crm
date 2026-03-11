@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, Button, PageLoader } from '../../components/ui';
-import { ArrowLeft, Save, Hash, FileText, Receipt, RotateCcw } from 'lucide-react';
-import { toast } from 'react-toastify';
-import apiClient from '../../services/apiClient';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent, Button, PageLoader } from "../../components/ui";
+import { ArrowLeft, Save, Hash, FileText, Receipt, RotateCcw } from "lucide-react";
+import { toast } from "react-toastify";
+import apiClient from "../../services/apiClient";
 
 interface NumberingSettings {
   quotePrefix: string;
@@ -19,11 +19,11 @@ interface NumberingSettings {
 const NumberingSettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<NumberingSettings>({
-    quotePrefix: 'Q-',
-    quoteSuffix: '',
+    quotePrefix: "Q-",
+    quoteSuffix: "",
     quotePad: 6,
-    invoicePrefix: 'INV-',
-    invoiceSuffix: '',
+    invoicePrefix: "INV-",
+    invoiceSuffix: "",
     invoicePad: 6,
     quoteNumberingEnabled: true,
     invoiceNumberingEnabled: true,
@@ -37,20 +37,20 @@ const NumberingSettingsPage: React.FC = () => {
 
   const fetchNumberingSettings = async () => {
     try {
-      const response = await apiClient.get('/business-settings/numbering');
+      const response = await apiClient.get("/business-settings/numbering");
       if (response.data.success) {
         setFormData(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching numbering settings:', error);
-      toast.error('Failed to load numbering settings');
+      console.error("Error fetching numbering settings:", error);
+      toast.error("Failed to load numbering settings");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleInputChange = (field: keyof NumberingSettings, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,22 +58,21 @@ const NumberingSettingsPage: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const response = await apiClient.put('/business-settings/numbering', formData);
+      const response = await apiClient.put("/business-settings/numbering", formData);
       if (response.data.success) {
-        toast.success('Numbering settings updated successfully');
+        toast.success("Numbering settings updated successfully");
       }
     } catch (error: any) {
-      console.error('Failed to update numbering settings:', error);
-      toast.error(error.response?.data?.message || 'Failed to update numbering settings');
+      console.error("Failed to update numbering settings:", error);
+      toast.error(error.response?.data?.message || "Failed to update numbering settings");
     } finally {
       setIsSaving(false);
     }
   };
 
   const generatePreview = (prefix: string, suffix: string, pad: number, number: number = 1) => {
-    return `${prefix}${String(number).padStart(pad, '0')}${suffix}`;
+    return `${prefix}${String(number).padStart(pad, "0")}${suffix}`;
   };
-
 
   if (isLoading) {
     return <PageLoader message="Loading numbering settings..." />;
@@ -86,7 +85,7 @@ const NumberingSettingsPage: React.FC = () => {
         <Button
           variant="GHOST"
           size="SM"
-          onClick={() => navigate('/business-settings')}
+          onClick={() => navigate("/business-settings")}
           className="p-2"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -96,9 +95,7 @@ const NumberingSettingsPage: React.FC = () => {
             <Hash className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Document Numbering
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Document Numbering</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Configure prefixes, suffixes, and numbering formats for quotations and invoices
             </p>
@@ -117,13 +114,13 @@ const NumberingSettingsPage: React.FC = () => {
               </h3>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {formData.quoteNumberingEnabled ? 'Enabled' : 'Disabled'}
+                  {formData.quoteNumberingEnabled ? "Enabled" : "Disabled"}
                 </span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.quoteNumberingEnabled}
-                    onChange={(e) => handleInputChange('quoteNumberingEnabled', e.target.checked)}
+                    onChange={(e) => handleInputChange("quoteNumberingEnabled", e.target.checked)}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -140,7 +137,7 @@ const NumberingSettingsPage: React.FC = () => {
                 <input
                   type="text"
                   value={formData.quotePrefix}
-                  onChange={(e) => handleInputChange('quotePrefix', e.target.value)}
+                  onChange={(e) => handleInputChange("quotePrefix", e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Q-"
                   required
@@ -157,7 +154,7 @@ const NumberingSettingsPage: React.FC = () => {
                 <input
                   type="text"
                   value={formData.quoteSuffix}
-                  onChange={(e) => handleInputChange('quoteSuffix', e.target.value)}
+                  onChange={(e) => handleInputChange("quoteSuffix", e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="-2025"
                 />
@@ -173,7 +170,7 @@ const NumberingSettingsPage: React.FC = () => {
                 <input
                   type="number"
                   value={formData.quotePad}
-                  onChange={(e) => handleInputChange('quotePad', parseInt(e.target.value) || 6)}
+                  onChange={(e) => handleInputChange("quotePad", parseInt(e.target.value) || 6)}
                   min="1"
                   max="10"
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -192,19 +189,34 @@ const NumberingSettingsPage: React.FC = () => {
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">First quotation:</span>
                   <p className="font-mono font-semibold text-blue-700 dark:text-blue-300">
-                    {generatePreview(formData.quotePrefix, formData.quoteSuffix, formData.quotePad, 1)}
+                    {generatePreview(
+                      formData.quotePrefix,
+                      formData.quoteSuffix,
+                      formData.quotePad,
+                      1
+                    )}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">100th quotation:</span>
                   <p className="font-mono font-semibold text-blue-700 dark:text-blue-300">
-                    {generatePreview(formData.quotePrefix, formData.quoteSuffix, formData.quotePad, 100)}
+                    {generatePreview(
+                      formData.quotePrefix,
+                      formData.quoteSuffix,
+                      formData.quotePad,
+                      100
+                    )}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">1000th quotation:</span>
                   <p className="font-mono font-semibold text-blue-700 dark:text-blue-300">
-                    {generatePreview(formData.quotePrefix, formData.quoteSuffix, formData.quotePad, 1000)}
+                    {generatePreview(
+                      formData.quotePrefix,
+                      formData.quoteSuffix,
+                      formData.quotePad,
+                      1000
+                    )}
                   </p>
                 </div>
               </div>
@@ -222,13 +234,13 @@ const NumberingSettingsPage: React.FC = () => {
               </h3>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {formData.invoiceNumberingEnabled ? 'Enabled' : 'Disabled'}
+                  {formData.invoiceNumberingEnabled ? "Enabled" : "Disabled"}
                 </span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.invoiceNumberingEnabled}
-                    onChange={(e) => handleInputChange('invoiceNumberingEnabled', e.target.checked)}
+                    onChange={(e) => handleInputChange("invoiceNumberingEnabled", e.target.checked)}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -245,7 +257,7 @@ const NumberingSettingsPage: React.FC = () => {
                 <input
                   type="text"
                   value={formData.invoicePrefix}
-                  onChange={(e) => handleInputChange('invoicePrefix', e.target.value)}
+                  onChange={(e) => handleInputChange("invoicePrefix", e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="INV-"
                   required
@@ -262,7 +274,7 @@ const NumberingSettingsPage: React.FC = () => {
                 <input
                   type="text"
                   value={formData.invoiceSuffix}
-                  onChange={(e) => handleInputChange('invoiceSuffix', e.target.value)}
+                  onChange={(e) => handleInputChange("invoiceSuffix", e.target.value)}
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="-2025"
                 />
@@ -278,7 +290,7 @@ const NumberingSettingsPage: React.FC = () => {
                 <input
                   type="number"
                   value={formData.invoicePad}
-                  onChange={(e) => handleInputChange('invoicePad', parseInt(e.target.value) || 6)}
+                  onChange={(e) => handleInputChange("invoicePad", parseInt(e.target.value) || 6)}
                   min="1"
                   max="10"
                   className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -292,31 +304,47 @@ const NumberingSettingsPage: React.FC = () => {
 
             {/* Preview */}
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">Preview</h4>
+              <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
+                Preview
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">First invoice:</span>
                   <p className="font-mono font-semibold text-green-700 dark:text-green-300">
-                    {generatePreview(formData.invoicePrefix, formData.invoiceSuffix, formData.invoicePad, 1)}
+                    {generatePreview(
+                      formData.invoicePrefix,
+                      formData.invoiceSuffix,
+                      formData.invoicePad,
+                      1
+                    )}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">100th invoice:</span>
                   <p className="font-mono font-semibold text-green-700 dark:text-green-300">
-                    {generatePreview(formData.invoicePrefix, formData.invoiceSuffix, formData.invoicePad, 100)}
+                    {generatePreview(
+                      formData.invoicePrefix,
+                      formData.invoiceSuffix,
+                      formData.invoicePad,
+                      100
+                    )}
                   </p>
                 </div>
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">1000th invoice:</span>
                   <p className="font-mono font-semibold text-green-700 dark:text-green-300">
-                    {generatePreview(formData.invoicePrefix, formData.invoiceSuffix, formData.invoicePad, 1000)}
+                    {generatePreview(
+                      formData.invoicePrefix,
+                      formData.invoiceSuffix,
+                      formData.invoicePad,
+                      1000
+                    )}
                   </p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
-
 
         {/* Action Buttons */}
         <div className="flex gap-4 justify-end">
@@ -325,11 +353,11 @@ const NumberingSettingsPage: React.FC = () => {
             variant="OUTLINE"
             onClick={() => {
               setFormData({
-                quotePrefix: 'Q-',
-                quoteSuffix: '',
+                quotePrefix: "Q-",
+                quoteSuffix: "",
                 quotePad: 6,
-                invoicePrefix: 'INV-',
-                invoiceSuffix: '',
+                invoicePrefix: "INV-",
+                invoiceSuffix: "",
                 invoicePad: 6,
                 quoteNumberingEnabled: true,
                 invoiceNumberingEnabled: true,
@@ -344,7 +372,7 @@ const NumberingSettingsPage: React.FC = () => {
           <Button
             type="button"
             variant="OUTLINE"
-            onClick={() => navigate('/business-settings')}
+            onClick={() => navigate("/business-settings")}
             disabled={isSaving}
           >
             Cancel
@@ -356,11 +384,10 @@ const NumberingSettingsPage: React.FC = () => {
             className="flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            {isSaving ? 'Saving...' : 'Save Settings'}
+            {isSaving ? "Saving..." : "Save Settings"}
           </Button>
         </div>
       </form>
-
     </div>
   );
 };

@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { userService } from "../services/userService";
 import { leadService } from "../services/leadService";
 import { dealService } from "../services/dealService";
@@ -75,28 +69,31 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
       const canReadRoles = hasPermission("role.read");
       const canReadDeleted = hasPermission("deleted.read");
 
-      const [usersResponse, leadsResponse, dealsResponse, rolesResponse, deletedRes] = await Promise.all([
-        canReadUsers
-          ? userService.getUsers().catch(() => ({ data: { users: [] } }))
-          : Promise.resolve({ data: { users: [] } }),
-        canReadLeads
-          ? leadService.getLeads().catch(() => ({ data: { leads: [] } }))
-          : Promise.resolve({ data: { leads: [] } }),
-        canReadDeals
-          ? dealService.getDeals().catch((err) => {
-              console.log('Deals API not available yet:', err.response?.status);
-              return { data: { deals: [] } };
-            })
-          : Promise.resolve({ data: { deals: [] } }),
-        canReadRoles
-          ? roleService.getRoles().catch(() => ({ data: { roles: [] } }))
-          : Promise.resolve({ data: { roles: [] } }),
-        canReadDeleted
-          ? activityService
-              .getDeletedData(1, 1)
-              .catch(() => ({ data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } } }))
-          : Promise.resolve({ data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } } }),
-      ]);
+      const [usersResponse, leadsResponse, dealsResponse, rolesResponse, deletedRes] =
+        await Promise.all([
+          canReadUsers
+            ? userService.getUsers().catch(() => ({ data: { users: [] } }))
+            : Promise.resolve({ data: { users: [] } }),
+          canReadLeads
+            ? leadService.getLeads().catch(() => ({ data: { leads: [] } }))
+            : Promise.resolve({ data: { leads: [] } }),
+          canReadDeals
+            ? dealService.getDeals().catch((err) => {
+                console.log("Deals API not available yet:", err.response?.status);
+                return { data: { deals: [] } };
+              })
+            : Promise.resolve({ data: { deals: [] } }),
+          canReadRoles
+            ? roleService.getRoles().catch(() => ({ data: { roles: [] } }))
+            : Promise.resolve({ data: { roles: [] } }),
+          canReadDeleted
+            ? activityService.getDeletedData(1, 1).catch(() => ({
+                data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } },
+              }))
+            : Promise.resolve({
+                data: { users: { total: 0 }, leads: { total: 0 }, roles: { total: 0 } },
+              }),
+        ]);
 
       setCounts({
         users: usersResponse.data.users?.length || 0,
@@ -139,7 +136,6 @@ export const CountsProvider: React.FC<CountsProviderProps> = ({ children }) => {
       console.error("Error fetching leads count:", error);
     }
   };
-
 
   const refreshDealsCount = async () => {
     try {

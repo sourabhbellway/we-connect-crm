@@ -73,7 +73,9 @@ const MustChangePasswordModal: React.FC<MustChangePasswordModalProps> = ({
 
     const allOk = hasLength && hasLower && hasUpper && hasNumber && hasSpecial;
     if (!allOk) {
-      setError("Password must be 8+ characters with uppercase, lowercase, number, and special symbol");
+      setError(
+        "Password must be 8+ characters with uppercase, lowercase, number, and special symbol"
+      );
       return;
     }
 
@@ -81,12 +83,14 @@ const MustChangePasswordModal: React.FC<MustChangePasswordModalProps> = ({
       setLoading(true);
       const resp = await userService.changePasswordForNewUser(newPassword);
 
-      const updatedUserFromServer = (resp as any)?.data?.user
-        || (resp as any)?.user
-        || resp;
+      const updatedUserFromServer = (resp as any)?.data?.user || (resp as any)?.user || resp;
 
       if (updatedUserFromServer) {
-        updateUser({ ...(user as any), ...updatedUserFromServer, mustChangePassword: false } as any);
+        updateUser({
+          ...(user as any),
+          ...updatedUserFromServer,
+          mustChangePassword: false,
+        } as any);
       } else if (user?.mustChangePassword) {
         // At least clear the flag locally if backend succeeded but didn't return user
         updateUser({ ...(user as any), mustChangePassword: false } as any);
@@ -119,7 +123,8 @@ const MustChangePasswordModal: React.FC<MustChangePasswordModalProps> = ({
             Change Your Password
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            For security reasons, you must change your temporary password before accessing the system.
+            For security reasons, you must change your temporary password before accessing the
+            system.
           </p>
         </div>
 
@@ -225,9 +230,7 @@ const MustChangePasswordModal: React.FC<MustChangePasswordModalProps> = ({
             </div>
           </div>
 
-          {error && (
-            <p className="text-xs text-red-500">{error}</p>
-          )}
+          {error && <p className="text-xs text-red-500">{error}</p>}
 
           <button
             type="submit"

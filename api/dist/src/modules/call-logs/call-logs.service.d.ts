@@ -27,13 +27,13 @@ export declare class CallLogsService {
                     company: string | null;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -68,13 +68,13 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             item: {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -110,13 +110,13 @@ export declare class CallLogsService {
                     company: string | null;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -152,13 +152,13 @@ export declare class CallLogsService {
                     company: string | null;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -191,13 +191,13 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             callLogs: {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -233,13 +233,13 @@ export declare class CallLogsService {
                     company: string | null;
                 };
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;
@@ -279,13 +279,13 @@ export declare class CallLogsService {
         success: boolean;
         data: {
             item: {
-                createdAt: Date;
-                updatedAt: Date;
-                notes: string | null;
-                id: number;
                 metadata: import("@prisma/client/runtime/library").JsonValue | null;
                 userId: number;
                 leadId: number;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                notes: string | null;
                 duration: number | null;
                 outcome: string | null;
                 phoneNumber: string;

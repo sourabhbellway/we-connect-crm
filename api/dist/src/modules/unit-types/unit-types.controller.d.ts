@@ -5,57 +5,80 @@ export declare class UnitTypesController {
     private readonly unitTypesService;
     constructor(unitTypesService: UnitTypesService);
     create(createUnitTypeDto: CreateUnitTypeDto): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            unitType: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
     findAll(): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
-    }[]>;
+        success: boolean;
+        message: string;
+        data: {
+            description: string | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            deletedAt: Date | null;
+        }[];
+    }>;
     findOne(id: number): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            unitType: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
     update(id: number, updateUnitTypeDto: UpdateUnitTypeDto): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            unitType: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
     remove(id: number): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
     }>;
     toggleActive(id: number): Promise<{
-        isActive: boolean;
-        createdAt: Date;
-        updatedAt: Date;
-        deletedAt: Date | null;
-        id: number;
-        name: string;
-        description: string | null;
+        success: boolean;
+        message: string;
+        data: {
+            unitType: {
+                description: string | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
+                name: string;
+                isActive: boolean;
+                deletedAt: Date | null;
+            };
+        };
     }>;
 }

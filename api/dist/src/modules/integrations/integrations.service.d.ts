@@ -7,12 +7,12 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             items: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
                 config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
@@ -24,12 +24,12 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             integration: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
                 config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
@@ -41,12 +41,12 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             integration: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
                 config: import("@prisma/client/runtime/library").JsonValue | null;
                 displayName: string;
                 apiEndpoint: string;
@@ -58,11 +58,11 @@ export declare class IntegrationsService {
         success: boolean;
         data: {
             items: {
-                data: import("@prisma/client/runtime/library").JsonValue | null;
-                createdAt: Date;
-                id: number;
                 message: string | null;
+                id: number;
+                createdAt: Date;
                 status: import(".prisma/client").$Enums.IntegrationLogStatus;
+                data: import("@prisma/client/runtime/library").JsonValue | null;
                 operation: string;
                 errorDetails: string | null;
                 recordsCount: number | null;

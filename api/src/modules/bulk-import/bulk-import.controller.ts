@@ -16,7 +16,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('bulk-import')
 export class BulkImportController {
-  constructor(private readonly service: BulkImportService) { }
+  constructor(private readonly service: BulkImportService) {}
 
   @Post('leads')
   @RequirePermission('lead.import')

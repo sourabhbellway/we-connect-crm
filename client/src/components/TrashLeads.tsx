@@ -60,7 +60,7 @@ const TrashLeads: React.FC = () => {
   const handlePermanentDelete = async (leadId: number) => {
     if (
       !window.confirm(
-        "This will permanently delete the lead and its related data. This action cannot be undone. Continue?",
+        "This will permanently delete the lead and its related data. This action cannot be undone. Continue?"
       )
     ) {
       return;
@@ -97,7 +97,9 @@ const TrashLeads: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Leads Trash</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">View soft-deleted leads. Items are permanently deleted after 30 days.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              View soft-deleted leads. Items are permanently deleted after 30 days.
+            </p>
           </div>
         </div>
         <BackButton to="/trash" />
@@ -108,99 +110,115 @@ const TrashLeads: React.FC = () => {
           <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lead</th>
-                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
-                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Company</th>
-                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Deleted</th>
-                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Lead
+                </th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Phone
+                </th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Company
+                </th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Deleted
+                </th>
+                <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             {loading ? (
               <TableLoader rows={8} columns={6} />
             ) : (
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {error ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <NoResults
-                      title="Network or server error"
-                      description={error}
-                      icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                      isError
-                    />
-                  </td>
-                </tr>
-              ) : leads.length > 0 ? (
-                leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">
-                            {lead.firstName?.[0]}{lead.lastName?.[0]}
-                          </span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {lead.firstName} {lead.lastName}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
-                            {lead.company || "—"}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
-                      {lead.email ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
-                      <div className="flex items-center">
-                        <Phone className="h-3 w-3 mr-1" /> {lead.phone ?? "—"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
-                      {lead.company ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" /> 
-                        {lead.deletedAt ? new Date(lead.deletedAt).toLocaleString() : "—"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => handleRestore(lead.id)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                          title="Restore lead"
-                        >
-                          <RotateCcw className="h-3 w-3 mr-1" />
-                          Restore
-                        </button>
-                        <button
-                          onClick={() => handlePermanentDelete(lead.id)}
-                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                          title="Delete permanently"
-                        >
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          Delete
-                        </button>
-                      </div>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {error ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <NoResults
+                        title="Network or server error"
+                        description={error}
+                        icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                        isError
+                      />
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <NoResults
-                      icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
-                      description="No deleted leads found."
-                    />
-                  </td>
-                </tr>
-              )}
-            </tbody>
+                ) : leads.length > 0 ? (
+                  leads.map((lead) => (
+                    <tr
+                      key={lead.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-[#EF444E] to-[#ff5a64] flex items-center justify-center">
+                            <span className="text-white font-medium text-sm">
+                              {lead.firstName?.[0]}
+                              {lead.lastName?.[0]}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {lead.firstName} {lead.lastName}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                              {lead.company || "—"}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                        {lead.email ?? "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                        <div className="flex items-center">
+                          <Phone className="h-3 w-3 mr-1" /> {lead.phone ?? "—"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                        {lead.company ?? "—"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {lead.deletedAt ? new Date(lead.deletedAt).toLocaleString() : "—"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => handleRestore(lead.id)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                            title="Restore lead"
+                          >
+                            <RotateCcw className="h-3 w-3 mr-1" />
+                            Restore
+                          </button>
+                          <button
+                            onClick={() => handlePermanentDelete(lead.id)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                            title="Delete permanently"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <NoResults
+                        icon={<User className="h-12 w-12 text-gray-400 dark:text-gray-500" />}
+                        description="No deleted leads found."
+                      />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
             )}
           </table>
         </div>
@@ -208,7 +226,10 @@ const TrashLeads: React.FC = () => {
           currentPage={page}
           totalPages={pages}
           totalItems={total}
-          onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          onPageChange={(p) => {
+            setPage(p);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
           itemsPerPage={limit}
         />
       </div>

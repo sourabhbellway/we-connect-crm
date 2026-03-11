@@ -25,7 +25,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('files')
 export class FilesController {
-  constructor(private readonly service: FilesService) { }
+  constructor(private readonly service: FilesService) {}
 
   @Get()
   @RequirePermission('files.read')

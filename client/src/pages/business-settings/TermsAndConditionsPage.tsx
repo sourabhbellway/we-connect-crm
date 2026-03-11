@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardContent, Button } from '../../components/ui';
-import { FileText, ArrowLeft, Plus, Edit3, Trash2, Star, Check } from 'lucide-react';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardHeader, CardContent, Button } from "../../components/ui";
+import { FileText, ArrowLeft, Plus, Edit3, Trash2, Star, Check } from "lucide-react";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 interface TermsAndConditions {
   id: number;
@@ -25,10 +25,10 @@ const TermsAndConditionsPage: React.FC = () => {
   const [editingTemplate, setEditingTemplate] = useState<TermsAndConditions | null>(null);
 
   const [formData, setFormData] = useState<Partial<TermsAndConditions>>({
-    name: '',
-    description: '',
-    content: '',
-    category: 'general',
+    name: "",
+    description: "",
+    content: "",
+    category: "general",
     isDefault: false,
     isActive: true,
   });
@@ -40,13 +40,13 @@ const TermsAndConditionsPage: React.FC = () => {
   const fetchTemplates = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('/api/business-settings/terms-and-conditions');
+      const response = await axios.get("/api/business-settings/terms-and-conditions");
       if (response.data.success) {
         setTemplates(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch terms and conditions:', error);
-      toast.error('Failed to load terms and conditions');
+      console.error("Failed to fetch terms and conditions:", error);
+      toast.error("Failed to load terms and conditions");
     } finally {
       setIsLoading(false);
     }
@@ -56,37 +56,40 @@ const TermsAndConditionsPage: React.FC = () => {
     e.preventDefault();
 
     if (!formData.name?.trim()) {
-      toast.error('Template name is required');
+      toast.error("Template name is required");
       return;
     }
 
     if (!formData.content?.trim()) {
-      toast.error('Content is required');
+      toast.error("Content is required");
       return;
     }
 
     try {
       if (editingTemplate) {
-        const response = await axios.put(`/api/business-settings/terms-and-conditions/${editingTemplate.id}`, formData);
+        const response = await axios.put(
+          `/api/business-settings/terms-and-conditions/${editingTemplate.id}`,
+          formData
+        );
         if (response.data.success) {
-          toast.success('Template updated successfully');
+          toast.success("Template updated successfully");
           setShowForm(false);
           setEditingTemplate(null);
           resetForm();
           fetchTemplates();
         }
       } else {
-        const response = await axios.post('/api/business-settings/terms-and-conditions', formData);
+        const response = await axios.post("/api/business-settings/terms-and-conditions", formData);
         if (response.data.success) {
-          toast.success('Template created successfully');
+          toast.success("Template created successfully");
           setShowForm(false);
           resetForm();
           fetchTemplates();
         }
       }
     } catch (error: any) {
-      console.error('Failed to save template:', error);
-      toast.error(error.response?.data?.message || 'Failed to save template');
+      console.error("Failed to save template:", error);
+      toast.error(error.response?.data?.message || "Failed to save template");
     }
   };
 
@@ -98,45 +101,49 @@ const TermsAndConditionsPage: React.FC = () => {
 
   const handleSetDefault = async (id: number) => {
     try {
-      const response = await axios.put(`/api/business-settings/terms-and-conditions/set-default/${id}`);
+      const response = await axios.put(
+        `/api/business-settings/terms-and-conditions/set-default/${id}`
+      );
       if (response.data.success) {
-        toast.success('Default template updated successfully');
+        toast.success("Default template updated successfully");
         fetchTemplates();
       }
     } catch (error) {
-      console.error('Failed to set default template:', error);
-      toast.error('Failed to set default template');
+      console.error("Failed to set default template:", error);
+      toast.error("Failed to set default template");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this template? This action cannot be undone.')) {
+    if (
+      window.confirm("Are you sure you want to delete this template? This action cannot be undone.")
+    ) {
       try {
         const response = await axios.delete(`/api/business-settings/terms-and-conditions/${id}`);
         if (response.data.success) {
-          toast.success('Template deleted successfully');
+          toast.success("Template deleted successfully");
           fetchTemplates();
         }
       } catch (error) {
-        console.error('Failed to delete template:', error);
-        toast.error('Failed to delete template');
+        console.error("Failed to delete template:", error);
+        toast.error("Failed to delete template");
       }
     }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      description: '',
-      content: '',
-      category: 'general',
+      name: "",
+      description: "",
+      content: "",
+      category: "general",
       isDefault: false,
       isActive: true,
     });
   };
 
   const handleChange = (field: keyof TermsAndConditions, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   if (isLoading) {
@@ -167,7 +174,7 @@ const TermsAndConditionsPage: React.FC = () => {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {editingTemplate ? 'Edit Template' : 'Create Template'}
+                {editingTemplate ? "Edit Template" : "Create Template"}
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Configure terms and conditions template settings
@@ -193,8 +200,8 @@ const TermsAndConditionsPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    value={formData.name || ''}
-                    onChange={(e) => handleChange('name', e.target.value)}
+                    value={formData.name || ""}
+                    onChange={(e) => handleChange("name", e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     placeholder="e.g., Standard Terms & Conditions"
                     required
@@ -206,8 +213,8 @@ const TermsAndConditionsPage: React.FC = () => {
                     Category
                   </label>
                   <select
-                    value={formData.category || 'general'}
-                    onChange={(e) => handleChange('category', e.target.value)}
+                    value={formData.category || "general"}
+                    onChange={(e) => handleChange("category", e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   >
                     <option value="general">General</option>
@@ -224,8 +231,8 @@ const TermsAndConditionsPage: React.FC = () => {
                   Description
                 </label>
                 <textarea
-                  value={formData.description || ''}
-                  onChange={(e) => handleChange('description', e.target.value)}
+                  value={formData.description || ""}
+                  onChange={(e) => handleChange("description", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Brief description of this template"
                   rows={2}
@@ -238,15 +245,16 @@ const TermsAndConditionsPage: React.FC = () => {
                   Terms and Conditions Content *
                 </label>
                 <textarea
-                  value={formData.content || ''}
-                  onChange={(e) => handleChange('content', e.target.value)}
+                  value={formData.content || ""}
+                  onChange={(e) => handleChange("content", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Enter the full terms and conditions text here..."
                   rows={15}
                   required
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  This content will be displayed in quotations and invoices. You can use HTML formatting if needed.
+                  This content will be displayed in quotations and invoices. You can use HTML
+                  formatting if needed.
                 </p>
               </div>
 
@@ -257,10 +265,13 @@ const TermsAndConditionsPage: React.FC = () => {
                     type="checkbox"
                     id="isActive"
                     checked={formData.isActive || false}
-                    onChange={(e) => handleChange('isActive', e.target.checked)}
+                    onChange={(e) => handleChange("isActive", e.target.checked)}
                     className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
                   />
-                  <label htmlFor="isActive" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="isActive"
+                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  >
                     Active (make this template available for use)
                   </label>
                 </div>
@@ -270,10 +281,13 @@ const TermsAndConditionsPage: React.FC = () => {
                     type="checkbox"
                     id="isDefault"
                     checked={formData.isDefault || false}
-                    onChange={(e) => handleChange('isDefault', e.target.checked)}
+                    onChange={(e) => handleChange("isDefault", e.target.checked)}
                     className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500"
                   />
-                  <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="isDefault"
+                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
+                  >
                     Set as default template
                   </label>
                 </div>
@@ -283,7 +297,7 @@ const TermsAndConditionsPage: React.FC = () => {
               <div className="flex items-center gap-3 pt-4">
                 <Button type="submit" className="flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  {editingTemplate ? 'Update Template' : 'Create Template'}
+                  {editingTemplate ? "Update Template" : "Create Template"}
                 </Button>
                 <Button
                   type="button"
@@ -312,7 +326,7 @@ const TermsAndConditionsPage: React.FC = () => {
           <Button
             variant="GHOST"
             size="sm"
-            onClick={() => navigate('/business-settings')}
+            onClick={() => navigate("/business-settings")}
             className="p-2"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -355,10 +369,7 @@ const TermsAndConditionsPage: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Create your first terms and conditions template to get started
             </p>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 mx-auto"
-            >
+            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2 mx-auto">
               <Plus className="w-4 h-4" />
               Create Template
             </Button>
@@ -367,10 +378,7 @@ const TermsAndConditionsPage: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => (
-            <Card
-              key={template.id}
-              className="group hover:shadow-xl transition-all duration-300"
-            >
+            <Card key={template.id} className="group hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -386,7 +394,7 @@ const TermsAndConditionsPage: React.FC = () => {
                       )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {template.description || 'No description'}
+                      {template.description || "No description"}
                     </p>
                   </div>
                 </div>
@@ -401,13 +409,15 @@ const TermsAndConditionsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Status:</span>
-                    <span className={template.isActive ? 'text-green-600' : 'text-red-600'}>
-                      {template.isActive ? 'Active' : 'Inactive'}
+                    <span className={template.isActive ? "text-green-600" : "text-red-600"}>
+                      {template.isActive ? "Active" : "Inactive"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Created:</span>
-                    <span className="font-medium">{new Date(template.createdAt).toLocaleDateString()}</span>
+                    <span className="font-medium">
+                      {new Date(template.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
 
@@ -416,7 +426,7 @@ const TermsAndConditionsPage: React.FC = () => {
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Content Preview:</p>
                   <div className="bg-gray-50 dark:bg-gray-800 rounded p-2 max-h-20 overflow-hidden">
                     <p className="text-xs text-gray-700 dark:text-gray-300 line-clamp-3">
-                      {template.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                      {template.content.replace(/<[^>]*>/g, "").substring(0, 150)}...
                     </p>
                   </div>
                 </div>
@@ -475,9 +485,10 @@ const TermsAndConditionsPage: React.FC = () => {
                 About Terms & Conditions Templates
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Terms and conditions templates define the legal terms that will be included in your quotations and invoices.
-                When you create a quotation or invoice, it will automatically use the default template's terms.
-                You can create different templates for different types of services or products.
+                Terms and conditions templates define the legal terms that will be included in your
+                quotations and invoices. When you create a quotation or invoice, it will
+                automatically use the default template's terms. You can create different templates
+                for different types of services or products.
               </p>
             </div>
           </div>

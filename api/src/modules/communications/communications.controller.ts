@@ -26,7 +26,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('communications')
 export class CommunicationsController {
-  constructor(private readonly service: CommunicationsService) { }
+  constructor(private readonly service: CommunicationsService) {}
 
   // Specific routes first (more specific before generic)
   @Get('leads/:leadId/meetings')

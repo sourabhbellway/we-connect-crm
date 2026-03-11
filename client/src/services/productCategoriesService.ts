@@ -1,4 +1,4 @@
-import apiClient from "./apiClient";
+import { apiRequest } from "./apiClient";
 
 export interface ProductCategory {
   id: number;
@@ -11,31 +11,39 @@ export interface ProductCategory {
 
 export const productCategoriesService = {
   getProductCategories: async (): Promise<ProductCategory[]> => {
-    const response = await apiClient.get("/business-settings/product-categories");
-    return response.data;
+    const response = await apiRequest.get<any>("/business-settings/product-categories");
+    return Array.isArray(response) ? response : response?.data || [];
   },
 
   createProductCategory: async (
     categoryData: Partial<ProductCategory>
   ): Promise<ProductCategory> => {
-    const response = await apiClient.post("/business-settings/product-categories", categoryData);
-    return response.data;
+    const response = await apiRequest.post<any>(
+      "/business-settings/product-categories",
+      categoryData
+    );
+    return response?.data?.category || response?.data || response;
   },
 
   updateProductCategory: async (
     id: number,
     categoryData: Partial<ProductCategory>
   ): Promise<ProductCategory> => {
-    const response = await apiClient.patch(`/business-settings/product-categories/${id}`, categoryData);
-    return response.data;
+    const response = await apiRequest.patch<any>(
+      `/business-settings/product-categories/${id}`,
+      categoryData
+    );
+    return response?.data?.category || response?.data || response;
   },
 
   deleteProductCategory: async (id: number): Promise<void> => {
-    await apiClient.delete(`/business-settings/product-categories/${id}`);
+    await apiRequest.delete(`/business-settings/product-categories/${id}`);
   },
 
   toggleProductCategory: async (id: number): Promise<ProductCategory> => {
-    const response = await apiClient.patch(`/business-settings/product-categories/${id}/toggle`);
-    return response.data;
+    const response = await apiRequest.patch<any>(
+      `/business-settings/product-categories/${id}/toggle`
+    );
+    return response?.data?.category || response?.data || response;
   },
 };

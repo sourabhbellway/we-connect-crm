@@ -38,9 +38,7 @@ function Stats({
             {icon}
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-semibold text-white">
-              {count}
-            </h3>
+            <h3 className="text-base sm:text-lg font-semibold text-white">{count}</h3>
             <p className="text-xs sm:text-sm text-zinc-100">{title}</p>
           </div>
         </div>

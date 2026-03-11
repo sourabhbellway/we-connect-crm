@@ -7,11 +7,8 @@ export declare class ActivitiesController {
         success: boolean;
         data: {
             items: {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
-                description: string;
                 title: string;
+                description: string;
                 type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -20,6 +17,9 @@ export declare class ActivitiesController {
                 userId: number | null;
                 superAdminId: number | null;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
             }[];
         };
     }>;
@@ -41,11 +41,13 @@ export declare class ActivitiesController {
                     password: string;
                     firstName: string;
                     lastName: string;
-                    isActive: boolean;
-                    lastLogin: Date | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
+                    isActive: boolean;
+                    lastLogin: Date | null;
                     profilePicture: string | null;
+                    companyId: number | null;
                     deletedAt: Date | null;
                     accountLockedUntil: Date | null;
                     emailVerificationToken: string | null;
@@ -57,33 +59,31 @@ export declare class ActivitiesController {
                     twoFactorEnabled: boolean;
                     twoFactorSecret: string | null;
                     mustChangePassword: boolean;
-                    deviceToken: string | null;
-                    fcmToken: string | null;
-                    id: number;
-                    companyId: number | null;
                     managerId: number | null;
                     teamId: number | null;
+                    deviceToken: string | null;
+                    fcmToken: string | null;
                 }[];
                 total: number;
                 pages: number;
             };
             leads: {
                 records: {
-                    email: string | null;
-                    firstName: string | null;
-                    lastName: string | null;
-                    isActive: boolean;
-                    createdAt: Date;
-                    updatedAt: Date;
-                    deletedAt: Date | null;
-                    notes: string | null;
-                    id: number;
-                    companyId: number | null;
                     industry: string | null;
                     currency: string | null;
                     budget: import("@prisma/client/runtime/library").Decimal | null;
+                    email: string | null;
+                    firstName: string | null;
+                    lastName: string | null;
                     assignedTo: number | null;
                     createdBy: number | null;
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    isActive: boolean;
+                    companyId: number | null;
+                    deletedAt: Date | null;
+                    notes: string | null;
                     phone: string | null;
                     company: string | null;
                     position: string | null;
@@ -114,13 +114,13 @@ export declare class ActivitiesController {
             };
             roles: {
                 records: {
-                    isActive: boolean;
+                    description: string | null;
+                    id: number;
                     createdAt: Date;
                     updatedAt: Date;
-                    deletedAt: Date | null;
-                    id: number;
                     name: string;
-                    description: string | null;
+                    isActive: boolean;
+                    deletedAt: Date | null;
                     accessScope: import(".prisma/client").$Enums.RoleAccessScope;
                 }[];
                 total: number;
@@ -139,11 +139,8 @@ export declare class ActivitiesController {
                     id: number;
                 } | null;
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
-                description: string;
                 title: string;
+                description: string;
                 type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -152,6 +149,9 @@ export declare class ActivitiesController {
                 userId: number | null;
                 superAdminId: number | null;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
             })[];
             total: number;
             page: number;
@@ -162,11 +162,8 @@ export declare class ActivitiesController {
         success: boolean;
         data: {
             activity: {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
-                description: string;
                 title: string;
+                description: string;
                 type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -175,6 +172,9 @@ export declare class ActivitiesController {
                 userId: number | null;
                 superAdminId: number | null;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
             };
         };
     }>;
@@ -189,11 +189,8 @@ export declare class ActivitiesController {
                     id: number;
                 } | null;
             } & {
-                createdAt: Date;
-                updatedAt: Date;
-                id: number;
-                description: string;
                 title: string;
+                description: string;
                 type: import(".prisma/client").$Enums.ActivityType;
                 icon: string;
                 iconColor: string;
@@ -202,6 +199,9 @@ export declare class ActivitiesController {
                 userId: number | null;
                 superAdminId: number | null;
                 leadId: number | null;
+                id: number;
+                createdAt: Date;
+                updatedAt: Date;
             })[];
             total: number;
             page: number;

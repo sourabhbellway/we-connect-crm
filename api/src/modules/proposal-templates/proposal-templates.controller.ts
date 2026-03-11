@@ -18,7 +18,7 @@ import { RequirePermission } from '../../common/decorators/permission.decorator'
 @UseGuards(AuthGuard('jwt'), PermissionsGuard)
 @Controller('proposal-templates')
 export class ProposalTemplatesController {
-  constructor(private readonly service: ProposalTemplatesService) { }
+  constructor(private readonly service: ProposalTemplatesService) {}
 
   @Get()
   @RequirePermission('proposal_templates.read')

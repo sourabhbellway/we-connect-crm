@@ -29,7 +29,9 @@ const DealCreate: React.FC = () => {
     description: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -79,10 +81,15 @@ const DealCreate: React.FC = () => {
         <BackButton to="/deals" />
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-6"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Title *
+            </label>
             <input
               name="title"
               value={form.title}
@@ -93,7 +100,9 @@ const DealCreate: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Value
+            </label>
             <input
               name="value"
               type="number"
@@ -105,7 +114,9 @@ const DealCreate: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Currency</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Currency
+            </label>
             <select
               name="currency"
               value={form.currency}
@@ -113,8 +124,10 @@ const DealCreate: React.FC = () => {
               className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
             >
               {currencySettings?.supportedCurrencies?.length ? (
-                currencySettings.supportedCurrencies.map(code => (
-                  <option key={code} value={code}>{code}</option>
+                currencySettings.supportedCurrencies.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
                 ))
               ) : (
                 <>
@@ -127,22 +140,28 @@ const DealCreate: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Status
+            </label>
             <select
               name="status"
               value={form.status}
               onChange={handleChange}
               className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-weconnect-red focus:border-weconnect-red dark:bg-gray-700 dark:text-white"
             >
-              {(dealStatuses || []).filter(s => s.isActive).map(status => (
-                <option key={status.id} value={status.name}>
-                  {status.name}
-                </option>
-              ))}
+              {(dealStatuses || [])
+                .filter((s) => s.isActive)
+                .map((status) => (
+                  <option key={status.id} value={status.name}>
+                    {status.name}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Probability (%)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Probability (%)
+            </label>
             <input
               name="probability"
               type="number"
@@ -155,7 +174,9 @@ const DealCreate: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Expected Close Date</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Expected Close Date
+            </label>
             <input
               name="expectedCloseDate"
               type="date"
@@ -168,7 +189,9 @@ const DealCreate: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Contact ID</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Contact ID
+            </label>
             <input
               name="contactId"
               type="number"
@@ -179,7 +202,9 @@ const DealCreate: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Company ID</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Company ID
+            </label>
             <input
               name="companyId"
               type="number"
@@ -192,7 +217,9 @@ const DealCreate: React.FC = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Description
+          </label>
           <textarea
             name="description"
             value={form.description}
@@ -204,7 +231,12 @@ const DealCreate: React.FC = () => {
         </div>
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="SECONDARY" onClick={() => navigate("/deals")} disabled={submitting}>
+          <Button
+            type="button"
+            variant="SECONDARY"
+            onClick={() => navigate("/deals")}
+            disabled={submitting}
+          >
             Cancel
           </Button>
           <Button type="submit" variant="PRIMARY" disabled={submitting}>

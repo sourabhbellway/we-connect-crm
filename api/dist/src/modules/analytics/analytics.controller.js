@@ -86,21 +86,32 @@ let AnalyticsController = class AnalyticsController {
         const parsedFilters = filters ? JSON.parse(filters) : undefined;
         return this.service.getTaskReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
     }
-    getLeadReport(months, userId, scope, page, limit, filters, user) {
+    getLeadReport(months, startDate, endDate, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
         const parsedFilters = filters ? JSON.parse(filters) : undefined;
-        return this.service.getLeadReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
+        return this.service.getLeadReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters, startDate, endDate);
     }
-    getDealReport(months, userId, scope, page, limit, filters, user) {
+    getLeadMetricDetails(metricType, metricValue, startDate, endDate, userId, scope, user) {
+        const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
+        return this.service.getLeadMetricDetails({
+            metricType,
+            metricValue,
+            startDate,
+            endDate,
+            userId: parsedUserId,
+            scope: scope,
+        }, user);
+    }
+    getDealReport(months, startDate, endDate, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
         const parsedUserId = userId && !isNaN(Number(userId)) ? Number(userId) : undefined;
         const parsedPage = page && !isNaN(Number(page)) ? Number(page) : 1;
         const parsedLimit = limit && !isNaN(Number(limit)) ? Number(limit) : 10;
         const parsedFilters = filters ? JSON.parse(filters) : undefined;
-        return this.service.getDealReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters);
+        return this.service.getDealReport(parsedMonths, parsedUserId, scope, user, parsedPage, parsedLimit, parsedFilters, startDate, endDate);
     }
     getExpenseReport(months, userId, scope, page, limit, filters, user) {
         const parsedMonths = months && !isNaN(Number(months)) ? Number(months) : 6;
@@ -251,28 +262,46 @@ __decorate([
     (0, common_1.Get)('reports/lead'),
     (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
-    __param(1, (0, common_1.Query)('userId')),
-    __param(2, (0, common_1.Query)('scope')),
-    __param(3, (0, common_1.Query)('page')),
-    __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, common_1.Query)('filters')),
+    __param(1, (0, common_1.Query)('startDate')),
+    __param(2, (0, common_1.Query)('endDate')),
+    __param(3, (0, common_1.Query)('userId')),
+    __param(4, (0, common_1.Query)('scope')),
+    __param(5, (0, common_1.Query)('page')),
+    __param(6, (0, common_1.Query)('limit')),
+    __param(7, (0, common_1.Query)('filters')),
+    __param(8, (0, user_decorator_1.User)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], AnalyticsController.prototype, "getLeadReport", null);
+__decorate([
+    (0, common_1.Get)('reports/lead/metric-leads'),
+    (0, permission_decorator_1.RequirePermission)('dashboard.read'),
+    __param(0, (0, common_1.Query)('metricType')),
+    __param(1, (0, common_1.Query)('metricValue')),
+    __param(2, (0, common_1.Query)('startDate')),
+    __param(3, (0, common_1.Query)('endDate')),
+    __param(4, (0, common_1.Query)('userId')),
+    __param(5, (0, common_1.Query)('scope')),
     __param(6, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
-], AnalyticsController.prototype, "getLeadReport", null);
+], AnalyticsController.prototype, "getLeadMetricDetails", null);
 __decorate([
     (0, common_1.Get)('reports/deal'),
     (0, permission_decorator_1.RequirePermission)('dashboard.read'),
     __param(0, (0, common_1.Query)('months')),
-    __param(1, (0, common_1.Query)('userId')),
-    __param(2, (0, common_1.Query)('scope')),
-    __param(3, (0, common_1.Query)('page')),
-    __param(4, (0, common_1.Query)('limit')),
-    __param(5, (0, common_1.Query)('filters')),
-    __param(6, (0, user_decorator_1.User)()),
+    __param(1, (0, common_1.Query)('startDate')),
+    __param(2, (0, common_1.Query)('endDate')),
+    __param(3, (0, common_1.Query)('userId')),
+    __param(4, (0, common_1.Query)('scope')),
+    __param(5, (0, common_1.Query)('page')),
+    __param(6, (0, common_1.Query)('limit')),
+    __param(7, (0, common_1.Query)('filters')),
+    __param(8, (0, user_decorator_1.User)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, Object]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, Object]),
     __metadata("design:returntype", void 0)
 ], AnalyticsController.prototype, "getDealReport", null);
 __decorate([

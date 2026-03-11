@@ -4,13 +4,13 @@ import { isSupported, getMessaging, Messaging } from "firebase/messaging";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCD1pWLF1zGJ_vuVuv9p0foEBjeFB_9C8o",
-    authDomain: "weconnect-c70a4.firebaseapp.com",
-    projectId: "weconnect-c70a4",
-    storageBucket: "weconnect-c70a4.firebasestorage.app",
-    messagingSenderId: "406989897488",
-    appId: "1:406989897488:web:e805d62697d7d312f5af95",
-    measurementId: "G-QRL0MVYVQV"
+  apiKey: "AIzaSyCD1pWLF1zGJ_vuVuv9p0foEBjeFB_9C8o",
+  authDomain: "weconnect-c70a4.firebaseapp.com",
+  projectId: "weconnect-c70a4",
+  storageBucket: "weconnect-c70a4.firebasestorage.app",
+  messagingSenderId: "406989897488",
+  appId: "1:406989897488:web:e805d62697d7d312f5af95",
+  measurementId: "G-QRL0MVYVQV",
 };
 
 // Initialize Firebase
@@ -21,14 +21,18 @@ const analytics = getAnalytics(app);
 let messaging: Messaging | null = null;
 
 // Only initialize if supported
-isSupported().then((supported) => {
+isSupported()
+  .then((supported) => {
     if (supported) {
-        messaging = getMessaging(app);
+      messaging = getMessaging(app);
     } else {
-        console.warn("Firebase Messaging is not supported in this browser environment (likely due to non-HTTPS connection).");
+      console.warn(
+        "Firebase Messaging is not supported in this browser environment (likely due to non-HTTPS connection)."
+      );
     }
-}).catch(err => {
+  })
+  .catch((err) => {
     console.error("Error checking Firebase Messaging support:", err);
-});
+  });
 
 export { app, analytics, messaging };

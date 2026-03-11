@@ -28,13 +28,9 @@ export const useDebounce = <T>(value: T, delay: number): T => {
  * @param delay - Debounce delay in milliseconds
  * @returns Object with search value, debounced value, and setter
  */
-export const useDebouncedSearch = (
-  initialValue: string = "",
-  delay: number = 300
-) => {
+export const useDebouncedSearch = (initialValue: string = "", delay: number = 300) => {
   const [searchValue, setSearchValue] = useState(initialValue);
-  const [debouncedSearchValue, setDebouncedSearchValue] =
-    useState(initialValue);
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState(initialValue);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {

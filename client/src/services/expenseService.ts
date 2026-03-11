@@ -1,21 +1,21 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
-export type ExpenseType = 
-  | 'TRAVEL' 
-  | 'MEALS' 
-  | 'ACCOMMODATION' 
-  | 'OFFICE_SUPPLIES' 
-  | 'UTILITIES' 
-  | 'MARKETING' 
-  | 'ENTERTAINMENT' 
-  | 'TRAINING' 
-  | 'EQUIPMENT' 
-  | 'SOFTWARE' 
-  | 'CONSULTING' 
-  | 'MISCELLANEOUS' 
-  | 'OTHER';
+export type ExpenseType =
+  | "TRAVEL"
+  | "MEALS"
+  | "ACCOMMODATION"
+  | "OFFICE_SUPPLIES"
+  | "UTILITIES"
+  | "MARKETING"
+  | "ENTERTAINMENT"
+  | "TRAINING"
+  | "EQUIPMENT"
+  | "SOFTWARE"
+  | "CONSULTING"
+  | "MISCELLANEOUS"
+  | "OTHER";
 
-export type ExpenseStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'REIMBURSED';
+export type ExpenseStatus = "PENDING" | "APPROVED" | "REJECTED" | "REIMBURSED";
 
 export interface ExpensePayload {
   expenseDate: string;
@@ -32,7 +32,7 @@ export interface ExpensePayload {
 }
 
 export interface ApproveExpensePayload {
-  status: 'APPROVED' | 'REJECTED';
+  status: "APPROVED" | "REJECTED";
   reviewedBy: number;
   approvalRemarks?: string;
 }
@@ -53,18 +53,18 @@ export const expenseService = {
     currency?: string;
   }) => {
     const qs = new URLSearchParams();
-    if (params.page) qs.append('page', String(params.page));
-    if (params.limit) qs.append('limit', String(params.limit));
-    if (params.status) qs.append('status', params.status);
-    if (params.search) qs.append('search', params.search);
-    if (params.submittedBy) qs.append('submittedBy', String(params.submittedBy));
-    if (params.startDate) qs.append('startDate', params.startDate);
-    if (params.endDate) qs.append('endDate', params.endDate);
-    if (params.type) qs.append('type', params.type);
-    if (params.projectId) qs.append('projectId', String(params.projectId));
-    if (params.dealId) qs.append('dealId', String(params.dealId));
-    if (params.leadId) qs.append('leadId', String(params.leadId));
-    if (params.currency) qs.append('currency', params.currency);
+    if (params.page) qs.append("page", String(params.page));
+    if (params.limit) qs.append("limit", String(params.limit));
+    if (params.status) qs.append("status", params.status);
+    if (params.search) qs.append("search", params.search);
+    if (params.submittedBy) qs.append("submittedBy", String(params.submittedBy));
+    if (params.startDate) qs.append("startDate", params.startDate);
+    if (params.endDate) qs.append("endDate", params.endDate);
+    if (params.type) qs.append("type", params.type);
+    if (params.projectId) qs.append("projectId", String(params.projectId));
+    if (params.dealId) qs.append("dealId", String(params.dealId));
+    if (params.leadId) qs.append("leadId", String(params.leadId));
+    if (params.currency) qs.append("currency", params.currency);
 
     const url = `/expenses?${qs.toString()}`;
     const res = await apiClient.get(url);
@@ -98,23 +98,22 @@ export const expenseService = {
 
   getStats: async (userId?: number) => {
     const qs = new URLSearchParams();
-    if (userId) qs.append('userId', String(userId));
-    const url = `/expenses/stats${qs.toString() ? `?${qs.toString()}` : ''}`;
+    if (userId) qs.append("userId", String(userId));
+    const url = `/expenses/stats${qs.toString() ? `?${qs.toString()}` : ""}`;
     const res = await apiClient.get(url);
     return res.data;
   },
 
   uploadReceipt: async (expenseId: number, file: File, name?: string) => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('entityType', 'expense');
-    formData.append('entityId', String(expenseId));
-    if (name) formData.append('name', name);
+    formData.append("file", file);
+    formData.append("entityType", "expense");
+    formData.append("entityId", String(expenseId));
+    if (name) formData.append("name", name);
 
     const res = await apiClient.post(`/files/upload`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;
   },
 };
-

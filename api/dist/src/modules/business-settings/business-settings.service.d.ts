@@ -7,13 +7,13 @@ export declare class BusinessSettingsService {
     private parseExtended;
     private saveExtended;
     ensureSettings(): Promise<{
-        createdAt: Date;
-        updatedAt: Date;
-        id: number;
-        description: string | null;
-        invoiceTemplate: string;
         industry: string | null;
         currency: string;
+        invoiceTemplate: string;
+        description: string | null;
+        id: number;
+        createdAt: Date;
+        updatedAt: Date;
         companyName: string;
         companyEmail: string | null;
         companyPhone: string | null;
@@ -137,13 +137,13 @@ export declare class BusinessSettingsService {
     updateCurrency(body: any): Promise<{
         success: boolean;
         data: {
-            createdAt: Date;
-            updatedAt: Date;
-            id: number;
-            description: string | null;
-            invoiceTemplate: string;
             industry: string | null;
             currency: string;
+            invoiceTemplate: string;
+            description: string | null;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
             companyName: string;
             companyEmail: string | null;
             companyPhone: string | null;
@@ -203,13 +203,13 @@ export declare class BusinessSettingsService {
     listLeadSources(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
             sortOrder: number;
         }[];
@@ -217,13 +217,13 @@ export declare class BusinessSettingsService {
     createLeadSource(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
             sortOrder: number;
         };
@@ -231,13 +231,13 @@ export declare class BusinessSettingsService {
     updateLeadSource(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            companyId: number | null;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            companyId: number | null;
             color: string;
             sortOrder: number;
         };
@@ -268,33 +268,34 @@ export declare class BusinessSettingsService {
             currency: any;
             tax: any;
             leadSources: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
-                companyId: number | null;
                 name: string;
-                description: string | null;
+                isActive: boolean;
+                companyId: number | null;
                 color: string;
                 sortOrder: number;
             }[];
             leadStatuses: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
                 color: string;
                 sortOrder: number;
             }[];
+            leadStatusOptions: string | number | true | import("@prisma/client/runtime/library").JsonObject | import("@prisma/client/runtime/library").JsonArray;
             dealStatuses: {
-                isActive: boolean;
+                description: string | null;
+                id: number;
                 createdAt: Date;
                 updatedAt: Date;
-                id: number;
                 name: string;
-                description: string | null;
+                isActive: boolean;
                 color: string;
                 sortOrder: number;
             }[];
@@ -308,12 +309,12 @@ export declare class BusinessSettingsService {
     listDealStatuses(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
             color: string;
             sortOrder: number;
         }[];
@@ -321,12 +322,12 @@ export declare class BusinessSettingsService {
     createDealStatus(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
             color: string;
             sortOrder: number;
         };
@@ -334,12 +335,12 @@ export declare class BusinessSettingsService {
     updateDealStatus(id: number, body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
             color: string;
             sortOrder: number;
         };
@@ -350,12 +351,12 @@ export declare class BusinessSettingsService {
     listLeadStatuses(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
             color: string;
             sortOrder: number;
         }[];
@@ -363,12 +364,12 @@ export declare class BusinessSettingsService {
     createLeadStatus(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
             color: string;
             sortOrder: number;
         };
@@ -376,12 +377,12 @@ export declare class BusinessSettingsService {
     updateLeadStatus(id: number, body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
             color: string;
             sortOrder: number;
         };
@@ -465,16 +466,16 @@ export declare class BusinessSettingsService {
     listQuotationTemplates(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -486,16 +487,16 @@ export declare class BusinessSettingsService {
     createQuotationTemplate(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -507,16 +508,16 @@ export declare class BusinessSettingsService {
     updateQuotationTemplate(id: number, body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -531,16 +532,16 @@ export declare class BusinessSettingsService {
     setDefaultQuotationTemplate(id: number): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            termsAndConditions: string | null;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
             headerContent: string | null;
             footerContent: string | null;
-            termsAndConditions: string | null;
             showTax: boolean;
             showDiscount: boolean;
             logoPosition: string;
@@ -552,19 +553,19 @@ export declare class BusinessSettingsService {
     getEmailTemplates(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -576,19 +577,19 @@ export declare class BusinessSettingsService {
     createEmailTemplate(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -600,19 +601,19 @@ export declare class BusinessSettingsService {
     updateEmailTemplate(id: number, body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -624,19 +625,19 @@ export declare class BusinessSettingsService {
     deleteEmailTemplate(id: number): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -648,19 +649,19 @@ export declare class BusinessSettingsService {
     setDefaultEmailTemplate(id: number, category: EmailTemplateCategory): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -672,19 +673,19 @@ export declare class BusinessSettingsService {
     getEmailTemplatesByCategory(category: EmailTemplateCategory): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -696,19 +697,19 @@ export declare class BusinessSettingsService {
     getWelcomeEmailTemplate(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -742,19 +743,19 @@ export declare class BusinessSettingsService {
     } | {
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -766,19 +767,19 @@ export declare class BusinessSettingsService {
     upsertWelcomeEmailTemplate(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
-            companyId: number | null;
-            name: string;
-            isDefault: boolean;
             type: import(".prisma/client").$Enums.TemplateType;
             metadata: import("@prisma/client/runtime/library").JsonValue | null;
             createdBy: number;
+            id: number;
+            createdAt: Date;
+            updatedAt: Date;
+            name: string;
+            isActive: boolean;
+            companyId: number | null;
+            deletedAt: Date | null;
             status: import(".prisma/client").$Enums.EmailTemplateStatus;
             subject: string;
+            isDefault: boolean;
             category: import(".prisma/client").$Enums.EmailTemplateCategory;
             htmlContent: string;
             textContent: string;
@@ -817,9 +818,9 @@ export declare class BusinessSettingsService {
     getFieldConfigs(entityType: string): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             entityType: string;
             fieldName: string;
             label: string;
@@ -836,9 +837,9 @@ export declare class BusinessSettingsService {
     createFieldConfig(body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             entityType: string;
             fieldName: string;
             label: string;
@@ -855,9 +856,9 @@ export declare class BusinessSettingsService {
     updateFieldConfig(id: number, body: any): Promise<{
         success: boolean;
         data: {
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
             entityType: string;
             fieldName: string;
             label: string;
@@ -889,45 +890,45 @@ export declare class BusinessSettingsService {
     listTermsAndConditions(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
-            isDefault: boolean;
+            isActive: boolean;
+            deletedAt: Date | null;
             content: string;
+            isDefault: boolean;
             category: string | null;
         }[];
     }>;
     createTermsAndConditions(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
-            isDefault: boolean;
+            isActive: boolean;
+            deletedAt: Date | null;
             content: string;
+            isDefault: boolean;
             category: string | null;
         };
     }>;
     updateTermsAndConditions(id: number, body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
-            isDefault: boolean;
+            isActive: boolean;
+            deletedAt: Date | null;
             content: string;
+            isDefault: boolean;
             category: string | null;
         };
     }>;
@@ -937,26 +938,26 @@ export declare class BusinessSettingsService {
     setDefaultTermsAndConditions(id: number): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            description: string | null;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            deletedAt: Date | null;
-            id: number;
             name: string;
-            description: string | null;
-            isDefault: boolean;
+            isActive: boolean;
+            deletedAt: Date | null;
             content: string;
+            isDefault: boolean;
             category: string | null;
         };
     }>;
     listLeadSections(): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            icon: string;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            icon: string;
+            isActive: boolean;
             key: string;
             color: string;
             sortOrder: number;
@@ -966,11 +967,11 @@ export declare class BusinessSettingsService {
     createLeadSection(body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            icon: string;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            icon: string;
+            isActive: boolean;
             key: string;
             color: string;
             sortOrder: number;
@@ -980,11 +981,11 @@ export declare class BusinessSettingsService {
     updateLeadSection(id: number, body: any): Promise<{
         success: boolean;
         data: {
-            isActive: boolean;
+            icon: string;
+            id: number;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
-            icon: string;
+            isActive: boolean;
             key: string;
             color: string;
             sortOrder: number;
