@@ -192,7 +192,64 @@ const Deals: React.FC = () => {
 
   const { hasPermission } = useAuth();
   const { refreshDealsCount } = useCounts();
-  const { dealStatuses } = useBusinessSettings();
+  const { dealStatuses, formatCurrency, currencySettings } = useBusinessSettings();
+
+  // Helper to get the actual default currency code from settings
+  const getEffectiveDefaultCurrency = () => {
+    if (!currencySettings) return "USD";
+    const defaultFromList = currencySettings.currencies?.find((c) => c.isDefault);
+    return defaultFromList?.code || currencySettings.primary || "USD";
+  };
+
+  // Get currency symbol by currency code
+  const getCurrencySymbol = (currencyCode: string): string => {
+    // Check if symbol exists in currencySettings first
+    if (currencySettings?.currencies) {
+      const match = currencySettings.currencies.find((c) => c.code === currencyCode);
+      if (match?.symbol) return match.symbol;
+    }
+
+    const currencyMap: { [key: string]: string } = {
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      INR: "₹",
+      JPY: "¥",
+      CNY: "¥",
+      CAD: "C$",
+      AUD: "A$",
+      SGD: "S$",
+      HKD: "HK$",
+      CHF: "₣",
+      KRW: "₩",
+      MXN: "MX$",
+      BRL: "R$",
+      RUB: "₽",
+      ZAR: "R",
+      TRY: "₺",
+      NOK: "kr",
+      SEK: "kr",
+      DKK: "kr",
+      PLN: "zł",
+      CZK: "Kč",
+      HUF: "Ft",
+      ILS: "₪",
+      AED: "د.إ",
+      SAR: "﷼",
+      THB: "฿",
+      MYR: "RM",
+      IDR: "Rp",
+      PHP: "₱",
+      VND: "₫",
+      KGS: "сом",
+      KPW: "₩",
+      SYP: "£",
+      UYU: "$U",
+      YER: "﷼",
+    };
+
+    return currencyMap[currencyCode] || currencyCode;
+  };
 
   // Debounced search and local sort/filter/pagination
   const { searchValue, debouncedSearchValue, setSearch, isSearching } = useDebouncedSearch("", 500);
@@ -702,9 +759,8 @@ const Deals: React.FC = () => {
 
                       {/* Deal Value */}
                       <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400 mb-3">
-                        <DollarSign className="h-4 w-4 mr-1 flex-shrink-0" />
                         <span className="truncate">
-                          {formatCurrency(deal.value || 0, deal.currency)}
+                          {formatCurrency(deal.value || 0, getEffectiveDefaultCurrency())}
                         </span>
                       </div>
 
@@ -1072,34 +1128,7 @@ const Deals: React.FC = () => {
                           data-label="Value"
                         >
                           <div className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
-                            <div className="h-4 w-4 mr-1" />
-                            {(() => {
-                              const symbolToIso: Record<string, string> = {
-                                "₹": "INR",
-                                $: "USD",
-                                "€": "EUR",
-                                "£": "GBP",
-                                "¥": "JPY",
-                                "₩": "KRW",
-                                "₺": "TRY",
-                                "₽": "RUB",
-                                "د.إ": "AED",
-                                "﷼": "SAR",
-                                "৳": "BDT",
-                                "₦": "NGN",
-                              };
-                              const rawCode = deal.currency || "USD";
-                              const isoCode =
-                                rawCode.length === 3 ? rawCode : (symbolToIso[rawCode] ?? "USD");
-                              try {
-                                return new Intl.NumberFormat("en-US", {
-                                  style: "currency",
-                                  currency: isoCode,
-                                }).format(deal.value);
-                              } catch {
-                                return `${rawCode}${deal.value?.toLocaleString() ?? 0}`;
-                              }
-                            })()}
+                            {formatCurrency(deal.value || 0, getEffectiveDefaultCurrency())}
                           </div>
                         </td>
                         <td
